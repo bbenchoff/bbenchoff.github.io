@@ -20,6 +20,8 @@ While new USB to IDE/ATAPI adapters can be purchased, they do not work with what
 
 ![Delayering USB adapter](/images/atapiGL811e.gif)
 
-From there, a replacement PCB was constructed and new boards were made with New Old Stock GL811E chips.
+From there, a replacement PCB was constructed and new boards were made with New Old Stock GL811E chips. These USB to ATAPI adapter boards were then connected to a USB hub where they can be accessed by the OS.
+
+More information can be found in the [https://github.com/bbenchoff/ATAPI_Tower](ATAPI Tower repository)
 
 [back](./)
