@@ -10,7 +10,9 @@ layout: default
 
 The Zip drive tower is built from fifteen ATAPI Zip-100 drives. A custom board was made for fifteen ATAPI-to-USB converters.
 
-**Why build this?** There are two reasons I built the Zip drive tower. The _least_ important reason is to build a RAID array, just because. This turned out to be just as useless as expected; the array is slow (as Zip drives are very slow) and in RAID 0 configuration only presents a volume ~1.5GB in size. It also draws about 15 Amps at 5V on startup, so it's far less economical than a thumb drive.
+**Why build this?**
+
+There are two reasons I built the Zip drive tower. The _least_ important reason is to build a RAID array, just because. This turned out to be just as useless as expected; the array is slow (as Zip drives are very slow) and in RAID 0 configuration only presents a volume ~1.5GB in size. It also draws about 15 Amps at 5V on startup, so it's far less economical than a thumb drive.
 
 The _second_ reason is to start a record label. The rise of vinyl and cassette relases signals public interest in rare media formats, and it's too expensive to build a minidisc duplicator. Either way, I can produce some releases for Akai samplers and MPCs.
 
