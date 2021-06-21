@@ -20,4 +20,4 @@ Combined with the [silicone membrane keyboard](/keyboard.html) and [injection mo
 
 More information can be found in my [Dumb Terminal repository](https://github.com/bbenchoff/Dumb-Badge).
 
-[back](./)
+[back](../)

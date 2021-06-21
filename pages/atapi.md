@@ -28,4 +28,4 @@ From there, a replacement PCB was constructed and new boards were made with New 
 
 More information can be found in the [ATAPI Tower repository](https://github.com/bbenchoff/ATAPI_Tower).
 
-[back](./)
+[back](../)

@@ -17,4 +17,4 @@ The device uses the [IS31FL3741 LED driver display library](https://bbenchoff.gi
 More information can be found in the [RGB Gaming Coaster repository](https://github.com/bbenchoff/RGB-Gaming-Coaster).
 
 
-[back](./)
+[back](../)

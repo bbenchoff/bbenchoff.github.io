@@ -16,4 +16,4 @@ The keyboards were manufacured with a process that is like -- but not identical 
 More information can be found in the [Portable Dumb Terminal repository](https://github.com/bbenchoff/Dumb-Badge).
 
 
-[back](./)
+[back](../)

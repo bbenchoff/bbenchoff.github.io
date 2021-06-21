@@ -17,4 +17,4 @@ Because the quantities required for the portable dumb terminal are incompatable 
 Challenges presented during the design of this enclosure included manufacturing for design; this included draft angles, wall thickness, bosses, and consideration for plastic flow.
 
 
-[back](./)
+[back](../)
