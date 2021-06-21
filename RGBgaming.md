@@ -16,6 +16,6 @@ Blah Something
 More information can be found in the [RGB Gaming Coaster repository](https://github.com/bbenchoff/RGB-Gaming-Coaster).
 
 This is porygon
-<script src="https://embed.github.com/view/3d/bbenchoff/Porygon/blob/master/Porygon.stl>"></script>
+<script src="https://embed.github.com/view/3d/bbenchoff/Porygon/blob/master/Porygon.stl"></script>
 
 [back](./)
