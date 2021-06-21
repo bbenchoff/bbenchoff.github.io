@@ -15,7 +15,7 @@ This is porygon
 
 Code is as follows:
 
-'''ruby
+```ruby
 module bodyHalf()
 {
 	polyhedron(
@@ -128,6 +128,6 @@ module porygon()
 
 porygon();
 
-'''
+```
 
 [back](./)
