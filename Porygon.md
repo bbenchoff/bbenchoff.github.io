@@ -12,7 +12,7 @@ While there are many 3D models of Pokemon, there are no 3D models of Pokemon tha
 
 Code is as follows:
 
-```ruby
+```
 module bodyHalf()
 {
 	polyhedron(
