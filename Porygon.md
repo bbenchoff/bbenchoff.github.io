@@ -6,7 +6,7 @@ layout: default
 
 According to the Pokedex, Porygon is, "A Pokemon that consists entirely of programming code. Capable of moving freely in cyberspace."
 
-While there are many 3D models of Pokémon, there are no 3D models of Pokémon that were created entirely by computer code. OpenSCAD is a programming language that creates 3D models, so I did that.
+While there are many 3D models of Pokémon, there are no 3D models of Pokemon that were created entirely by computer code. OpenSCAD is a programming language that creates 3D models, so I did that.
 
 <script src="https://embed.github.com/view/3d/bbenchoff/Porygon/master/Porygon.stl"></script>
 
