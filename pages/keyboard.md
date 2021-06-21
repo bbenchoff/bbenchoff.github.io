@@ -6,7 +6,7 @@ layout: default
 
 
 
-<script src="https://embed.github.com/view/3d/bbenchoff/Dumb-Badge/master//Keyboard/keyboard.stl"></script>
+<script src="https://embed.github.com/view/3d/bbenchoff/Dumb-Badge/master/Keyboard/keyboard.stl"></script>
 
 
 [back](./)
