@@ -24,8 +24,6 @@ While new USB to IDE/ATAPI adapters can be purchased, they do not work with what
 
 From there, a replacement PCB was constructed and new boards were made with New Old Stock GL811E chips. These USB to ATAPI adapter boards were then connected to a USB hub where they can be accessed by the OS.
 
-![Eagle view of USB to ATAPI PCB](/images/USBtoATAPI.png)
-
 More information can be found in the [ATAPI Tower repository](https://github.com/bbenchoff/ATAPI_Tower).
 
 [back](./)
