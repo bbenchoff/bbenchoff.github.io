@@ -10,7 +10,7 @@ During the development of the [terminal parser library](/pages/parser.html), I n
 
 The device uses a dual 14-segment display to show the current buffer, or what has already been typed. Pressing 'Transmit' sends that byte over the serial port. The 'Backspace' key erases the buffer.
 
-![Printed Baud Box](/images/ParserState.png)
+![Printed Baud Box](/images/BaudBoxReal.jpg)
 
 The device uses a 3D printed enclosure with the special addition of a PCB front panel. On the front panel are three rotary switches for selecting the baud rate (up to 19200), the parity, and the stop bits. All of this is controlled by an Arduino with battery circuit.
 
