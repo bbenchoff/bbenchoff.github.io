@@ -16,6 +16,8 @@ The design is centered around a single PCB containing microcontroller logic, RS-
 
 A Microchip SAMD51 microcontroller controls every portion of the device. As no display driver or parser for an ANSI terminal existed, I built them. The [NT35510 TFT library](/pages/NT35510.html) controls the display and is capable of displaying 80x24 characters on screen. The [parser library](/pages/parser.html) 
 
+![htop running on display](/images/htop.png)
+
 Combined with the [silicone membrane keyboard](/pages/keyboard.html) and [injection molded enclosure](/pages/Palmtop.html), the portable dumb terminal is a complete product for sysadmins, engineers, and the small market of vintage computing enthusiasts. 
 
 More information can be found in my [Dumb Terminal repository](https://github.com/bbenchoff/Dumb-Badge).
