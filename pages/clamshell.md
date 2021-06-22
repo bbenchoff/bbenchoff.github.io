@@ -12,7 +12,7 @@ Basically, it's a Raspberry Pi with a custom keyboard, display, and power system
 
 ![Completed](/images/CyberdeckFull.jpg)
 
-It might be possible to do an investment castin gin aluminum. 
+It might be possible to do an investment casting in aluminum. 
 
 More information can be found in my [Cyberdeck repository](https://github.com/bbenchoff/AkiraCyberdeck).
 
