@@ -4,7 +4,7 @@ layout: default
 
 ## ANSI Terminal Parser
 
-The core functionality of the [portable dumb terminal](/dumb.html), the ANSI terminal processor is a reimplementation of the control logic of the [VT100](https://en.wikipedia.org/wiki/VT100) terminal.
+The core functionality of the [portable dumb terminal](/pages/dumb.html), the ANSI terminal processor is a reimplementation of the control logic of the [VT100](https://en.wikipedia.org/wiki/VT100) terminal.
 
 ![State Diagram of parser](/images/ParserState.png)
 
