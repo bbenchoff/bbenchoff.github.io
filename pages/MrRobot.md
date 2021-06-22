@@ -4,7 +4,7 @@ layout: default
 
 ## Mr Robot Badge
 
-
+![Mr Robot Badge](/images/RobotEngadget.jpg)
 
 
 
