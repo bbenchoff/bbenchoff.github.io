@@ -1,8 +1,7 @@
 ---
 layout: default
 
-toc: true
-toc_sticky: false
+
 ---
 
 ## Zip Drive Tower
