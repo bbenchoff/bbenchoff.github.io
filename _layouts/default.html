@@ -1,4 +1,8 @@
 <!doctype html>
+
+body {
+  overflow: scroll; /* Show scrollbars */
+}
 <html>
   <head>
     <meta charset="utf-8">
@@ -11,7 +15,6 @@
     <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
     <![endif]-->
   </head>
-
   <body>
     <div class="wrapper">
       <header>
@@ -31,13 +34,7 @@
 	<br><i class="fab fa-linkedin-square"></i>
 	<a href="https://www.linkedin.com/in/bbenchoff/">LinkedIn</a>
 	<br><a href="https://github.com/bbenchoff/Resume/raw/main/Brian%20Benchoff%20-%20Resume.pdf">Résumé (PDF)</a><br>
-        <br><hr>
-
-        {% if site.github.is_project_page %}
-          <p class="view"><a href="{{ site.github.repository_url }}">View the Project on GitHub <small>{{ github_name }}</small></a></p>
-        {% endif %}
-
-    	<H2>
+        <br><hr><H2>
 	My Projects
 	</H2>
 	
@@ -49,13 +46,6 @@
 	<a href="http://bbenchoff.github.io/pages/FidgetSpinner.html">Serial Fidget Spinner</a><br>
 	<a href="http://bbenchoff.github.io/pages/BaudBox.html">Baud Box</a><br>
 
-	<a href="http://bbenchoff.github.io/pages/BaudBox.html">Baud Box</a><br>
-	<a href="http://bbenchoff.github.io/pages/BaudBox.html">Baud Box</a><br>
-	<a href="http://bbenchoff.github.io/pages/BaudBox.html">Baud Box</a><br>
-	<a href="http://bbenchoff.github.io/pages/BaudBox.html">Baud Box</a><br>
-	<a href="http://bbenchoff.github.io/pages/BaudBox.html">Baud Box</a><br>
-	<a href="http://bbenchoff.github.io/pages/BaudBox.html">Baud Box</a><br>
-	<a href="http://bbenchoff.github.io/pages/BaudBox.html">Baud Box</a><br>
 
 	<hr>
 	<H3>Firmware Development</H3>
@@ -70,13 +60,15 @@
 	<a href="http://bbenchoff.github.io/pages/MiniITX.html">Retro-inspired industrial design</a><br>
 	<a href="http://bbenchoff.github.io/pages/clamshell.html">Hardened clamshell computer</a><br>
 	<a href="http://bbenchoff.github.io/pages/Porygon.html">Porygon</a><br>
+	
 
-	</header>
-
+        {% if site.github.is_project_page %}
+          <p class="view"><a href="{{ site.github.repository_url }}">View the Project on GitHub <small>{{ github_name }}</small></a></p>
+        {% endif %}
+      </header>
       <section>
 
-
-	
+      {{ content }}
 
       </section>
 
@@ -101,6 +93,5 @@
         ga('send', 'pageview');
     </script>
   {% endif %}
-
   </body>
 </html>
