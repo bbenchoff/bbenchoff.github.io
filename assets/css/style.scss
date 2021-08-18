@@ -3,8 +3,5 @@
 
 @import "{{ site.theme }}";
 div {
-  width: 200px;
-
-
-  overflow: scroll;
+  overflow: auto;
 }
