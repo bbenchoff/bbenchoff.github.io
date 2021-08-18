@@ -1,0 +1,48 @@
+---
+---
+
+@import "{{ site.theme }}";
+
+html,body{
+	height:100%;
+	padding:0;
+	margin:0;
+	box-sizing:border-box;
+}
+
+.wrapper {
+	height:auto;
+	width:100%;
+	display:flex;
+	flex-direction:column;
+	margin:0;
+	overflow:auto;
+}
+
+header{
+	float:none;
+	position:static;
+	padding:30px;
+	width:300px;
+	overflow:hidden;
+}
+
+section{
+	padding:30px;
+	width:100%;
+	flex:1;
+	overflow-y:auto;
+	box-sizing:border-box;
+}
+
+@media screen and (min-width:720px){
+	.wrapper{
+		flex-direction:row;
+		overflow-y:hidden;
+		height:100%
+	}
+
+	header{
+		overflow-y:auto;
+	}
+}
