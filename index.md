@@ -1,16 +1,24 @@
 ## Design Portfolio
 
-I design strange things, like [tower of Zip drives](/pages/atapi.html) that required reverse engineering 20-year-old consumer electronics. 
+I design strange things in hardware and software. Highlights include:
 
-![A ZIP drive RAID](/images/4ZipTower.png)
+- The time <a href="https://bbenchoff.github.io/pages/MrRobot.html">I built a blockchain of Tide pods</a>
+	- This was part of the <a href="https://github.com/bbenchoff/MrRobotBadge">indie DEFCON badge I made</a>
+- Reverse engineering <a href="https://bbenchoff.github.io/pages/atapi.html">20-year-old consumer electronics
+	- You would not belive how useful a <a href="https://www.amazon.com/Pixiss-Fiberglass-5-inches-Corrosion-Electrical/dp/B07M94Y12J">fiberglass pen</a> is.
+- I also do CAD work
+	- <a href="https://bbenchoff.github.io/pages/keyboard.html">With molded silicone</a>
+	- <a href="https://bbenchoff.github.io/pages/Palmtop.html">and injection molded plastic</a>
+- And embedded development:
+	- <a href="https://bbenchoff.github.io/pages/NT35510.html">Write a TFT driver they said</a>
+	- <a href="https://bbenchoff.github.io/pages/parser.html">There is no standard for terminal escape codes</a>
+	- <a href="https://bbenchoff.github.io/pages/IS31FL3741.html">Now-unobtanium LED drivers</a>
 
-I built a [blockchain of Tide pods](/pages/MrRobot.html) and wrote a terminal library that is extremely portable and able to run on extremely low-power microcontroller.
+![A BeBox](/images/BeBox-Small.png)
+![Silicone Keyboard](/images/Keyboard-Small.png)
+![Tower of Zip drives](/images/Zip-Small.png)
 
-![A terminal parser state diagram](/images/ParserState.png)
 
-Here's an '<a href="http://bbenchoff.github.io/pages/RGBgaming.html">RGB Gaming Coaster</a>', using my <a href="http://bbenchoff.github.io/pages/IS31FL3741.html">LED driver library</a>. It has more memory than <a href="https://www.corsair.com/us/en/Categories/Products/Accessories-%7C-Parts/PC-Components/Memory/CORSAIR-VENGEANCE-RGB-PRO-Light-Enhancement-Kit/p/CMWLEKIT2">RGB RAM-less RAM</a>:
-
-![RGB Gaming Coster](/images/RGBGaming.jpg)
 
 
 
