@@ -15,6 +15,7 @@ I design strange things in hardware and software. Highlights include:
 	- <a href="https://bbenchoff.github.io/pages/IS31FL3741.html">Now-unobtanium LED drivers</a>
 
 ![A BeBox](/images/BeBox-Small.png)
+![RGB Gaming Coaster](/images/RGBGaming-small.jpg)
 ![Silicone Keyboard](/images/Keyboard-Small.png)
 ![Tower of Zip drives](/images/Zip-Small.png)
 
