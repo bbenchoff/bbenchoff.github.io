@@ -2,9 +2,4 @@ theme: jekyll-theme-minimal
 title: bbenchoff.github.io
 baseurl: /
 
-# Site Settings
-locale                   : "en-US"
-title                    : "bbenchoff.github.io"
-title_separator          : "-"
-name                     : "Brian Benchoff"
-description              : "Design Portfolio"
+
