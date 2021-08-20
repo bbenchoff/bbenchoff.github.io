@@ -18,5 +18,7 @@ The solution to this problem is to use a temperature-stable ink. This can be don
 
 ![KISS Tindies](/images/KISSTindie.png)
 
+This process can be extended to CMYK colors, or even multiple spot colors for 'artistic' PCBs. It's also cheap, and every screen printing shop is already set up for this process and likely has the required inks in stock.
+
 
 [back](../)
