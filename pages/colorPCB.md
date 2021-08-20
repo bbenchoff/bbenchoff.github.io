@@ -16,7 +16,7 @@ The solution to this problem is to use a temperature-stable ink. This can be don
 
 ![Tide Pod](/images/tidepod.jpg)
 
-![KISS Tindies](/images/KISSTindie.jpg)
+![KISS Tindies](/images/KISSTindie.png)
 
 
 [back](../)
