@@ -6,6 +6,8 @@ I design strange things in hardware and software. Highlights include:
 	- This was part of the <a href="https://github.com/bbenchoff/MrRobotBadge">indie DEFCON badge I made</a>
 - Reverse engineering <a href="https://bbenchoff.github.io/pages/atapi.html">20-year-old consumer electronics
 	- You would not belive how useful a <a href="https://www.amazon.com/Pixiss-Fiberglass-5-inches-Corrosion-Electrical/dp/B07M94Y12J">fiberglass pen</a> is.
+- I made <a href="https://bbenchoff.github.io/pages/colorPCB.html">full-color printed circuit boards</a>
+
 - I also do CAD work
 	- <a href="https://bbenchoff.github.io/pages/keyboard.html">With molded silicone</a>
 	- <a href="https://bbenchoff.github.io/pages/Palmtop.html">and injection molded plastic</a>
