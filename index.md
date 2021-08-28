@@ -2,6 +2,8 @@
 
 I design strange things in hardware and software. Highlights include:
 
+- A <a href="https://bbenchoff.github.io/pages/HHLinux.html">handheld Linux device</a>. Think of it as a 'Swiss Army Device', designed to _hack anything_. Also it plays Doom.
+
 - The time <a href="https://bbenchoff.github.io/pages/MrRobot.html">I built a blockchain of Tide pods</a>
 	- This was part of the <a href="https://github.com/bbenchoff/MrRobotBadge">indie DEFCON badge I made</a>
 - Reverse engineering <a href="https://bbenchoff.github.io/pages/atapi.html">20-year-old consumer electronics
@@ -16,6 +18,7 @@ I design strange things in hardware and software. Highlights include:
 	- <a href="https://bbenchoff.github.io/pages/parser.html">There is no standard for terminal escape codes</a>
 	- <a href="https://bbenchoff.github.io/pages/IS31FL3741.html">Now-unobtanium LED drivers</a>
 
+![Handheld Linux Thing](/images/SAB-1.PNG)
 ![A BeBox](/images/BeBox-Small.png)
 ![RGB Gaming Coaster](/images/RGBGaming-small.jpg)
 ![Silicone Keyboard](/images/Keyboard-Small.png)
