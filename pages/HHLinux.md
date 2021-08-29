@@ -6,6 +6,8 @@ layout: default
 
 ## Handheld Linux Device
 
+![Handheld Linux Thing](/images/SAB.png)
+
 This is a small, handheld Linux device designed for low cost and manufacturability. Of note, this device does not use _lithium_ batteries, but rechargable NiMH AAA cells, as importing lithium cells is difficult; also, on a per-cell basis, NiMH are cheaper (with about 75% the capacity of Li cells).
 
 ## Features
