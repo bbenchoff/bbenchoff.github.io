@@ -8,7 +8,7 @@ A product design for a palmtop computer. Effectively, it's a dumb terminal like 
 
 ![Dumb Terminal Front](/images/VTPlastic.png)
 
-![Real Hardware](/images/RealHardware.jpg)
+[![Real Hardware](/images/YoutubePic.PNG)](https://www.youtube.com/watch?v=wYfpptgb6W8)
 
 ![Dumb Terminal Side](/images/VTPlasticSide.png)
 
