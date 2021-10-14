@@ -8,6 +8,8 @@ A product design for a palmtop computer. Effectively, it's a dumb terminal like 
 
 ![Dumb Terminal Front](/images/VTPlastic.png)
 
+[![Real Hardware](/images/YoutubePic.PNG)](https://www.youtube.com/watch?v=wYfpptgb6W8)
+
 ![Dumb Terminal Side](/images/VTPlasticSide.png)
 
 The design is centered around a single PCB containing microcontroller logic, RS-232 output, USB-C, battery circuitry, and a keyboard and display interface.
