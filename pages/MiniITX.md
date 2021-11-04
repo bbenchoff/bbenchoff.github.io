@@ -19,4 +19,14 @@ A take-off of the big Zip drive tower, this enclosure fits four 3.5" drives, pow
 
 The design is inspired by the SGI O2, with a dash of Power Macintosh 6400. With four Zip 250 drives, this enclosure holds an entire gigabyte of data, accessable over USB 2 High Speed interface. This does not saturate the USB connection; the bottleneck is the drives.
 
+## A Raspberry Pi BeBox
+
+![Inside of BeBox](/images/BeBox2.png)
+
+Long story short -- I needed a Raspberry Pi to sit on a shelf for something (an FTP server, I think?), and I wanted it to look cool. A BeBox enclosure did not exist, so I made one.
+
+This includes blinkenlights displaying the current CPU load. This is done with an MCP23017 I2C/GPIO expander. This board is mounted to the resin-printed front panel.
+
+More information can be found in the [BeBox Repo](https://github.com/bbenchoff/Raspi-BeBox).
+
 [back](../)
