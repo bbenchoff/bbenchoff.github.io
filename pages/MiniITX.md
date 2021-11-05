@@ -4,11 +4,11 @@ layout: default
 
 ## Rackintosh
 
-![Fusion render of rack mac](/images/Mac2.png)
+![Fusion render of rack mac](/images/Mac2.PNG)
 
 A rackmount Macintosh, from 1993. My [instagram](https://www.instagram.com/640by480/) requires me to keep an old Mac system around (pre-OS9, with a serial port), and existing solutions don't fit into my workstation layout. The solution is a rackmount Macintosh.
 
-![Internals of rack mac](/images/Mac1.png)
+![Internals of rack mac](/images/Mac1.jpg)
 
 The enclsure is built around a [Hammond Manufacturing rackmount enclosure](https://www.hammfg.com/electronics/small-case/rack-mount/rm) -- 1U, 8" deep. I downloaded the 3D cad files from the Hammond website, added bezels for the floppy drive, ports, and power supply, and printed out the result. 
 
