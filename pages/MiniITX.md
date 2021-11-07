@@ -18,7 +18,7 @@ The internals are Quadra 605, with most of the original components transfered ov
 
 ![Macworld 1993](/images/Macworld.jpg)
 
-This was also featured in the [May 1993 edition of MacWorld](https://twitter.com/NanoRaptor/status/1457436098896941057).
+This was also featured in the [May 1993 edition of MacWorld](https://twitter.com/NanoRaptor/status/1457436098896941057). The files to make your own can be found in the [Rackmount Mac repo](https://github.com/bbenchoff/RackmountMac).
 
 ## Frog Design-inspired Mini-ITX enclosure
 
