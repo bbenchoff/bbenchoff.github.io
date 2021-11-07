@@ -16,6 +16,10 @@ The enclsure is built around a [Hammond Manufacturing rackmount enclosure](https
 
 The internals are Quadra 605, with most of the original components transfered over. A SCSI drive won't fit, instead a BlueSCSI is used for the boot drive.
 
+![Macworld 1993](/images/Macworld.jpg)
+
+This was also featured in the [May 1993 edition of MacWorld](https://twitter.com/NanoRaptor/status/1457436098896941057).
+
 ## Frog Design-inspired Mini-ITX enclosure
 
 Inspired by the the best industrial design for computer cases of the 90s -- Packard Bell -- I decided to build my own Frog Design-inspired computer case. It supports a Mini ITX motherboard, with provisions for dual card slots.
