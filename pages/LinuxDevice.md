@@ -18,7 +18,11 @@ That's about it. Given that list of requirements, I know I need some sort of SoC
 
 ## Design & Expansion
 
+The biggest question is the Linux SoC. For this I chose the [Allwinner F1C100s](https://linux-sunxi.org/F1C100s), an ARM9 core running at 533MHz with an integrated 32MB of DDR (the F1C200s bumps the memory up to 64MB and is drop-in pin compatible). This is the same chip used in a now-discontinued dev board, the Lichee Pi Nano, and [I have Buildroot running on this chip](https://github.com/bbenchoff/NixDevice) thanks to the efforts of others. It boots from an SD card and puts a terminal on a SPI display. Everything kinda just works.
 
+The keyboard was not as easy, as a suite of tact switches would be expensive both in material cost and assembly cost. Instead, I'm using a [silicone membrane keyboard](https://bbenchoff.github.io/pages/keyboard.html), much like what you would find on a TV remote control. Because the electrical connections for the keyboard is printed on the circuit board, this type of keyboard is essentially free. Or a little less than $1 in quantites greater than a few thousand or so.
+
+The battery is slightly more challenging, as using lithium cells 
 
 ![Silicone Membrane Keyboard](/images/Linux/Back.png)
 
@@ -27,6 +31,11 @@ The 'back' of the device contains all the ports. These include a USB Type-A port
 Additionally, the storage on this device is through a SD card -- 
 
 ![Board Layout](/images/Linux/Board.png)
+
+
+## Does it really cost $15?
+
+In short, yes, if you're counting the BOM cost in quantities greater than 10,000.
 
 ## What can it do?
 
