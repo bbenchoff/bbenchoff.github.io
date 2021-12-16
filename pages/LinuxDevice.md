@@ -8,18 +8,25 @@ layout: default
 
 ![Front of Device](/images/Linux/Front.png)
 
-This project is an exploration of how inexpensive a computer can be. In the end, I ended up designing a 'Linux Swiss Army Knife', or a device capable of doing everything a normal computer does
+This project is an exploration of how inexpensive a computer can be. In the end, I ended up designing a 'Linux Swiss Army Knife', or a device capable of doing everything a normal computer does. With this comes some sort of definition of what a 'computer' is. This is very arguable, but I've narrowed it down to the following list of requirements:
 
+* Runs Linux. Just command line.
+* Has a keyboard. No touchscreen display.
+* Has a USB port. To connect to other things.
 
-![Silicone Membrane Keyboard](/images/KeyboardArial.png)
+That's about it. Given that list of requirements, I know I need some sort of SoC, perferrably as cheap as possible. I need a keyboard of some sort, preferrably as cheap as possible. I need a screen, some sort of battery system, and some sort of storage. All preferrably as cheap as possible. I think I've cracked this problem, and I've come up with a computer that runs Linux and costs about $15 USD.
 
 ## Design & Expansion
+
+
 
 ![Silicone Membrane Keyboard](/images/Linux/Back.png)
 
 The 'back' of the device contains all the ports. These include a USB Type-A port, where you can easily attach a WiFi or Bluetooth adapter, USB keyboard, webcam, or really *any other device*. lsusb works, so have fun with that.
 
 Additionally, the storage on this device is through a SD card -- 
+
+![Board Layout](/images/Linux/Board.png)
 
 ## What can it do?
 
