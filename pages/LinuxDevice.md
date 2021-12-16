@@ -16,13 +16,29 @@ This project is an exploration of how inexpensive a computer can be. In the end,
 
 That's about it. Given that list of requirements, I know I need some sort of SoC, perferrably as cheap as possible. I need a keyboard of some sort, preferrably as cheap as possible. I need a screen, some sort of battery system, and some sort of storage. All preferrably as cheap as possible. I think I've cracked this problem, and I've come up with a computer that runs Linux and costs about $15 USD.
 
+### TL;DR, Gimme the specs:
+
+* Allwinner F1C100s SoC
+	* ARM926EJ-S CPU @ 533 MHz
+	* 32 MB DDR (64 MB with pin-compatable F1C200s)
+* 2.3" IPS TFT
+	* 320 by 240 pixel resolution
+	* ILI9342 controller (SPI)
+* USB 2.0 over USB-A connector
+* 48-key Keyboard
+	* Yes, you can type any character you want
+* microSD card for storage
+* 2x AAA NiMH battery
+	* The battery life is long enough
+	* Charge over USB C
+
 ## Design & Expansion
 
 The biggest question is the Linux SoC. For this I chose the [Allwinner F1C100s](https://linux-sunxi.org/F1C100s), an ARM9 core running at 533MHz with an integrated 32MB of DDR (the F1C200s bumps the memory up to 64MB and is drop-in pin compatible). This is the same chip used in a now-discontinued dev board, the Lichee Pi Nano, and [I have Buildroot running on this chip](https://github.com/bbenchoff/NixDevice) thanks to the efforts of others. It boots from an SD card and puts a terminal on a SPI display. Everything kinda just works.
 
 The keyboard was not as easy, as a suite of tact switches would be expensive both in material cost and assembly cost. Instead, I'm using a [silicone membrane keyboard](https://bbenchoff.github.io/pages/keyboard.html), much like what you would find on a TV remote control. Because the electrical connections for the keyboard is printed on the circuit board, this type of keyboard is essentially free. Or a little less than $1 in quantites greater than a few thousand or so.
 
-The battery is slightly more challenging, as using lithium cells 
+The battery is slightly more challenging, as using lithium cells would mean more stringent requirements re: shipping and transport. Instead of lithium cells, I'll be using AAA NiMH cells. 
 
 ![Silicone Membrane Keyboard](/images/Linux/Back.png)
 
