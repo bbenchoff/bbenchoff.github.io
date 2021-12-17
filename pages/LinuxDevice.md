@@ -87,7 +87,7 @@ In short, yes, if you're counting the BOM cost in quantities greater than 10,000
 | U2..U4	| MT3420B	| $0.22			|
 | Y1		| Crystal 12MHz	| $0.12			|
 | SD card	| 64GB		| $2.20			|
-|		|		| **__TOTAL 11.06079__**|
+|		|		| **TOTAL $11.06079**|
 
 There you go, a full Linux computer for just over eleven bucks in parts. Neither the PCB nor assembly are included, but we can just call this a $15 computer for the clickbait headline. Good enough for me.
 
@@ -96,6 +96,12 @@ There you go, a full Linux computer for just over eleven bucks in parts. Neither
 ![Silicone Membrane Keyboard](/images/Linux/Doom.png)
 
 What can a $15 Linux computer do? First off, yes, [it can run Doom](https://www.chocolate-doom.org/wiki/index.php/Chocolate_Doom). Chocolate Doom is actually a default package in Buildroot, which is awesome.
+
+Instead of me telling you what this device can do, instead let me ask what _you_ can do with command line Linux, a keyboard, and a USB port. Do you want software defined radio? Sure thing, there's a package for that. Do you want this thing to be a crypto wallet? No problem, in fact you can display your expensive monkeys on the screen. Want to compile your own code on this thing? Go ahead. There's even a few GPIOs left open and broken out, have fun with that. There's one SPI and a few I2Cs that aren't connected to anything.
+
+This is, in short, a device that can do anything. It's just really small and really, really cheap.
+
+One thing I'm not even going to attempt is a GUI. You're stuck with command line unless someone hacks something else in. 
 
 
 ## In Closing, or, A Hammer for the Mind
