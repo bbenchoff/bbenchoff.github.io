@@ -57,6 +57,11 @@ Additionally, the storage on this device is through a SD card -- I've sourced a 
 
 The PCB is a simple 2-layer board. There's really nothing novel here except the contact pads for the silicone membrane keyboard.
 
+### Earlier renderings of the device
+
+![Handheld Linux Thing](/images/SAB-4.png)
+![Handheld Linux Thing](/images/SAB-5.png)
+
 
 ## Does it really cost $15?
 
