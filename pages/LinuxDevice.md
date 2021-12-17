@@ -92,9 +92,12 @@ In short, yes, if you're counting the BOM cost in quantities greater than 10,000
 | U2..U4	| MT3420B	| $0.22			|
 | Y1		| Crystal 12MHz	| $0.12			|
 | SD card	| 64GB		| $2.20			|
-|		|		| **TOTAL $11.06079**|
+| Battery (2)	| AAA NiMH	| $1.10			|
+|		|		| **TOTAL $12.16079**	|
 
-There you go, a full Linux computer for just over eleven bucks in parts. Neither the PCB nor assembly are included, but we can just call this a $15 computer for the clickbait headline. Good enough for me.
+There you go, a full Linux computer for just over twelve bucks in parts. Neither the PCB nor assembly are included, but we can just call this a $15 computer for the clickbait headline. Speaking of clickbait, if you want to build _one_ of these things, It'll cost you about ten grand. The first one costs ten grand, the ten thousandth one costs fifteen bucks.
+
+Additionally, I can buy all of the components for this device right now at the beginning of 2022, in the depths of a component shortage. Give me six months and I'll give you a tens of thousands of these things.
 
 ## What can it do?
 
