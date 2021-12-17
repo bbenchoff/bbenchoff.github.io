@@ -8,7 +8,7 @@ layout: default
 
 ![Front of Device](/images/Linux/Front.png)
 
-This project is an exploration of how inexpensive a computer can be. In the end, I ended up designing a 'Linux Swiss Army Knife', or a device capable of doing everything a normal computer does. With this comes some sort of definition of what a 'computer' is. This is very arguable, but I've narrowed it down to the following list of requirements:
+This is a 'Linux Swiss Army Knife', or a device capable of doing everything a normal computer does, offering maximum utility while still being able to fit in your pocket. With this comes some sort of definition of what a 'computer' and what a 'useful computer' is. This is very arguable, but I've narrowed it down to the following list of requirements:
 
 * Runs Linux. Just command line.
 * Has a keyboard. No touchscreen display.
