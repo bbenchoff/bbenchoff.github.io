@@ -28,9 +28,11 @@ That's about it. Given that list of requirements, I know I need some sort of SoC
 	* ILI9342 controller (SPI)
 * USB 2.0 over USB-A connector
 	* 5V to devices
-* 48-key Keyboard
+* 48-key keyboard
+	* Silicone membrane, like a TV remote control
 	* Yes, you can type any character you want
 * microSD card for storage
+	* How could you possibly fill up 64 GB of storage?
 * 2x AAA NiMH battery
 	* The battery life is long enough
 	* Charge over USB C @ 500mA
@@ -58,7 +60,36 @@ The PCB is a simple 2-layer board. There's really nothing novel here except the 
 
 ## Does it really cost $15?
 
-In short, yes, if you're counting the BOM cost in quantities greater than 10,000.
+In short, yes, if you're counting the BOM cost in quantities greater than 10,000. That said, let's go into the cost breakdown. This is an abridged but still accurate BOM, with costs for each row in the last column.
+
+| Device	| Description	| Cost @ QTY 1000	|
+|--------	|--------	|--------		|
+| CPU		| F1C100s	| $0.75			|
+| Display	| ILI9342	| $2.20			|
+| Keyboard	| custom	| $1.20			|
+| Enclosure	| custom	| $1.70			|
+| C1, C6, C8	| 22uF		| $0.15			|
+| C2, C3	| 1uF		| $0.02			|
+| C9..C13..C17	| 100nF		| $0.0045		|
+| C12		| 2.2uF		| $0.0011		|
+| C18, C19	| 1uF		| $0.002		|
+| Resistors (20)| Jellybean	| $0.015		|
+| IC2 		| MCP1642B	| $0.93 		|
+| J1		| Display conn	| $0.52584		|
+| L1		| 4.7uH 	| $0.31790		|
+| L2..L4	| 2.2uH		| $0.0126		|
+| SW1		| Switch	| $0.10			|
+| Q1		| Mosfet 	| $0.16			|
+| T1		| Thermistor	| $0.10659		|
+| Conn1...4	| Battery conn.	| $1.10			|
+| Type C	| Type C conn.	| $0.1894		|
+| Type A	| Type A conn.	| $0.0496		|
+| U2..U4	| MT3420B	| $0.22			|
+| Y1		| Crystal 12MHz	| $0.12			|
+| SD card	| 64GB		| $2.20			|
+|		|		| **__TOTAL 11.06079__**|
+
+There you go, a full Linux computer for just over eleven bucks in parts. Neither the PCB nor assembly are included, but we can just call this a $15 computer for the clickbait headline. Good enough for me.
 
 ## What can it do?
 
@@ -73,9 +104,7 @@ I hate to invoke Steve Jobs on this, but one of the most insightful things he ev
 
 It's a brilliant anecdote showcasing what computers can do now, but also what would be possible in the future with further advances in computing. The story is also complete bullshit, because humans evolved to be pursuit hunters able to out-walk an antelope. Humans don't need to be the most efficient animal, humans just need to be more efficient than an antelope. But I digress...
 
-This anecdote ties 'humans as tool-builders' and 'humans are the supreme animal' into a neat little package, but it fails to mention the tools needed to build a bicycle. We need hammers, we need wreches, and we need knowledge of fairly advanced metullurgy.
-
-That's what this device is. It's a tool used to fix our computers. If you need a serial terminal, just grab this device and a USB to FTDI thingy, and you've got a serial terminal. Want to flash a microcontroller? This thing has AVRDude built in. Want to listen to Starlink satellites? Just plug in an SDR. That's what this device is: a tool to fix computers, or a Hammer for the Mind.
+This anecdote ties 'humans as tool-builders' and 'humans are the supreme animal' into a neat little package, but it fails to mention the tools needed to build a bicycle. We need hammers, we need wreches, and we need knowledge of fairly advanced metullurgy. That's what this device is. It's a tool used to fix our computers. If you need a serial terminal, just grab this device and a USB to FTDI thingy, and you've got a serial terminal. Want to flash a microcontroller? This thing has AVRDude built in. Want to listen to Starlink satellites? Just plug in an SDR. This is the Linux Swiss Army Knife: a tool to fix the 'bicycles for the mind'. It's a simple, cheap, nearly endlessly-expandable device meant to fix the real computers. I'm calling it the 'Hammer for the Mind'.
 
 
 [back](../)
