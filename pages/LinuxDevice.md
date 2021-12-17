@@ -13,6 +13,7 @@ This project is an exploration of how inexpensive a computer can be. In the end,
 * Runs Linux. Just command line.
 * Has a keyboard. No touchscreen display.
 * Has a USB port. To connect to other things.
+* Some sort of battery power, I guess.
 
 That's about it. Given that list of requirements, I know I need some sort of SoC, perferrably as cheap as possible. I need a keyboard of some sort, preferrably as cheap as possible. I need a screen, some sort of battery system, and some sort of storage. All preferrably as cheap as possible. I think I've cracked this problem, and I've come up with a computer that runs Linux and costs about $15 USD.
 
@@ -21,32 +22,38 @@ That's about it. Given that list of requirements, I know I need some sort of SoC
 * Allwinner F1C100s SoC
 	* ARM926EJ-S CPU @ 533 MHz
 	* 32 MB DDR (64 MB with pin-compatable F1C200s)
+	* Runs Linux! A recent version of Linux!
 * 2.3" IPS TFT
 	* 320 by 240 pixel resolution
 	* ILI9342 controller (SPI)
 * USB 2.0 over USB-A connector
+	* 5V to devices
 * 48-key Keyboard
 	* Yes, you can type any character you want
 * microSD card for storage
 * 2x AAA NiMH battery
 	* The battery life is long enough
-	* Charge over USB C
+	* Charge over USB C @ 500mA
 
 ## Design & Expansion
 
-The biggest question is the Linux SoC. For this I chose the [Allwinner F1C100s](https://linux-sunxi.org/F1C100s), an ARM9 core running at 533MHz with an integrated 32MB of DDR (the F1C200s bumps the memory up to 64MB and is drop-in pin compatible). This is the same chip used in a now-discontinued dev board, the Lichee Pi Nano, and [I have Buildroot running on this chip](https://github.com/bbenchoff/NixDevice) thanks to the efforts of others. It boots from an SD card and puts a terminal on a SPI display. Everything kinda just works.
+The biggest question is the Linux SoC. For this I chose the [Allwinner F1C100s](https://linux-sunxi.org/F1C100s), an ARM9 core running at 533MHz with an integrated 32MB of DDR (the F1C200s bumps the memory up to 64MB and is drop-in pin compatible). This is the same chip used in a now-discontinued dev board, the Lichee Pi Nano, and [I have Buildroot running on this chip](https://github.com/bbenchoff/NixDevice) thanks to the efforts of others. It boots from an SD card and puts a terminal on a SPI display. Everything kinda just works thanks to [some very cool people working on the sunxi stuff for Linux](https://linux-sunxi.org/F1C100s).
 
 The keyboard was not as easy, as a suite of tact switches would be expensive both in material cost and assembly cost. Instead, I'm using a [silicone membrane keyboard](https://bbenchoff.github.io/pages/keyboard.html), much like what you would find on a TV remote control. Because the electrical connections for the keyboard is printed on the circuit board, this type of keyboard is essentially free. Or a little less than $1 in quantites greater than a few thousand or so.
 
-The battery is slightly more challenging, as using lithium cells would mean more stringent requirements re: shipping and transport. Instead of lithium cells, I'll be using AAA NiMH cells. 
+The silicone membrane keyboard does come with a drawback -- it requires a plastic enclosure. My enclosure is a two-piece clamshell snap-fit design requiring no tools to assemble or disassemble. The cost is about $1 in quantity, and will be screen printed with alt keyboard combinations above each key.
+
+The battery is slightly more challenging, as using lithium cells would mean more stringent requirements re: shipping and transport. Instead of lithium cells, I'll be using AAA NiMH cells. While providing less overall power per unit mass of lithium, it's significantly less expensive than lithium. This design can also be modified for AA NiMH cells for more than twice the runtime at the expense of a slightly thicker enclosure.
 
 ![Silicone Membrane Keyboard](/images/Linux/Back.png)
 
 The 'back' of the device contains all the ports. These include a USB Type-A port, where you can easily attach a WiFi or Bluetooth adapter, USB keyboard, webcam, or really *any other device*. lsusb works, so have fun with that.
 
-Additionally, the storage on this device is through a SD card -- 
+Additionally, the storage on this device is through a SD card -- I've sourced a few 8GB cards and they work fine, but at scale 32GB or 64GB are more readily available. This is the second most expensive line item in the BOM, coming in at about $2/each at quantity 10,000.
 
 ![Board Layout](/images/Linux/Board.png)
+
+The PCB is a simple 2-layer board. There's really nothing novel here except the contact pads for the silicone membrane keyboard.
 
 
 ## Does it really cost $15?
