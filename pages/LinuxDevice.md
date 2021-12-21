@@ -106,7 +106,7 @@ In short, yes, if you're counting the BOM cost in quantities greater than 10,000
 | Battery (2)	| AAA NiMH	| $1.10			|
 |		|		| **TOTAL $12.16079**	|
 
-There you go, a full Linux computer for just over twelve bucks in parts. Neither the PCB nor assembly are included, and better component selection (caps, and a generic version of the battery clip) would drop a few cents off the build. But I'll call this a $15 computer for the clickbait headline. Speaking of clickbait, if you want to build _one_ of these things, It'll cost you about ten grand. The first one costs ten grand, the ten thousandth one costs fifteen bucks.
+There you go, a full Linux computer for just over twelve bucks in parts. Neither the PCB nor assembly are included, and better component selection (caps, and a generic version of the battery clip) would drop a few cents off the build. But I'll call this a $15 computer for the clickbait headline. Speaking of clickbait, if you want to build _one_ of these things, It'll cost you about ten grand. The first one costs ten grand, the ten thousandth one costs fifteen bucks. If you really want to know what the price is, I'd say a Chinese manufacturer could charge $20 and still make some money.
 
 I can buy all of the components for this device right now at the beginning of 2022, in the depths of a component shortage. Give me six months and I'll give you a tens of thousands of these things.
 
