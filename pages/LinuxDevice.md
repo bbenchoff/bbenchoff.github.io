@@ -4,7 +4,7 @@ layout: default
 
 ---
 
-# A $15 Linux Computer, or a Linux Swiss Army Knife
+# A Minimum Viable Computer, or Linux for $15.
 
 ![Front of Device](/images/Linux/Front.png)
 
@@ -15,7 +15,9 @@ This is a 'Linux Swiss Army Knife', or a device capable of doing everything a no
 * Has a USB port. To connect to other things.
 * Some sort of battery power, I guess.
 
-That's about it. Given that list of requirements, I know I need some sort of SoC, perferrably as cheap as possible. I need a keyboard of some sort, preferrably as cheap as possible. I need a screen, some sort of battery system, and some sort of storage. All preferrably as cheap as possible. I think I've cracked this problem, and I've come up with a computer that runs Linux and costs about $15 USD.
+That's about it. Could you do all of this with a smartphone? Yeah, kinda, if you root prepaid Android phone, but even that would cost more than $30. I know I can build something cheaper.
+
+Given the list of requirements, I know I need some sort of SoC, perferrably as cheap as possible. I need a keyboard of some sort, preferrably as cheap as possible. I need a screen, some sort of battery system, and some sort of storage. All preferrably as cheap as possible. I think I've cracked this problem, and I've come up with a computer that runs Linux and costs about $15 USD.
 
 ### TL;DR, Gimme the specs:
 
@@ -36,6 +38,15 @@ That's about it. Given that list of requirements, I know I need some sort of SoC
 * 2x AAA NiMH battery
 	* The battery life is long enough
 	* Charge over USB C @ 500mA
+* Licensed!
+	* There's a few drivers I had to write for this, I'll submit a patch eventually.
+	* Everything else is licensed as permissively as possible
+	* Yes 'Open Hardware' means more than PDFs of schematics
+* Low Price!
+	* It costs $10,000 USD to build one of these
+	* The ten thousandth one costs $15
+* Designed in 2021
+	* I can buy all the parts right now, in quantity.
 
 ## Design & Expansion
 
@@ -47,7 +58,7 @@ The silicone membrane keyboard does come with a drawback -- it requires a plasti
 
 The battery is slightly more challenging, as using lithium cells would mean more stringent requirements in regards to shipping and transport. Instead of lithium cells, I'll be using AAA NiMH cells. While providing less overall power per unit mass of lithium, it's significantly less expensive than lithium. This design can also be modified for AA NiMH cells for more than twice the runtime at the expense of a slightly thicker enclosure.
 
-![Silicone Membrane Keyboard](/images/Linux/Back.png)
+![The ports on the device](/images/Linux/Back.png)
 
 The 'back' of the device contains all the ports. These include a USB Type-A port, where you can easily attach a WiFi or Bluetooth adapter, USB keyboard, webcam, or really *any other device*. lsusb works, so have fun with that.
 
@@ -95,9 +106,9 @@ In short, yes, if you're counting the BOM cost in quantities greater than 10,000
 | Battery (2)	| AAA NiMH	| $1.10			|
 |		|		| **TOTAL $12.16079**	|
 
-There you go, a full Linux computer for just over twelve bucks in parts. Neither the PCB nor assembly are included, but we can just call this a $15 computer for the clickbait headline. Speaking of clickbait, if you want to build _one_ of these things, It'll cost you about ten grand. The first one costs ten grand, the ten thousandth one costs fifteen bucks.
+There you go, a full Linux computer for just over twelve bucks in parts. Neither the PCB nor assembly are included, and better component selection (caps, and a generic version of the battery clip) would drop a few cents off the build. But I'll call this a $15 computer for the clickbait headline. Speaking of clickbait, if you want to build _one_ of these things, It'll cost you about ten grand. The first one costs ten grand, the ten thousandth one costs fifteen bucks.
 
-Additionally, I can buy all of the components for this device right now at the beginning of 2022, in the depths of a component shortage. Give me six months and I'll give you a tens of thousands of these things.
+I can buy all of the components for this device right now at the beginning of 2022, in the depths of a component shortage. Give me six months and I'll give you a tens of thousands of these things.
 
 ## What can it do?
 
@@ -114,11 +125,13 @@ One thing I'm not even going to attempt is a GUI. You're stuck with command line
 
 ## In Closing, or, A Hammer for the Mind
 
-I hate to invoke Steve Jobs on this, but one of the most insightful things he ever said was his ['Bicycle for the Mind' anecdote](https://www.youtube.com/watch?v=ob_GX50Za6c). In this story, Jobs read a story in Scientific American where scientists tested the efficiency of locomotion for dozens of species. The condor was most efficient, or able to travel a kilometer using the least amount of energy. Humans were middling, about a third of the way down the list. However, Jobs tells, someone at Scientific American had the insight to test a human *on a bicycle*. Here, the bike blew every other animal away, and because of technology, humans are the most efficient species on the planet. The computer is a bicycle for the mind, allowing us to do more _thought_ easier and with less energy.
+I hate to invoke Steve Jobs on this, but one of the most insightful things he ever said was his ['Bicycle for the Mind' anecdote](https://www.youtube.com/watch?v=ob_GX50Za6c). In this story, Jobs read a story in Scientific American where scientists tested the efficiency of locomotion for dozens of species. The condor was most efficient, or able to travel a kilometer using the least amount of energy. Humans were middling, about a third of the way down the list. However, Jobs tells, someone at Scientific American had the insight to test a human *on a bicycle*. Here, the bike blew every other animal away, and because of technology, humans are the most efficient species on the planet. 
 
-It's a brilliant anecdote showcasing what computers can do now, but also what would be possible in the future with further advances in computing. The story is also complete bullshit, because humans evolved to be pursuit hunters able to out-walk an antelope. Humans don't need to be the most efficient animal, humans just need to be more efficient than an antelope. But I digress...
+The computer is a bicycle for the mind, or so this analogy goes, allowing us to do more _thought_ easier and with less energy. This is the type of thinking that gets you to the wonder of 1980s and -90s computing, when _we were changing the world_, before technology of the 2000s and 2010s was changing the world _for the worse_, what with destroying democracy with Facebook. 
 
-This anecdote ties 'humans as tool-builders' and 'humans are the supreme animal' into a neat little package, but it fails to mention the tools needed to build a bicycle. This also leaves out the growth IT and technology industries of 'bicycle repairmen, but for the mind'. We need hammers, we need wreches, and we need knowledge of fairly advanced metullurgy. That's what this device is. It's a tool used to fix our computers. If you need a serial terminal, just grab this device and a USB to FTDI thingy, and you've got a serial terminal. Want to flash a microcontroller? This thing has AVRDude built in. Want to listen to Starlink satellites? Just plug in an SDR. This is the Linux Swiss Army Knife: a tool to fix the 'bicycles for the mind'. It's a simple, cheap, nearly endlessly-expandable device meant to fix the real computers. I'm calling it the 'Hammer for the Mind'.
+This story is complete bullshit. The efficiency of animal locomotion is just a function of evolution. Of course an albatross is extremely efficent at flying, because an albatross has to fly 10,000 miles without stopping. Of course a human's bipedal locomotion is more efficent than an antelope, because humans are pursuit hunters. All we need to do is walk to where the antelope finally exhausts itself.
+
+The continued the bicycle for the mind analogy fails to mention the tools needed to build a bicycle. This also leaves out the growth IT and technology industries of 'bicycle repairmen, but for the mind'. We need hammers, we need wreches, and we need knowledge of fairly advanced metullurgy. That's what this device is. It's a tool used to fix our computers. If you need a serial terminal, just grab this device and a USB to FTDI thingy, and you've got a serial terminal. Want to flash a microcontroller? This thing has AVRDude built in. Want to listen to Starlink satellites? Just plug in an SDR. This is the Linux Swiss Army Knife: a tool to fix the 'bicycles for the mind'. It's a simple, cheap, nearly endlessly-expandable device meant to fix the real computers. I'm calling it the 'Hammer for the Mind'. Or it's a $15 Linux Computer. Or the Minimum Viable Computer. The hardest thing in technology is naming something.
 
 
 [back](../)
