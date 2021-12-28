@@ -76,7 +76,7 @@ The PCB is a simple 2-layer board. There's really nothing novel here except the 
 
 ## Does it really cost $15?
 
-In short, yes, if you're counting the BOM cost in quantities greater than 10,000. That said, let's go into the cost breakdown. This is an abridged but still accurate BOM, with costs for each row in the last column.
+The answer to the big question, "How much does it cost?" is, "What the market will bear". In short, yes, if you're counting the BOM cost in quantities greater than 10,000. That said, let's go into the cost breakdown. This is an abridged but still accurate BOM, with costs for each row in the last column.
 
 | Device	| Description	| Cost @ QTY 1000	|
 |--------	|--------	|--------		|
