@@ -42,6 +42,7 @@ Given the list of requirements, I know I need some sort of SoC, perferrably as c
 	* There's a few drivers I had to write for this, I'll submit a patch eventually.
 	* Everything else is licensed as permissively as possible
 	* Yes 'Open Hardware' means more than PDFs of schematics
+	* Source files available for $2 USD to cover [the cost of media](https://bbenchoff.github.io/pages/atapi.html).
 * Low Price!
 	* It costs $10,000 USD to build one of these
 	* The ten thousandth one costs $15
@@ -50,19 +51,23 @@ Given the list of requirements, I know I need some sort of SoC, perferrably as c
 
 ## Design & Expansion
 
-The most consequential design decision is the Linux SoC. For this I chose the [Allwinner F1C100s](https://linux-sunxi.org/F1C100s), an ARM9 core running at 533MHz with an integrated 32MB of DDR (the F1C200s bumps the memory up to 64MB and is drop-in pin compatible). This is the same chip used in a now-discontinued dev board, the Lichee Pi Nano, and [I have Buildroot running on this chip](https://github.com/bbenchoff/NixDevice) thanks to the efforts of others. It boots from an SD card and puts a terminal on a SPI display. Everything kinda just works thanks to [some very cool people working on the sunxi stuff for Linux](https://linux-sunxi.org/F1C100s).
+The most consequential design decision is the Linux SoC. For this I chose the [Allwinner F1C100s](https://linux-sunxi.org/F1C100s), an ARM9 core running at 533MHz with an integrated 32MB of DDR (the F1C200s bumps the memory up to 64MB and is drop-in pin compatible). 
 
-The keyboard was not as easy, as a suite of tact switches would be expensive both in component cost and assembly cost. Instead, I'm using a [silicone membrane keyboard](https://bbenchoff.github.io/pages/keyboard.html), much like what you would find on a TV remote control. Because the electrical connections for the keyboard is printed on the circuit board, this type of keyboard is essentially free. Or a little less than $1 in quantites greater than a few thousand or so.
+The schematic is based on a now-discontinued dev board, the [LicheePi Nano](https://linux-sunxi.org/LicheePi_Nano) and a board from [Jay Carlson's Embedded Linux series](https://jaycarlson.net/embedded-linux/#f1c200s), with a few changes. Basic system bring-up is simple -- just get three power rails (3.3V, 2.5V, 1.1V), add a clock and sprinkle some caps and resistors on the board and everything boots. Changes to the reference designs include changing the display connection from 16-bit RGB to SPI, deleting the SPI flash, and adding a microSD card. These changes were made to add additional GPIOs (for the keyboard) and to aid in programming and assembly (now everything runs off the SD card, flashing a ROM no longer required).
+
+[I have Buildroot running on this chip](https://github.com/bbenchoff/NixDevice) thanks to the efforts of others. It boots from an SD card and puts a terminal on a SPI display. Everything kinda just works thanks to [some very cool people working on the sunxi stuff for Linux](https://linux-sunxi.org/F1C100s).
+
+The design of the keyboard is unconventional, as a suite of tact switches would be expensive both in component cost and assembly cost. Instead, I'm using a [silicone membrane keyboard](https://bbenchoff.github.io/pages/keyboard.html), much like what you would find on a TV remote control. Because the electrical connections for the keyboard is printed on the circuit board, this type of keyboard is essentially free.
 
 The silicone membrane keyboard does come with a drawback -- it requires a plastic enclosure. That's acceptable, as any 'pocket computer' device needs an enclosure anyway. My enclosure is a two-piece clamshell snap-fit design requiring no tools to assemble or disassemble. The cost is about $1 in quantity, and will be screen printed with alt keyboard combinations above each key.
 
-The battery is slightly more challenging, as using lithium cells would mean more stringent requirements in regards to shipping and transport. Instead of lithium cells, I'll be using AAA NiMH cells. While providing less overall power per unit mass of lithium, it's significantly less expensive than lithium. This design can also be modified for AA NiMH cells for more than twice the runtime at the expense of a slightly thicker enclosure.
+Powering the device is challenging, as using lithium cells would mean more stringent requirements in regards to shipping and transport. Instead of lithium cells, I'll be using AAA NiMH cells. While providing less overall power per unit mass of lithium, it's significantly less expensive than lithium. This design can also be modified for AA NiMH cells for more than twice the runtime at the expense of a slightly thicker enclosure.
 
 ![The ports on the device](/images/Linux/Back.png)
 
 The 'back' of the device contains all the ports. These include a USB Type-A port, where you can easily attach a WiFi or Bluetooth adapter, USB keyboard, webcam, or really *any other device*. lsusb works, so have fun with that.
 
-Additionally, the storage on this device is through a SD card -- I've sourced a few 8GB cards and they work fine, but at scale 32GB or 64GB are more readily available. This is the second most expensive line item in the BOM, coming in at about $2/each at quantity 10,000.
+The storage on this device is through a SD card -- I've sourced a few 8GB cards and they work fine, but at scale 32GB or 64GB are more readily available. This is the second most expensive line item in the BOM, coming in at about $2/each at quantity 10,000.
 
 ![Board Layout](/images/Linux/Board.png)
 
@@ -84,6 +89,7 @@ The answer to the big question, "How much does it cost?" is, "What the market wi
 | Display	| ILI9342	| $2.20			|
 | Keyboard	| custom	| $1.20			|
 | Enclosure	| custom	| $1.70			|
+| PCB		| custom	| $2.00			|
 | C1, C6, C8	| 22uF		| $0.15			|
 | C2, C3	| 1uF		| $0.02			|
 | C9..C13..C17	| 100nF		| $0.0045		|
@@ -104,9 +110,9 @@ The answer to the big question, "How much does it cost?" is, "What the market wi
 | Y1		| Crystal 12MHz	| $0.12			|
 | SD card	| 64GB		| $2.20			|
 | Battery (2)	| AAA NiMH	| $1.10			|
-|		|		| **TOTAL $12.16079**	|
+|		|		| **TOTAL $14.16079**	|
 
-There you go, a full Linux computer for just over twelve bucks in parts. Neither the PCB nor assembly are included, and better component selection (caps, and a generic version of the battery clip) would drop a few cents off the build. But I'll call this a $15 computer for the clickbait headline. Speaking of clickbait, if you want to build _one_ of these things, It'll cost you about ten grand. The first one costs ten grand, the ten thousandth one costs fifteen bucks. If you really want to know what the price is, I'd say a Chinese manufacturer could charge $20 and still make some money.
+There you go, a full Linux computer for under fifteen bucks parts. Assembly is not included, and better component selection (caps, another crystal, and a generic version of the battery clip) would drop a few cents off the build. But I'll call this a $15 computer for the clickbait headline. Speaking of clickbait, if you want to build _one_ of these things, It'll cost you about ten grand. The first one costs ten grand, the ten thousandth one costs fifteen bucks.
 
 I can buy all of the components for this device right now at the beginning of 2022, in the depths of a component shortage. Give me six months and I'll give you a tens of thousands of these things.
 
