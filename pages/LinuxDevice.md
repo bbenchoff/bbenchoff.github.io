@@ -46,10 +46,10 @@ Given the list of requirements, I know I need some sort of SoC, perferrably as c
 * Low Price!
 	* It costs $10,000 USD to build one of these
 	* The ten thousandth one costs $15
-* Designed in 2021
+* Designed for 2021
 	* I can buy all the parts right now, in quantity.
 
-## Design & Expansion
+## Design considerations
 
 The most consequential design decision is the Linux SoC. For this I chose the [Allwinner F1C100s](https://linux-sunxi.org/F1C100s), an ARM9 core running at 533MHz with an integrated 32MB of DDR (the F1C200s bumps the memory up to 64MB and is drop-in pin compatible). 
 
@@ -61,7 +61,7 @@ The design of the keyboard is unconventional, as a suite of tact switches would 
 
 The silicone membrane keyboard does come with a drawback -- it requires a plastic enclosure. That's acceptable, as any 'pocket computer' device needs an enclosure anyway. My enclosure is a two-piece clamshell snap-fit design requiring no tools to assemble or disassemble. The cost is about $1 in quantity, and will be screen printed with alt keyboard combinations above each key.
 
-Powering the device is challenging, as using lithium cells would mean more stringent requirements in regards to shipping and transport. Instead of lithium cells, I'll be using AAA NiMH cells. While providing less overall power per unit mass of lithium, it's significantly less expensive than lithium. This design can also be modified for AA NiMH cells for more than twice the runtime at the expense of a slightly thicker enclosure.
+Powering the device is challenging, as using lithium cells would mean more stringent requirements in regards to shipping and transport. Instead of lithium cells, this device uses AAA NiMH cells. While providing less overall power per unit mass of lithium, it's significantly less expensive than lithium. This design can also be modified for AA NiMH cells for more than twice the runtime at the expense of a slightly thicker enclosure.
 
 ![The ports on the device](/images/Linux/Back.png)
 
@@ -127,6 +127,27 @@ Instead of me telling you what this device can do, instead let me ask what _you_
 This is, in short, a device that can do anything. It's just really small and really, really cheap.
 
 One thing I'm not even going to attempt is a GUI. You're stuck with command line unless someone hacks something else in. 
+
+
+## Design considerations and further work
+
+This is not the final design for this device, because I do not believe there is any one design that can fufill all use cases. There are a few obvious things that could be changed, depending on what the user wants:
+
+### USB Ports
+
+The current device uses USB-C only for power and charging, with a single USB-A port for peripherals (WiFi adapter, etc). This limits the device somewhat. The F1C100s only has one USB port but can do OTG, so a simpler one-port design is possible. This would enable the device to use [USB Gadget mode](https://www.kernel.org/doc/html/v4.19/driver-api/usb/gadget.html), allowing it to act as a host or device. The pros and cons of this are debatable, and I chose the ability to plug in a USB WiFi adapter. Still, it could change.
+
+### A bigger display
+
+The display is only 320x240, which is really too small to be used as a terminal. I believe the minimum resolution for a console is 640x480 or 800x480. I've already [written a driver for a 800x480 display](https://bbenchoff.github.io/pages/dumb.html), and it could work over SPI. This display is somewhat expensive, with a bare panel coming in at $12, also necessatiating a larger enclosure with increased cost. Still, that's an option.
+
+### A bigger keyboard
+
+The current keyboard has 47 keys (space is duplicated on each side), which the mechanical keyboard mafia tells me is enough to completely replicate the function of an IBM 104 key keyboard. There are many, many more GPIOs available on the port I'm using for the keyboard. This device could support 110 keys easily, and even more by stealing pins from other GPIO ports. I decided against this because 47 keys is enough, and more keys cost more money.
+
+### Break out the GPIOs
+
+There are a host of GPIOs that can be broken out to more devices. These GPIOs support I2C, SPI, I2S, UART, and even IrDA. While I'm limited by the form factor, I would really like to break these signals out into a useful header in future iterations. The only question is what format this header would take. I'm extremely partial to the [Shitty Add-On spec I created](https://hackaday.com/2019/03/20/introducing-the-shitty-add-on-v1-69bis-standard/), but finding the right connector to implement this is difficult. If anyone knows of a right angle, keyed, 2x3, female, SMD IDC connector, please email me. They simply don't exist. Of course, since I'm already making the plastic enclosure I could engineer _something_...
 
 
 ## In Closing, or, A Hammer for the Mind
