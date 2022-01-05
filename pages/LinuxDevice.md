@@ -148,6 +148,10 @@ The current keyboard has 47 keys (space is duplicated on each side), which the m
 
 There are a host of GPIOs that can be broken out to more devices. These GPIOs support I2C, SPI, I2S, UART, and even IrDA. While I'm limited by the form factor, I would really like to break these signals out into a useful header in future iterations. The only question is what format this header would take. I'm extremely partial to the [Shitty Add-On spec I created](https://hackaday.com/2019/03/20/introducing-the-shitty-add-on-v1-69bis-standard/), but finding the right connector to implement this is difficult. If anyone knows of a right angle, keyed, 2x3, female, SMD IDC connector, please email me. They simply don't exist. Of course, since I'm already making the plastic enclosure I could engineer _something_...
 
+## In Closing...
+
+Do I plan to make this thing available? Yes, eventually. If you want to see this go into production, ping me [on my twitter](https://twitter.com/ViolenceWorks).
+
 
 
 [back](../)
