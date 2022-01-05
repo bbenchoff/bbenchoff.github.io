@@ -2,7 +2,6 @@
 
 I design strange things in hardware and software. Highlights include:
 
-- A <a href="https://bbenchoff.github.io/pages/HHLinux.html">handheld Linux device</a>. Think of it as a 'Swiss Army Device', designed to _hack anything_. Also it plays Doom.
 
 - The time <a href="https://bbenchoff.github.io/pages/MrRobot.html">I built a blockchain of Tide pods</a>
 	- This was part of the <a href="https://github.com/bbenchoff/MrRobotBadge">indie DEFCON badge I made</a>
