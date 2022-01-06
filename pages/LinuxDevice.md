@@ -8,9 +8,9 @@ layout: default
 
 ![Front of Device](/images/Linux/Front.png)
 
-This is a 'Linux Swiss Army Knife', or a device capable of doing everything a normal computer does, offering maximum utility while still being able to fit in your pocket. With this comes a discussion of what a 'computer' and what a 'useful computer' is. This is very arguable, but I've narrowed it down to the following list of requirements:
+This is a 'Linux Swiss Army Knife', offering maximum utility while still being able to fit in your pocket. Is it fast? No. Can it run a GUI? Also no. But it can run scripts, ping a server, toggle a few GPIOs, and interact with a USB device. This is a minimum viable computer that can:
 
-* Runs Linux. Just command line.
+* Run Linux. Just command line.
 * Has a keyboard. No touchscreen display.
 * Has a USB port. To connect to other things.
 * Some sort of battery power, I guess.
@@ -41,6 +41,7 @@ Given the list of requirements, I know I need some sort of SoC, perferrably as c
 * Licensed!
 	* There's a few drivers I had to write for this, I'll submit a patch eventually.
 	* Everything else is licensed as permissively as possible
+	* Even though Allwinner hates giving their code back.
 	* Yes 'Open Hardware' means more than PDFs of schematics
 * Low Price!
 	* It costs $10,000 USD to build one of these
@@ -64,7 +65,7 @@ Powering the device is challenging, as using lithium cells would mean more strin
 
 ![The ports on the device](/images/Linux/Back.png)
 
-The 'back' of the device contains all the ports. These include a USB Type-A port, where you can easily attach a WiFi or Bluetooth adapter, USB keyboard, webcam, or really *any other device*. lsusb works, so have fun with that.
+The 'back' or 'top' of the device contains all the ports. These include a USB Type-A port, where you can easily attach a WiFi or Bluetooth adapter, USB keyboard, webcam, or really *any other device*. lsusb works, so have fun with that.
 
 The storage on this device is through a SD card -- I've sourced a few 8GB cards and they work fine, but at scale 32GB or 64GB are more readily available. This is the second most expensive line item in the BOM, coming in at about $2/each at quantity 10,000.
 
