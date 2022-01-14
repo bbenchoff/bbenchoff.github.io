@@ -51,6 +51,8 @@ Given the list of requirements, I know I need some sort of SoC, perferrably as c
 
 ## Design considerations
 
+![Annotated PCB](/images/Linux/AnnotatedBoard.png)
+
 The most consequential design decision is the Linux SoC. For this I chose the [Allwinner F1C100s](https://linux-sunxi.org/F1C100s), an ARM9 core running at 533MHz with an integrated 32MB of DDR (the F1C200s bumps the memory up to 64MB and is drop-in pin compatible). 
 
 The schematic is based on a now-discontinued dev board, the [LicheePi Nano](https://linux-sunxi.org/LicheePi_Nano) and a board from [Jay Carlson's Embedded Linux series](https://jaycarlson.net/embedded-linux/#f1c200s), with a few changes. Basic system bring-up is simple -- just get three power rails (3.3V, 2.5V, 1.1V), add a clock and sprinkle some caps and resistors on the board. After that, you have a Linux console over serial. Alterations to the reference designs include changing the display connection from 16-bit RGB to SPI, deleting the SPI flash, and adding a microSD card. These changes were made to add additional GPIOs (for the keyboard) and to aid in programming and assembly (now everything runs off the SD card, flashing a ROM no longer required).
