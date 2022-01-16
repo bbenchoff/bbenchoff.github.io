@@ -3,7 +3,8 @@
 I design strange things in hardware and software. Highlights include:
 
 
-- I'm restoring <a href="https://bbenchoff.github.io/pages/Citicar.html"a vintage electric car</a>
+- I'm restoring <a href="https://bbenchoff.github.io/pages/Citicar.html">a vintage electric car</a>
+
 - The time <a href="https://bbenchoff.github.io/pages/MrRobot.html">I built a blockchain of Tide pods</a>
 	- This was part of the <a href="https://github.com/bbenchoff/MrRobotBadge">indie DEFCON badge I made</a>
 - Reverse engineering <a href="https://bbenchoff.github.io/pages/atapi.html">20-year-old consumer electronics
