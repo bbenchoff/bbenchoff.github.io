@@ -3,6 +3,7 @@
 I design strange things in hardware and software. Highlights include:
 
 
+- I'm restoring <a href="https://bbenchoff.github.io/pages/Citicar.html"a vintage electric car</a>
 - The time <a href="https://bbenchoff.github.io/pages/MrRobot.html">I built a blockchain of Tide pods</a>
 	- This was part of the <a href="https://github.com/bbenchoff/MrRobotBadge">indie DEFCON badge I made</a>
 - Reverse engineering <a href="https://bbenchoff.github.io/pages/atapi.html">20-year-old consumer electronics
@@ -17,6 +18,7 @@ I design strange things in hardware and software. Highlights include:
 	- <a href="https://bbenchoff.github.io/pages/parser.html">There is no standard for terminal escape codes</a>
 	- <a href="https://bbenchoff.github.io/pages/IS31FL3741.html">Now-unobtanium LED drivers</a>
 
+![1980 Citicar](/images/Citicar.jpg)
 ![Handheld Linux Thing](/images/SAB.png)
 ![A BeBox](/images/BeBox-Small.png)
 ![RGB Gaming Coaster](/images/RGBGaming-small.jpg)
