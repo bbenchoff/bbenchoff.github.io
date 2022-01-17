@@ -8,6 +8,8 @@ layout: default
 
 This is an ongoing log of the restoration of a 1980 Comuta-Car, acquired from a Craigslist ad in Fresno.
 
+<a href="https://bbenchoff.github.io/pages/CarPics.html">You can find an image gallery of all the pics here</a>
+
 ### Acquiring the car
 
 Tips and tricks for acquiring a Commutacar: It *barely* fits in the back of a 10-foot UHaul truck. The easiest way to get it home is to rent a 10-foot UHaul, buy some ramps at Harbor Freight, and get three people to push it up into the truck. Without the batteries it only weighs ~700 pounds. No, you don't need a trailer, in fact a citicar does not fit on a the UHaul car trailer because the wheelbase is too narrow.
