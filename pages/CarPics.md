@@ -30,5 +30,5 @@ layout: default
 ![Ratsnest of dash](/images/Car/Week1/4.png)
 ![Ratsnest](/images/Car/Week1/5.png)
 ![Exterior shot of the car](/images/Car/Week1/6.png)
-
+![We found a motor controller](/images/Car/Week1/7.png)
 [back](../)

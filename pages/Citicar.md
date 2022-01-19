@@ -24,11 +24,13 @@ The current plan is to redo the wiring and get it moving with stock parts under 
 
 Week 1 began with getting it up on jack stands. This revealed some [weirdness with the back suspension](https://bbenchoff.github.io/images/Car/Week1/1.png). For some reason, half a leaf spring was bolted to the driver's side suspension. I don't know what's going on there. The [wiring under the dashwas a mess](https://bbenchoff.github.io/images/Car/Week1/5.png), so that was torn out to be replaced with all new wiring.
 
+During the teardown, I was looking at this weird box that was inexplicably in the car. The car still had the original contactors (the "speed controller"), and I had assumed the previous owner was still trying to use this. Not so, because that weird box [was a brand new motor controller](/images/Car/Week1/7.png). That's one less thing to buy.
+
 #### Parts and replacements
 
-|Part		|Replacement	|
-|---------------|---------------|
-|Rear gas strut |Napa #: BK 8195581|
+|Part			|Replacement		|Cost	|
+|-----------------------|-----------------------|-------|
+|Rear gas strut 	|Napa #: BK 8195581	|$28.99	|
 
 
 
