@@ -24,6 +24,12 @@ The current plan is to redo the wiring and get it moving with stock parts under 
 
 Week 1 began with getting it up on jack stands. This revealed some [weirdness with the back suspension](https://bbenchoff.github.io/images/Car/Week1/1.png). For some reason, half a leaf spring was bolted to the driver's side suspension. I don't know what's going on there. The [wiring under the dashwas a mess](https://bbenchoff.github.io/images/Car/Week1/5.png), so that was torn out to be replaced with all new wiring.
 
+#### Parts and replacements
+
+|Part		|Replacement	|
+|---------------|---------------|
+|Rear gas strut |Napa #: BK 8195581|
+
 
 
 
