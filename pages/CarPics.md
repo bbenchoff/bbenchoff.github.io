@@ -4,9 +4,9 @@ layout: default
 
 ---
 
-## Pics of Citicar Restoration
+# Pics of Citicar Restoration
 
-### The Craigslist Ad
+## The Craigslist Ad
 ![The Craigslist ad](/images/Car/Craigslist/Screencap.PNG)
 ![Pics from CL ad](/images/Car/Craigslist/1.jpg)
 ![Pics from CL ad](/images/Car/Craigslist/2.jpg)
@@ -17,13 +17,13 @@ layout: default
 ![Pics from CL ad](/images/Car/Craigslist/7.jpg)
 
 
-### Towing (?) the thing from Fresno to SF
+## Towing (?) the thing from Fresno to SF
 ![Pics from acquiring the car](/images/Car/Acquiring/1.jpg)
 ![Pics from acquiring the car](/images/Car/Acquiring/3.jpg)
 ![Pics from acquiring the car](/images/Car/Acquiring/2.jpg)
 ![Pics from acquiring the car](/images/Car/Acquiring/4.jpg)
 
-### Week 1 - understanding the wiring harness, teardown
+## Week 1 - understanding the wiring harness, teardown
 ![I have no idea what is going on with the suspension](/images/Car/Week1/1.png)
 ![We found the missing plastic parts](/images/Car/Week1/2.png)
 ![Dodgy connections](/images/Car/Week1/3.png)
@@ -31,4 +31,6 @@ layout: default
 ![Ratsnest](/images/Car/Week1/5.png)
 ![Exterior shot of the car](/images/Car/Week1/6.png)
 ![We found a motor controller](/images/Car/Week1/7.png)
+![Wires stripped from interior](/images/Car/Week1/8.png)
+![Wires stripped from interior](/images/Car/Week1/9.png)
 [back](../)
