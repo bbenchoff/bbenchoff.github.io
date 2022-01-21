@@ -26,12 +26,16 @@ During the teardown, I was looking at this weird box right next to the motor. Th
 
 Given the serial number on the unused motor controller, a few parts on the wiring harness, and the oral history of the car from the seller, I think I can put together a reasonably correct history of this car. Sometime after 1993 and before 2000, the car was in Palm Springs where the owner decided a refurbishment was in order. This person had the knowledge to walk into NAPA auto, but not the skills to put those parts together. The last time it was registered was in 2000, after which it was moved to Coarsegold, half an hour north of Fresno. In 2022, I brought it to San Francisco where it is currently undergoing restoration.
 
+After a few days of reverse-engineering the wiring, we determined the best course of action would be to [tear out all the wires](/images/Car/Week1/8.png) and rebuild the entire electrical system from the ground up. This gave me an oppurtunity to clean out twenty years of detritus in the under-seat compartment. This was a weird, sticky goo that cleaned up with soap and water. I also found a mouse nest inside the ventilation/cooling manifold; this was removed, cleaned in the dishwasher, and reinstalled.
+
+With that done, the project moves onto re-wiring the electrical system. This will be guided in part by the schematics found in the CommtaCar service manual but updated for a modern fuse panel.
+
 ### Parts and replacements
 
-|Part			|Replacement		|Cost	|
-|-----------------------|-----------------------|-------|
-|Rear gas strut 	|Napa #: BK 8195581	|$28.99	|
-|Ignition Switch	|Cole Hersee 9577-BX	|$15.99	|
+|Part			|Replacement			|Cost	|
+|-----------------------|-------------------------------|-------|
+|Rear gas strut 	|Napa / Balkamp BK 8195581	|$28.99	|
+|Ignition Switch	|Cole Hersee 9577-BX		|$15.99	|
 
 
 
