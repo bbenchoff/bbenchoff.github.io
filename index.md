@@ -2,6 +2,7 @@
 
 I design strange things in hardware and software. Highlights include:
 
+- <a href="https://www.instagram.com/640by480/">My Instagram</a> is San Francisco shot on the first digital camera.
 
 - I'm restoring <a href="https://bbenchoff.github.io/pages/Citicar.html">a vintage electric car</a>
 

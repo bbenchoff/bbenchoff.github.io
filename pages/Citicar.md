@@ -18,19 +18,20 @@ Tips and tricks for acquiring a Commutacar: [It *barely* fits in the back of a 1
 
 ![Pics from acquiring the car](/images/Car/AcquiringCar.png)
 
-The current plan is to redo the wiring and get it moving with stock parts under its own power. After that, an upgrade is in order with a better motor controller. Then possibly lithium batteries, a J1772 socket, and a complete refurbishment of the bodywork. I'm thinking seafoam green.
+### Week 1, Teardown and I found a motor controller
 
-### Week 1, teardown and wiring harness
+Week 1 began with getting it up on jack stands. This revealed some [weirdness with the back suspension](https://bbenchoff.github.io/images/Car/Week1/1.png). For some reason, half a leaf spring was bolted to the driver's side suspension. I don't know what's going on there. The [wiring under the dashwas a mess](https://bbenchoff.github.io/images/Car/Week1/5.png), and the 120 Volt input [was highly dangerous](https://twitter.com/BBenchoff/status/1484325182399340554) so that was torn out to be replaced with all new wiring.
 
-Week 1 began with getting it up on jack stands. This revealed some [weirdness with the back suspension](https://bbenchoff.github.io/images/Car/Week1/1.png). For some reason, half a leaf spring was bolted to the driver's side suspension. I don't know what's going on there. The [wiring under the dashwas a mess](https://bbenchoff.github.io/images/Car/Week1/5.png), so that was torn out to be replaced with all new wiring.
+During the teardown, I was looking at this weird box right next to the motor. The car still had the original contactors (the old "speed controller"), and I had assumed the previous owner was still trying to use this. Not so, because that weird box [was a brand new motor controller](/images/Car/Week1/7.png). To reiterate, I found an unused motor controller worth $1000 in a car I paid $1000 for. I bought a motor controller and got a free car.
 
-During the teardown, I was looking at this weird box that was inexplicably in the car. The car still had the original contactors (the "speed controller"), and I had assumed the previous owner was still trying to use this. Not so, because that weird box [was a brand new motor controller](/images/Car/Week1/7.png). That's one less thing to buy.
+Given the serial number on the unused motor controller, a few parts on the wiring harness, and the oral history of the car from the seller, I think I can put together a reasonably correct history of this car. Sometime after 1993 and before 2000, the car was in Palm Springs where the owner decided a refurbishment was in order. This person had the knowledge to walk into NAPA auto, but not the skills to put those parts together. The last time it was registered was in 2000, after which it was moved to Coarsegold, half an hour north of Fresno. In 2022, I brought it to San Francisco where it is currently undergoing restoration.
 
-#### Parts and replacements
+### Parts and replacements
 
 |Part			|Replacement		|Cost	|
 |-----------------------|-----------------------|-------|
 |Rear gas strut 	|Napa #: BK 8195581	|$28.99	|
+|Ignition Switch	|Cole Hersee 9577-BX	|$15.99	|
 
 
 
