@@ -38,18 +38,28 @@ Because the car didn't come with keys -- or rather the last owner couldn't find 
 
 ## Body Work
 
+### Pop Rivets
+
 The bodywork is made of six monolithic pieces of ABS plastic: the back, two front quarterpanels, two rear quarterpanels, and one gigantic piece forming the front and roof of the car. These are bonded together first with a bit of glue and secondly with pop rivets. _Normal pop rivets won't work_, because the ABS is far to brittle -- in fact, most of the existing major cracks in the body are right where the rivets are.
 
 The manufacturers solution to this problem was a special type of pop rivet that is softer and expands more than a standard pop rivet. Original, new old stock Citicar rivets are available, but they cost about $0.50 USD each. That's too much. [McMaster-Carr sells these rivets](https://www.mcmaster.com/pop-rivets/blind-rivets-for-soft-materials-6/) for about $0.16 USD each. Here's McMaster's diagram of what they look like installed:
 
 ![McMaster Carr Blind Rivet for Soft Material](/images/Car/Rivet.png)
 
+### Door and Window Seals
+
+[A reasonable facsimile of the original door seals are available in the UK](https://www.sealsdirect.co.uk/shopping.asp?intDepartmentId=68#126)
+
 ## Parts and replacements
 
-|Part			|Replacement			|Cost	|
-|-----------------------|-------------------------------|-------|
-|Rear gas strut 	|Napa / Balkamp BK 8195581	|$28.99	|
-|Ignition Switch	|Cole Hersee 9577-BX		|$15.99	|
+|Part			|Replacement						|Cost		|
+|-----------------------|-------------------------------------------------------|--------------:|
+|Rear gas strut 	|Napa / Balkamp BK 8195581				|$28.99		|
+|Ignition Switch	|Cole Hersee 9577-BX					|$15.99		|
+|Rear Hazard Light	|Peterson Manufacturing V126R Red Clearance Light	|$14.23		|
+|Windshield Wiper Blade	|Anco 51-20 / NAPA part number 602050			|$14.37		|
+|-----------------------|-------------------------------------------------------|---------------|
+|			|							|**$73.58**	|
 
 
 [back](../)
