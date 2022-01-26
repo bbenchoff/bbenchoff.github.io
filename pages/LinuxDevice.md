@@ -4,7 +4,7 @@ layout: default
 
 ---
 
-# A Minimum Viable Computer, or Linux for $15.
+# I'm changing the title of this page just to screw with mods on the orange website
 
 ![Front of Device](/images/Linux/Front.png)
 
