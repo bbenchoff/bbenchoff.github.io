@@ -2,6 +2,8 @@
 
 I design strange things in hardware and software. Highlights include:
 
+- Here's a <a href="http://bbenchoff.github.io/pages/LinuxDevice.html"> $15 Linux Machine</a>.
+
 - <a href="https://www.instagram.com/640by480/">My Instagram</a> is San Francisco shot on the first digital camera.
 
 - I'm restoring <a href="https://bbenchoff.github.io/pages/Citicar.html">a vintage electric car</a>
@@ -20,6 +22,7 @@ I design strange things in hardware and software. Highlights include:
 	- <a href="https://bbenchoff.github.io/pages/parser.html">There is no standard for terminal escape codes</a>
 	- <a href="https://bbenchoff.github.io/pages/IS31FL3741.html">Now-unobtanium LED drivers</a>
 
+![Handheld Linux Thing](/images/SAB-4.png)
 ![Quicktake Camera Shot](/images/Quicktake.jpg)
 ![1980 Citicar](/images/Citicar.jpg)
 ![Handheld Linux Thing](/images/SAB.png)

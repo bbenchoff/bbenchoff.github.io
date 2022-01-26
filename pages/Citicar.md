@@ -10,7 +10,7 @@ This is an ongoing log of the restoration of a 1980 Comuta-Car, acquired from a 
 
 <a href="https://bbenchoff.github.io/pages/CarPics.html">You can find an image gallery of all the pics here</a>
 
-## Acquiring the car
+## Part 0, Acquiring the car
 
 The car was bought [off of Craigslist](/images/Car/Craigslist/Screencap.PNG) in Coarsegold, California, about half an hour north of Fresno. The bill of sale says $200 because eventually this will be in a Lemons rally. Getting it to my SF garage involved driving out to Fresno, picking up a 10' UHaul box truck and car trailer, and bringing it home through Gilroy. 
 
@@ -18,7 +18,7 @@ Tips and tricks for acquiring a Commutacar: [It *barely* fits in the back of a 1
 
 ![Pics from acquiring the car](/images/Car/AcquiringCar.png)
 
-## Week 1, Teardown and I found a motor controller
+## Part 1, Teardown and I found a motor controller
 
 Week 1 began with getting it up on jack stands. This revealed some [weirdness with the back suspension](https://bbenchoff.github.io/images/Car/Week1/1.png). For some reason, half a leaf spring was bolted to the driver's side suspension. I don't know what's going on there. The [wiring under the dashwas a mess](https://bbenchoff.github.io/images/Car/Week1/5.png), and the 120 Volt input [was highly dangerous](https://twitter.com/BBenchoff/status/1484325182399340554) so that was torn out to be replaced with all new wiring.
 
@@ -32,7 +32,7 @@ With that done, the project moves onto re-wiring the electrical system. This wil
 
 ![Teardown and Cleaning](/images/Car/Week1.png)
 
-## Week 2, Rewiring the dash
+## Part 2, Rewiring the dash
 
 Because the car didn't come with keys -- or rather the last owner couldn't find the keys -- a new ignition switch was in order. The standard ignition switch for the Citicar is a Cole Hersee 9577-BX, in stock at my local O'Reilly Auto for $15.99. The rest of the dash electronics will remain stock, even though I doubt I'll use the charging ammeter on the passenger side of the dash. I'll come up with something for that.
 
@@ -47,6 +47,8 @@ The manufacturers solution to this problem was a special type of pop rivet that 
 ![McMaster Carr Blind Rivet for Soft Material](/images/Car/Rivet.png)
 
 ### Door and Window Seals
+
+After acquiring the car, I noticed the door seals had completely rotted away. Inexplicably, the window seals for the back glass were completely intact, and in great condition. From a few forums, I found these were the same seal but could not find a reference to the part number of the seal that had not linkrotted away. The only solution to this problem is to take measurements of the rear window seal and find something similar for the door seals.
 
 [A reasonable facsimile of the original door seals are available in the UK](https://www.sealsdirect.co.uk/shopping.asp?intDepartmentId=68#126)
 
