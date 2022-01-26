@@ -2,7 +2,7 @@
 
 I design strange things in hardware and software. Highlights include:
 
-- Here's a <a href="http://bbenchoff.github.io/pages/LinuxDevice.html"> $15 Linux Machine</a>.
+- Here's a <a href="http://bbenchoff.github.io/pages/LinuxDevice.html">$15 Linux Machine</a>.
 
 - <a href="https://www.instagram.com/640by480/">My Instagram</a> is San Francisco shot on the first digital camera.
 
