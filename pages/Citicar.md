@@ -30,7 +30,7 @@ After a few days of reverse-engineering the wiring, we determined the best cours
 
 With that done, the project moves onto re-wiring the electrical system. This will be guided in part by the schematics found in the CommtaCar service manual but updated for a modern fuse panel.
 
-![Teardown and Cleaning](/images/Car/Part.png)
+![Teardown and Cleaning](/images/Car/Part1/4.png)
 
 ## Part 2, New Keys, Rewiring the dash
 
@@ -40,11 +40,11 @@ Rewiring the dash began with simply pulling out _all_ of the old wiring. There w
 
 Also bought with the fuse panel were a bunch of crimp terminals and various paraphernalia. Because I'm restoring a car in 2022, of course there would be [a shortage of crimp terminals](https://twitter.com/BBenchoff/status/1485104634549071872). There is a 'semiconductor shortage' as I write this, but this doesn't tell the whole truth: we're out of all electronics. The Bussmann fuse panel I wanted was out of stock everywhere, so I acquiesced and bought the one with bussed relay contacts. We're out of terminals, and earlier this year I noticed everyone was out of _crystals_. I simply can't buy a 12MHz crystal in the package I need right now. The 'semiconductor shortage' isn't just semiconductors, and it's truly awful.
 
-![Termninals out of stock at Mouser](/images/Car/Part2/Terminals.png]
+![Termninals out of stock at Mouser](/images/Car/Part2/Terminals.png)
 
 Wiring the dash started with a new schematic based on the wiring diagram in the Citicar / CommutaCar service manual. The old manual was a confusing joke.
 
-![The old schematic](/images/Car/Part2/OldSch.png]
+![The old schematic](/images/Car/Part2/OldSch.png)
 
 ## Body Work
 
