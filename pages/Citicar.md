@@ -32,9 +32,19 @@ With that done, the project moves onto re-wiring the electrical system. This wil
 
 ![Teardown and Cleaning](/images/Car/Week1.png)
 
-## Part 2, Rewiring the dash
+## Part 2, New Keys, Rewiring the dash
 
-Because the car didn't come with keys -- or rather the last owner couldn't find the keys -- a new ignition switch was in order. The standard ignition switch for the Citicar is a Cole Hersee 9577-BX, in stock at my local O'Reilly Auto for $15.99. The rest of the dash electronics will remain stock, even though I doubt I'll use the charging ammeter on the passenger side of the dash. I'll come up with something for that.
+Because the car didn't come with keys -- or rather the last owner couldn't find the keys -- a new ignition switch was in order. The standard ignition switch for the Citicar is a Cole Hersee 9577-BX, in stock at my local O'Reilly Auto for $15.99. The rest of the dash electronics will remain stock, even though I doubt I'll use the charging ammeter on the passenger side of the dash. I'll come up with something for that. Also, I ordered a new lock for the rear hatch, because again, no keys. This was off of Amazon, a 'Disc Tumbler Cam Lock with 7/8" Cylinder'.
+
+Rewiring the dash began with simply pulling out _all_ of the old wiring. There was nothing that could be salvaged out of that rat's nest. I ordered a new fuse panel (Eaton / Bussmann 15305-2-2-4) for 10 mini fuses and five SPDT relays. The original wiring used 10 fuses, two DPDT relays, and a blinker module, so everything should work.
+
+Also bought with the fuse panel were a bunch of crimp terminals and various paraphernalia. Because I'm restoring a car in 2022, of course there would be [a shortage of crimp terminals](https://twitter.com/BBenchoff/status/1485104634549071872). There is a 'semiconductor shortage' as I write this, but this doesn't tell the whole truth: we're out of all electronics. The Bussmann fuse panel I wanted was out of stock everywhere, so I acquiesced and bought the one with bussed relay contacts. We're out of terminals, and earlier this year I noticed everyone was out of _crystals_. I simply can't buy a 12MHz crystal in the package I need right now. The 'semiconductor shortage' isn't just semiconductors, and it's truly awful.
+
+![Termninals out of stock at Mouser](/images/Car/Week2/Terminals.png]
+
+Wiring the dash started with a new schematic based on the wiring diagram in the Citicar / CommutaCar service manual. The old manual was a confusing joke.
+
+![The old schematic](/images/Car/Week2/OldSch.png]
 
 ## Body Work
 
@@ -60,6 +70,7 @@ After acquiring the car, I noticed the door seals had completely rotted away. In
 |Ignition Switch	|Cole Hersee 9577-BX					|$15.99		|
 |Rear Hazard Light	|Peterson Manufacturing V126R Red Clearance Light	|$14.23		|
 |Windshield Wiper Blade	|Anco 51-20 / NAPA part number 602050			|$14.37		|
+|Turn Signal Stalk	|77-80 Triumph Spitfire / 30968X / LUCAS SQB195		|$36.75		|
 |-----------------------|-------------------------------------------------------|---------------|
 |			|							|**$73.58**	|
 
