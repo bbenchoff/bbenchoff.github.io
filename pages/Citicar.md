@@ -26,11 +26,11 @@ During the teardown, I was looking at this weird box right next to the motor. Th
 
 Given the serial number on the unused motor controller, a few parts on the wiring harness, and the oral history of the car from the seller, I think I can put together a reasonably correct history of this car. Sometime after 1993 and before 2000, the car was in Palm Springs where the owner decided a refurbishment was in order. This person had the knowledge to walk into NAPA auto, but not the skills to put those parts together. The last time it was registered was in 2000, after which it was moved to Coarsegold, half an hour north of Fresno. In 2022, I brought it to San Francisco where it is currently undergoing restoration.
 
-After a few days of reverse-engineering the wiring, we determined the best course of action would be to [tear out all the wires](/images/Car/Week1/8.png) and rebuild the entire electrical system from the ground up. This gave me an oppurtunity to clean out twenty years of detritus in the under-seat compartment. This was a weird, sticky goo that cleaned up with soap and water. I also found a mouse nest inside the ventilation/cooling manifold; this was removed, cleaned in the dishwasher, and reinstalled.
+After a few days of reverse-engineering the wiring, we determined the best course of action would be to [tear out all the wires](/images/Car/Part1/8.png) and rebuild the entire electrical system from the ground up. This gave me an oppurtunity to clean out twenty years of detritus in the under-seat compartment. This was a weird, sticky goo that cleaned up with soap and water. I also found a mouse nest inside the ventilation/cooling manifold; this was removed, cleaned in the dishwasher, and reinstalled.
 
 With that done, the project moves onto re-wiring the electrical system. This will be guided in part by the schematics found in the CommtaCar service manual but updated for a modern fuse panel.
 
-![Teardown and Cleaning](/images/Car/Week1.png)
+![Teardown and Cleaning](/images/Car/Part.png)
 
 ## Part 2, New Keys, Rewiring the dash
 
@@ -40,11 +40,11 @@ Rewiring the dash began with simply pulling out _all_ of the old wiring. There w
 
 Also bought with the fuse panel were a bunch of crimp terminals and various paraphernalia. Because I'm restoring a car in 2022, of course there would be [a shortage of crimp terminals](https://twitter.com/BBenchoff/status/1485104634549071872). There is a 'semiconductor shortage' as I write this, but this doesn't tell the whole truth: we're out of all electronics. The Bussmann fuse panel I wanted was out of stock everywhere, so I acquiesced and bought the one with bussed relay contacts. We're out of terminals, and earlier this year I noticed everyone was out of _crystals_. I simply can't buy a 12MHz crystal in the package I need right now. The 'semiconductor shortage' isn't just semiconductors, and it's truly awful.
 
-![Termninals out of stock at Mouser](/images/Car/Week2/Terminals.png]
+![Termninals out of stock at Mouser](/images/Car/Part2/Terminals.png]
 
 Wiring the dash started with a new schematic based on the wiring diagram in the Citicar / CommutaCar service manual. The old manual was a confusing joke.
 
-![The old schematic](/images/Car/Week2/OldSch.png]
+![The old schematic](/images/Car/Part2/OldSch.png]
 
 ## Body Work
 
