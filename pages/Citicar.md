@@ -42,9 +42,9 @@ Also bought with the fuse panel were a bunch of crimp terminals and various para
 
 ![Termninals out of stock at Mouser](/images/Car/Part2/Terminals.png)
 
-Wiring the dash started with a new schematic based on the wiring diagram in the Citicar / CommutaCar service manual. The old manual was a confusing joke. The documentation for the turn signal stalk [are a confusing mess](/images/Car/Part2/OldSch.png), so I replaced the old turn signal stalk with a new one from a 1977-80 Triumph Spitfire.
+Wiring the dash started with a new schematic based on the wiring diagram in the Citicar / CommutaCar service manual. The old manual was a confusing joke. The documentation for the turn signal stalk [are a confusing mess](/images/Car/Part2/OldSch.PNG), so I replaced the old turn signal stalk with a new one from a 1977-80 Triumph Spitfire.
 
-![are a confusing mess](/images/Car/Part2/OldSch.png)
+![are a confusing mess](/images/Car/Part2/OldSch.PNG)
 
 ## Body Work
 
