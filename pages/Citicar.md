@@ -38,7 +38,9 @@ Because the car didn't come with keys -- or rather the last owner couldn't find 
 
 Rewiring the dash began with simply pulling out _all_ of the old wiring. There was nothing that could be salvaged out of that rat's nest. I ordered a new fuse panel (Eaton / Bussmann 15305-2-2-4) for 10 mini fuses and five SPDT relays. The original wiring used 10 fuses, two DPDT relays, and a blinker module, so everything should work.
 
-Also bought with the fuse panel were a bunch of crimp terminals and various paraphernalia. Because I'm restoring a car in 2022, of course there would be [a shortage of crimp terminals](https://twitter.com/BBenchoff/status/1485104634549071872). There is a 'semiconductor shortage' as I write this, but this doesn't tell the whole truth: we're out of all electronics. The Bussmann fuse panel I wanted was out of stock everywhere, so I acquiesced and bought the one with bussed relay contacts. We're out of terminals, and earlier this year I noticed everyone was out of _crystals_. I simply can't buy a 12MHz crystal in the package I need right now. The 'semiconductor shortage' isn't just semiconductors, and it's truly awful.
+Also bought with the fuse panel were a bunch of crimp terminals and various paraphernalia. This was mounted in a new, 3D printed panel [just under the dash](/images/Car/Part2/fusepanel.png). The STLs for the fuse panel ![can be found here](https://github.com/bbenchoff/Citicar/tree/main/Fuse%20Panel). 
+
+Because I'm restoring a car in 2022, of course there would be [a shortage of crimp terminals](https://twitter.com/BBenchoff/status/1485104634549071872). There is a 'semiconductor shortage' as I write this, but this doesn't tell the whole truth: we're out of all electronics. The Bussmann fuse panel I wanted was out of stock everywhere, so I acquiesced and bought the one with bussed relay contacts. We're out of terminals, and earlier this year I noticed everyone was out of _crystals_. I simply can't buy a 12MHz crystal in the package I need right now. The 'semiconductor shortage' isn't just semiconductors, and it's truly awful.
 
 ![Termninals out of stock at Mouser](/images/Car/Part2/Terminals.png)
 
@@ -71,8 +73,9 @@ After acquiring the car, I noticed the door seals had completely rotted away. In
 |Rear Hazard Light	|Peterson Manufacturing V126R Red Clearance Light	|$14.23		|
 |Windshield Wiper Blade	|Anco 51-20 / NAPA part number 602050			|$14.37		|
 |Turn Signal Stalk	|77-80 Triumph Spitfire / 30968X / LUCAS SQB195		|$36.75		|
+|Fuse Panel		|Eaton / Bussmann 15305-2-2-4				|$45.46
 |-----------------------|-------------------------------------------------------|---------------|
-|			|							|**$73.58**	|
+|			|							|**$119.04**	|
 
 
 [back](../)
