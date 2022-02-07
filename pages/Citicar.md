@@ -38,23 +38,29 @@ Because the car didn't come with keys -- or rather the last owner couldn't find 
 
 Rewiring the dash began with simply pulling out _all_ of the old wiring. There was nothing that could be salvaged out of that rat's nest. I ordered a new fuse panel (Eaton / Bussmann 15305-2-2-4) for 10 mini fuses and five SPDT relays. The original wiring used 10 fuses, two DPDT relays, and a blinker module, so everything should work.
 
-Also bought with the fuse panel were a bunch of crimp terminals and various paraphernalia. This was mounted in a new, 3D printed panel [just under the dash](/images/Car/Part2/fusepanel.png). The STLs for the fuse panel ![can be found here](https://github.com/bbenchoff/Citicar/tree/main/Fuse%20Panel). 
+Also bought with the fuse panel were a bunch of crimp terminals and various paraphernalia. This was mounted in a new, 3D printed panel [just under the dash](/images/Car/Part2/fusepanel.png). The STLs for the fuse panel [can be found here](https://github.com/bbenchoff/Citicar/tree/main/Fuse%20Panel). 
 
-Because I'm restoring a car in 2022, of course there would be [a shortage of crimp terminals](https://twitter.com/BBenchoff/status/1485104634549071872). There is a 'semiconductor shortage' as I write this, but this doesn't tell the whole truth: we're out of all electronics. The Bussmann fuse panel I wanted was out of stock everywhere, so I acquiesced and bought the one with bussed relay contacts. We're out of terminals, and earlier this year I noticed everyone was out of _crystals_. I simply can't buy a 12MHz crystal in the package I need right now. The 'semiconductor shortage' isn't just semiconductors, and it's truly awful.
+Because I'm restoring a car in 2022, of course there would be [a shortage of crimp terminals](https://twitter.com/BBenchoff/status/1485104634549071872). There is a 'semiconductor shortage' as I write this, but this doesn't tell the whole truth: we're out of all electronics. The Eaton/Bussmann fuse panel I wanted was out of stock everywhere, so I acquiesced and bought the one with bussed relay contacts. We're out of terminals, and earlier this year I noticed everyone was out of _crystals_. I simply can't buy a 12MHz crystal in the package I need right now. The 'semiconductor shortage' isn't just semiconductors, and it's truly awful.
 
 ![Termninals out of stock at Mouser](/images/Car/Part2/Terminals.png)
 
-Wiring the dash started with a new schematic based on the wiring diagram in the Citicar / CommutaCar service manual. The old manual was a confusing joke. The documentation for the turn signal stalk [are a confusing mess](/images/Car/Part2/OldSch.PNG), so I replaced the old turn signal stalk with a new one from a 1977-80 Triumph Spitfire.
+Wiring the dash started with a new schematic based on the wiring diagram in the Citicar / CommutaCar service manual. The old manual was a confusing joke. The documentation for the turn signal stalk [are a mess](/images/Car/Part2/OldSch.PNG), so I replaced the old turn signal stalk with a new one from a 1977-80 Triumph Spitfire.
 
-![are a confusing mess](/images/Car/Part2/OldSch.PNG)
+With the fuse panel, a new turn signal stalk, a bunch of 14ga wire, and a boatload of connectors, I was ready to reqire the dash. For this, I had to reverse engineer the Citicar service manual schematic, _which was unreadable_. The 'official' Citicar schematic shows all the flasher/relay 'logic' behind the turn signals as happening in a 'Turn Signal Relay Board', which is not documented anywhere. Wires are just _missing_ on the service manual schematic. I had to re-make the schematic. Compare the old and new:
+
+![Compairson between old and my schematic](/images/Car/Part2/SchComp.png)
+
+I'm putting this here for reference:
+
+![Dash Wiring Diagram](/images/Car/Part2/Schematic.png)
 
 ## Body Work
 
 ### Pop Rivets
 
-The bodywork is made of six monolithic pieces of ABS plastic: the back, two front quarterpanels, two rear quarterpanels, and one gigantic piece forming the front and roof of the car. These are bonded together first with a bit of glue and secondly with pop rivets. _Normal pop rivets won't work_, because the ABS is far to brittle -- in fact, most of the existing major cracks in the body are right where the rivets are.
+The bodywork is made of six monolithic pieces of ABS plastic: the back, two front quarterpanels, two rear quarterpanels, and one gigantic piece forming the front and roof of the car. These are bonded together first with a bit of glue and secondly with pop rivets. _Normal pop rivets won't work_, because the ABS is far too brittle -- in fact, most of the existing major cracks in the body are right where the rivets are.
 
-The manufacturers solution to this problem was a special type of pop rivet that is softer and expands more than a standard pop rivet. Original, new old stock Citicar rivets are available, but they cost about $0.50 USD each. That's too much. [McMaster-Carr sells these rivets](https://www.mcmaster.com/pop-rivets/blind-rivets-for-soft-materials-6/) for about $0.16 USD each. Here's McMaster's diagram of what they look like installed:
+The manufacturers' solution to this problem was a special type of pop rivet that is softer and expands more than a standard pop rivet. Original, new old stock Citicar rivets are available, but they cost about $0.50 USD each. That's too much. [McMaster-Carr sells these rivets](https://www.mcmaster.com/pop-rivets/blind-rivets-for-soft-materials-6/) for about $0.16 USD each. Here's McMaster's diagram of what they look like installed:
 
 ![McMaster Carr Blind Rivet for Soft Material](/images/Car/Rivet.png)
 
