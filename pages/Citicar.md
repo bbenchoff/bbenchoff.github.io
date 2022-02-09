@@ -48,7 +48,7 @@ Wiring the dash started with a new schematic based on the wiring diagram in the 
 
 With the fuse panel, a new turn signal stalk, a bunch of 14ga wire, and a boatload of connectors, I was ready to rewire the dash. For this, I had to reverse engineer the Citicar service manual schematic, _which was unreadable_. The 'official' Citicar schematic shows all the flasher/relay 'logic' behind the turn signals as happening in a 'Turn Signal Relay Board', which is not documented anywhere. Wires are just _missing_ on the service manual schematic. I had to re-make the schematic. Compare a section of the old and new schematics, both showing the same bits of the entire circuit:
 
-###A comparison between the original service manual schematic, and a schematic done by someone who can draw:
+### A comparison between the original service manual schematic, and a schematic done by someone who can draw:
 
 ![Compairson between old and my schematic](/images/Car/Part2/SchComp.png)
 
