@@ -60,6 +60,10 @@ The difference is stark. The old schematic was unreadable not only because some 
 
 ## Body Work
 
+### Paint
+
+![Rendering of possible paint colors](/images/Car/CarColors.png)
+
 ### Pop Rivets
 
 The bodywork is made of six monolithic pieces of ABS plastic: the back, two front quarterpanels, two rear quarterpanels, and one gigantic piece forming the front and roof of the car. These are bonded together first with a bit of glue and secondly with pop rivets. _Normal pop rivets won't work_, because the ABS is far too brittle -- in fact, most of the existing major cracks in the body are right where the rivets are.
