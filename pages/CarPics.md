@@ -37,5 +37,7 @@ layout: default
 ## Part 2 - rewiring the dash
 ![The old schematic](/images/Car/Part2/OldSch.PNG)
 ![A new fuse panel](/images/Car/Part2/fusepanel.png)
+![The Better Schematic](/images/Car/Part2/Schematic.png)
+![First Light](/images/Car/Part2/FirstLight.png)
 
 [back](../)
