@@ -43,6 +43,9 @@ Given the list of requirements, I know I need some sort of SoC, perferrably as c
 	* Everything else is licensed as permissively as possible
 	* Even though Allwinner hates giving their code back.
 	* Yes 'Open Hardware' means more than PDFs of schematics
+* No Audio Output
+	* Not just because it's running Linux!
+	* I'm just not putting in an amplifier and a 1/8" jack.
 * Low Price!
 	* It costs $10,000 USD to build one of these
 	* The ten thousandth one costs $15
