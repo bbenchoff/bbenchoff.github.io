@@ -39,5 +39,6 @@ layout: default
 ![The Better Schematic](/images/Car/Part2/Schematic.png)
 ![A new fuse panel](/images/Car/Part2/fusepanel.png)
 ![First Light](/images/Car/Part2/FirstLight.png)
+![Wiring the dash on the bench](/images/Car/Part2/BenchWiring.png)
 
 [back](../)
