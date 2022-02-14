@@ -40,5 +40,6 @@ layout: default
 ![A new fuse panel](/images/Car/Part2/fusepanel.png)
 ![First Light](/images/Car/Part2/FirstLight.png)
 ![Wiring the dash on the bench](/images/Car/Part2/BenchWiring.png)
+![Wiring Installation](/images/Car/Part2/WiringInstall.jpg)
 
 [back](../)
