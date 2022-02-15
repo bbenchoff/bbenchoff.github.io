@@ -41,5 +41,6 @@ layout: default
 ![First Light](/images/Car/Part2/FirstLight.png)
 ![Wiring the dash on the bench](/images/Car/Part2/BenchWiring.png)
 ![Wiring Installation](/images/Car/Part2/WiringInstall.jpg)
+![How It Started...](/images/Car/Part2/Howitstarted.png)
 
 [back](../)

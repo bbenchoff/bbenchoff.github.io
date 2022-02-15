@@ -54,7 +54,11 @@ With the fuse panel, a new turn signal stalk, a bunch of 14ga wire, and a boatlo
 
 The difference is stark. The old schematic was unreadable not only because some wires were cut off from many generations of photocopying, but also because a mysterious 'turn signal relay board' that is completely undocumented.
 
+After [a false start](https://twitter.com/ViolenceWorks/status/1493440131448991749)....
 
+![How it started, how it's going](/images/Car/Part2/Howitstarted.png)
+
+With the dash wiring completed, I turn my attention to the power electronics and getting the motor turning.
 
 ## Part 3, Driving Around The Block, Once.
 
