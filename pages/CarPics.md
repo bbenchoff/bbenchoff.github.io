@@ -42,5 +42,6 @@ layout: default
 ![Wiring the dash on the bench](/images/Car/Part2/BenchWiring.png)
 ![Wiring Installation](/images/Car/Part2/WiringInstall.jpg)
 ![How It Started...](/images/Car/Part2/Howitstarted.png)
+![Animated GIF of the tail light](/images/Car/Part2/TailLight.gif)
 
 [back](../)
