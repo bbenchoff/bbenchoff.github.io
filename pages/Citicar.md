@@ -60,7 +60,7 @@ After [a false start](https://twitter.com/ViolenceWorks/status/14934401314489917
 
 ![How it started, how it's going](/images/Car/Part2/Howitstarted.png)
 
-With the dash wiring completed, I turn my attention to the power electronics and getting the motor turning.
+[With the dash wiring completed](https://twitter.com/ViolenceWorks/status/1494036625461956609), I turn my attention to the power electronics and getting the motor turning. There is also a [soapbox derby](https://www.eventbrite.com/e/sfmomas-soapbox-derby-at-mclaren-park-2022-tickets-265577327937) in town about two months from now, so the goal is to get this thing on the road and compete in the only race this car will ever see. That means fixing the brakes.
 
 ## Part 3, Driving Around The Block, Once.
 
