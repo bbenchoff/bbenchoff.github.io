@@ -33,12 +33,16 @@ layout: default
 ![We found a motor controller](/images/Car/Part1/7.png)
 ![Wires stripped from interior](/images/Car/Part1/8.png)
 ![Wires stripped from interior](/images/Car/Part1/9.png)
+![Part 1 Compilation](/images/Car/Part1/Part1.png)
 
 ## Part 2 - rewiring the dash
+![Part 2 Compilation](/images/Car/Part2/Part2.png)
 ![The old schematic](/images/Car/Part2/OldSch.PNG)
 ![The Better Schematic](/images/Car/Part2/Schematic.png)
+![Schematic Comparison](/images/Car/Part2/SchComp.png)
 ![A new fuse panel](/images/Car/Part2/fusepanel.png)
 ![First Light](/images/Car/Part2/FirstLight.png)
+![Terminals out of stock](/images/Car/Part2/Terminals.png)
 ![Wiring the dash on the bench](/images/Car/Part2/BenchWiring.png)
 ![Wiring Installation](/images/Car/Part2/WiringInstall.jpg)
 ![How It Started...](/images/Car/Part2/Howitstarted.png)
