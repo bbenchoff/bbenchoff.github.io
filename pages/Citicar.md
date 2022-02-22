@@ -58,9 +58,11 @@ After [a false start](https://twitter.com/ViolenceWorks/status/14934401314489917
 
 [With the dash wiring completed](https://twitter.com/ViolenceWorks/status/1494036625461956609), I turn my attention to the power electronics and getting the motor turning. There is also a [soapbox derby](https://www.eventbrite.com/e/sfmomas-soapbox-derby-at-mclaren-park-2022-tickets-265577327937) in town about two months from now, so the goal is to get this thing on the road and compete in the only race this car will ever see. That means fixing the brakes.
 
-## Part 3, WTF is a Hesitation Switch?
+## Part 3, A Trip Around The Block, or, WTF is a Hesitation Switch?
 
 As noted in Part 1, [this car came with a motor controller](/images/Car/Part1/7.png), a **Curtis 1209-5501** rated for 48V / 450A. While this isn't a newer AC motor controller with regen braking (a future upgrade), it is a __great__ controller built by a company that will rebuild it for $50 if so desired. It should be easy to install, as the controller service manual [shows how everything should be installed](/images/Car/Part3/CurtisControllerDiagram.PNG).
+
+The Curtis diagram includes all the ancillary parts needed to get this car moving under its own power. This includes the throttle / pot box, and the contactors, both the main power contactor and the forward / reverse contactor. Because the Curtis manual is so well documented, part numbers are included and I've opted to replace the old contactors with new ones. These are Albright SW200 (main) and Albright SW202 (forward/reverse), sourced from eBay. Yes, they're used but I assure you they're in better shape than the original contactors.
 
 ## Body Work
 
@@ -91,9 +93,11 @@ After acquiring the car, I noticed the door seals had completely rotted away. In
 |Rear Hazard Light	|Peterson Manufacturing V126R Red Clearance Light	|$14.23		|
 |Windshield Wiper Blade	|Anco 51-20 / NAPA part number 602050			|$14.37		|
 |Turn Signal Stalk	|77-80 Triumph Spitfire / 30968X / LUCAS SQB195		|$36.75		|
-|Fuse Panel		|Eaton / Bussmann 15305-2-2-4				|$45.46
+|Fuse Panel		|Eaton / Bussmann 15305-2-2-4				|$45.46		|
+|Main Contactor		|Albright SW200-262 (ebay)				|$50.00		|
+|Direction Contactor	|Albright SW202-142 (ebay)				|$99.99		|
 |-----------------------|-------------------------------------------------------|---------------|
-|			|							|**$119.04**	|
+|			|							|**$269.03**	|
 
 
 [back](../)
