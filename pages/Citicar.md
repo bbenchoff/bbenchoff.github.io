@@ -54,11 +54,9 @@ The difference is stark. The old schematic was unreadable not only because some 
 
 After [a false start](https://twitter.com/ViolenceWorks/status/1493440131448991749) and a few [obviously crossed wires](https://twitter.com/ViolenceWorks/status/1494008660707606529) I was able to get the majority of the dash wiring done. There are a few bits of weirdness to the citicar schematic, though; the headlamps are switched through two switches, the dash switch and the turn stalk. Because of this, only the top position of the dash switch turns on the headlamps, which are then switched through high and low beams with the turn stalk. The 'lower' setting of the dash light switch only activates the running lights, without the headlights. This is _weird_, but I suppose it's DOT compliant, it should be close to what the original wiring should be, and it'll work.
 
-![Part 2 Compilation](/images/Car/Part2/Part2.png)
+![Part 2 Compilation](/images/Car/Part2/TailLightComp.gif)
 
 [With the dash wiring completed](https://twitter.com/ViolenceWorks/status/1494036625461956609), I turn my attention to the power electronics and getting the motor turning. There is also a [soapbox derby](https://www.eventbrite.com/e/sfmomas-soapbox-derby-at-mclaren-park-2022-tickets-265577327937) in town about two months from now, so the goal is to get this thing on the road and compete in the only race this car will ever see. That means fixing the brakes.
-
-![Animated GIF of the tail light](/images/Car/Part2/TailLight.gif)
 
 ## Part 3, WTF is a Hesitation Switch?
 
