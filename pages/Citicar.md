@@ -60,7 +60,9 @@ After [a false start](https://twitter.com/ViolenceWorks/status/14934401314489917
 
 ![Animated GIF of the tail light](/images/Car/Part2/TailLight.gif)
 
-## Part 3, Driving Around The Block, Once.
+## Part 3, WTF is a Hesitation Switch?
+
+As noted in Part 1, [this car came with a motor controller](/images/Car/Part1/7.png), a **Curtis 1209-5501** rated for 48V / 450A. While this isn't a newer AC motor controller with regen braking (a future upgrade), it is a __great__ controller built by a company that will rebuild it for $50 if so desired. It should be easy to install, as the controller service manual [shows how everything should be installed](/images/Car/Part2/CurtisControllerDiagram.PNG).
 
 ## Body Work
 
