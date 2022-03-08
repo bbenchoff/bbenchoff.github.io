@@ -62,7 +62,7 @@ After [a false start](https://twitter.com/ViolenceWorks/status/14934401314489917
 
 With the 12V electronics complete, the goal now is to take the car out for a drive around the block, or take it to [Ocean Beach Cars and Coffee](https://norcalcarculture.com/events/ocean-beach-cars-and-coffee/) on the last Sunday of the month. This means working on the high power side of the electronics, and figuring out how the motor controller works.
 
-As noted in Part 1, [this car came with a motor controller](/images/Car/Part1/7.png), a **Curtis 1209-5501** rated for 48V / 450A. While this isn't a newer AC motor controller with regen braking (a future upgrade), it is a __great__ controller built by a company that will rebuild it for $50 if so desired. It should be easy to install, as the controller service manual [shows how everything should be installed](/images/Car/Part3/CurtisControllerDiagram.PNG).
+As noted in Part 1, [this car came with a motor controller](/images/Car/Part1/7.png), a **Curtis 1209-5501** rated for 48V / 450A. While this isn't a newer AC motor controller with regen braking (a future upgrade), it is a great controller built by a company that will rebuild it for $50 if so desired. It should be easy to install, as the controller service manual [shows how everything should be installed](/images/Car/Part3/CurtisControllerDiagram.PNG).
 
 While I almost have all the parts to take this car to Cars and Coffee (less three more lead acid batteries), it's worth considering what I want this car to look like in the future. The "final" version of this car won't use lead acid batteries; changing from lead acid to lithium saves about 200 pounds in a car that only weighs 1100 pounds. Ideally, I'll upgrade the batteries to [some Nissan Leaf cells I found on Craigslist](/images/Car/Part3/CLlipo.png), put in a charger and J1772 port, and call it a day. But I'll still need to consider how to power the 12V electronics, no matter what battery chemistry I choose in the future. For this, I'm using a [DC/DC converter I sourced on AliExpress](/images/Car/Part3/DCDCconverter.png) that should be more than sufficient. Yes, this converter is only good for 24 Amps (288 Watts), but there's really not a whole lot of electronics on the 12V side of the car. This DC/DC converter also has a wide input range (20 - 90V), allowing me to upgrade whatever battery pack I end up building to 72V.
 
@@ -97,10 +97,10 @@ After acquiring the car, I noticed the door seals had completely rotted away. In
 |Windshield Wiper Blade	|Anco 51-20 / NAPA part number 602050			|$14.37		|
 |Turn Signal Stalk	|77-80 Triumph Spitfire / 30968X / LUCAS SQB195		|$36.75		|
 |Fuse Panel		|Eaton / Bussmann 15305-2-2-4				|$45.46		|
-|Main Contactor		|Albright SW200-262 (ebay)				|$50.00		|
 |Direction Contactor	|Albright SW202-142 (ebay)				|$99.99		|
+|Replacement Controller | Curtis 1209B-6402					|$219.22	|
 |-----------------------|-------------------------------------------------------|---------------|
-|			|							|**$269.03**	|
+|			|							|**$475.00**	|
 
 
 [back](../)

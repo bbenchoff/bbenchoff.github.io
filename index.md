@@ -22,6 +22,8 @@ I design strange things in hardware and software. Highlights include:
 	- <a href="https://bbenchoff.github.io/pages/parser.html">There is no standard for terminal escape codes</a>
 	- <a href="https://bbenchoff.github.io/pages/IS31FL3741.html">Now-unobtanium LED drivers</a>
 
+
+![Citicar Illustration](/images/Car/CiticarSticker.png)
 ![Handheld Linux Thing](/images/SAB-4.png)
 ![Quicktake Camera Shot](/images/Quicktake.jpg)
 ![1980 Citicar](/images/Citicar.jpg)
