@@ -48,4 +48,14 @@ layout: default
 ![How It Started...](/images/Car/Part2/Howitstarted.png)
 ![Animated GIF of the tail light](/images/Car/Part2/TailLight.gif)
 
+## Part 3 - the rest of the wiring
+![12V DC/DC converter](/images/Car/Part3/12vDC.png)
+![Battery box full of stuff](/images/Car/Part3/Batteryboxwired.png)
+![Craigslist Lipo cells](/images/Car/Part3/CLlipo.png)
+![Contactor wiring](/images/Car/Part3/contactorwiring.png)
+![Curtis controller diagram](/images/Car/Part3/CurtisControllerDiagram.png)
+![12V DC DC converter on Aliexpress](/images/Car/Part3/DCDCconverter.png)
+![new controller on eBay](/images/Car/Part3/ebaycontroller.png)
+![power section of schematic](/images/Car/Part3/tinysch.png)
+
 [back](../)
