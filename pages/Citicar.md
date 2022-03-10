@@ -68,12 +68,18 @@ After [wiring everything up according to the controller manual](/images/Car/Part
 
 The "final" version of this car won't use lead acid batteries; changing from lead acid to lithium saves about 200 pounds in a car that only weighs 1100 pounds. Ideally, I'll upgrade the batteries to [some Nissan Leaf cells I found on Craigslist](/images/Car/Part3/CLlipo.png), put in a charger and J1772 port, and call it a day. But I'll still need to consider how to power the 12V electronics, no matter what battery chemistry I choose in the future. For this, I'm using a [DC/DC converter I sourced on AliExpress](/images/Car/Part3/DCDCconverter.png) that should be more than sufficient. Yes, this converter is only good for 24 Amps (288 Watts), but there's really not a whole lot of electronics on the 12V side of the car. This DC/DC converter also has a wide input range (20 - 90V), supporting the eventual upgrade to 72V.
 
+## Part 4, Body repair and cosmetic issues
+
+When I acquired the car, the body was by no means perfect. No Citicar is; the entire chassis is an aluminum tube frame clad with exactly six ABS plastic panels: four quarter panels, a back panel, and a huge plastic panel for the front and top of the car. All Citicars have at least one large crack next to the windshield, caused by decades of expansion and contraction. Mine has several more cracks, the most notable on the back top corners, with several other major gashes around the car. There are also missing pieces of panels -- on the driver's rear quarterpanel, most of the bottom is missing, and the 'vent' was completely cracked off. The remaining pieces were saved by the previous owner, and I think I've figured out the best way to repair them.
+
+![repaired body panel](/images/Car/Part4/RepairedPanel.png)
+
+Since the body panels are ABS plastic, conventional wisdom says acetone is the best solvent to join panels back together. Chemistry says something else, and the ingredients of most ABS 'glue' are 10 parts MEK with one part acetone. The thinking, I think, is the acetone bonds the parts quickly, while the much stronger MEK takes a few days to fully cure. I'm looking for strength, so that's what I went with. To fill any holes in the body, I've come up with a technique that uses plastic welding (a soldering iron and ABS 3D printer filament) with this MEK/acetone solvent. After slightly melting some filament to the body panel, I apply the solvent and let it cure. Sand a few days later and repeat. It is not fast, but there really are no other solutions for fixing a huge plastic panel like this. While the [repaired driver's quarterpanel](/images/Car/Part4/DriverQuarter.png) isn't much to look at now, the entire car will eventually be sanded and painted.
+
 
 ## Body Work
 
 ### Paint
-
-![Rendering of possible paint colors](/images/Car/CarColors.png)
 
 ### Pop Rivets
 
