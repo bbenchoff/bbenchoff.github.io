@@ -68,7 +68,7 @@ After [wiring everything up according to the controller manual](/images/Car/Part
 
 PUT SOMETHING HERE
 
-## Part 4, Body repair and cosmetic issues
+## Part 4, Body repair, bumpers and cosmetic issues
 
 When I acquired the car, the body was by no means perfect. No Citicar is; the entire chassis is an aluminum tube frame clad with exactly six ABS plastic panels: four quarter panels, a back panel, and a huge plastic panel for the front and top of the car. All Citicars have at least one large crack next to the windshield, caused by decades of expansion and contraction. Mine has several more cracks, the most notable on the back top corners, with several other major gashes around the car. There are also missing pieces of panels -- on the driver's rear quarterpanel, most of the bottom is missing, and the 'vent' was completely cracked off. The remaining pieces were saved by the previous owner, and I think I've figured out the best way to repair them.
 
@@ -76,8 +76,11 @@ When I acquired the car, the body was by no means perfect. No Citicar is; the en
 
 Since the body panels are ABS plastic, conventional wisdom says acetone is the best solvent to join panels back together. Chemistry says something else, and the ingredients of most ABS 'glue' are 10 parts MEK with one part acetone. The thinking, I think, is the acetone bonds the parts quickly, while the much stronger MEK takes a few days to fully cure. I'm looking for strength, so that's what I went with. To fill any holes in the body, I've come up with a technique that uses plastic welding (a soldering iron and ABS 3D printer filament) with this MEK/acetone solvent. After slightly melting some filament to the body panel, I apply the solvent and let it cure. Sand a few days later and repeat. It is not fast, but there really are no other solutions for fixing a huge plastic panel like this. While the [repaired driver's quarterpanel](/images/Car/Part4/DriverQuarter.png) isn't much to look at now, the entire car will eventually be sanded and painted.
 
+_Oh the bumpers_ While the Citicar had small bumpers made of a piece of wood wrapped in closed-cell foam, the later Commuta-Cars had large protruding bumpers on the front and rear. Despite conventional wisdom, these were not 1970s safety regulation bumpers, at least not the way you would think. Commutacar models added several aluminum beams underneath the seat for rigity and ostensibly impact resistance (lol), and this took up valuable battery space. Instead of putting the batteries under the seat, they had to go somewhere else, and that place was a box under extended bumpers. I'm using fewer batteries, and have wired up all of the high-power electronics under the seat, so these extended bumper battery boxes need to go. They're ugly. Also the closed-cell foam has degraded over the past 40 years and now bare wood is showing.
 
-## Body Work
+There are [several references](http://evalbum.com/tech/comutacar/bumper.html) to replacing Citicar bumpers with the bumper from a Mk1 VW Rabbit, and even some references to replacing the bumper on a Commuta-car with hte bumber from a Dodge Omni / Plymouth Horizon. I'm going with VW Rabbit bumpers. Both the bumpers need to be from the rear of a Rabbit -- the front bumper has a slight curve to it, whereas the rear bumper will lay flat against the body.
+
+
 
 ### Paint
 

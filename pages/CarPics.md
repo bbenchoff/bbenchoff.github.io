@@ -58,4 +58,10 @@ layout: default
 ![new controller on eBay](/images/Car/Part3/ebaycontroller.png)
 ![power section of schematic](/images/Car/Part3/tinysch.png)
 
+## Part 4 - bodywork and bumper
+![Somewhat repaired rear driver quarter](/images/Car/Part4/DriverQuarter.png)
+![Somewhat repaired rear driver quarter](/images/Car/Part4/RepairedPanel.png)
+![Somewhat repaired rear driver quarter](/images/Car/Part4/BodyPanelRepair.png)
+![Somewhat repaired rear driver quarter](/images/Car/Part4/BigNoseCombined.png)
+
 [back](../)
