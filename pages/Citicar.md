@@ -86,9 +86,7 @@ There are [several references](http://evalbum.com/tech/comutacar/bumper.html) to
 
 While the bumper and aluminum bracket work wonderfully, the stock endcaps for the VW bumper do not. They stick out down the length of the car, and they're far too massive. I modeled new bumper endcaps in Fusion360 and printed them out in PLA. They will eventually be painted in PlastiDip spray, but even as bare gray PLA they still look great.
 
-<img src="/images/Car/Part4/BumperEndcap.gif" alt="the endcap in Fusion360" height="400">
-
-<img src="/images/Car/Part4/BumperEndcapPic.jpg" alt="The finished endcap" height="400">
+<img src="/images/Car/Part4/BumperEndcap.gif" alt="the endcap in Fusion360" height="400"><img src="/images/Car/Part4/BumperEndcapPic.jpg" alt="The finished endcap" height="400">
 
 
 ### Paint
