@@ -58,7 +58,7 @@ After [a false start](https://twitter.com/ViolenceWorks/status/14934401314489917
 
 [With the dash wiring completed](https://twitter.com/ViolenceWorks/status/1494036625461956609), I turn my attention to the power electronics and getting the motor turning. There is also a [soapbox derby](https://www.eventbrite.com/e/sfmomas-soapbox-derby-at-mclaren-park-2022-tickets-265577327937) in town about two months from now, so the goal is to get this thing on the road and compete in the only race this car will ever see. That means fixing the brakes.
 
-## Part 3, A Trip Around The Block, or, WTF is a Hesitation Switch?
+## Part 3, Motor Controller Replacement
 
 With the 12V electronics complete, the goal now is to take the car out for a drive around the block, or take it to [Ocean Beach Cars and Coffee](https://norcalcarculture.com/events/ocean-beach-cars-and-coffee/) on the last Sunday of the month. This means working on the high power side of the electronics, and figuring out how the motor controller works.
 
@@ -66,9 +66,15 @@ As noted in Part 1, [this car came with a motor controller](/images/Car/Part1/7.
 
 After [wiring everything up according to the controller manual](/images/Car/Part3/CurtisControllerDiagram.PNG), I turned everything on, and.... nothing. The motor didn't spin, and following the troubleshooting steps in the controller manual discovered the controller was faulty. I could have the controller rebuilt for $450, but [another used controller is available on eBay for $200](/images/Car/Part3/ebaycontroller.png). This "new" controller is a slight upgrade over the controller that came with the car -- the eBay controller goes up to 72V. Judging from a few Citicar message board threads and the fact I live in the hilliest city in America, this should be a welcome upgrade.
 
+![The remanufactured controller](/images/Car/Part3/RefurbController.png)
+
+The problem is, when I got the new 72V controller, it didn't work either. That meant sending it out for a rebuild for $450, but after that, I had [a working controller](https://twitter.com/ViolenceWorks/status/1511137439137492992). Having a working motor is another story entirely, as covered in Part 5. 
+
 PUT SOMETHING HERE
 
 ## Part 4, Body repair, bumpers and cosmetic issues
+
+Note this part was done in parallel with parts three and five. The motor and controller took a long time to figure out.
 
 When I acquired the car, the body was by no means perfect. No Citicar is; the entire chassis is an aluminum tube frame clad with exactly six ABS plastic panels: four quarter panels, a back panel, and a huge plastic panel for the front and top of the car. All Citicars have at least one large crack next to the windshield, caused by decades of expansion and contraction. Mine has several more cracks, the most notable on the back top corners, with several other major gashes around the car. There are also missing pieces of panels -- on the driver's rear quarterpanel, most of the bottom is missing, and the 'vent' was completely cracked off. The remaining pieces were saved by the previous owner, and I think I've figured out the best way to repair them.
 
@@ -87,6 +93,9 @@ There are [several references](http://evalbum.com/tech/comutacar/bumper.html) to
 While the bumper and aluminum bracket work wonderfully, the stock endcaps for the VW bumper do not. They stick out down the length of the car, and they're far too massive. I modeled new bumper endcaps in Fusion360 and printed them out in PLA. They will eventually be painted in PlastiDip spray, but even as bare gray PLA they still look great.
 
 <img src="/images/Car/Part4/BumperEndcap.gif" alt="the endcap in Fusion360" height="400"><img src="/images/Car/Part4/BumperEndcapPic.jpg" alt="The finished endcap" height="400">
+
+## Part 5, The Motor Is Broken
+
 
 
 ### Paint

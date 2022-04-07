@@ -57,11 +57,18 @@ layout: default
 ![12V DC DC converter on Aliexpress](/images/Car/Part3/DCDCconverter.png)
 ![new controller on eBay](/images/Car/Part3/ebaycontroller.png)
 ![power section of schematic](/images/Car/Part3/tinysch.png)
+![remanufactured controller](/images/Car/Part3/RefurbController.png)
 
 ## Part 4 - bodywork and bumper
 ![Somewhat repaired rear driver quarter](/images/Car/Part4/DriverQuarter.png)
 ![Somewhat repaired rear driver quarter](/images/Car/Part4/RepairedPanel.png)
 ![Somewhat repaired rear driver quarter](/images/Car/Part4/BodyPanelRepair.png)
 ![Somewhat repaired rear driver quarter](/images/Car/Part4/BigNoseCombined.png)
+![animated gif of endcap in Fusion360](/images/Car/Part4/BumperEndcap.gif)
+![finished and installed endcap](/images/Car/Part4/BumperEndcapPic.jpg)
+
+## Part 5 - the motor's fucked
+![Motor Mount Plate](/images/Car/Part5/MotorMountPlate.png)
+![Motor inside](/images/Car/Part5/MotorEnd.png)
 
 [back](../)
