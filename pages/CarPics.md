@@ -70,5 +70,6 @@ layout: default
 ## Part 5 - the motor's fucked
 ![Motor Mount Plate](/images/Car/Part5/MotorMountPlate.png)
 ![Motor inside](/images/Car/Part5/MotorEnd.png)
+![A broken brush](/images/Car/Part5/ChoochedBrushes.png)
 
 [back](../)
