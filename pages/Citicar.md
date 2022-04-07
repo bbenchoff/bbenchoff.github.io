@@ -70,11 +70,9 @@ After [wiring everything up according to the controller manual](/images/Car/Part
 
 The problem is, when I got the new 72V controller, it didn't work either. That meant sending it out for a rebuild for $450, but after that, I had [a working controller](https://twitter.com/ViolenceWorks/status/1511137439137492992). Having a working motor is another story entirely, as covered in Part 5. 
 
-PUT SOMETHING HERE
-
 ## Part 4, Body repair, bumpers and cosmetic issues
 
-Note this part was done in parallel with parts three and five. The motor and controller took a long time to figure out.
+Note this part was done in parallel with parts three and five. The motor and controller is taking a long time to figure out.
 
 When I acquired the car, the body was by no means perfect. No Citicar is; the entire chassis is an aluminum tube frame clad with exactly six ABS plastic panels: four quarter panels, a back panel, and a huge plastic panel for the front and top of the car. All Citicars have at least one large crack next to the windshield, caused by decades of expansion and contraction. Mine has several more cracks, the most notable on the back top corners, with several other major gashes around the car. There are also missing pieces of panels -- on the driver's rear quarterpanel, most of the bottom is missing, and the 'vent' was completely cracked off. The remaining pieces were saved by the previous owner, and I think I've figured out the best way to repair them.
 
