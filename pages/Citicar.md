@@ -96,7 +96,7 @@ While the bumper and aluminum bracket work wonderfully, the stock endcaps for th
 
 With the new controller tested and confirmed working, I still couldn't get the motor to turn. I tested _everything_, including the forward/reverse contactor, and everything checked out. The problem had to be the motor itself, and opening the little rubber doors on the motor confirmed this assumption. The brushes for the motor were chooched. Two out of the four brushes were disconnected from their lead wires:
 
-![A broken brush](/images/Car/Part5/ChoochedBrushes.png).
+![A broken brush](/images/Car/Part5/ChoochedBrushes.png)
 
 With that in mind, I had two options: replace the brushes ($40) and hope everything else is okay, or replace the entire motor ($700). Replacing the brushes is much cheaper, but by replacing the motor I could get the power I eventually wanted (about 15HP, up from 6HP in the stock motor).
 
