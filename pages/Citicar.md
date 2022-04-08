@@ -34,7 +34,7 @@ With that done, the project moves onto re-wiring the electrical system. This wil
 
 ## Part 2, Rewiring the dash, or, I know how to hotwire **my** car.
 
-Because the car didn't come with keys -- or rather the last owner couldn't find the keys -- a new ignition switch was in order. The standard ignition switch for the Citicar is a Cole Hersee 9577-BX, in stock at my local O'Reilly Auto for $15.99. The rest of the dash electronics will remain stock, even though I doubt I'll use the charging ammeter on the passenger side of the dash. I'll come up with something for that. Also, I ordered a new lock for the rear hatch, because again, no keys. This was off of Amazon, a 'Disc Tumbler Cam Lock with 7/8" Cylinder'. An inspection behind the door card revealed the door lock will be harder to replace
+Because the car didn't come with keys -- or rather the last owner couldn't find the keys -- a new ignition switch was in order. The standard ignition switch for the Citicar is a Cole Herse 9577-BX, in stock at my local O'Reilly Auto for $15.99. The rest of the dash electronics will remain stock, even though I doubt I'll use the charging ammeter on the passenger side of the dash. I'll come up with something for that. Also, I ordered a new lock for the rear hatch, because again, no keys. This was off of Amazon, a 'Disc Tumbler Cam Lock with 7/8" Cylinder'. An inspection behind the door card revealed the door lock will be harder to replace
 
 Rewiring the dash began with simply pulling out _all_ of the old wiring. There was nothing that could be salvaged out of that rat's nest. I ordered a new fuse panel (Eaton / Bussmann 15305-2-2-4) for 10 mini fuses and five SPDT relays. The original wiring used 10 fuses, two DPDT relays, and a blinker module, so everything should work.
 
@@ -68,7 +68,7 @@ After [wiring everything up according to the controller manual](/images/Car/Part
 
 ![The remanufactured controller](/images/Car/Part3/RefurbController.png)
 
-The problem is, when I got the new 72V controller, it didn't work either. That meant sending it out for a rebuild for $450, but after that, I had [a working controller](https://twitter.com/ViolenceWorks/status/1511137439137492992). Having a working motor is another story entirely, as covered in Part 5. 
+The problem is, when I got the new 72V controller, it didn't work either. I now had two broken motor controllers, and a great lesson on how expensive thrift is. After sending the new controller out for a rebuild for $450, but after that, I had [a working controller](https://twitter.com/ViolenceWorks/status/1511137439137492992). Having a working motor is another story entirely, as covered in Part 5. 
 
 ## Part 4, Body repair, bumpers and cosmetic issues
 

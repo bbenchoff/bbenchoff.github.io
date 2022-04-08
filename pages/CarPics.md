@@ -71,5 +71,6 @@ layout: default
 ![Motor Mount Plate](/images/Car/Part5/MotorMountPlate.png)
 ![Motor inside](/images/Car/Part5/MotorEnd.png)
 ![A broken brush](/images/Car/Part5/ChoochedBrushes.png)
+![Internals of the motor](/images/Car/Part5/MotorTeardown.png)
 
 [back](../)
