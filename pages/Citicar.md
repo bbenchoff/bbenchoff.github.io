@@ -98,9 +98,11 @@ With the new controller tested and confirmed working, I still couldn't get the m
 
 ![A broken brush](/images/Car/Part5/ChoochedBrushes.png)
 
-With that in mind, I had two options: replace the brushes ($40) and hope everything else is okay, or replace the entire motor ($700). Replacing the brushes is much cheaper, but by replacing the motor I could get the power I eventually wanted (about 15HP, up from 6HP in the stock motor).
+I had two options: replace the brushes ($40) and hope everything else is okay, or replace the entire motor (~$700). Replacing the brushes is much cheaper, but by replacing the motor I could get the power I eventually wanted (about 15HP, up from 6HP in the stock motor).
 
 After pulling the motor out, I had some idea of what the [motor mount and spline looked like](/images/Car/Part5/MotorMountPlate.png). At least now the motor is easy to work on and I can assess my replacement options.
+
+![Motor Teardown](/images/Car/Part5/MotorTeardown.png)
 
 <hr>
 
