@@ -104,6 +104,8 @@ After pulling the motor out, I had some idea of what the [motor mount and spline
 
 ![Motor Teardown](/images/Car/Part5/MotorTeardown.png)
 
+The new brushes were installed (0.5" x 0.625" x 1.437" carbon brushes, part number 10-506221), and I bolted the motor back onto the diff. Wired everything up again, and..... nothing. Not a damn thing. The controller was confirmed working with the 'motor tester menorah', and the motor was confirmed working by wiring it up [directly to the battery](https://twitter.com/ViolenceWorks/status/1514020800919379969). Hey, at least the new brushes worked. This only meant the forward/reverse contactor as being the problem, which is odd because I can hear it clicking when changing directions on the dash. 
+
 <hr>
 
 ### Paint
@@ -133,7 +135,8 @@ After acquiring the car, I noticed the door seals had completely rotted away. In
 |Turn Signal Stalk	|77-80 Triumph Spitfire / 30968X / LUCAS SQB195		|$36.75		|
 |Fuse Panel		|Eaton / Bussmann 15305-2-2-4				|$45.46		|
 |Direction Contactor	|Albright SW202-142 (ebay)				|$99.99		|
-|Replacement Controller | Curtis 1209B-6402					|$219.22	|
+|Replacement Controller |Curtis 1209B-6402					|$219.22	|
+|Motor Brushes		|Carbon Brush 0.5" x 0.625" x 1.437" item 10-506221	|$67.60		|
 |-----------------------|-------------------------------------------------------|---------------|
 |			|							|**$475.00**	|
 
