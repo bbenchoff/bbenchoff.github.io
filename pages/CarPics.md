@@ -72,5 +72,6 @@ layout: default
 ![Motor inside](/images/Car/Part5/MotorEnd.png)
 ![A broken brush](/images/Car/Part5/ChoochedBrushes.png)
 ![Internals of the motor](/images/Car/Part5/MotorTeardown.png)
+![Car moved under its own power](/images/Car/Part5/ActuallyDrove.jpg)
 
 [back](../)
