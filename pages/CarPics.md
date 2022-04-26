@@ -71,7 +71,14 @@ layout: default
 ![Motor Mount Plate](/images/Car/Part5/MotorMountPlate.png)
 ![Motor inside](/images/Car/Part5/MotorEnd.png)
 ![A broken brush](/images/Car/Part5/ChoochedBrushes.png)
+![New Brushes](/images/Car/Part5/MotorBrushes.png)
 ![Internals of the motor](/images/Car/Part5/MotorTeardown.png)
 ![Car moved under its own power](/images/Car/Part5/ActuallyDrove.jpg)
+
+## Part 6 - Brakes and Diffs
+![Brake Drum](/images/Car/Part6/BrakeDrum.png)
+![Flushing the brake fluid](/images/Car/Part6/BrakeFluid.png)
+![Running in the brushes](/images/Car/Part6/BrushRunin.png)
+![A hot differential](/images/Car/Part6/HotDiff.png)
 
 [back](../)

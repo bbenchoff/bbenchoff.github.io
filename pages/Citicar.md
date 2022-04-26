@@ -111,16 +111,18 @@ A hundred bucks later, and I had a forward/reverse contactor with a 12V coil vol
 ![The car out of the garage](/images/Car/Part5/ActuallyDrove.jpg)
 
 
-## Part 6, Tires and Brakes
+## Part 6, Tires and Brakes, Brushes and Diffs
 
 The car needed new tires, and there are several options. Citi/Commutacars came with either 480x12, 125/80R12, or 135/80R13 tires, with the tires on mine being 480x12. I found a [20-year old site](https://web.archive.org/web/20220417181505/http://www.scotthull.us/dp/ev/c-carupg.htm) (that's a link to the Internet Archive, you'll thank me later) detailing the possible replacements, and decided to go with the stock solution -- 480x12 tires meant for boat and motorcycle trailers for $150 on Amazon. Yes, the plan is to *eventually* put some nice radials on the car, [possibly even whitewalls](https://twitter.com/ViolenceWorks/status/1515750693553913856), but for now cheap trailer tires will do. Get some valve stems, buy the Ryobi tire pump, and things should go easily. I'll also need to clean and paint the rims and let them sit for a week or so.
 
 Brakes are another matter. While the car nominally came with tires that hold air, it did not come with brakes that work. It did, however, come with a brake drum in the big box 'o parts, and after pulling off the front passenger wheel, I figured out why: [the car did not come with an extra brake drum](https://twitter.com/ViolenceWorks/status/1516608824693587971). When I bought the car, there was no drum on the front passenger brake, and the wheel had three random washers on the studs. This is sketch as fuck.
 
 
-With everything moving *somewhat*, I had to flush and bleed the brake fluid.
+With everything moving *somewhat*, I had to flush and bleed the brake fluid. The car also did not come with brake fluid in half of the master cylinder. How I even got this thing out of a Uhaul is beyond me.
 
-![Inside of brake drum](/images/Car/Part6/BrakeDrum.png) ![Flushing brake fluid](/images/Car/Part6/BrakeFluid.png)
+<img src="/images/Car/Part6/BrakeDrum.png" alt="Inside of brake drum" width="400"><img src="/images/Car/Part6/BrakeFluid.png" alt="Flushing brake fluid" width="400">
+
+
 
 <hr>
 
