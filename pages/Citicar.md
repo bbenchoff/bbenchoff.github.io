@@ -120,7 +120,7 @@ Brakes are another matter. While the car nominally came with tires that hold air
 
 With everything moving *somewhat*, I had to flush and bleed the brake fluid. The car also did not come with brake fluid in half of the master cylinder. How I even got this thing out of a Uhaul is beyond me.
 
-<img src="/images/Car/Part6/BrakeDrum.png" alt="Inside of brake drum" width="400"><img src="/images/Car/Part6/BrakeFluid.png" alt="Flushing brake fluid" width="400">
+<img src="/images/Car/Part6/BrakeDrum.png" alt="Inside of brake drum" width="400"><img src="/images/Car/Part6/BrakeFluid.png" alt="Flushing brake fluid" height="400">
 
 
 
