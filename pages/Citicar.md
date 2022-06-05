@@ -126,6 +126,12 @@ With everything moving *somewhat*, I had to flush and bleed the brake fluid. The
 
 <hr>
 
+## Gauge Cluster
+
+
+<img src="/images/Car/GaugeCluster/1.png" alt="Gauge Cluster Assembly" height="400">
+
+
 ### Paint
 
 ### Pop Rivets
