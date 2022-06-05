@@ -128,8 +128,11 @@ With everything moving *somewhat*, I had to flush and bleed the brake fluid. The
 
 ## Gauge Cluster
 
+Eventually, the car will need a new dashboard. The reasoning for this is simply my upgrades are incompatable with the various indicators and gauges on the stock dashboard. For example, the speedometer connects to the motor through a very long cable, this will be eliminated when upgrading to an AC motor. I can not view the charge state of the battery with the existing gauges, and I really don't like the existing hazard switch -- that should be a 'normal' red triangle switch.
 
 <img src="/images/Car/GaugeCluster/1.png" alt="Gauge Cluster Assembly" height="400">
+
+So I need a new gauge cluster. I'd like a 'digital' dash, so I'm using an EL display taken out of a Sun router made around the year 2000. For battery charge state, I'm using flip dots. This is great, because of the static nature of flip dots; I'll be able to see the car's state of charge even with the key out of the ignition.
 
 
 ### Paint
