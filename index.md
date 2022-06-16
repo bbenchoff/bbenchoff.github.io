@@ -2,9 +2,9 @@
 
 I design strange things in hardware and software. Highlights include:
 
-- <a href="https://www.exaluminal.com/">Exaluminal</a>, a device that tell you the Earth will be destroyed by a supernova hours before it happens.
+- <a href="https://www.exaluminal.com/">Exaluminal</a>, a device that tell you the Earth will be destroyed by a supernova hours before it happens. This was <a href="https://news.ycombinator.com/item?id=31760485">#1 on Hacker News</a>, but Orange Website Bad.
 
-- Here's a <a href="http://bbenchoff.github.io/pages/LinuxDevice.html">$15 Linux Machine</a>.
+- Here's a <a href="http://bbenchoff.github.io/pages/LinuxDevice.html">$15 Linux Machine</a>. Also #1 on Hacker News, but Orange Website Bad.
 
 - <a href="https://www.instagram.com/640by480/">My Instagram</a> is San Francisco shot on the first digital camera.
 
