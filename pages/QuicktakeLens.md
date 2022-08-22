@@ -6,6 +6,10 @@ layout: default
 
 ## A Nikon Lens Adapter for the Apple Quicktake 150, the First Digital Camera*
 
+Wherin I write a few thousand words on photography without using the word 'boekh'.
+
+![A pile of Quicktake 150s, one with a lens adapter]((/images/Quicktakes.jpg)
+
 I'd like to start this by saying the Apple Quicktake was not the _first_ digital camera. People on the Internet would say that honor goes to a Kodak prototype from 1975. If you're looking for a commercial device, the "first digital camera" was a Fuji DS-1P from 1988, the Dycam Model 1, Logitech Fotoman, or MegaVision Tessera from 1987 to 1991, or thereabouts. Everyone who claiming one of these devices is the 'first digital camera' is wrong, because that honor actually goes to the [Cromeco Cyclops](https://hackaday.com/2016/04/17/building-the-first-digital-camera/), a digital camera from February, 1975 that could create an image with 32x32 resolution. It's actually a decapsulated DRAM chip and a C-mount lens adapter sold as a kit, but that's the first digital camera, beating the Kodak prototype by a few months.
 
 The Apple Quicktake, though, was the first digital camera anyone could buy. Just go back to 1994 and walk into a Sears, or a Montgomery Ward, or a Babbage's, or an Electronics Boutique, and you could buy a digital camera. It cost $749 back then.
