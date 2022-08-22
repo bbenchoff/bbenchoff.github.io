@@ -73,7 +73,7 @@ A short writeup on the project [can be seen here.](https://bbenchoff.github.io/p
 
 The site is reasonably successful, with a few dozen highly active users in the first weekend. There are actually people uploading pics from their Mavica, and everything works. It's great.
 
-Oh, and because I'm creating a site for vintage digital cameras, it only makes sense that the page should be viewable on vintage computers:
+Oh, and because I'm creating a site for vintage digital cameras, it only makes sense that the page should be viewable on vintage computers. It works, but it's not good; IE 3.0 was the first browser to support CSS, and not all the attributes are there. It does, however, load:
 
 ![640by480 as viewed on a Powerbook 2300c running Microsoft Internet Explorer 3.0](/images/640by480mac.gif)
 
