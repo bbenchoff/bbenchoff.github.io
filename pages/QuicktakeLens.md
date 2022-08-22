@@ -8,7 +8,7 @@ layout: default
 
 Wherin I write a few thousand words on photography without using the word 'boekh'.
 
-![A pile of Quicktake 150s, one with a lens adapter]((/images/Quicktakes.jpg)
+![A pile of Quicktake 150s, one with a lens adapter](/images/Quicktakes.jpg)
 
 I'd like to start this by saying the Apple Quicktake was not the _first_ digital camera. People on the Internet would say that honor goes to a Kodak prototype from 1975. If you're looking for a commercial device, the "first digital camera" was a Fuji DS-1P from 1988, the Dycam Model 1, Logitech Fotoman, or MegaVision Tessera from 1987 to 1991, or thereabouts. Everyone who claiming one of these devices is the 'first digital camera' is wrong, because that honor actually goes to the [Cromeco Cyclops](https://hackaday.com/2016/04/17/building-the-first-digital-camera/), a digital camera from February, 1975 that could create an image with 32x32 resolution. It's actually a decapsulated DRAM chip and a C-mount lens adapter sold as a kit, but that's the first digital camera, beating the Kodak prototype by a few months.
 
@@ -31,6 +31,12 @@ Despite the technical shortcomings, the Apple Quicktake does actually produce ni
 Other good images can also be captured. Click to embiggen:
 
 <a href="https://www.640by480.com/posts/89/"><img src="https://www.640by480.com/media/Conservatory_Flowers_OpQCuom.jpg" height="200"></a> <a href="https://www.640by480.com/posts/92/"><img src="https://www.640by480.com/media/North_Beach_Cathedral_nTQIrMX.jpg" height="200"></a> <a href="https://www.640by480.com/posts/85/"><img src="https://www.640by480.com/media/Skateboarding_at_Twin_Peaks_FIb8NLA.jpg" height="200"></a> <a href="https://www.640by480.com/posts/70/"><img src="https://www.640by480.com/media/Chinatown_Empty_NQWkLeO.jpg" height="200"></a>
+
+These are good pictures, all things considering. The problem is the lens; there are a few pics I'd like to take where a 50mm equivalent lens is wholly insufficient, and I have a pile of Nikon F-mount lenses sitting around, so I'll have to make an adapter.
+
+**Making an adapter**
+
+
 
 
 
