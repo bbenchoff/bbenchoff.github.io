@@ -56,10 +56,26 @@ There is exactly one reason why anyone would want to put a Nikon lens on an Appl
 
 These are a few images taken with my Quicktake Nikon adapter:
 
-<a href="https://www.640by480.com/posts/271/"><img src="https://www.640by480.com/media/Image_9_-_82f212f22.jpg" height="200"></a> <a href="https://www.640by480.com/posts/272/"><img src="https://www.640by480.com/media/Image_2_-_82f212f22.jpg" height="200"></a>
+<a href="https://www.640by480.com/posts/271/"><img src="https://www.640by480.com/media/Image_9_-_82f212f22.jpg" height="400"></a> <a href="https://www.640by480.com/posts/272/"><img src="https://www.640by480.com/media/Image_2_-_82f212f22.jpg" height="400"></a>
 
 
-....something...
+**Using this bizarre camera**
+
+While the adapter works, the viewfinder doesn't and there's no LCD on the camera showing me how the pctures look. And I'm still beholden to the automatic shutter and aperture. This means I need a way to view the pictures taken by the camera, _live_. For this, I'm using a Powerbook Duo 2300c with System 7.5.5. To take a pictue, I set up the camera, press the button, fiddle with the focus and apeture on the lens, and download the pics to the computer. From there, I select the best pictures and re-shoot, playing with the framing. It's hard, and I had to rebuild a few Powerbook Duo batteries to make this setup portable.
+
+This is sort of the appeal of the Quicktake. Each image is a struggle. Even a stock Quicktake requires an old Mac, and if you want to get those images to the outside world, you should probably find a way to connect that computer to a local FTP server (the easiest way) or sneakernet the pictures on 3.5" floppies (the hard way).
+
+**What this project turned into**
+
+Due to the success of this project, I thought it would be a good idea to share these pics with the world. I initially had an Instagram account for these pics, but I don't want anything to do with Facebook/Meta. So I made my own Instagram clone for vintage digital cameras. [640by480](https://www.640by480.com/) is a simple Django app I made to show off pics taken with vintage digital cameras. My profile [is here](https://www.640by480.com/benchoff/), and all of the _good_ images I've taken with a Quicktake will show up there.
+
+A short writeup on the project [can be seen here.](https://bbenchoff.github.io/pages/InstaClone.html)
+
+The site is reasonably successful, with a few dozen highly active users in the first weekend. There are actually people uploading pics from their Mavica, and everything works. It's great.
+
+Oh, and because I'm creating a site for vintage digital cameras, it only makes sense that the page should be viewable on vintage computers:
+
+![640by480 as viewed on a Powerbook 2300c running Microsoft Internet Explorer 3.0](/images/640by480mac.gif)
 
 
 
