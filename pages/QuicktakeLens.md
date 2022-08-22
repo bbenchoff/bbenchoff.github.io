@@ -42,18 +42,24 @@ The basic steps in creating a Nikon adapter for a Quicktake are simply opening u
 
 ![Description of optical path changes](/images/OpticalPath.png)
 
-![a look at the sensor](/images/Sensor.jpg) ![Quicktake disassembled, showing the sensor moved forward](/images/Standoffs.jpg) ![The assembled camera](Assembled.jpg)
+![a look at the sensor](/images/Sensor.jpg) ![Quicktake disassembled, showing the sensor moved forward](/images/Standoffs.jpg) ![The assembled camera](/images/Assembled.jpg)
 
 While the process is simple, there are a few gotchas in adapting a Quicktake to take larger lenses. The stock power switch is activated by the lens cover, this was simply wired into a small DPDT switch and glued to the interior front of the camera. The lens adapter, like the camera, is fairly complicated, and requires a few cutouts to clear the apeture/shutter motor while still allowing access to the on/off switch:
 
 ![3D render of the adapter](/images/adapter.png)
 
-While the adapter is 3D printed, the metal hardware to mount a Nikon lens is not; these parts were taken from an off-the-shelf C-mount to F-mount adapter. The springs and plate simply screw into the plastic (PLA) parts.
+While the adapter is 3D printed, the metal hardware to mount a Nikon lens is not; these parts were taken from an off-the-shelf C-mount to F-mount adapter. The springs and plate simply screw into the plastic (PLA) parts. Because the stock Quicktake optical path includes an IR blocking coating, I had to add a UV IR cut filter to whatever lens I use with this camera.
+
+**What it looks like**
+
+There is exactly one reason why anyone would want to put a Nikon lens on an Apple Quicktake: crop factor. The sensor size of the Quicktake is about 6mm across. Because my Nikon lenses were designed for a 35mm frame, I get a very, very long lens, even using a 50mm Nikkor lens. The effective crop factor is about 7x, meaning the 50mm lens turns into a 350mm lens, making for some very long shots. Or extreme close-ups. Using a long (200mm or greater) lens on the Quicktake means I basically have a telescope. Of course, the light sensitivity and resolution is terrible, so keep that in mind.
+
+These are a few images taken with my Quicktake Nikon adapter:
+
+<a href="https://www.640by480.com/posts/271/"><img src="https://www.640by480.com/media/Image_9_-_82f212f22.jpg" height="200"></a> <a href="https://www.640by480.com/posts/272/"><img src="https://www.640by480.com/media/Image_2_-_82f212f22.jpg" height="200"></a>
 
 
-
-
-
+....something...
 
 
 
