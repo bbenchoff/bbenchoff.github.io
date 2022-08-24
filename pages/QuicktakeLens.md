@@ -56,8 +56,7 @@ There is exactly one reason why anyone would want to put a Nikon lens on an Appl
 
 These are a few images taken with my Quicktake Nikon adapter:
 
-<a href="https://www.640by480.com/posts/271/"><img src="https://www.640by480.com/media/Image_9_-_82f212f22.jpg" height="400"></a> <a href="https://www.640by480.com/posts/272/"><img src="https://www.640by480.com/media/Image_2_-_82f212f22.jpg" height="400"></a>
-
+<a href="https://www.640by480.com/posts/271/"><img src="https://www.640by480.com/media/Image_9_-_82f212f22.jpg" height="400"></a> <a href="https://www.640by480.com/posts/272/"><img src="https://www.640by480.com/media/Image_2_-_82f212f22.jpg" height="400"></a><a href="https://www.640by480.com/posts/285/"><img src="https://www.640by480.com/media/Image_3_-_82f212f22.jpg" height="400"></a><a href="https://www.640by480.com/posts/284/"><img src="https://www.640by480.com/media/Image_2_-_82f212f22_99gT0Y3.jpg" height="400"></a>
 
 **Using this bizarre camera**
 
