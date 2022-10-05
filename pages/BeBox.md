@@ -18,4 +18,8 @@ The entire thing is built around a Raspberry Pi 4, with a dual-HDMI extension bo
 
 More information can be found in the [BeBox Repo](https://github.com/bbenchoff/Raspi-BeBox).
 
+![BeBoxen Together](/images/Beboxen.png)
+
+[With a real BeBox](https://twitter.com/ViolenceWorks/status/1555984781677961216)
+
 [back](../)
