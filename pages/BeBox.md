@@ -40,7 +40,7 @@ The process for building this Raspberry Pi case is similar to all the other ones
 
 The Sharp X68000 was a popular workstation in late 80s / early 90s Japan. On a trip to Japan, [I picked up a model](https://twitter.com/ViolenceWorks/status/1585988854917439488) of this computer, meant to be a Raspberry Pi case.
 
-![picture of X68000 raspberry pi case](/images/X68000.jpg)
+![picture of X68000 raspberry pi case](/images/x68000.jpg)
 
 The model required paint and application of waterslide decals, but I also picked up an airbrush in Japan. A simple build, and it fits Raspberry Pi 2s and 3s.
 
