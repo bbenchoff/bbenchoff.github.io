@@ -50,13 +50,19 @@ The model required paint and application of waterslide decals, but I also picked
 
 ## SGI Indy
 
-Blah Blah something goes here
+While most of these tiny retrocomputers are <em>towers</em>, this was not the most prominant contemporary form factor for personal computers and workstations. Desktops (or pizza boxes, or whatever you call them) were the foremost form factor of the late 80s and early 90s, and they must be represented in this collection. To that end, I made a case for one of the best-looking desktops of the time, the Silicon Graphics Indy:
+
+Pic or something
+
+The case contains a Pi 4, HDMI right angle adapter, and a fan; essentially the same as the eMachines and the BeBox. This computer required paint, though, and I had just picked up an airbrush in Japan. It worked great, even on the very small SGI 'box' logo, which was printed via Shapeways:
+
+Pic of logo
 
 ## Viewsonic Monitor
 
 These computers need a monitor, right? There are a few other 'tiny computer Raspberry Pi cases' around, some of which include old Macs with an integrated screen. The most popular is the [American Girls Performa 5200](https://hackaday.io/project/7867-mini-powermac), with uses a 3.5" display. This display, though, is 320x240 resolution, and not in any way up to the task of displaying pure 90s workstation power.
 
-With the advent of head-mounted displays, companies are making very high DPI displays around 3-4" across. I found this [AliExpress listing for a really high DPI display](/images/TinyMonitor.png) with HDMI in. It's 1440x1600 resolution, or 615PPI, an absurd resolution for a very small display. Since a Viewsonic CRT is the most representitive monitor for this collection of microcomputers, I designed a CRT shell to wrap around this IPS display:
+With the advent of head-mounted displays, companies are making very high DPI displays around 3-4" across. I found this [AliExpress listing for a really high DPI display](/images/TinyMonitor.PNG) with HDMI in. It's 1440x1600 resolution, or 615PPI, an absurd resolution for a very small display. Since a Viewsonic CRT is the most representitive monitor for this collection of microcomputers, I designed a CRT shell to wrap around this IPS display:
 
 ![A 3d print of a CRT monitor designed in Fusion360](/images/MonitorDesign.png).
 
