@@ -36,6 +36,10 @@ This was an experiment in detailed scale modeling, specifically scaling down sti
 
 The process for building this Raspberry Pi case is similar to all the other ones -- the main body is 3D printed on a filament printer, the detailed parts (in this case, the front) are printed in fine detail resin. The trick for this case is the many waterslide decals. These were designed in Illustrator, then sent off to someone with an Alps dye sub printer. Application is relatively easy with the right tools, specifically Micro Sol and Micro Set solution, along with an airbrush.
 
+![Sheet of Decals](/images/DecalSheet.png)
+
+Because these decals use white and metallic inks, the files for these decals were sent out to a printer. I have better uses for $2k than to spend it on a dye-sub Alps printer, after all. The decal sheet includes all the decals for the eMachines, as well as the silkscreened logotype for the SGI Indy project that was built around the same time.
+
 ## X68000
 
 The Sharp X68000 was a popular workstation in late 80s / early 90s Japan. On a trip to Japan, [I picked up a model](https://twitter.com/ViolenceWorks/status/1585988854917439488) of this computer, meant to be a Raspberry Pi case.
@@ -50,7 +54,12 @@ Blah Blah something goes here
 
 ## Viewsonic Monitor
 
-Also something
+These computers need a monitor, right? There are a few other 'tiny computer Raspberry Pi cases' around, some of which include old Macs with an integrated screen. The most popular is the [American Girls Performa 5200](https://hackaday.io/project/7867-mini-powermac), with uses a 3.5" display. This display, though, is 320x240 resolution, and not in any way up to the task of displaying pure 90s workstation power.
+
+With the advent of head-mounted displays, companies are making very high DPI displays around 3-4" across. I found this [AliExpress listing for a really high DPI display](/images/TinyMonitor.png) with HDMI in. It's 1440x1600 resolution, or 615PPI, an absurd resolution for a very small display. Since a Viewsonic CRT is the most representitive monitor for this collection of microcomputers, I designed a CRT shell to wrap around this IPS display:
+
+![A 3d print of a CRT monitor designed in Fusion360](/images/MonitorDesign.png).
+
 
 
 
