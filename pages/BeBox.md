@@ -62,9 +62,18 @@ Pic of logo
 
 These computers need a monitor, right? There are a few other 'tiny computer Raspberry Pi cases' around, some of which include old Macs with an integrated screen. The most popular is the [American Girls Performa 5200](https://hackaday.io/project/7867-mini-powermac), with uses a 3.5" display. This display, though, is 320x240 resolution, and not in any way up to the task of displaying pure 90s workstation power.
 
+![A 3d print of a CRT monitor designed in Fusion360](/images/MonitorDesign.png)
+
 With the advent of head-mounted displays, companies are making very high DPI displays around 3-4" across. I found this [AliExpress listing for a really high DPI display](/images/TinyMonitor.PNG) with HDMI in. It's 1440x1600 resolution, or 615PPI, an absurd resolution for a very small display. Since a Viewsonic CRT is the most representitive monitor for this collection of microcomputers, I designed a CRT shell to wrap around this IPS display:
 
-![A 3d print of a CRT monitor designed in Fusion360](/images/MonitorDesign.png).
+![Assembly and back of monitor](/images/DisassembledMonitor.png)
+
+The monitor works great, and can be driven with any HDMI output. The trick is changing it from portrait to landscape, but that's just one setting.
+
+![Working monitor](/images/WorkingMonitor.png)
+
+
+
 
 
 
