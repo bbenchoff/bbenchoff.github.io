@@ -58,13 +58,15 @@ The model required paint and application of waterslide decals, but I also picked
 
 ## SGI Indy
 
+*STL files and related info can be found in the [raspi-SGIIndy repo](https://github.com/bbenchoff/raspi-SGIIndy)*
+
 While most of these tiny retrocomputers are <em>towers</em>, this was not the most prominant contemporary form factor for personal computers and workstations. Desktops (or pizza boxes, or whatever you call them) were the foremost form factor of the late 80s and early 90s, and they must be represented in this collection. To that end, I made a case for one of the best-looking desktops of the time, the Silicon Graphics Indy:
 
-Pic or something
+![Pic of Indy](/images/Indy.jpg)
 
 The case contains a Pi 4, HDMI right angle adapter, and a fan; essentially the same as the eMachines and the BeBox. This computer required paint, though, and I had just picked up an airbrush in Japan. It worked great, even on the very small SGI 'box' logo, which was printed via Shapeways:
 
-Pic of logo
+![closeup of logo](/images/IndyClose.jpg
 
 ![Assembly of Indy](/images/SGIAssembly.png)
 
