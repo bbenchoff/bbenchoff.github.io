@@ -70,6 +70,10 @@ With the advent of head-mounted displays, companies are making very high DPI dis
 
 ![A 3d print of a CRT monitor designed in Fusion360](/images/MonitorDesign.png).
 
+![The monitor running Doom](/images/Doom.png)
+
+![The assembly of the monitor](/images/DisassembledMonitor.png)
+
 
 
 
