@@ -42,6 +42,12 @@ The process for building this Raspberry Pi case is similar to all the other ones
 
 Because these decals use white and metallic inks, the files for these decals were sent out to a printer. I have better uses for $2k than to spend it on a dye-sub Alps printer, after all. The decal sheet includes all the decals for the eMachines, as well as the silkscreened logotype for the SGI Indy project that was built around the same time.
 
+The design of the eMachines enclosure is more modular than the BeBox. The Raspberry Pi and related components are secured to a chassis, to which an outer shell is simply clipped on. This allows me to easily change out the design for other shells with a tower form factor.
+
+![Assembly of components](/images/EmachinesAssembly.png)
+
+
+
 ## X68000
 
 The Sharp X68000 was a popular workstation in late 80s / early 90s Japan. On a trip to Japan, [I picked up a model](https://twitter.com/ViolenceWorks/status/1585988854917439488) of this computer, meant to be a Raspberry Pi case.
@@ -59,6 +65,10 @@ Pic or something
 The case contains a Pi 4, HDMI right angle adapter, and a fan; essentially the same as the eMachines and the BeBox. This computer required paint, though, and I had just picked up an airbrush in Japan. It worked great, even on the very small SGI 'box' logo, which was printed via Shapeways:
 
 Pic of logo
+
+![Assembly of Indy](/images/SGIAssembly.png)
+
+The design of the case is somewhat unique, and in keeping with the design of the eMachines. The Pi and all related components are screwed down to a chassis, with the outer shell simply cliping onto the chassis. This makes other 'pizza box' designs very easy to implement. I think a Packard Bell might be next.
 
 ## Viewsonic Monitor
 
