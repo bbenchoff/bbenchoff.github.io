@@ -87,8 +87,4 @@ With the advent of head-mounted displays, companies are making very high DPI dis
 ![The assembly of the monitor](/images/DisassembledMonitor.png)
 
 
-
-
-
-
 [back](../)
