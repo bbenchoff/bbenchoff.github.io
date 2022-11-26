@@ -4,7 +4,7 @@ layout: default
 
 ---
 
-# Quarter-Scale Retrocomputing Test
+# Quarter-Scale Retrocomputing
 
 ![Render of tiny computers](/images/TinyComputers.png)
 
