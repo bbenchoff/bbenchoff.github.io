@@ -32,6 +32,10 @@ More information can be found in the [BeBox Repo](https://github.com/bbenchoff/R
 
 ## The eMachines Never Obsolete
 
+
+*STL files and related info can be found in the [raspi-eMachines repo](https://github.com/bbenchoff/raspi-eMachines)*
+
+
 This was an experiment in detailed scale modeling, specifically scaling down stickers and silkscreen. The obvious choice for a computer to test these techniques on is the eMachines Never Obsolete from c.2000; these computers came plastered with stickers, and existant machines are highly regarded in the sleeper / retrobattlestation community. I had to make this computer, and it had to have all the stickers.
 
 ![render of eMachines](/images/eMachinesRender.png)
