@@ -70,7 +70,7 @@ While most of these tiny retrocomputers are <em>towers</em>, this was not the mo
 
 The case contains a Pi 4, HDMI right angle adapter, and a fan; essentially the same as the eMachines and the BeBox. This computer required paint, though, and I had just picked up an airbrush in Japan. It worked great, even on the very small SGI 'box' logo, which was printed via Shapeways:
 
-![closeup of logo](/images/IndyClose.jpg
+![closeup of logo](/images/IndyClose.jpg)
 
 ![Assembly of Indy](/images/SGIAssembly.png)
 
