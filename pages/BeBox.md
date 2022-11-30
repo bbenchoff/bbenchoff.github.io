@@ -32,6 +32,8 @@ More information can be found in the [BeBox Repo](https://github.com/bbenchoff/R
 
 ## The eMachines Never Obsolete
 
+![composite shot of eMachines](/images/eMachinesComposite.jpg)
+
 
 *STL files and related info can be found in the [raspi-eMachines repo](https://github.com/bbenchoff/raspi-eMachines)*
 
@@ -44,7 +46,7 @@ The process for building this Raspberry Pi case is similar to all the other ones
 
 ![Sheet of Decals](/images/DecalSheet.png)
 
-Because these decals use white and metallic inks, the files for these decals were sent out to a printer. I have better uses for $2k than to spend it on a dye-sub Alps printer, after all. The decal sheet includes all the decals for the eMachines, as well as the silkscreened logotype for the SGI Indy project that was built around the same time.
+Because these decals use white and metallic inks, the files for these decals were sent out to [a waterslide decal 'manufacturer'](https://www.bedlamcreations.com/). I have better uses for $2k than to spend it on a dye-sub Alps printer, after all. The decal sheet includes all the decals for the eMachines, as well as the silkscreened logotype for the SGI Indy project that was built around the same time.
 
 The design of the eMachines enclosure is more modular than the BeBox. The Raspberry Pi and related components are secured to a chassis, to which an outer shell is simply clipped on. This allows me to easily change out the design for other shells with a tower form factor.
 
