@@ -28,6 +28,12 @@ From there, a replacement PCB was constructed and new boards were made with New 
 
 ![Eagle PCB of IDE adapter](/images/USBtoATAPI.png)
 
+The 'finished' version of this project is a four-drive tower, with four Z250 drives, a four-port USB hub, and the IDE->USB adapters. The case for this tower is 3D printed, with a second case printed for SCSI applications:
+
+![Micro Zip Tower 1](/images/ZipTower1.png)
+![Micro Zip Tower 2](/images/ZipTower2.png)
+
+
 More information can be found in the [ATAPI Tower repository](https://github.com/bbenchoff/ATAPI_Tower).
 
 [back](../)
