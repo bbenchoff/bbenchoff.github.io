@@ -117,10 +117,15 @@ The car needed new tires, and there are several options. Citi/Commutacars came w
 
 Brakes are another matter. While the car nominally came with tires that hold air, it did not come with brakes that work. It did, however, come with a brake drum in the big box 'o parts, and after pulling off the front passenger wheel, I figured out why: [the car did not come with an extra brake drum](https://twitter.com/ViolenceWorks/status/1516608824693587971). When I bought the car, there was no drum on the front passenger brake, and the wheel had three random washers on the studs. This is sketch as fuck.
 
+After draining and bleeding the brake lines, 'squishy' brakes persisted. This problem was eventually identified as a leaky seal on the rear passenger brake cylinder. The brake cylinder / spider assembly is a Bendix 3203010, and the [torque spider repair kit](https://www.vintagegolfcartparts.com/Item/CU_TrqSpdrReparKit) (BK33-190, EZ 13959-G1) runs about $80. That's for one wheel, and I might as well replace the seals and boots on the other rear wheel while I'm at it.
 
-With everything moving *somewhat*, I had to flush and bleed the brake fluid. The car also did not come with brake fluid in half of the master cylinder. How I even got this thing out of a Uhaul is beyond me.
+![Cleaned rear brake drum](/images/Car/Part6/BrakeClean.png)
 
-<img src="/images/Car/Part6/BrakeDrum.png" alt="Inside of brake drum" height="400"><img src="/images/Car/Part6/BrakeFluid.png" alt="Flushing brake fluid" height="400">
+The below pic is the disassembled parts of the rear brake drum. Note the pic of the seals -- one is very oblong, this was the seal that was leaking.
+
+![rear brake disassembly, inspection of seals](/images/Car/Part6/brakepartsseals.png)
+
+With new seals in the brake cylinders...
 
 
 

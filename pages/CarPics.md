@@ -77,6 +77,8 @@ layout: default
 
 ## Part 6 - Brakes and Diffs
 ![Brake Drum](/images/Car/Part6/BrakeDrum.png)
+![Cleaned rear brake drum](/images/Car/Part6/BrakeClean.png)
+![rear brake disassembly, inspection of seals](/images/Car/Part6/brakepartsseals.png)
 ![Flushing the brake fluid](/images/Car/Part6/BrakeFluid.png)
 ![Running in the brushes](/images/Car/Part6/BrushRunin.png)
 ![A hot differential](/images/Car/Part6/HotDiff.png)
