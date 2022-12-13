@@ -127,7 +127,15 @@ The below pic is the disassembled parts of the rear brake drum. Note the pic of 
 
 With new seals in the brake cylinders...
 
+## Part 6, Body off restoration
 
+As noted above, the car came to me with a few broken panels. The Driver's rear quarterpanel was the worst, with a broken vent and a few other pieces broken off. These broken parts came with the car, and I was able to reattach and reinforce them. No problem, really.
+
+However, the car also had many cracks in the body panels. There are cracks along the windshield, just like every other citicar on the planet, there are cracks on the roof, and the top driver's side corner of the rear panel is very broken. All of these cracks can not be easily fixed with the body panels on the car. Additionally, the 'foam' (or whatever it is) around the aluminum space frame has degraded into sticky dust, and I'd like to get that off. And I want to re-paint this thing. The solution to all these problems can be solved by pulling the body panels off the car. I have never seen this done and the plastic is extremely brittle.
+
+In preperation for this, I made replicas of the decals on the citicar. These will eventually be recreated with a vinyl cutter and transfer paper:
+
+![car graphics](/images/Car/Part6/CiticarBodyGraphics.png)
 
 <hr>
 
