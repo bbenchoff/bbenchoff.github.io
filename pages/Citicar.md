@@ -178,8 +178,9 @@ After acquiring the car, I noticed the door seals had completely rotted away. In
 |Direction Contactor	|Albright SW202-142 (ebay)				|$99.99		|
 |Replacement Controller |Curtis 1209B-6402					|$219.22	|
 |Motor Brushes		|Carbon Brush 0.5" x 0.625" x 1.437" item 10-506221	|$67.60		|
+|Brake seal parts	|BK33-190 Torque Spider Repair Kit 			|$77.73		|
 |-----------------------|-------------------------------------------------------|---------------|
-|			|							|		|	|
+|			|							|		|
 
 
 [back](../)
