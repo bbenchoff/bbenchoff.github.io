@@ -123,7 +123,7 @@ After draining and bleeding the brake lines, 'squishy' brakes persisted. This pr
 
 The below pic is the disassembled parts of the rear brake drum. Note the pic of the seals -- one is very oblong, this was the seal that was leaking.
 
-![rear brake disassembly, inspection of seals](/images/Car/Part6/brakepartsseals.png)![blown seal on torque spider]![a blown seal](/images/Car/Part6/blownseal.jpg)
+![rear brake disassembly, inspection of seals](/images/Car/Part6/brakepartsseals.png)![a blown seal](/images/Car/Part6/blownseal.jpg)
 
 With new seals on the rear wheels, squishy brakes persisted. On further inspection, the seal on the front passenger brake was leaking. Fixing this was a bit trickier; either through decades of decay or my misapplication of torque, the threads for the bleeder valve were partially stripped. I bought a new torque spider for the front passenger brake, and with that bolted on the brakes worked like new. While I'm not impressed with the 'one man' vacuum brake bleeder I have (the girlfriend had to stomp on the brakes while I went around bleeding everything), the brakes now work. In total, the brakes on the car took about a month, with most of that waiting for various tools and parts to arrive. That's not a problem -- now my garage has a few more tools, and I know how to build more brake lines. 
 
