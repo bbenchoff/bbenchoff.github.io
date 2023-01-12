@@ -82,5 +82,14 @@ layout: default
 ![Flushing the brake fluid](/images/Car/Part6/BrakeFluid.png)
 ![Running in the brushes](/images/Car/Part6/BrushRunin.png)
 ![A hot differential](/images/Car/Part6/HotDiff.png)
+![broken threads on torque spider](/images/Car/Part6/newthreads.jpg)
+![blown seal on torque spider](/images/Car/Part6/blownseal.jpg)
+![a brand new torque spider](/images/Car/Part6/newspider.jpg)
+![rebuilt brakes](/images/Car/Part6/rebuiltbrakes.jpg)
+
+## Part 7 - Body off rebuild
+![Citicar Body Graphics](/images/Car/Part7/CiticarBodyGraphics.png)
+
+
 
 [back](../)

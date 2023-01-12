@@ -117,17 +117,18 @@ The car needed new tires, and there are several options. Citi/Commutacars came w
 
 Brakes are another matter. While the car nominally came with tires that hold air, it did not come with brakes that work. It did, however, come with a brake drum in the big box 'o parts, and after pulling off the front passenger wheel, I figured out why: [the car did not come with an extra brake drum](https://twitter.com/ViolenceWorks/status/1516608824693587971). When I bought the car, there was no drum on the front passenger brake, and the wheel had three random washers on the studs. This is sketch as fuck.
 
-After draining and bleeding the brake lines, 'squishy' brakes persisted. This problem was eventually identified as a leaky seal on the rear passenger brake cylinder. The brake cylinder / spider assembly is a Bendix 3203010, and the [torque spider repair kit](https://www.vintagegolfcartparts.com/Item/CU_TrqSpdrReparKit) (BK33-190, EZ 13959-G1) runs about $80. That's for one wheel, and I might as well replace the seals and boots on the other rear wheel while I'm at it.
+After draining and bleeding the brake lines, 'squishy' brakes persisted. This problem was eventually identified as a leaky seals on the brake cylinders. The brake cylinder / spider assembly is a Bendix 3203010, and the [torque spider repair kit](https://www.vintagegolfcartparts.com/Item/CU_TrqSpdrReparKit) (BK33-190, EZ 13959-G1) runs about $80. That's for one wheel, and I might as well replace the seals and boots on the other rear wheel while I'm at it. The bleeder screws were replaced (NAPA UP 6446), along with one [torque spider assembly](https://www.vintagegolfcartparts.com/Item/CU_TrqSpiderAssy) (OEM Part number CU 824829, 886875) that had a stripped bleeder screw thread. I'd like to emphesize the brakes are almost entirely rebuilt, with the exception of the master cylinder. The master cylinder works, though, so I think we're good.
 
 ![Cleaned rear brake drum](/images/Car/Part6/BrakeClean.png)
 
 The below pic is the disassembled parts of the rear brake drum. Note the pic of the seals -- one is very oblong, this was the seal that was leaking.
 
-![rear brake disassembly, inspection of seals](/images/Car/Part6/brakepartsseals.png)
+![rear brake disassembly, inspection of seals](/images/Car/Part6/brakepartsseals.png)![blown seal on torque spider]![a blown seal](/images/Car/Part6/blownseal.jpg)
 
-With new seals in the brake cylinders...
+With new seals on the rear wheels, squishy brakes persisted. On further inspection, the seal on the front passenger brake was leaking. Fixing this was a bit trickier; either through decades of decay or my misapplication of torque, the threads for the bleeder valve were partially stripped. I bought a new torque spider for the front passenger brake, and with that bolted on the brakes worked like new. While I'm not impressed with the 'one man' vacuum brake bleeder I have (the girlfriend had to stomp on the brakes while I went around bleeding everything), the brakes now work. In total, the brakes on the car took about a month, with most of that waiting for various tools and parts to arrive. That's not a problem -- now my garage has a few more tools, and I know how to build more brake lines. 
 
-## Part 6, Body off restoration
+
+## Part 7, Body off restoration
 
 As noted above, the car came to me with a few broken panels. The Driver's rear quarterpanel was the worst, with a broken vent and a few other pieces broken off. These broken parts came with the car, and I was able to reattach and reinforce them. No problem, really.
 
@@ -135,7 +136,7 @@ However, the car also had many cracks in the body panels. There are cracks along
 
 In preperation for this, I made replicas of the decals on the citicar. These will eventually be recreated with a vinyl cutter and transfer paper:
 
-![car graphics](/images/Car/Part6/CiticarBodyGraphics.png)
+![car graphics](/images/Car/Part7/CiticarBodyGraphics.png)
 
 <hr>
 
