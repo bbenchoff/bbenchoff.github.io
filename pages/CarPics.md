@@ -74,6 +74,7 @@ layout: default
 ![New Brushes](/images/Car/Part5/MotorBrushes.png)
 ![Internals of the motor](/images/Car/Part5/MotorTeardown.png)
 ![Car moved under its own power](/images/Car/Part5/ActuallyDrove.jpg)
+![CNC Motor mount](/images/Car/Part5/MotorMount.gif)
 
 ## Part 6 - Brakes and Diffs
 ![Brake Drum](/images/Car/Part6/BrakeDrum.png)
