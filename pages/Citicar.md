@@ -167,21 +167,22 @@ After acquiring the car, I noticed the door seals had completely rotted away. In
 
 ## Parts and replacements
 
-|Part			|Replacement						|Cost		|
-|-----------------------|-------------------------------------------------------|--------------:|
-|Rear glass gas strut 	|Napa / Balkamp BK 8195581				|$28.99		|
+|Part				|Replacement							|Cost			|
+|-----------------------|-----------------------------------------------------|--------------:|
+|Rear glass gas strut 	|Napa / Balkamp BK 8195581					|$28.99		|
 |Shock Absorber		|Monroe #94037 / NAPA PNS 94037				|$30.69		|
-|Ignition Switch	|Cole Hersee 9577-BX					|$15.99		|
+|Ignition Switch	|Cole Hersee 9577-BX							|$15.99		|
 |Rear Hazard Light	|Peterson Manufacturing V126R Red Clearance Light	|$14.23		|
 |Windshield Wiper Blade	|Anco 51-20 / NAPA part number 602050			|$14.37		|
 |Turn Signal Stalk	|77-80 Triumph Spitfire / 30968X / LUCAS SQB195		|$36.75		|
-|Fuse Panel		|Eaton / Bussmann 15305-2-2-4				|$45.46		|
-|Direction Contactor	|Albright SW202-142 (ebay)				|$99.99		|
-|Replacement Controller |Curtis 1209B-6402					|$219.22	|
+|Fuse Panel			|Eaton / Bussmann 15305-2-2-4					|$45.46		|
+|Direction Contactor	|Albright SW202-142 (ebay)					|$99.99		|
+|Replacement Controller |Curtis 1209B-6402						|$219.22		|
 |Motor Brushes		|Carbon Brush 0.5" x 0.625" x 1.437" item 10-506221	|$67.60		|
-|Brake seal parts	|BK33-190 Torque Spider Repair Kit 			|$77.73		|
-|-----------------------|-------------------------------------------------------|---------------|
-|			|							|		|
+|Brake seal parts		|BK33-190 Torque Spider Repair Kit 				|$77.73		|
+|Motor Mount Seal		|Federal Mogul 352352 Steering Gear Pitman Shaft Seal	|$10			|
+|-----------------------|-----------------------------------------------------|-----------------|
+
 
 
 [back](../)
