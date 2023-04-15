@@ -28,7 +28,7 @@ The PROM battery is found next to the trackpad or trackball. This battery keeps 
 Blah blahsomething
 something
 
-![The battery assembled](/images/prom.jpg)
+![The battery assembled](/images/Duo/prom.jpg)
 
 
 
