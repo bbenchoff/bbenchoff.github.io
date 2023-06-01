@@ -140,13 +140,20 @@ In preperation for this, I made replicas of the decals on the citicar. These wil
 
 <hr>
 
-## Gauge Cluster
+## Gauge Cluster & New Dashboard
 
 Eventually, the car will need a new dashboard. The reasoning for this is simply my upgrades are incompatable with the various indicators and gauges on the stock dashboard. For example, the speedometer connects to the motor through a very long cable, this will be eliminated when upgrading to an AC motor. I can not view the charge state of the battery with the existing gauges, and I really don't like the existing hazard switch -- that should be a 'normal' red triangle switch.
 
-<img src="/images/Car/GaugeCluster/1.png" alt="Gauge Cluster Assembly" height="400">
+<img src="/images/Car/GaugeCluster/LEDBezel.png" alt="Gauge Cluster Assembly" height="400">
 
-So I need a new gauge cluster. I'd like a 'digital' dash, so I'm using an EL display taken out of a Sun router made around the year 2000. For battery charge state, I'm using flip dots. This is great, because of the static nature of flip dots; I'll be able to see the car's state of charge even with the key out of the ignition.
+So I need a new gauge cluster. I'd like a 'digital' dash. My plan is a LED array, functioning as sort of a multifunction panel. The display is an 18x39 array of 3mm red LEDs -- this high enough resolution for a speedometer, indicator lights, and has the ability to display messages, albeit in excessively large scrolling letters. The gigantic LED array also fits with the aesthetic of the Citicar. It's futuristic for the 1970s and could have been manufactured at the time. The rest of the electronics will be an ARM microprocessor and a CAN transceiver at the bare minimum, able to communicate with the rest of the components in the car.
+
+This was not my first attempt at a gauge cluster. My first version was a gauge cluster made out of an EL display taken from a Sun router made around the year 2000, surrounded by flipdots for a state-of-charge gauge that does not require any power.
+
+<img src="/images/Car/GaugeCluster/1.png" alt="Gauge Cluster Assembly" height="400">
+<img src="/images/Car/GaugeCluster/stackup.png" alt="Gauge Cluster Assembly" height="400">
+
+I *made* the first version of the gauge cluster, but I didn't like it. It's just... too weird. A rectangle with rounded corners and a bunch of LEDs fits the aesthetic better, anyway.
 
 
 ### Paint
