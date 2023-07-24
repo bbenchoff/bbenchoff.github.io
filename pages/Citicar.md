@@ -140,13 +140,15 @@ In preperation for this, I made replicas of the decals on the citicar. These wil
 
 <hr>
 
-## Gauge Cluster
+## Gauge Cluster & Digital Dash & Upgrading to CAN
 
-Eventually, the car will need a new dashboard. The reasoning for this is simply my upgrades are incompatable with the various indicators and gauges on the stock dashboard. For example, the speedometer connects to the motor through a very long cable, this will be eliminated when upgrading to an AC motor. I can not view the charge state of the battery with the existing gauges, and I really don't like the existing hazard switch -- that should be a 'normal' red triangle switch.
+Because I'm upgrading my motor, the old, Vanguard-branded speedometer will not work. Instead of a cable coming out of the back of the motor, snaking up to the dash, and connecting to the speedometer, I need something that works over CAN, measuring the RPM of the motor and performing the division necessary to get the speed of the car. The speedometer problem has become a software problem (which is great), but it still requires hardware to _display_ the speed (this is bad).
 
 <img src="/images/Car/GaugeCluster/1.png" alt="Gauge Cluster Assembly" height="400">
 
-So I need a new gauge cluster. I'd like a 'digital' dash, so I'm using an EL display taken out of a Sun router made around the year 2000. For battery charge state, I'm using flip dots. This is great, because of the static nature of flip dots; I'll be able to see the car's state of charge even with the key out of the ignition.
+For a new speedometer, I have two options. The first is buying a CAN gauge I can program to display the speed. I don't like this option because it doesn't fit with the 1980s nerd car aesthetic I'm going for. The second option is to build a gauge cluster and program it to receive CAN messages. This took two attempts. My first attempt at a 'digital dash' consisted of a Planar Electroluminescent display ripped from a c.2000 Sun router. This is decidedly anachronistic for a 1980s nerd car, but if you squint it looks like something that should have been possible. Surrounding the EL display are flip dots for battery state-of-charge; I'm using flip dots because they will display the state of charge while the car is off. All of this was assembled into a 3D printed enclosure. I hated it. It didn't look the part. The fit and finish was great, but it just wasn't for me.
+
+My second attempt at a 'digital dash' is effectively an LED display pulled out of a bus. This was PCB with an 18x39 array of 3mm LEDs (orange-yellow, and very close to the same wavelength as a neon tube) stuffed into an aluminum bezel. This display is one of the most complex to assemble things I've ever designed; those LEDs are through-hole, and had to be soldered individually. Behind this LED display is a driver board that also contains four buttons poking out of the front of the bezel, a few DT connectors for the CAN bus, and a microcontroller with CAN support. This digital dash looks the part. It honestly looks like a dashboard from an exotic late-70s supercar, and something that looks identical to it could have been built with contemperanious technology. If built in 1980, it would have cost as much as the car itself. It's beautiful, and I can play Bad Apple and Game of Life on it. This digital dash will display the speedometer, serve as the turn signal indicators, display warnings, and if I'm feeling really ambitious serve as the display for the backup camera.
 
 
 ### Paint
