@@ -140,20 +140,19 @@ In preperation for this, I made replicas of the decals on the citicar. These wil
 
 <hr>
 
-## Gauge Cluster & New Dashboard
+## Gauge Cluster & Digital Dash & Upgrading to CAN
 
-Eventually, the car will need a new dashboard. The reasoning for this is simply my upgrades are incompatable with the various indicators and gauges on the stock dashboard. For example, the speedometer connects to the motor through a very long cable, this will be eliminated when upgrading to an AC motor. I can not view the charge state of the battery with the existing gauges, and I really don't like the existing hazard switch -- that should be a 'normal' red triangle switch.
 
-<img src="/images/Car/GaugeCluster/LEDBezel.png" alt="Gauge Cluster Assembly" height="400">
+Because I'm upgrading my motor, the old, Vanguard-branded speedometer will not work. Instead of a cable coming out of the back of the motor, snaking up to the dash, and connecting to the speedometer, I need something that works over CAN, measuring the RPM of the motor and performing the division necessary to get the speed of the car. The speedometer problem has become a software problem (which is great), but it still requires hardware to _display_ the speed (this is bad).
 
-So I need a new gauge cluster. I'd like a 'digital' dash. My plan is a LED array, functioning as sort of a multifunction panel. The display is an 18x39 array of 3mm red LEDs -- this high enough resolution for a speedometer, indicator lights, and has the ability to display messages, albeit in excessively large scrolling letters. The gigantic LED array also fits with the aesthetic of the Citicar. It's futuristic for the 1970s and could have been manufactured at the time. The rest of the electronics will be an ARM microprocessor and a CAN transceiver at the bare minimum, able to communicate with the rest of the components in the car.
-
-This was not my first attempt at a gauge cluster. My first version was a gauge cluster made out of an EL display taken from a Sun router made around the year 2000, surrounded by flipdots for a state-of-charge gauge that does not require any power.
+For a new speedometer, I have two options. The first is buying a CAN gauge I can program to display the speed. I don't like this option because it doesn't fit with the 1980s nerd car aesthetic I'm going for. The second option is to build a gauge cluster and program it to receive CAN messages. This took two attempts. My first attempt at a 'digital dash' consisted of a Planar Electroluminescent display ripped from a c.2000 Sun router. This is decidedly anachronistic for a 1980s nerd car, but if you squint it looks like something that should have been possible. Surrounding the EL display are flip dots for battery state-of-charge; I'm using flip dots because they will display the state of charge while the car is off. All of this was assembled into a 3D printed enclosure. I hated it. It didn't look the part. The fit and finish was great, but it just wasn't for me.
 
 <img src="/images/Car/GaugeCluster/1.png" alt="Gauge Cluster Assembly" height="400">
 <img src="/images/Car/GaugeCluster/stackup.png" alt="Gauge Cluster Assembly" height="400">
 
-I *made* the first version of the gauge cluster, but I didn't like it. It's just... too weird. A rectangle with rounded corners and a bunch of LEDs fits the aesthetic better, anyway.
+My second attempt at a 'digital dash' is effectively an LED display pulled out of a bus. This was PCB with an 18x39 array of 3mm LEDs (orange-yellow, and very close to the same wavelength as a neon tube) stuffed into an aluminum bezel. This display is one of the most complex to assemble things I've ever designed; those LEDs are through-hole, and had to be soldered individually. Behind this LED display is a driver board that also contains four buttons poking out of the front of the bezel, a few DT connectors for the CAN bus, and a microcontroller with CAN support. This digital dash looks the part. It honestly looks like a dashboard from an exotic late-70s supercar, and something that looks identical to it could have been built with contemperanious technology. If built in 1980, it would have cost as much as the car itself. It's beautiful, and I can play Bad Apple and Game of Life on it. This digital dash will display the speedometer, serve as the turn signal indicators, display warnings, and if I'm feeling really ambitious serve as the display for the backup camera.
+
+<img src="/images/Car/GaugeCluster/LEDBezel.png" alt="Gauge Cluster Assembly" height="400">
 
 
 ### Paint
