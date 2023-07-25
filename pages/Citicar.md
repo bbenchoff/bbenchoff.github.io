@@ -154,6 +154,19 @@ My second attempt at a 'digital dash' is effectively an LED display pulled out o
 
 <img src="/images/Car/GaugeCluster/LEDBezel.png" alt="Gauge Cluster Assembly" height="400">
 
+After upgrading the dashboard from a single speedometer to a CAN-enabled multifunction display, I realized the rest of the dash was severely lacking. The forward / reverse switch was a simple toggle switch. This could be improved. The design I came up with is inspired by the modern 'knob' interface of electric cars, where a single knob puts the car into Drive, Park, and Reverse. My design is a different take on this; it's a knob, with a 16-segment display showing either 'P', 'N', or 'R', _but the display does not rotate with the knob. I've never seen anything like this in any car, and in practice it's amazing.
+
+<img src="/images/Car/GaugeCluster/RotaryTransmission1.png" alt="Gauge Cluster Assembly" height="400">
+
+This knob is built around a rotary switch, mounted to small box the rest of the design mounts to. On the back of the box, there is a PCB with a microcontroller and CAN transceiver, as well as the same DT connectors found in the multifunction panel. On the front of this box are standoffs that project through the back of the knob; this is possible because the rotary switch only has a travel of 120 degrees. Mounted to these standoffs are a PCB with 16-segment display and shift registers. This PCB is connected to the 'back' PCB through 2x3 IDC cable. Other than that, it's just the aluminum knob and tinted acrylic panel that is attached to the shaft of the rotary switch.
+
+<img src="/images/Car/GaugeCluster/RotaryTransmission2.png" alt="Gauge Cluster Assembly" height="400">
+<img src="/images/Car/GaugeCluster/RotaryTransmission3.png" alt="Gauge Cluster Assembly" height="400">
+
+The result is something familiar to anyone who has ever ridden in a Prius. It's just a knob, afterall. The 16-segment display adds some 80's-era panache, but the fact that the display does not rotate with the knob is subtly magical. I guarantee some people won't notice it until it's pointed out to them, but they will be astonished when it is.
+
+Apart from the multifunction display and the forward/reverse switch, the rest of the dash will consist of standard panel-mount switches, although I have to find some place to get the right labels printed on them.
+
 
 ### Paint
 
