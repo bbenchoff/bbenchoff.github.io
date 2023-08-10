@@ -58,17 +58,43 @@ After [a false start](https://twitter.com/ViolenceWorks/status/14934401314489917
 
 [With the dash wiring completed](https://twitter.com/ViolenceWorks/status/1494036625461956609), I turn my attention to the power electronics and getting the motor turning. There is also a [soapbox derby](https://www.eventbrite.com/e/sfmomas-soapbox-derby-at-mclaren-park-2022-tickets-265577327937) in town about two months from now, so the goal is to get this thing on the road and compete in the only race this car will ever see. That means fixing the brakes.
 
-## Part 3, Motor Controller Replacement
+## Part 3, Motors, Motor Controllers, And An Entire Year.
 
-With the 12V electronics complete, the goal now is to take the car out for a drive around the block, or take it to [Ocean Beach Cars and Coffee](https://norcalcarculture.com/events/ocean-beach-cars-and-coffee/) on the last Sunday of the month. This means working on the high power side of the electronics, and figuring out how the motor controller works.
+Wiring up a few switches and a fuse box is easy. Very easy, and there's no way it could take an entire year. The motor and controller were another story.
 
-As noted in Part 1, [this car came with a motor controller](/images/Car/Part1/7.png), a **Curtis 1209-5501** rated for 48V / 450A. Taking notes from the manual for this controller, I [finished the schematic](/images/Car/Part3/tinysch.png) and wired [the whole thing up](/images/Car/Part3/Batteryboxwired.png). Additionally, because I didn't want to deal with the old forward/reverse contactor (it was chooched), I purchased a new F/R contactor off of eBay for $100.
+With the 12V electronics done, the goal was to wire in the motor controller that came with the car and possibly take it down  to [Ocean Beach Cars and Coffee](https://norcalcarculture.com/events/ocean-beach-cars-and-coffee/) on the last Sunday of the month. As noted in Part 1, [this car came with a motor controller](/images/Car/Part1/7.png), a **Curtis 1209-5501** rated for 48V / 450A. Taking notes from the manual for this controller, I [finished the schematic](/images/Car/Part3/tinysch.png) and wired [the whole thing up](/images/Car/Part3/Batteryboxwired.png). Additionally, because I didn't want to deal with the old forward/reverse contactor (it was chooched), I purchased a new F/R contactor off of eBay for $100.
 
 After [wiring everything up according to the controller manual](/images/Car/Part3/CurtisControllerDiagram.PNG), I turned everything on, and.... nothing. The motor didn't spin, and following the troubleshooting steps in the controller manual discovered the controller was faulty. I could have the controller rebuilt for $450, but [another used controller is available on eBay for $200](/images/Car/Part3/ebaycontroller.png). This "new" controller is a slight upgrade over the controller that came with the car -- the eBay controller goes up to 72V. Judging from a few Citicar message board threads and the fact I live in the hilliest city in America, this should be a welcome upgrade.
 
 ![The remanufactured controller](/images/Car/Part3/RefurbController.png)
 
-The problem is, when I got the new 72V controller, it didn't work either. I now had two broken motor controllers, and a great lesson on how expensive thrift is. After sending the new controller out for a rebuild for $450, but after that, I had [a working controller](https://twitter.com/ViolenceWorks/status/1511137439137492992). Having a working motor is another story entirely, as covered in Part 5. 
+The problem is, when I got the new 72V controller, it didn't work either. I now had two broken motor controllers, and a great lesson on how expensive thrift is. After sending the new controller out for a rebuild for $450, but after that, I had [a working controller](https://twitter.com/ViolenceWorks/status/1511137439137492992).
+
+With the new controller tested and confirmed working, I still couldn't get the motor to turn. I tested _everything_, including the forward/reverse contactor, and everything checked out. The problem had to be the motor itself, and opening the little rubber doors on the motor confirmed this assumption. The brushes for the motor were chooched. Two out of the four brushes were disconnected from their lead wires:
+
+![A broken brush](/images/Car/Part5/ChoochedBrushes.png)
+
+I had two options: replace the brushes ($40) and hope everything else is okay, or replace the entire motor (~$2000). I, of course, chose the less expensive option, which seems to be a recurring theme in this build. This did not come back to bite me in the ass at all.
+
+After pulling the motor out, I had some idea of what the [motor mount and spline looked like](/images/Car/Part5/MotorMountPlate.png). At least now the motor is easy to work on and I can assess my replacement options.
+
+![Motor Teardown](/images/Car/Part5/MotorTeardown.png)
+
+The [new brushes](/images/Car/Part5/MotorBrushes.png) were installed (0.5" x 0.625" x 1.437" carbon brushes, part number 10-506221), and I bolted the motor back onto the diff. Wired everything up again, and..... nothing. Not a damn thing. The controller was confirmed working with the 'motor tester menorah', and the motor was confirmed working by wiring it up [directly to the battery](https://twitter.com/ViolenceWorks/status/1514020800919379969). Hey, at least the new brushes worked. This only meant the forward/reverse contactor as being the problem, which is odd because I can hear it clicking when changing directions on the dash. [Turns out this wasn't sufficient](https://twitter.com/ViolenceWorks/status/1514068438141964290), and I needed a 12V F/R contactor.
+
+A hundred bucks later, and I had a forward/reverse contactor with a 12V coil voltage. The wheels spun, I dropped it down off the jacks, and the car barely inched along. There simply wasn't enough current going to the motor. The car _moved_ and I was able to pull it out of my garage and into the driveway, but there was simply no power. 
+
+![The car out of the garage](/images/Car/Part5/ActuallyDrove.jpg)
+
+From here, I had a few things to consider. The motor could be faulty, but fixable. Looking at the actual manual for the GE motor showed the 'clocking' - the positioning of the brushes along the commutator - could not be changed outside the factory. The windings were good, and I ran in the brushes to ensure good contact with the commutator. There was simply nothing I could do to fix the motor. 
+
+This was the lowest point of the project. There was nothing I could do except replace the motor. And if I'm going to do that, I might as well go big. The car will now have an (HPEVs AC-12 motor)[https://www.thunderstruck-ev.com/ac-12-w-1234-5371-clone.html] from Thunderstruck Motors. The AC-12 motor -- (HPEVs link)[https://www.hpevs.com/ac--electric-motor-for-club-car-golf-cars-ac-12-07-51.htm] -- is a motor made for the golf cart industry, but on a scale that's a bit crazy. The stock motor in my comutacar was 6HP; the HPEVs motor will max out at about 36HP. This gives me a lot more torque for the San Francisco hills, and a few videos on Facebook lead me to believe the car will eventually do wheelies. The motor kit cost about $3k, but that also gets me a new motor controller.
+
+![the motor mount](/images/Car/Part5/MotorMount.gif)
+
+The new motor also required a new motor mount. This was designed in Fusion360 and sent to PCBway for manufacturing. I highly recommend this way of manufacturing -- it was less than 10 days and $250 to get a brand new motor mount.
+
+After two or three different motor controllers, pulling the motor out of the car for new brushes, bearings, and everything else that's removable, I finally had the setup I wanted from the beginning. It's a hugely powerful motor that will easily conquer any hills, and the CAN interface allows for easy integration with modern batteries and chargers.
 
 ## Part 4, Body repair, bumpers and cosmetic issues
 
@@ -92,26 +118,8 @@ While the bumper and aluminum bracket work wonderfully, the stock endcaps for th
 
 <img src="/images/Car/Part4/BumperEndcap.gif" alt="the endcap in Fusion360" height="400"><img src="/images/Car/Part4/BumperEndcapPic.jpg" alt="The finished endcap" height="400">
 
-## Part 5, The Motor Is Broken, or, Barely Getting Out Of The Garage
 
-With the new controller tested and confirmed working, I still couldn't get the motor to turn. I tested _everything_, including the forward/reverse contactor, and everything checked out. The problem had to be the motor itself, and opening the little rubber doors on the motor confirmed this assumption. The brushes for the motor were chooched. Two out of the four brushes were disconnected from their lead wires:
-
-![A broken brush](/images/Car/Part5/ChoochedBrushes.png)
-
-I had two options: replace the brushes ($40) and hope everything else is okay, or replace the entire motor (~$700). Replacing the brushes is much cheaper, but by replacing the motor I could get the power I eventually wanted (about 15HP, up from 6HP in the stock motor).
-
-After pulling the motor out, I had some idea of what the [motor mount and spline looked like](/images/Car/Part5/MotorMountPlate.png). At least now the motor is easy to work on and I can assess my replacement options.
-
-![Motor Teardown](/images/Car/Part5/MotorTeardown.png)
-
-The [new brushes](/images/Car/Part5/MotorBrushes.png) were installed (0.5" x 0.625" x 1.437" carbon brushes, part number 10-506221), and I bolted the motor back onto the diff. Wired everything up again, and..... nothing. Not a damn thing. The controller was confirmed working with the 'motor tester menorah', and the motor was confirmed working by wiring it up [directly to the battery](https://twitter.com/ViolenceWorks/status/1514020800919379969). Hey, at least the new brushes worked. This only meant the forward/reverse contactor as being the problem, which is odd because I can hear it clicking when changing directions on the dash. [Turns out this wasn't sufficient](https://twitter.com/ViolenceWorks/status/1514068438141964290), and I needed a 12V F/R contactor.
-
-A hundred bucks later, and I had a forward/reverse contactor with a 12V coil voltage. The wheels spun, I dropped it down off the jacks, and the car barely inched along. There simply wasn't enough current going to the motor. The car _moved_ and I was able to pull it out of my garage and into the driveway, but there was simply no power. I knew I would need to replace the tires and work on the brakes, so that's the next project. In the meantime, here's proof the car actually got out of the garage:
-
-![The car out of the garage](/images/Car/Part5/ActuallyDrove.jpg)
-
-
-## Part 6, Tires and Brakes, Brushes and Diffs
+## Part 5, Tires and Brakes, Brushes and Diffs
 
 The car needed new tires, and there are several options. Citi/Commutacars came with either 480x12, 125/80R12, or 135/80R13 tires, with the tires on mine being 480x12. I found a [20-year old site](https://web.archive.org/web/20220417181505/http://www.scotthull.us/dp/ev/c-carupg.htm) (that's a link to the Internet Archive, you'll thank me later) detailing the possible replacements, and decided to go with the stock solution -- 480x12 tires meant for boat and motorcycle trailers for $150 on Amazon. Yes, the plan is to *eventually* put some nice radials on the car, [possibly even whitewalls](https://twitter.com/ViolenceWorks/status/1515750693553913856), but for now cheap trailer tires will do. Get some valve stems, buy the Ryobi tire pump, and things should go easily. I'll also need to clean and paint the rims and let them sit for a week or so.
 
