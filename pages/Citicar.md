@@ -148,7 +148,11 @@ In preperation for this, I made replicas of the decals on the citicar. These wil
 
 <hr>
 
-## Gauge Cluster & Digital Dash & Upgrading to CAN
+## Dashboard Confessionals
+
+#### (Screaming Infidelities)
+
+### Gauge Cluster & Digital Dash & Upgrading to CAN
 
 
 Because I'm upgrading my motor, the old, Vanguard-branded speedometer will not work. Instead of a cable coming out of the back of the motor, snaking up to the dash, and connecting to the speedometer, I need something that works over CAN, measuring the RPM of the motor and performing the division necessary to get the speed of the car. The speedometer problem has become a software problem (which is great), but it still requires hardware to _display_ the speed (this is bad).
