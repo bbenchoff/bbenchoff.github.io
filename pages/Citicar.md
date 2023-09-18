@@ -188,6 +188,10 @@ Because I will be controlling everything over CAN instead of the stock, "analog 
 
 The only other relevant part of the car's electronics are a few necessary switches, mostly for hazard, windshield, defrost, and lights. These will be standard, off-the-shelf Carling switches once I find a way to order the switch actuators with icons pre-printed on them.
 
+<img src="/images/Car/GaugeCluster/DashCompare1.png" alt="Comparison of stock and new dash" height="400">
+
+<img src="/images/Car/GaugeCluster/DashCompare2.png" alt="Comparison of stock and new dash" height="400">
+
 ### Paint
 
 ### Pop Rivets
