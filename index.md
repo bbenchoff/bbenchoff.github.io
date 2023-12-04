@@ -2,6 +2,8 @@
 
 I design strange things in hardware and software. Highlights include:
 
+- I converted a car without semiconductors <a href="https://bbenchoff.github.io/pages/CANconversion.html">to use CAN for everything</a>.
+
 - <a href="https://bbenchoff.github.io/pages/QuicktakeLens.html">A Nikon lens adapter</a> for the first digital camera.
 
 - <a href="https://www.640by480.com/">I made an Instagram clone</a> for my pics of San Francisco take with vintage digital cameras.
