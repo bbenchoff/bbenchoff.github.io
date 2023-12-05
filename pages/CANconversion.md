@@ -51,10 +51,22 @@ The circuit for the MOSFETs and optos are simple enough. For the 'microcontrolle
 
 The only way for me to measure the speed of the car is by reading the motor RPM, dividing by whatever the gear ratio of the differential is, and multiplying by the wheel diameter of the wheels. I think pi is in there somewhere. I need a display, and the most basic LCD display simply will not do for this. To this end, I created an 18*39 LED display -- that's 702 LEDs -- by [writing a driver for the IS31FL3741 LED driver chip](https://bbenchoff.github.io/pages/IS31FL3741.html). This is the third time I have written a driver for this chip.
 
-The CAD and PCB design for this display is just a column and row arrangement for the LEDs on one board. This is connected to a second board that holds an [Adafruit Feather M4 CAN Express](https://www.adafruit.com/product/4759). Add some Deutsch connectors and it's good to go. This is housed in a CNC aluminum enclosure, capped with 
+The CAD and PCB design for this display is just a column and row arrangement for the LEDs on one board. This is connected to a second board that holds an [Adafruit Feather M4 CAN Express](https://www.adafruit.com/product/4759). Add some Deutsch connectors and it's good to go. This is housed in a CNC aluminum enclosure, capped with tinted polycarbonate.
+
+The main function of the display is that of a speedometer and odometer. This is done by reading RPM from the motor controller through the CAN bus and a bit of math. In addition to these two main functions, battery state and potentially range can be calculated from the CAN bus on the BMS controller. Of course, as the CAN bus is wired into the BMS, motor controller, and charge controller, I have access to any data I could ever want, accessing it is just a matter of coding it up.
 
 ![The Display](/images/Car/GaugeCluster/ExplodedBezel.png)
 
+### The Shift Knob
 
+The motor controller has inputs for Drive, Neutral, and Reverse that need +12 Volts to turn the motor in that direction. Because all my lights are CAN-enabled, I will also need to somehow present the state of the 'shift knob' on the CAN bus. The most obvious solution to this problem is to simply read this state with an additional optoisolator circuit. I did not do this. I created something much cooler
+
+![The rotary shift knob](/images/Car/GaugeCluster/RotaryTransmission1.png)
+
+Above is the exploded view of my shift knob. It is a three-position rotary switch. Underneath the face of this knob is a 16-segment LED that shows 'D', 'N', or 'R', depending on the position of the switch. This rotary switch has four different center poles (it is effectively four separate 3-position switches), one pole of which is used by the motor controller, and a second read by an on-board microcontroller. This microcontroller sends the state of the switch over the CAN bus and also drives the 16-segment display.
+
+![The rotary shift knob](/images/Car/GaugeCluster/RotaryTransmission3.png)
+
+The really cool trick with this knob is the fact that the center indicator remains stationary as the knob turns. Turning the knob does not move the center indicator. It's an effect that puts the 'b' in subtle, but is simply amazing when you notice it. It's probably what I'm most proud of in this entire CAN conversion project.
 
 [back](../)
