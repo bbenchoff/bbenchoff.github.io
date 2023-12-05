@@ -6,6 +6,8 @@ layout: default
 
 ## Converting a car to CAN
 
+Or, 'How I used Two Million transistors to replace four relays'.
+
 My restoration of a <a href="https://bbenchoff.github.io/pages/Citicar.html">a vintage electric car</a> includes significant upgrades. Because the motor was beyond repair, I upgraded to a more powerful AC induction motor. This required a modern motor controller, and because hybrid and electric vehicles are hitting the scrap heap, I decided to move away from heavy lead acid batteries to modern lithium packs. All of these upgrades mean the stock dashboard electronics are obsolete; the stock speedometer is run off a cable, and the new motor does not have a cable connected to the shaft. Any sort of voltage measurement on the stock dashboard would be wildly inaccurate with the different cell chemistry and higher voltage.
 
 In short, to upgrade this car to modern electronics, the easiest path forward is to replace *all* of the electronics.
@@ -68,5 +70,8 @@ Above is the exploded view of my shift knob. It is a three-position rotary switc
 ![The rotary shift knob](/images/Car/GaugeCluster/RotaryTransmission3.png)
 
 The really cool trick with this knob is the fact that the center indicator remains stationary as the knob turns. Turning the knob does not move the center indicator. It's an effect that puts the 'b' in subtle, but is simply amazing when you notice it. It's probably what I'm most proud of in this entire CAN conversion project.
+
+
+All of the files used to build this [are available in the repo for this project](https://github.com/bbenchoff/Citicar).
 
 [back](../)
