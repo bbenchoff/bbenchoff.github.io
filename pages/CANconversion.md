@@ -71,6 +71,19 @@ Above is the exploded view of my shift knob. It is a three-position rotary switc
 
 The really cool trick with this knob is the fact that the center indicator remains stationary as the knob turns. Turning the knob does not move the center indicator. It's an effect that puts the 'b' in subtle, but is simply amazing when you notice it. It's probably what I'm most proud of in this entire CAN conversion project.
 
+### Putting it all together
+
+The stock Citicar dash is a single piece of 1/8" aluminum screwed onto the plastic dashboard with the help of [clip nuts](https://www.mcmaster.com/products/clip-nuts/). These nuts are terrible to install, they fall off constantly, and they really don't secure the dashboard to the car very tightly. For my dashboard, I've gone a different route, with a piece of 1/4" waterjet aluminum physically bonded to the plastic dash with a combination of glue and fiberglass.
+
+To this 1/4" aluminum 'backer plate', I attach a 1/8" aluminum 'front piece' to which most of the components are mounted to. The 'dashboard CAN MOSFET device' is still bolted to the 1/4" backer plate, but everything else - the shift knob, display, ignition switch, and aluminum switch bezel - are attached to the 1/8" aluminum front piece.
+
+To give the front piece a little more class, I bought a long piece of maple burl veneer and attached that with contact cement. It looks amazing. Here's the render of the final product, and a crude assembly diagram:
+
+![Render of completed dashboard](/images/Car/GaugeCluster/DashboardRender.png)
+
+![Dashboard Assembly diagram](/images/Car/GaugeCluster/AssemblyDiagram.png)
+
+
 
 All of the files used to build this [are available in the repo for this project](https://github.com/bbenchoff/Citicar).
 
