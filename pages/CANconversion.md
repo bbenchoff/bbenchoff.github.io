@@ -10,7 +10,10 @@ Or, 'How I used Two Million transistors to replace four relays'.
 
 My restoration of a <a href="https://bbenchoff.github.io/pages/Citicar.html">a vintage electric car</a> includes significant upgrades. Because the motor was beyond repair, I upgraded to a more powerful AC induction motor. This required a modern motor controller, and because hybrid and electric vehicles are hitting the scrap heap, I decided to move away from heavy lead acid batteries to modern lithium packs. All of these upgrades mean the stock dashboard electronics are obsolete; the stock speedometer is run off a cable, and the new motor does not have a cable connected to the shaft. Any sort of voltage measurement on the stock dashboard would be wildly inaccurate with the different cell chemistry and higher voltage.
 
-In short, to upgrade this car to modern electronics, the easiest path forward is to replace *all* of the electronics.
+In short, to upgrade this car to modern electronics, the easiest path forward is to replace *all* of the electronics. But first, the pics of the finished dashboard:
+
+![Finished Dashboard pic 1](/images/Car/GaugeCluster/DashFinal1.jpg)
+![Finished Dashboard pic 2](/images/Car/GaugeCluster/DashFinal2.jpg)
 
 ## A Comparison of Approaches
 
