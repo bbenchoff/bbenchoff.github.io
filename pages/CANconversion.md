@@ -49,7 +49,8 @@ The circuit for the MOSFETs and optos are simple enough. For the 'microcontrolle
 
 ### The Display
 
-![The Display](/images/Car/GaugeCluster/LEDBezel.png)
+#### Click to play video
+[![Click to play video](/images/Car/GaugeCluster/Video1.png)](https://www.youtube.com/watch?v=ojj_RZFQOnw)
 
 The only way for me to measure the speed of the car is by reading the motor RPM, dividing by whatever the gear ratio of the differential is, and multiplying by the wheel diameter of the wheels. I think pi is in there somewhere. I need a display, and the most basic LCD display simply will not do for this. To this end, I created an 18*39 LED display -- that's 702 LEDs -- by [writing a driver for the IS31FL3741 LED driver chip](https://bbenchoff.github.io/pages/IS31FL3741.html). This is the third time I have written a driver for this chip.
 
@@ -60,6 +61,9 @@ The main function of the display is that of a speedometer and odometer. This is 
 ![The Display](/images/Car/GaugeCluster/ExplodedBezel.png)
 
 ### The Shift Knob
+
+#### Click to play video
+[![Click to play video](/images/Car/GaugeCluster/Video2.png)](https://www.youtube.com/watch?v=zooh03eB9oE)
 
 The motor controller has inputs for Drive, Neutral, and Reverse that need +12 Volts to turn the motor in that direction. Because all my lights are CAN-enabled, I will also need to somehow present the state of the 'shift knob' on the CAN bus. The most obvious solution to this problem is to simply read this state with an additional optoisolator circuit. I did not do this. I created something much cooler
 
