@@ -75,6 +75,16 @@ Above is the exploded view of my shift knob. It is a three-position rotary switc
 
 The really cool trick with this knob is the fact that the center indicator remains stationary as the knob turns. Turning the knob does not move the center indicator. It's an effect that puts the 'b' in subtle, but is simply amazing when you notice it. It's probably what I'm most proud of in this entire CAN conversion project.
 
+### A Replacement for the heater controls
+
+The stock Comutacar includes a 'sub panel' below the dashboard for what can generously be described as 'environmental controls'. Actually, the HVAC system of the Citicar / Comutacar is hilarious, and deserves mention:
+
+> Motor cooling on the Citicar is accomplished by a twelve volt fan blowing cold air into the motor. This now-heated air is then recovered and sent into a manifold controlled by two pull knobs next to the dash. The heated air can be sent into the cabin, so everything smells like burning carbon brushes, or up to the dashboard, where it forms a rudimentary defroster. The only heat source in the entire system is the hot motor, there is no heat exchanger, and everything smells like blue smoke.
+
+I will not be using the forced-air motor cooling and defrost system. The motor runs cool enough to not require cooling, and I am adapting a 12V / 150W Portable Car Heater to use as a defroster. This gives me space to add additional switches, or at least space for extra switches. I do not know what these switches will eventually do. One idea is to have a mode that changes the acceleration profile on the motor controller. Or a switch blinks the exterior lights randomly. Here's a pic of the five-switch extension panel, along with the stock heater/manifold controls:
+
+![The extension panel](/images/Car/GaugeCluster/ExtensionPanel.png)
+
 ### Putting it all together
 
 The stock Citicar dash is a single piece of 1/8" aluminum screwed onto the plastic dashboard with the help of [clip nuts](https://www.mcmaster.com/products/clip-nuts/). These nuts are terrible to install, they fall off constantly, and they really don't secure the dashboard to the car very tightly. For my dashboard, I've gone a different route, with a piece of 1/4" waterjet aluminum physically bonded to the plastic dash with a combination of glue and fiberglass.
