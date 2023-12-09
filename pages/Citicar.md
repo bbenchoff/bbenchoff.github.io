@@ -14,7 +14,7 @@ This is an ongoing log of the restoration of a 1980 Comuta-Car, acquired from a 
 
 The car was bought [off of Craigslist](/images/Car/Craigslist/Screencap.PNG) in Coarsegold, California, about half an hour north of Fresno. The bill of sale says $200 because eventually this will be in a Lemons rally. Getting it to my SF garage involved driving out to Fresno, picking up a 10' UHaul box truck and car trailer, and bringing it home through Gilroy. 
 
-Tips and tricks for acquiring a Commutacar: [It *barely* fits in the back of a 10-foot UHaul truck](https://bbenchoff.github.io/images/Car/Acquiring/2.jpg). The easiest way to get it home is to rent a 10-foot UHaul, buy some ramps at Harbor Freight, and get three people to push it up into the truck. Without the batteries it only weighs ~700 pounds. No, you don't need a trailer, in fact a citicar does not fit on a the UHaul car trailer because the wheelbase is too narrow.
+Tips and tricks for acquiring a Comutacar: [It *barely* fits in the back of a 10-foot UHaul truck](https://bbenchoff.github.io/images/Car/Acquiring/2.jpg). The easiest way to get it home is to rent a 10-foot UHaul, buy some ramps at Harbor Freight, and get three people to push it up into the truck. Without the batteries it only weighs ~700 pounds. No, you don't need a trailer, in fact a citicar does not fit on a the UHaul car trailer because the wheelbase is too narrow.
 
 ![Pics from acquiring the car](/images/Car/AcquiringCar.png)
 
@@ -28,7 +28,7 @@ Given the serial number on the unused motor controller, a few parts on the wirin
 
 ![Part 1 Compilation](/images/Car/Part1/Part1.png)
 
-After a few days of reverse-engineering the wiring, we determined the best course of action would be to [tear out all the wires](/images/Car/Part1/8.png) and rebuild the entire electrical system from the ground up. This gave me an oppurtunity to clean out twenty years of detritus in the under-seat compartment. This was a weird, sticky goo that cleaned up with soap and water. I also found a mouse nest inside the ventilation/cooling manifold; this was removed, cleaned in the dishwasher, and reinstalled.
+After a few days of reverse-engineering the wiring, we determined the best course of action would be to [tear out all the wires](/images/Car/Part1/8.png) and rebuild the entire electrical system from the ground up. This gave me an opportunity to clean out twenty years of detritus in the under-seat compartment. This was a weird, sticky goo that cleaned up with soap and water. I also found a mouse nest inside the ventilation/cooling manifold; this was removed, cleaned in the dishwasher, and reinstalled.
 
 With that done, the project moves onto re-wiring the electrical system. This will be guided in part by the schematics found in the CommtaCar service manual but updated for a modern fuse panel.
 
@@ -106,7 +106,7 @@ When I acquired the car, the body was by no means perfect. No Citicar is; the en
 
 Since the body panels are ABS plastic, conventional wisdom says acetone is the best solvent to join panels back together. Chemistry says something else, and the ingredients of most ABS 'glue' are 10 parts MEK with one part acetone. The thinking, I think, is the acetone bonds the parts quickly, while the much stronger MEK takes a few days to fully cure. I'm looking for strength, so that's what I went with. To fill any holes in the body, I've come up with a technique that uses plastic welding (a soldering iron and ABS 3D printer filament) with this MEK/acetone solvent. After slightly melting some filament to the body panel, I apply the solvent and let it cure. Sand a few days later and repeat. It is not fast, but there really are no other solutions for fixing a huge plastic panel like this. While the [repaired driver's quarterpanel](/images/Car/Part4/DriverQuarter.png) isn't much to look at now, the entire car will eventually be sanded and painted.
 
-While I intend to keep the car looking stock, the electronics will necessaraly be heavily upgraded. This includes a J1772 port for charging, replacing the old 120V male plug -- the kind you would plug an extention cord into. A J1772 port is much bigger than a 120V, and this requires a modification to the rear passenger quarterpanel.
+While I intend to keep the car looking stock, the electronics will necessarily be heavily upgraded. This includes a J1772 port for charging, replacing the old 120V male plug -- the kind you would plug an extension cord into. A J1772 port is much bigger than a 120V, and this requires a modification to the rear passenger quarterpanel.
 
 ![J1772 Port](/images/Car/Part4/J1772Port.png)
 
@@ -115,24 +115,24 @@ Essentially, I created a plastic 'bucket' in Fusion360 in which a J1772 port can
 
 ### Oh the bumpers 
 
-While the Citicar had small bumpers made of a piece of wood wrapped in closed-cell foam, the later Commuta-Cars had large protruding bumpers on the front and rear. Despite conventional wisdom, these were not 1970s safety regulation bumpers, at least not the way you would think. Commutacar models added several aluminum beams underneath the seat for rigity and ostensibly impact resistance (lol), and this took up valuable battery space. Instead of putting the batteries under the seat, they had to go somewhere else, and that place was a box under extended bumpers. I'm using fewer batteries, and have wired up all of the high-power electronics under the seat, so these extended bumper battery boxes need to go. They're ugly. Also the closed-cell foam has degraded over the past 40 years and now bare wood is showing.
+While the Citicar had small bumpers made of a piece of wood wrapped in closed-cell foam, the later Comuta-Cars had large protruding bumpers on the front and rear. Despite conventional wisdom, these were not 1970s safety regulation bumpers, at least not the way you would think. Comutacar models added several aluminum beams underneath the seat for rigity and ostensibly impact resistance (lol), and this took up valuable battery space. Instead of putting the batteries under the seat, they had to go somewhere else, and that place was a box under extended bumpers. I'm using fewer batteries, and have wired up all of the high-power electronics under the seat, so these extended bumper battery boxes need to go. They're ugly. Also the closed-cell foam has degraded over the past 40 years and now bare wood is showing.
 
-There are [several references](http://evalbum.com/tech/comutacar/bumper.html) to replacing Citicar bumpers with the bumper from a Mk1 VW Rabbit, and even some references to replacing the bumper on a Commuta-car with a bumper from a Dodge Omni / Plymouth Horizon. I'm going with VW Rabbit bumpers. Both the bumpers need to be from the rear of a Rabbit -- the front bumper has a slight curve to it, whereas the rear bumper will lay flat against the body.
+There are [several references](http://evalbum.com/tech/comutacar/bumper.html) to replacing Citicar bumpers with the bumper from a Mk1 VW Rabbit, and even some references to replacing the bumper on a Comuta-car with a bumper from a Dodge Omni / Plymouth Horizon. I'm going with VW Rabbit bumpers. Both the bumpers need to be from the rear of a Rabbit -- the front bumper has a slight curve to it, whereas the rear bumper will lay flat against the body.
 
 [The ugly front bumper was removed](/images/Car/Part4/AllCombined.png), and is attached to the frame of the car with a large 4"x3" aluminum angle, 0.25" thick. The original mounting for the VW bumper is with a pair of carriage bolts on each end - this will mount the bumper to the aluminum angle. This aluminum angle is mounted to the car using the same holes as the battery box. Unfortunately, mounting the aluminum angle using the same holes as the old bumper will not work -- there simply isn't enough space to turn a wrench. Mounting the bumper in this fashion will be much easier to disassemble in the future while allowing a cut-down battery box to be used, giving the car extended range.
 
-While the bumper and aluminum bracket work wonderfully, the stock endcaps for the VW bumper do not. They stick out down the length of the car, and they're far too massive. I modeled new bumper endcaps in Fusion360 and printed them out in PLA. They will eventually be painted in PlastiDip spray, but even as bare gray PLA they still look great.
+While the bumper and aluminum bracket work wonderfully, the stock end caps for the VW bumper do not. They stick out down the length of the car, and they're far too massive. I modeled new bumper end caps in Fusion360 and printed them out in PLA. They will eventually be painted in PlastiDip spray, but even as bare gray PLA they still look great.
 
 <img src="/images/Car/Part4/BumperEndcap.gif" alt="the endcap in Fusion360" height="400"><img src="/images/Car/Part4/BumperEndcapPic.jpg" alt="The finished endcap" height="400">
 
 
 ## Part 5, Tires and Brakes, Brushes and Diffs
 
-The car needed new tires, and there are several options. Citi/Commutacars came with either 480x12, 125/80R12, or 135/80R13 tires, with the tires on mine being 480x12. I found a [20-year old site](https://web.archive.org/web/20220417181505/http://www.scotthull.us/dp/ev/c-carupg.htm) (that's a link to the Internet Archive, you'll thank me later) detailing the possible replacements, and decided to go with the stock solution -- 480x12 tires meant for boat and motorcycle trailers for $150 on Amazon. Yes, the plan is to *eventually* put some nice radials on the car, [possibly even whitewalls](https://twitter.com/ViolenceWorks/status/1515750693553913856), but for now cheap trailer tires will do. Get some valve stems, buy the Ryobi tire pump, and things should go easily. I'll also need to clean and paint the rims and let them sit for a week or so.
+The car needed new tires, and there are several options. Citi/Comutacars came with either 480x12, 125/80R12, or 135/80R13 tires, with the tires on mine being 480x12. I found a [20-year old site](https://web.archive.org/web/20220417181505/http://www.scotthull.us/dp/ev/c-carupg.htm) (that's a link to the Internet Archive, you'll thank me later) detailing the possible replacements, and decided to go with the stock solution -- 480x12 tires meant for boat and motorcycle trailers for $150 on Amazon. Yes, the plan is to *eventually* put some nice radials on the car, [possibly even whitewalls](https://twitter.com/ViolenceWorks/status/1515750693553913856), but for now cheap trailer tires will do. Get some valve stems, buy the Ryobi tire pump, and things should go easily. I'll also need to clean and paint the rims and let them sit for a week or so.
 
 Brakes are another matter. While the car nominally came with tires that hold air, it did not come with brakes that work. It did, however, come with a brake drum in the big box 'o parts, and after pulling off the front passenger wheel, I figured out why: [the car did not come with an extra brake drum](https://twitter.com/ViolenceWorks/status/1516608824693587971). When I bought the car, there was no drum on the front passenger brake, and the wheel had three random washers on the studs. This is sketch as fuck.
 
-After draining and bleeding the brake lines, 'squishy' brakes persisted. This problem was eventually identified as a leaky seals on the brake cylinders. The brake cylinder / spider assembly is a Bendix 3203010, and the [torque spider repair kit](https://www.vintagegolfcartparts.com/Item/CU_TrqSpdrReparKit) (BK33-190, EZ 13959-G1) runs about $80. That's for one wheel, and I might as well replace the seals and boots on the other rear wheel while I'm at it. The bleeder screws were replaced (NAPA UP 6446), along with one [torque spider assembly](https://www.vintagegolfcartparts.com/Item/CU_TrqSpiderAssy) (OEM Part number CU 824829, 886875) that had a stripped bleeder screw thread. I'd like to emphesize the brakes are almost entirely rebuilt, with the exception of the master cylinder. The master cylinder works, though, so I think we're good.
+After draining and bleeding the brake lines, 'squishy' brakes persisted. This problem was eventually identified as a leaky seals on the brake cylinders. The brake cylinder / spider assembly is a Bendix 3203010, and the [torque spider repair kit](https://www.vintagegolfcartparts.com/Item/CU_TrqSpdrReparKit) (BK33-190, EZ 13959-G1) runs about $80. That's for one wheel, and I might as well replace the seals and boots on the other rear wheel while I'm at it. The bleeder screws were replaced (NAPA UP 6446), along with one [torque spider assembly](https://www.vintagegolfcartparts.com/Item/CU_TrqSpiderAssy) (OEM Part number CU 824829, 886875) that had a stripped bleeder screw thread. I'd like to emphasize the brakes are almost entirely rebuilt, with the exception of the master cylinder. The master cylinder works, though, so I think we're good.
 
 ![Cleaned rear brake drum](/images/Car/Part6/BrakeClean.png)
 
@@ -149,55 +149,26 @@ As noted above, the car came to me with a few broken panels. The Driver's rear q
 
 However, the car also had many cracks in the body panels. There are cracks along the windshield, just like every other citicar on the planet, there are cracks on the roof, and the top driver's side corner of the rear panel is very broken. All of these cracks can not be easily fixed with the body panels on the car. Additionally, the 'foam' (or whatever it is) around the aluminum space frame has degraded into sticky dust, and I'd like to get that off. And I want to re-paint this thing. The solution to all these problems can be solved by pulling the body panels off the car. I have never seen this done and the plastic is extremely brittle.
 
-In preperation for this, I made replicas of the decals on the citicar. These will eventually be recreated with a vinyl cutter and transfer paper:
+In preparation for this, I made replicas of the decals on the citicar. These will eventually be recreated with a vinyl cutter and transfer paper:
 
 ![car graphics](/images/Car/Part7/CiticarBodyGraphics.png)
 
 <hr>
 
-## Dashboard Confessionals
-
-#### (Screaming Infidelities)
+## Dashboard Confessionals (Screaming Infidelities)
 
 ### Gauge Cluster & Digital Dash & Upgrading to CAN
 
+This section has been broken out into [it's own page](https://bbenchoff.github.io/pages/CANconversion.html), but I would like to go over the work I did on the dashboard before I started on the final version:
 
-Because I'm upgrading my motor, the old, Vanguard-branded speedometer will not work. Instead of a cable coming out of the back of the motor, snaking up to the dash, and connecting to the speedometer, I need something that works over CAN, measuring the RPM of the motor and performing the division necessary to get the speed of the car. The speedometer problem has become a software problem (which is great), but it still requires hardware to _display_ the speed (this is bad).
+Because I'm upgrading my motor, the old, Vanguard-branded speedometer will not work. The stock motor is an extremely dumb motor, and uses a bowden cable with a rotating key to turn the speedometer. The new motor does not have an output for a cable-driven speedometer. I need something that works over CAN, measuring the RPM of the motor and performing the division necessary to get the speed of the car. The speedometer problem has become a software problem (which is great), but it still requires hardware to _display_ the speed (this is bad).
 
-For a new speedometer, I have two options. The first is buying a CAN gauge I can program to display the speed. I don't like this option because it doesn't fit with the 1980s nerd car aesthetic I'm going for. The second option is to build a gauge cluster and program it to receive CAN messages. This took two attempts. My first attempt at a 'digital dash' consisted of a Planar Electroluminescent display ripped from a c.2000 Sun router. This is decidedly anachronistic for a 1980s nerd car, but if you squint it looks like something that should have been possible. Surrounding the EL display are flip dots for battery state-of-charge; I'm using flip dots because they will display the state of charge while the car is off. All of this was assembled into a 3D printed enclosure. I hated it. It didn't look the part. The fit and finish was great, but it just wasn't for me.
+For a new speedometer, I have two options. The first is buying a CAN gauge I can program to display the speed. I don't like this option because it doesn't fit with the 1980s nerd car aesthetic I'm going for. The second option is to build a gauge cluster and program it to receive CAN messages. This took two attempts. My first attempt at a 'digital dash' consisted of a Planar Electroluminescent display ripped from a c.2000s Sun router. This is decidedly anachronistic for a 1980s nerd car, but if you squint it looks like something that should have been possible. Surrounding the EL display are flip dots for battery state-of-charge; I'm using flip dots because they will display the state of charge while the car is off. All of this was assembled into a 3D printed enclosure. I hated it. It didn't look the part. The fit and finish was great, but it just wasn't for me.
 
 <img src="/images/Car/GaugeCluster/1.png" alt="Gauge Cluster Assembly" height="400">
 <img src="/images/Car/GaugeCluster/stackup.png" alt="Gauge Cluster Assembly" height="400">
 
-My second attempt at a 'digital dash' is effectively an LED display pulled out of a bus. This was PCB with an 18x39 array of 3mm LEDs (orange-yellow, and very close to the same wavelength as a neon tube) stuffed into an aluminum bezel. This display is one of the most complex to assemble things I've ever designed; those LEDs are through-hole, and had to be soldered individually. Behind this LED display is a driver board that also contains four buttons poking out of the front of the bezel, a few DT connectors for the CAN bus, and a microcontroller with CAN support. This digital dash looks the part. It honestly looks like a dashboard from an exotic late-70s supercar, and something that looks identical to it could have been built with contemporaneous technology. If built in 1980, it would have cost as much as the car itself. It's beautiful, and I can play Bad Apple and Game of Life on it. This digital dash will display the speedometer, serve as the turn signal indicators, display warnings, and if I'm feeling really ambitious serve as the display for the backup camera.
-
-<img src="/images/Car/GaugeCluster/LEDBezel.png" alt="Gauge Cluster Assembly" height="400">
-<img src="/images/Car/GaugeCluster/ExplodedBezel.png" alt="Exploded view of the LED bezel" height="400">
-
-After upgrading the dashboard from a single speedometer to a CAN-enabled multifunction display, I realized the rest of the dash was severely lacking. The forward / reverse switch was a simple toggle switch. This could be improved. The design I came up with is inspired by the modern 'knob' interface of electric cars, where a single knob puts the car into Drive, Park, and Reverse. My design is a different take on this; it's a knob, with a 16-segment display showing either 'P', 'N', or 'R', _but the display does not rotate with the knob. I've never seen anything like this in any car, and in practice it's amazing.
-
-<img src="/images/Car/GaugeCluster/RotaryTransmission1.png" alt="Gauge Cluster Assembly" height="400">
-
-This knob is built around a rotary switch, mounted to small box the rest of the design mounts to. On the back of the box, there is a PCB with a microcontroller and CAN transceiver, as well as the same DT connectors found in the multifunction panel. On the front of this box are standoffs that project through the back of the knob; this is possible because the rotary switch only has a travel of 120 degrees. Mounted to these standoffs are a PCB with 16-segment display and shift registers. This PCB is connected to the 'back' PCB through 2x3 IDC cable. Other than that, it's just the aluminum knob and tinted acrylic panel that is attached to the shaft of the rotary switch.
-
-<img src="/images/Car/GaugeCluster/RotaryTransmission2.png" alt="Gauge Cluster Assembly" height="400">
-<img src="/images/Car/GaugeCluster/RotaryTransmission3.png" alt="Gauge Cluster Assembly" height="400">
-
-The result is something familiar to anyone who has ever ridden in a Prius. It's just a knob, afterall. The 16-segment display adds some 80's-era panache, but the fact that the display does not rotate with the knob is subtly magical. I guarantee some people won't notice it until it's pointed out to them, but they will be astonished when it is.
-
-Apart from the multifunction display and the forward/reverse switch, the rest of the dash will consist of standard panel-mount switches, although I have to find some place to get the right labels printed on them.
-
-Because I will be controlling everything over CAN instead of the stock, "analog relays and switches" method, I need a way to both read and write high voltage over CAN. I'm doing this with a "CAN to GPIO" board -- essentially the same circuit found in the shifter knob, with optoisolators and MOSFETs. The circuit is basically an ATMega328p, MCP2515, and MCP2551, all running Arduino code. This has two Deutch DT connectors providing CAN H, CAN L, +12V, and GND and can be daisy-chained. This assembly is somewhat modular, with an optional 'extension board' that adds an additional 4 MOSFETS and 4 optoisolators, or an extra 8 optoisolators. The car will use at least three of these assemblies -- one with 8 MOSFETS in the back for the rear lights, one with 8 MOSFETS and 8 optoisolators for reading switch states and controlling lights on the dash, and one with 12 MOSFETS and 4 optios in the front of the car for the lights up there. Yes, I'll be running the headlights through an Arduino-controlled MOSFET board, and yes, current draw is a concern. I'll upgrade to LED headlights eventually.
-
-<img src="/images/Car/GaugeCluster/CANGPIO.png" alt="CAN to GPIO device" height="400">
-
-<img src="/images/Car/GaugeCluster/CANMOSFET.jpg" alt="CAN to GPIO device" height="400">
-
-The only other relevant part of the car's electronics are a few necessary switches, mostly for hazard, windshield, defrost, and lights. These will be standard, off-the-shelf Carling switches once I find a way to order the switch actuators with icons pre-printed on them.
-
-<img src="/images/Car/GaugeCluster/DashCompare1.png" alt="Comparison of stock and new dash" height="400">
-
-<img src="/images/Car/GaugeCluster/DashCompare2.png" alt="Comparison of stock and new dash" height="400">
+My second attempt at a 'digital dash' is effectively an LED display pulled out of a bus. It's the most complicated device I've ever built an assembled. For brevity, this was broken out into its own page, [you can read that here](https://bbenchoff.github.io/pages/CANconversion.html)
 
 ### Paint
 
