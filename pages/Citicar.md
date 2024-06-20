@@ -188,6 +188,15 @@ The connectors for the Pacifica battery can be easily obtained on AliExpress for
 These connectors will be used instead of the [EV West Pacifica Battery Harness](https://www.evwest.com/catalog/product_info.php?products_id=539), because crimping your own purpose-built wires reduces the number of adapters and converters required. 
 
 
+### A Battery Upgraded From Trash
+
+
+
+<img src="/images/Car/Part8/LGResu.png" alt="A free LG RESU battery Pack" height="400">
+<img src="/images/Car/Part8/BatteryCells.gif" alt="Modules disassembled" height="400">
+
+This is at least 16kWh, possibly 20kWh, of batteries *for free*. Of course I need to hoard it in my garage. 
+
 <hr>
 
 ## Dashboard Confessionals (Screaming Infidelities)
