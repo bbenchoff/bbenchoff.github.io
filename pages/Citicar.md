@@ -166,14 +166,14 @@ The battery for the system is a single pack taken from a Chrysler Pacifica Hybri
 The connectors are listed below:
 
 Dilithium BMSC
-| *Connector* | *Connector Part Number* | *Terminal Part Number* |
+| Connector | Connector Part Number | Terminal Part Number |
 | :---------- | :---------------------- | :--------------------- |
 | Cell Harness Connector | Molex 43025-1408 | 46235-5001 |
 | Thermistor Connector | Molex 51110-1060 | 50394-8054 |
 
 
 Chrysler Pacifica battery / KET 040 III Series connectors
-| *Connector* | *Connector Part Number* | *Terminal Part Number* |
+| Connector | Connector Part Number | Terminal Part Number |
 | :---------- | :---------------------- | :--------------------- |
 | 12 Pin Connector | KET MG653012 | ST730770 |
 | 16 Pin Connector | KET MG653019 | ST730770 |
