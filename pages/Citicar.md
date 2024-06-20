@@ -190,12 +190,16 @@ These connectors will be used instead of the [EV West Pacifica Battery Harness](
 
 ### A Battery Upgraded From Trash
 
-
+My job has a lot of random trash sitting around, and one interesting piece was an LG RESU home battery solution. This is a powerwall, a giant battery for solar and backup installations. Work needed to get rid of it, and I'm building an electric car. This is at least 16kWh, possibly 20kWh, of batteries *for free*. Of course I need to hoard it in my garage.
 
 <img src="/images/Car/Part8/LGResu.png" alt="A free LG RESU battery Pack" height="400">
 <img src="/images/Car/Part8/BatteryCells.gif" alt="Modules disassembled" height="400">
 
-This is at least 16kWh, possibly 20kWh, of batteries *for free*. Of course I need to hoard it in my garage. 
+This powerwall came with no documentation, and not even a model number stamped on the case. It was an LG prototype as far as I could tell, meant for 'integration partners' or some other B2B nonsense. Either way, it's completely undocumented so I really don't know what I have here.
+
+This unit is built of five modules stacked together, with the sixth plastic box on top housing the electronics. The electronics were quickly scrapped because I only want bare cells. Each module is a 14s pack, meaning 58.8V fully charged. Wired in parallel, this would be an acceptable battery pack for my car with minimal reprogramming using the same BMS I'll use for Chrysler Pacifica packs.
+
+At the very least, this is an option to greatly extend the range of my car. For now, I'll be using a single Chrysler Pacifica pack to test drive the car, and will decide on further upgrades down the road.
 
 <hr>
 
