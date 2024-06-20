@@ -161,11 +161,13 @@ The charger and BMS for the system is a [TSM2500](https://www.thunderstruck-ev.c
 
 The battery for the system is a single pack taken from a Chrysler Pacifica Hybrid. This pack provides 2.6kWh and is rated at 400A continuous, matching the expected max draw from the controller. Because I am running the motor at 60V, I can start with one battery pack and wire additional batteries in parallel to get more range -- the only thing needed for each additional battery is a Dilithium BMS Satellite for each additional pack.
 
+Battery cooling is an open question. Ideally, all batteries should be cooled (and heated) so they don't become bombs. However, the Chrysler Pacifica batteries are very overspecced in their C-ratting; each battery can easily withstand an 800A current draw intermittently, and my motor controller is rated for only 400A. I do not expect to constantly draw 400A from the batteries, an average trip will be a current draw of about 150 to 200A. The battery *should* be fine, and [a few forum threads](https://www.diyelectriccar.com/threads/looking-for-plate-cooling-battery-box-options.209538/page-2) seem to confirm this notion. Cooling should not be needed because of the low current draw, and heating isn't needed because I live in San Francisco. It's always 60 degrees here. At most, I would attach a thermal interface material to the bottom of the batteries and attach them either to the aluminum body, or an aluminum plate in the repurposed battery bays.
+
 ### BMS Connectors
 
 The connectors are listed below:
 
-Dilithium BMSC
+**Dilithium BMSC**
 
 | Connector | Connector Part Number | Terminal Part Number |
 |:----------|:----------------------|:---------------------|
@@ -173,7 +175,7 @@ Dilithium BMSC
 | Thermistor Connector | Molex 51110-1060 | 50394-8054 |
 
 
-Chrysler Pacifica battery / KET 040 III Series connectors
+**Chrysler Pacifica battery** / KET 040 III Series connectors
 
 | Connector | Connector Part Number | Terminal Part Number |
 |:----------|:----------------------|:---------------------|
