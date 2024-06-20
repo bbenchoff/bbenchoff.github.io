@@ -153,6 +153,33 @@ In preparation for this, I made replicas of the decals on the citicar. These wil
 
 ![car graphics](/images/Car/Part7/CiticarBodyGraphics.png)
 
+## Part 8, Batteries, and an upgrade to an AC Motor.
+
+Because the stock motor is broken beyond repair, I have upgraded to an AC motor from [HPEVS](https://www.hpevs.com/ac--electric-motor-for-club-car-golf-cars-ac-12-07-51.htm), or Thunderstruck Motors, or EV West, they're all the same company anyway. This is attached to the transaxle with a CNC'd aluminum faceplate mentioned above. Combined with the [Curtis F4A controller](https://www.thunderstruck-ev.com/curtis-ac-f4-a.html), this motor will operate on 60V and give me about 30 horsepower, five times as much as the stock GE motor. Because it's an AC motor, I'll also get full torque at low speed, a must for my eventual goal of driving up and down Clipper St. in San Francisco (an 18.5% grade!)
+
+The charger and BMS for the system is a [TSM2500](https://www.thunderstruck-ev.com/tsm2500-charger-only.html) and [Dilithium Design BMSC](https://www.thunderstruck-ev.com/bms-controller.html) allowing for charging over a J1772 port installed earlier.
+
+The battery for the system is a single pack taken from a Chrysler Pacifica Hybrid. This pack provides 2.6kWh and is rated at 400A continuous, matching the expected max draw from the controller. Because I am running the motor at 60V, I can start with one battery pack and wire additional batteries in parallel to get more range -- the only thing needed for each additional battery is a Dilithium BMS Satellite for each additional pack.
+
+### BMS Connectors
+
+The connectors are listed below:
+
+Dilithium BMSC
+- Cell Harness Connector / Molex 43025-1408 / crimp terminal 46235-5001
+- Thermistor Connector /  Molex 51110-1060 / crimp terminal 50394-8054
+
+Chrysler Pacifica Battery
+- KET 040 III Series connectors
+- MG653012 / 12 pin connector
+- MG653019 / 16 pin connector
+- ST730770 and ST730960 terminals
+
+The connectors for the Pacifica battery can be easily obtained on AliExpress for $15/10pcs.
+
+These connectors will be used instead of the [EV West Pacifica Battery Harness](https://www.evwest.com/catalog/product_info.php?products_id=539), because crimping your own purpose-built wires reduces the number of adapters and converters required. 
+
+
 <hr>
 
 ## Dashboard Confessionals (Screaming Infidelities)
