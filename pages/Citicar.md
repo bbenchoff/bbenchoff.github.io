@@ -143,7 +143,7 @@ The below pic is the disassembled parts of the rear brake drum. Note the pic of 
 With new seals on the rear wheels, squishy brakes persisted. On further inspection, the seal on the front passenger brake was leaking. Fixing this was a bit trickier; either through decades of decay or my misapplication of torque, the threads for the bleeder valve were partially stripped. I bought a new torque spider for the front passenger brake, and with that bolted on the brakes worked like new. While I'm not impressed with the 'one man' vacuum brake bleeder I have (the girlfriend had to stomp on the brakes while I went around bleeding everything), the brakes now work. In total, the brakes on the car took about a month, with most of that waiting for various tools and parts to arrive. That's not a problem -- now my garage has a few more tools, and I know how to build more brake lines. 
 
 
-## Part 7, Body off restoration
+## Part 7, Body off restoration, and The Necessity of Graphics
 
 As noted above, the car came to me with a few broken panels. The Driver's rear quarterpanel was the worst, with a broken vent and a few other pieces broken off. These broken parts came with the car, and I was able to reattach and reinforce them. No problem, really.
 
@@ -152,6 +152,10 @@ However, the car also had many cracks in the body panels. There are cracks along
 In preparation for this, I made replicas of the decals on the citicar. These will eventually be recreated with a vinyl cutter and transfer paper:
 
 ![car graphics](/images/Car/Part7/CiticarBodyGraphics.png)
+
+While the graphics may seem like a small part of the project, they are necessary. Without graphics, the car looks like an automotive stealth bomber dreamed up in a deranged Wonka-esque car factory. With graphics, everything __pops__. To illustrate this point, I've printed out [a 3d model of a comutacar](https://www.printables.com/model/730325-1970s-citicar-electric-car-toy), cut the graphics out of vinyl. The difference is stark:
+
+<img src="/images/Car/Part7/3Dprint.png" alt="Comparison of with graphics and without" height="400">
 
 ## Part 8, Batteries, and an upgrade to an AC Motor.
 
@@ -218,7 +222,7 @@ For a new speedometer, I have two options. The first is buying a CAN gauge I can
 
 My second attempt at a 'digital dash' is effectively an LED display pulled out of a bus. It's the most complicated device I've ever built an assembled. For brevity, this was broken out into its own page, [you can read that here](https://bbenchoff.github.io/pages/CANconversion.html)
 
-### Paint
+### Paint and The Necessity of Graphics
 
 ### Pop Rivets
 
