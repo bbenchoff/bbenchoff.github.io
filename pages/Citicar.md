@@ -156,6 +156,7 @@ In preparation for this, I made replicas of the decals on the citicar. These wil
 While the graphics may seem like a small part of the project, they are necessary. Without graphics, the car looks like an automotive stealth bomber dreamed up in a deranged Wonka-esque car factory. With graphics, everything __pops__. To illustrate this point, I've printed out [a 3d model of a comutacar](https://www.printables.com/model/730325-1970s-citicar-electric-car-toy), cut the graphics out of vinyl. The difference is stark:
 
 <img src="/images/Car/Part7/3Dprint.png" alt="Comparison of with graphics and without" height="400">
+<img src="/images/Car/Part7/3Dprint2.png" alt="Comparison of with graphics and without" height="400">
 
 ## Part 8, Batteries, and an upgrade to an AC Motor.
 
