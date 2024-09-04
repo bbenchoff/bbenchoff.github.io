@@ -60,7 +60,9 @@ After [a false start](https://twitter.com/ViolenceWorks/status/14934401314489917
 
 ## Part 3, Motors, Motor Controllers, And An Entire Year.
 
-Wiring up a few switches and a fuse box is easy. Very easy, and there's no way it could take an entire year. The motor and controller were another story.
+Wiring up a few switches and a fuse box is easy. Very easy, and there's no way it could take literal years. The motor and controller were another story.
+
+The original "controller" for the car was a bizarre resistor and contactor design. This setup reduced the throttle pedal to a three position switch; the first throttle setting was 24V, the second setting was the full 48V pack with a current-limiting resistor that was actually a gigantic piece of nichrome wire, and the third setting was the full 48V pack. This was fed through a main contactor and a forward/reverse contactor from a golf cart. My Citicar came with an uninstalled upgrade in the form of a Curtis controller designed for golf carts.
 
 With the 12V electronics done, the goal was to wire in the motor controller that came with the car and possibly take it down  to [Ocean Beach Cars and Coffee](https://norcalcarculture.com/events/ocean-beach-cars-and-coffee/) on the last Sunday of the month. As noted in Part 1, [this car came with a motor controller](/images/Car/Part1/7.png), a **Curtis 1209-5501** rated for 48V / 450A. Taking notes from the manual for this controller, I [finished the schematic](/images/Car/Part3/tinysch.png) and wired [the whole thing up](/images/Car/Part3/Batteryboxwired.png). Additionally, because I didn't want to deal with the old forward/reverse contactor (it was chooched), I purchased a new F/R contactor off of eBay for $100.
 
@@ -86,7 +88,23 @@ A hundred bucks later, and I had a forward/reverse contactor with a 12V coil vol
 
 ![The car out of the garage](/images/Car/Part5/ActuallyDrove.jpg)
 
-From here, I had a few things to consider. The motor could be faulty, but fixable. Looking at the actual manual for the GE motor showed the 'clocking' - the positioning of the brushes along the commutator - could not be changed outside the factory. The windings were good, and I ran in the brushes to ensure good contact with the commutator. There was simply nothing I could do to fix the motor. 
+I would like to reiterate the process of getting the wheels to turn, in bullet point format:
+
+* The car came with a Curtis controller for golf cart motors
+* I install everything, nothing happens, because the controller was dead
+* I buy a new controller on eBay
+* This controller doesn't work, send it in for repair
+* Install the new controller, still doesn't work.
+* Turns out the motor is bad, somehow
+* Replace the brushes in the motor
+* Wire everything up again, _it still doesn't work_
+* Replace the main contactor, now I can at least hotwire the car
+* The forward/reverse contactor doesn't work, replace that too.
+* Now I can control the car with the throttle pedal!
+* The motor has zero torque. The motor is broken beyond repair.
+* After months of working on this, say fuck it
+
+From here, I had a few things to consider. The motor could be faulty, but fixable. Looking at the actual manual for the GE motor showed the 'clocking' - the positioning of the brushes along the commutator - could not be changed outside the factory. I had assumed the windings were good, and on paper everything should have worked. But it didn't. It was time to say fuck it.
 
 This was the lowest point of the project. There was nothing I could do except replace the motor. And if I'm going to do that, I might as well go big. The car will now have an (HPEVs AC-12 motor)[https://www.thunderstruck-ev.com/ac-12-w-1234-5371-clone.html] from Thunderstruck Motors. The AC-12 motor -- (HPEVs link)[https://www.hpevs.com/ac--electric-motor-for-club-car-golf-cars-ac-12-07-51.htm] -- is a motor made for the golf cart industry, but on a scale that's a bit crazy. The stock motor in my comutacar was 6HP; the HPEVs motor will max out at about 36HP. This gives me a lot more torque for the San Francisco hills, and a few videos on Facebook lead me to believe the car will eventually do wheelies. The motor kit cost about $3k, but that also gets me a new motor controller.
 
@@ -94,7 +112,9 @@ This was the lowest point of the project. There was nothing I could do except re
 
 The new motor also required a new motor mount. This was designed in Fusion360 and sent to PCBway for manufacturing. I highly recommend this way of manufacturing -- it was less than 10 days and $250 to get a brand new motor mount.
 
-After two or three different motor controllers, pulling the motor out of the car for new brushes, bearings, and everything else that's removable, I finally had the setup I wanted from the beginning. It's a hugely powerful motor that will easily conquer any hills, and the CAN interface allows for easy integration with modern batteries and chargers.
+After two or three different motor controllers, pulling the motor out of the car for new brushes, bearings, and everything else that's removable, I finally had the setup I wanted from the beginning. It's a hugely powerful motor that will easily conquer any hills, and the CAN interface allows for easy integration with modern batteries, chargers, and the electronic dashboard.
+
+Mounting the motor to the axel with the new motor mount was astonishingly easy and cheap. I have nothing but good things to say about getting your one-off CNC work done at a random Chinese vendor. 
 
 ## Part 4, Body repair, bumpers and cosmetic issues
 
