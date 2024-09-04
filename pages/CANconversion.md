@@ -88,6 +88,18 @@ I will not be using the forced-air motor cooling and defrost system. The motor r
 
 ![The extension panel](/images/Car/GaugeCluster/ExtensionPanel.png)
 
+### Integration with the rest of the car
+
+One CAN bus will control the dashboard, lights, and the turn stalk indicator, but not everything. In an effort to reduce complexity on the CAN bus, I have broken it up into three parts: one for the battery, charger, and BMS, another for the motor controller, and the third for the dash and lights. The manual for the motor controller says I shouldn't connect its CAN bus to the BMS and charger, so this will have to do. Here's a pseudo-schematic of what I'm talking about:
+
+
+<img src="/images/Car/GaugeCluster/MultiCANschematic.png" alt="Multi CAN schematic" height="400">
+
+These CAN busses are tied together with a CAN bridge. Basically, it's an Arduino with two CAN tranceivers. The microcontroller can read and write to each CAN bus it's connected to. With a little bit of code, I can shuttle data across the bridge, even translating it to different data. Here's the CAN bridge:
+
+
+<img src="/images/Car/GaugeCluster/CANbridge.png" alt="CAN bridge hardware" height="400">
+
 ### Putting it all together
 
 The stock Citicar dash is a single piece of 1/8" aluminum screwed onto the plastic dashboard with the help of [clip nuts](https://www.mcmaster.com/products/clip-nuts/). These nuts are terrible to install, they fall off constantly, and they really don't secure the dashboard to the car very tightly. For my dashboard, I've gone a different route, with a piece of 1/4" waterjet aluminum physically bonded to the plastic dash with a combination of glue and fiberglass.
