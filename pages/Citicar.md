@@ -6,7 +6,13 @@ layout: default
 
 # 1980 Citicar / Comuta-Car, Restoration
 
-This is a log of the restoration of a 1980 Comuta-Car, acquired from a Craigslist ad in Fresno.
+In the late 90s or early 2000s, right after I got my drivers license, I needed a car. I went to a convenience store, picked up an AutoTrader, and started leafing through the thinly printed pages. One ad caught my eye: a rare, weird, angular electric car from the 1970s. This was my introduction to the Citicar, a street-legal golf cart with ABS plastic body panels. It was glorious, and by far the coolest car in a magazine that also featured Mk4 Supras, first gen Miatas, and everything else the 90s threw at us.
+
+The Citicar was offered for thousand dollars or so, and the ad said it only needed a few batteries to get the car moving again. This was awesome. Impractical, though, because the Citicar has a range of about 30 miles and I grew up in the middle of nowhere. Did I really have the skills necessary to get this car on the road? This car would just end up being a money pit, right? In my youth I was far too cautious, the gravest mistake anyone can make.
+
+Fast forward half a lifetime and I'm in the middle of a COVID lock down. I have a job, I have money, and again I found one of these weird plastic cars on Craigslist being offered for a thousand dollars. It's time to do this, I guess.
+
+This is a log of the restoration of a 1980 Comuta-Car, acquired from a Craigslist ad in Fresno. It took far too long and cost far too much money
   
 
 <a href="https://bbenchoff.github.io/pages/CarPics.html">You can find an image gallery of all the pics here</a>
