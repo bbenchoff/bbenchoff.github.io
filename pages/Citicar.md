@@ -7,6 +7,7 @@ layout: default
 # 1980 Citicar / Comuta-Car, Restoration
 
 This is an ongoing log of the restoration of a 1980 Comuta-Car, acquired from a Craigslist ad in Fresno.
+  
 
 <a href="https://bbenchoff.github.io/pages/CarPics.html">You can find an image gallery of all the pics here</a>
 
