@@ -4,6 +4,8 @@ layout: default
 
 ---
 
+<a href="https://bbenchoff.github.io/pages/CarPics.html">You can find an image gallery of all the pics here</a>
+
 # 1980 Citicar / Comuta-Car, Restoration
 
 In the late 90s or early 2000s, right after I got my drivers license, I needed a car. I went to a convenience store, picked up an AutoTrader, and started leafing through the thinly printed pages. One ad caught my eye: a rare, weird, angular electric car from the 1970s. This was my introduction to the Citicar, a street-legal golf cart with ABS plastic body panels. It was glorious, and by far the coolest car in a magazine that also featured Mk4 Supras, first gen Miatas, and everything else the 90s threw at us.
@@ -12,36 +14,35 @@ The Citicar was offered for thousand dollars or so, and the ad said it only need
 
 Fast forward half a lifetime and I'm in the middle of a COVID lock down. I have a job, I have money, and again I found one of these weird plastic cars on Craigslist being offered for a thousand dollars. It's time to do this, I guess.
 
-This is a log of the restoration of a 1980 Comuta-Car, acquired from a Craigslist ad in Fresno. It took far too long and cost far too much money
-  
-
-<a href="https://bbenchoff.github.io/pages/CarPics.html">You can find an image gallery of all the pics here</a>
+This is a log of the restoration of a 1980 Comuta-Car, acquired from a Craigslist ad in Fresno. It took far too long and cost far too much money, but this is the coolest car I could possibly own.
 
 ## Part 0, Acquiring the car
 
-The car was bought [off of Craigslist](/images/Car/Craigslist/Screencap.PNG) in Coarsegold, California, about half an hour north of Fresno. The bill of sale says $200 because eventually this will be in a Lemons rally. Getting it to my SF garage involved driving out to Fresno, picking up a 10' UHaul box truck and car trailer, and bringing it home through Gilroy. 
+The car was bought [off of Craigslist](/images/Car/Craigslist/Screencap.PNG) in Coarsegold, California, about half an hour north of Fresno. The bill of sale says $200 in the hope this will eventually be in a Lemons rally. Getting it to my SF garage involved driving out to Fresno, picking up a 10' UHaul box truck and car trailer, and bringing it home through Gilroy. 
 
 Tips and tricks for acquiring a Comutacar: [It *barely* fits in the back of a 10-foot UHaul truck](https://bbenchoff.github.io/images/Car/Acquiring/2.jpg). The easiest way to get it home is to rent a 10-foot UHaul, buy some ramps at Harbor Freight, and get three people to push it up into the truck. Without the batteries it only weighs ~700 pounds. No, you don't need a trailer, in fact a citicar does not fit on a the UHaul car trailer because the wheelbase is too narrow.
+
+The plan, at the time, was to fix the wiring in the car, put some batteries in, and see if the car can go around the block. Maybe to the grocery store. After that, I would assess putting some bigger lithium batteries in, and the possibility of upgrading the motor. An easy job, right? Should only take a few months.
 
 ![Pics from acquiring the car](/images/Car/AcquiringCar.png)
 
 ## Part 1, Teardown and I found a motor controller
 
-Week 1 began with getting it up on jack stands. This revealed some [weirdness with the back suspension](https://bbenchoff.github.io/images/Car/Part1/1.png). For some reason, half a leaf spring was bolted to the driver's side suspension. I don't know what's going on there. The [wiring under the dashwas a mess](https://bbenchoff.github.io/images/Car/Part1/5.png), and the 120 Volt input [was highly dangerous](https://twitter.com/BBenchoff/status/1484325182399340554) so that was torn out to be replaced with all new wiring.
+Week 1 began with getting it up on jack stands. This revealed some [weirdness with the back suspension](https://bbenchoff.github.io/images/Car/Part1/1.png). For some reason, half a leaf spring was bolted to the driver's side suspension. I don't know what's going on there. The [wiring under the dash was a mess](https://bbenchoff.github.io/images/Car/Part1/5.png), and the 120 Volt input [was highly dangerous](https://twitter.com/BBenchoff/status/1484325182399340554) so that was torn out to be replaced with all new wiring.
 
 During the teardown, I was looking at this weird box right next to the motor. The car still had the original contactors (the old "speed controller"), and I had assumed the previous owner was still trying to use this. Not so, because that weird box [was a brand new motor controller](/images/Car/Part1/7.png). To reiterate, I found an unused motor controller worth $1000 in a car I paid $1000 for. I bought a motor controller and got a free car.
 
-Given the serial number on the unused motor controller, a few parts on the wiring harness, and the oral history of the car from the seller, I think I can put together a reasonably correct history of this car. Sometime after 1993 and before 2000, the car was in Palm Springs where the owner decided a refurbishment was in order. This person had the knowledge to walk into NAPA auto, but not the skills to put those parts together. The last time it was registered was in 2000, after which it was moved to Coarsegold, half an hour north of Fresno. In 2022, I brought it to San Francisco where it is currently undergoing restoration.
+Given the serial number on the unused motor controller, a few parts on the wiring harness, and the oral history of the car from the seller, I think I can put together a reasonably correct history of this car. Sometime after 1993 and before 2000, the car was in Palm Springs where the owner decided a refurbishment was in order. This person had the knowledge to walk into NAPA auto, but not the skills to put those parts together. The last time it was registered was in 2000, after which it was moved to Coarsegold, half an hour north of Fresno. In 2022, I brought it to San Francisco where it was restored.
 
 ![Part 1 Compilation](/images/Car/Part1/Part1.png)
 
-After a few days of reverse-engineering the wiring, we determined the best course of action would be to [tear out all the wires](/images/Car/Part1/8.png) and rebuild the entire electrical system from the ground up. This gave me an opportunity to clean out twenty years of detritus in the under-seat compartment. This was a weird, sticky goo that cleaned up with soap and water. I also found a mouse nest inside the ventilation/cooling manifold; this was removed, cleaned in the dishwasher, and reinstalled.
+After a few days of reverse-engineering the wiring, we determined the best course of action would be to [tear out all the wires](/images/Car/Part1/8.png) and rebuild the entire electrical system from the ground up. This gave me an opportunity to clean out twenty years of detritus in the under-seat compartment. This was a weird, sticky goo that cleaned up with soap and water. I also found a mouse nest inside the ventilation/cooling manifold; this manifold was removed, cleaned in the dishwasher, and reinstalled.
 
 With that done, the project moves onto re-wiring the electrical system. This will be guided in part by the schematics found in the CommtaCar service manual but updated for a modern fuse panel.
 
 ## Part 2, Rewiring the dash, or, I know how to hotwire **my** car.
 
-Because the car didn't come with keys -- or rather the last owner couldn't find the keys -- a new ignition switch was in order. The standard ignition switch for the Citicar is a Cole Herse 9577-BX, in stock at my local O'Reilly Auto for $15.99. The rest of the dash electronics will remain stock, even though I doubt I'll use the charging ammeter on the passenger side of the dash. I'll come up with something for that. Also, I ordered a new lock for the rear hatch, because again, no keys. This was off of Amazon, a 'Disc Tumbler Cam Lock with 7/8" Cylinder'. An inspection behind the door card revealed the door lock will be harder to replace
+Because the car didn't come with keys -- or rather the last owner couldn't find the keys -- a new ignition switch was in order. The standard ignition switch for the Citicar is a Cole Herse 9577-BX, in stock at my local O'Reilly Auto for $15.99. The rest of the dash electronics will remain stock. Also, I ordered a new lock for the rear hatch, because again, no keys. This was off of Amazon, a 'Disc Tumbler Cam Lock with 7/8" Cylinder'. An inspection behind the door card revealed the door lock will be harder to replace
 
 Rewiring the dash began with simply pulling out _all_ of the old wiring. There was nothing that could be salvaged out of that rat's nest. I ordered a new fuse panel (Eaton / Bussmann 15305-2-2-4) for 10 mini fuses and five SPDT relays. The original wiring used 10 fuses, two DPDT relays, and a blinker module, so everything should work.
 
@@ -59,11 +60,11 @@ With the fuse panel, a new turn signal stalk, a bunch of 14ga wire, and a boatlo
 
 The difference is stark. The old schematic was unreadable not only because some wires were cut off from many generations of photocopying, but also because a mysterious 'turn signal relay board' that is completely undocumented.
 
-After [a false start](https://twitter.com/ViolenceWorks/status/1493440131448991749) and a few [obviously crossed wires](https://twitter.com/ViolenceWorks/status/1494008660707606529) I was able to get the majority of the dash wiring done. There are a few bits of weirdness to the citicar schematic, though; the headlamps are switched through two switches, the dash switch and the turn stalk. Because of this, only the top position of the dash switch turns on the headlamps, which are then switched through high and low beams with the turn stalk. The 'lower' setting of the dash light switch only activates the running lights, without the headlights. This is _weird_, but I suppose it's DOT compliant, it should be close to what the original wiring should be, and it'll work.
+After [a false start](https://twitter.com/ViolenceWorks/status/1493440131448991749) and a few [obviously crossed wires](https://twitter.com/ViolenceWorks/status/1494008660707606529) I was able to get the majority of the dash wiring done. There are a few bits of weirdness to the Citicar schematic, though; the headlamps are switched through two switches, the dash switch and the turn stalk. Because of this, only the top position of the dash switch turns on the headlamps, which are then switched through high and low beams with the turn stalk. The 'lower' setting of the dash light switch only activates the running lights, without the headlights. This is _weird_, but I suppose it's DOT compliant, it should be close to what the original wiring should be, and it'll work.
 
 ![Part 2 Compilation](/images/Car/Part2/TailLightComp.gif)
 
-[With the dash wiring completed](https://twitter.com/ViolenceWorks/status/1494036625461956609), I turn my attention to the power electronics and getting the motor turning. There is also a [soapbox derby](https://www.eventbrite.com/e/sfmomas-soapbox-derby-at-mclaren-park-2022-tickets-265577327937) in town about two months from now, so the goal is to get this thing on the road and compete in the only race this car will ever see. That means fixing the brakes.
+[With the dash wiring completed](https://twitter.com/ViolenceWorks/status/1494036625461956609), I turn my attention to the power electronics and getting the motor turning.
 
 ## Part 3, Motors, Motor Controllers, And An Entire Year.
 
@@ -71,7 +72,7 @@ Wiring up a few switches and a fuse box is easy. Very easy, and there's no way i
 
 The original "controller" for the car was a bizarre resistor and contactor design. This setup reduced the throttle pedal to a three position switch; the first throttle setting was 24V, the second setting was the full 48V pack with a current-limiting resistor that was actually a gigantic piece of nichrome wire, and the third setting was the full 48V pack. This was fed through a main contactor and a forward/reverse contactor from a golf cart. My Citicar came with an uninstalled upgrade in the form of a Curtis controller designed for golf carts.
 
-With the 12V electronics done, the goal was to wire in the motor controller that came with the car and possibly take it down  to [Ocean Beach Cars and Coffee](https://norcalcarculture.com/events/ocean-beach-cars-and-coffee/) on the last Sunday of the month. As noted in Part 1, [this car came with a motor controller](/images/Car/Part1/7.png), a **Curtis 1209-5501** rated for 48V / 450A. Taking notes from the manual for this controller, I [finished the schematic](/images/Car/Part3/tinysch.png) and wired [the whole thing up](/images/Car/Part3/Batteryboxwired.png). Additionally, because I didn't want to deal with the old forward/reverse contactor (it was chooched), I purchased a new F/R contactor off of eBay for $100.
+With the 12V electronics done, the goal was to wire in the motor controller that came with the car and possibly take it down  to [Ocean Beach Cars and Coffee](https://norcalcarculture.com/events/ocean-beach-cars-and-coffee/). As noted in Part 1, [this car came with a motor controller](/images/Car/Part1/7.png), a **Curtis 1209-5501** rated for 48V / 450A. Taking notes from the manual for this controller, I [finished the schematic](/images/Car/Part3/tinysch.png) and wired [the whole thing up](/images/Car/Part3/Batteryboxwired.png). Additionally, because I didn't want to deal with the old forward/reverse contactor (it was chooched), I purchased a new F/R contactor off of eBay for $100.
 
 After [wiring everything up according to the controller manual](/images/Car/Part3/CurtisControllerDiagram.PNG), I turned everything on, and.... nothing. The motor didn't spin, and following the troubleshooting steps in the controller manual discovered the controller was faulty. I could have the controller rebuilt for $450, but [another used controller is available on eBay for $200](/images/Car/Part3/ebaycontroller.png). This "new" controller is a slight upgrade over the controller that came with the car -- the eBay controller goes up to 72V. Judging from a few Citicar message board threads and the fact I live in the hilliest city in America, this should be a welcome upgrade.
 
@@ -91,7 +92,7 @@ After pulling the motor out, I had some idea of what the [motor mount and spline
 
 The [new brushes](/images/Car/Part5/MotorBrushes.png) were installed (0.5" x 0.625" x 1.437" carbon brushes, part number 10-506221), and I bolted the motor back onto the diff. Wired everything up again, and..... nothing. Not a damn thing. The controller was confirmed working with the 'motor tester menorah', and the motor was confirmed working by wiring it up [directly to the battery](https://twitter.com/ViolenceWorks/status/1514020800919379969). Hey, at least the new brushes worked. This only meant the forward/reverse contactor as being the problem, which is odd because I can hear it clicking when changing directions on the dash. [Turns out this wasn't sufficient](https://twitter.com/ViolenceWorks/status/1514068438141964290), and I needed a 12V F/R contactor.
 
-A hundred bucks later, and I had a forward/reverse contactor with a 12V coil voltage. The wheels spun, I dropped it down off the jacks, and the car barely inched along. There simply wasn't enough current going to the motor. The car _moved_ and I was able to pull it out of my garage and into the driveway, but there was simply no power. 
+A hundred bucks later, and I had a forward/reverse contactor with a 12V coil voltage. The wheels spun, I dropped it down off the jacks, and the car barely inched along. There simply wasn't enough current going to the motor. The car _moved_ and I was able to pull it out of my garage and into the driveway, but there was simply no power. Zero torque. The motor was just _bad_.
 
 ![The car out of the garage](/images/Car/Part5/ActuallyDrove.jpg)
 
@@ -123,9 +124,40 @@ After two or three different motor controllers, pulling the motor out of the car
 
 Mounting the motor to the axel with the new motor mount was astonishingly easy and cheap. I have nothing but good things to say about getting your one-off CNC work done at a random Chinese vendor. 
 
-## Part 4, Body repair, bumpers and cosmetic issues
+Because the stock motor is broken beyond repair, I have upgraded to an AC motor from [HPEVS](https://www.hpevs.com/ac--electric-motor-for-club-car-golf-cars-ac-12-07-51.htm). This is attached to the transaxle with a CNC'd aluminum faceplate mentioned above. Combined with the [Curtis F4A controller](https://www.thunderstruck-ev.com/curtis-ac-f4-a.html), this motor will operate on 60V and give me about 30 horsepower, five times as much as the stock GE motor. Because it's an AC motor, I'll also get full torque at low speed, a must for my eventual goal of driving up and down Clipper St. in San Francisco (an 18.5% grade!)
 
-Note this part was done in parallel with parts three and five. The motor and controller is taking a long time to figure out.
+The charger and BMS for the system is a [TSM2500](https://www.thunderstruck-ev.com/tsm2500-charger-only.html) and [Dilithium Design BMSC](https://www.thunderstruck-ev.com/bms-controller.html) allowing for charging over a J1772 port installed earlier.
+
+The battery for the system is a single pack taken from a Chrysler Pacifica Hybrid. This pack provides 2.6kWh and is rated at 400A continuous, matching the expected max draw from the controller. Because I am running the motor at 60V, I can start with one battery pack and wire additional batteries in parallel to get more range -- the only thing needed for each additional battery is a Dilithium BMS Satellite for each additional pack.
+
+Battery cooling is an open question. Ideally, all batteries should be cooled (and heated) so they don't become bombs. However, the Chrysler Pacifica batteries are very overspecced in their C-ratting; each battery can easily withstand an 800A current draw intermittently, and my motor controller is rated for only 400A. I do not expect to constantly draw 400A from the batteries, an average trip will be a current draw of about 150 to 200A. The battery *should* be fine, and [a few forum threads](https://www.diyelectriccar.com/threads/looking-for-plate-cooling-battery-box-options.209538/page-2) seem to confirm this notion. Cooling should not be needed because of the low current draw, and heating isn't needed because I live in San Francisco. It's always 60 degrees here. At most, I would attach a thermal interface material to the bottom of the batteries and attach them either to the aluminum body, or an aluminum plate in the repurposed battery bays.
+
+### BMS Connectors
+
+The connectors are listed below:
+
+**Dilithium BMSC**
+
+| Connector | Connector Part Number | Terminal Part Number |
+|:----------|:----------------------|:---------------------|
+| Cell Harness Connector | Molex 43025-1408 | 46235-5001 |
+| Thermistor Connector | Molex 51110-1060 | 50394-8054 |
+
+
+**Chrysler Pacifica battery** / KET 040 III Series connectors
+
+| Connector | Connector Part Number | Terminal Part Number |
+|:----------|:----------------------|:---------------------|
+| 12 Pin Connector | KET MG653012 | ST730770 |
+| 16 Pin Connector | KET MG653019 | ST730770 |
+
+
+The connectors for the Pacifica battery can be easily obtained on AliExpress for $15/10pcs.
+
+These connectors will be used instead of the [EV West Pacifica Battery Harness](https://www.evwest.com/catalog/product_info.php?products_id=539), because crimping your own purpose-built wires reduces the number of adapters and converters required. 
+
+
+## Part 4, Body repair, bumpers and cosmetic issues
 
 When I acquired the car, the body was by no means perfect. No Citicar is; the entire chassis is an aluminum tube frame clad with exactly six ABS plastic panels: four quarter panels, a back panel, and a huge plastic panel for the front and top of the car. All Citicars have at least one large crack next to the windshield, caused by decades of expansion and contraction. Mine has several more cracks, the most notable on the back top corners, with several other major gashes around the car. There are also missing pieces of panels -- on the driver's rear quarterpanel, most of the bottom is missing, and the 'vent' was completely cracked off. The remaining pieces were saved by the previous owner, and I think I've figured out the best way to repair them.
 
@@ -185,39 +217,7 @@ While the graphics may seem like a small part of the project, they are necessary
 <img src="/images/Car/Part7/3Dprint.png" alt="Comparison of with graphics and without" height="400">
 <img src="/images/Car/Part7/3Dprint2.png" alt="Comparison of with graphics and without" height="400">
 
-## Part 8, Batteries, and an upgrade to an AC Motor.
 
-Because the stock motor is broken beyond repair, I have upgraded to an AC motor from [HPEVS](https://www.hpevs.com/ac--electric-motor-for-club-car-golf-cars-ac-12-07-51.htm), or Thunderstruck Motors, or EV West, they're all the same company anyway. This is attached to the transaxle with a CNC'd aluminum faceplate mentioned above. Combined with the [Curtis F4A controller](https://www.thunderstruck-ev.com/curtis-ac-f4-a.html), this motor will operate on 60V and give me about 30 horsepower, five times as much as the stock GE motor. Because it's an AC motor, I'll also get full torque at low speed, a must for my eventual goal of driving up and down Clipper St. in San Francisco (an 18.5% grade!)
-
-The charger and BMS for the system is a [TSM2500](https://www.thunderstruck-ev.com/tsm2500-charger-only.html) and [Dilithium Design BMSC](https://www.thunderstruck-ev.com/bms-controller.html) allowing for charging over a J1772 port installed earlier.
-
-The battery for the system is a single pack taken from a Chrysler Pacifica Hybrid. This pack provides 2.6kWh and is rated at 400A continuous, matching the expected max draw from the controller. Because I am running the motor at 60V, I can start with one battery pack and wire additional batteries in parallel to get more range -- the only thing needed for each additional battery is a Dilithium BMS Satellite for each additional pack.
-
-Battery cooling is an open question. Ideally, all batteries should be cooled (and heated) so they don't become bombs. However, the Chrysler Pacifica batteries are very overspecced in their C-ratting; each battery can easily withstand an 800A current draw intermittently, and my motor controller is rated for only 400A. I do not expect to constantly draw 400A from the batteries, an average trip will be a current draw of about 150 to 200A. The battery *should* be fine, and [a few forum threads](https://www.diyelectriccar.com/threads/looking-for-plate-cooling-battery-box-options.209538/page-2) seem to confirm this notion. Cooling should not be needed because of the low current draw, and heating isn't needed because I live in San Francisco. It's always 60 degrees here. At most, I would attach a thermal interface material to the bottom of the batteries and attach them either to the aluminum body, or an aluminum plate in the repurposed battery bays.
-
-### BMS Connectors
-
-The connectors are listed below:
-
-**Dilithium BMSC**
-
-| Connector | Connector Part Number | Terminal Part Number |
-|:----------|:----------------------|:---------------------|
-| Cell Harness Connector | Molex 43025-1408 | 46235-5001 |
-| Thermistor Connector | Molex 51110-1060 | 50394-8054 |
-
-
-**Chrysler Pacifica battery** / KET 040 III Series connectors
-
-| Connector | Connector Part Number | Terminal Part Number |
-|:----------|:----------------------|:---------------------|
-| 12 Pin Connector | KET MG653012 | ST730770 |
-| 16 Pin Connector | KET MG653019 | ST730770 |
-
-
-The connectors for the Pacifica battery can be easily obtained on AliExpress for $15/10pcs.
-
-These connectors will be used instead of the [EV West Pacifica Battery Harness](https://www.evwest.com/catalog/product_info.php?products_id=539), because crimping your own purpose-built wires reduces the number of adapters and converters required. 
 
 
 ### A Battery Upgraded From Trash
