@@ -257,12 +257,12 @@ I will not be using the forced-air motor cooling and defrost system. The motor r
 One CAN bus will control the dashboard, lights, and the turn stalk indicator, but not everything. In an effort to reduce complexity on the CAN bus, I have broken it up into three parts: one for the battery, charger, and BMS, another for the motor controller, and the third for the dash and lights. The manual for the motor controller says I shouldn't connect its CAN bus to the BMS and charger, so this will have to do. Here's a pseudo-schematic of what I'm talking about:
 
 
-<img src="/images/Car/GaugeCluster/MultiCANschematic.png" alt="Multi CAN schematic" height="400">
+<img src="/images/Car/GaugeCluster/MultiCANschematic.PNG" alt="Multi CAN schematic" height="400">
 
 These CAN busses are tied together with a CAN bridge. Basically, it's an Arduino with two CAN tranceivers. The microcontroller can read and write to each CAN bus it's connected to. With a little bit of code, I can shuttle data across the bridge, even translating it to different data. Here's the CAN bridge:
 
 
-<img src="/images/Car/GaugeCluster/CANbridge.png" alt="CAN bridge hardware" height="400">
+<img src="/images/Car/GaugeCluster/CANbridge.jpg" alt="CAN bridge hardware" height="400">
 
 ### Putting it all together
 
@@ -283,8 +283,6 @@ When I acquired the car, the body was by no means perfect. No Citicar is; the en
 ![repaired body panel](/images/Car/Part4/BodyPanelRepair.png)
 
 Since the body panels are ABS plastic, conventional wisdom says acetone is the best solvent to join panels back together. Chemistry says something else, and the ingredients of most ABS 'glue' are 10 parts MEK with one part acetone. The thinking, I think, is the acetone bonds the parts quickly, while the much stronger MEK takes a few days to fully cure. I'm looking for strength, so that's what I went with. To fill any holes in the body, I've come up with a technique that uses plastic welding (a soldering iron and ABS 3D printer filament) with this MEK/acetone solvent. After slightly melting some filament to the body panel, I apply the solvent and let it cure. Sand a few days later and repeat. It is not fast, but there really are no other solutions for fixing a huge plastic panel like this. While the [repaired driver's quarterpanel](/images/Car/Part4/DriverQuarter.png) isn't much to look at now, the entire car will eventually be sanded and painted.
-
-While I intend to keep the car looking stock, the electronics will necessarily be heavily upgraded. This includes a J1772 port for charging, replacing the old 120V male plug -- the kind you would plug an extension cord into. A J1772 port is much bigger than a 120V, and this requires a modification to the rear passenger quarterpanel.
 
 ![J1772 Port](/images/Car/Part4/J1772Port.png)
 
@@ -335,8 +333,6 @@ While the graphics may seem like a small part of the project, they are necessary
 
 <img src="/images/Car/Part7/3Dprint.png" alt="Comparison of with graphics and without" height="400">
 <img src="/images/Car/Part7/3Dprint2.png" alt="Comparison of with graphics and without" height="400">
-
-
 
 
 ### A Battery Upgraded From Trash
