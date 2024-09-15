@@ -66,7 +66,7 @@ After [a false start](https://twitter.com/ViolenceWorks/status/14934401314489917
 
 [With the dash wiring completed](https://twitter.com/ViolenceWorks/status/1494036625461956609), I turn my attention to the power electronics and getting the motor turning.
 
-## Part 3, Motors, Motor Controllers, And An Entire Year.
+## Part 3, Motors, Motor Controllers, Batteries And An Entire Year.
 
 Wiring up a few switches and a fuse box is easy. Very easy, and there's no way it could take literal years. The motor and controller were another story.
 
@@ -114,7 +114,7 @@ I would like to reiterate the process of getting the wheels to turn, in bullet p
 
 From here, I had a few things to consider. The motor could be faulty, but fixable. Looking at the actual manual for the GE motor showed the 'clocking' - the positioning of the brushes along the commutator - could not be changed outside the factory. I had assumed the windings were good, and on paper everything should have worked. But it didn't. It was time to say fuck it.
 
-This was the lowest point of the project. There was nothing I could do except replace the motor. And if I'm going to do that, I might as well go big. The car will now have an (HPEVs AC-12 motor)[https://www.thunderstruck-ev.com/ac-12-w-1234-5371-clone.html] from Thunderstruck Motors. The AC-12 motor -- (HPEVs link)[https://www.hpevs.com/ac--electric-motor-for-club-car-golf-cars-ac-12-07-51.htm] -- is a motor made for the golf cart industry, but on a scale that's a bit crazy. The stock motor in my comutacar was 6HP; the HPEVs motor will max out at about 36HP. This gives me a lot more torque for the San Francisco hills, and a few videos on Facebook lead me to believe the car will eventually do wheelies. The motor kit cost about $3k, but that also gets me a new motor controller.
+This was the lowest point of the project. There was nothing I could do except replace the motor. And if I'm going to do that, I might as well go big. The car will now have an [HPEVs AC-12 motor](https://www.thunderstruck-ev.com/ac-12-w-1234-5371-clone.html) from Thunderstruck Motors. The AC-12 motor -- [HPEVs link](https://www.hpevs.com/ac--electric-motor-for-club-car-golf-cars-ac-12-07-51.htm) -- is a motor made for the golf cart industry, but on a scale that's a bit crazy. The stock motor in my comutacar was 6HP; the HPEVs motor will max out at about 36HP. This gives me a lot more torque for the San Francisco hills, and a few videos on Facebook lead me to believe the car will eventually do wheelies. The motor kit cost about $3k, but that also gets me a new motor controller.
 
 ![the motor mount](/images/Car/Part5/MotorMount.gif)
 
@@ -154,7 +154,11 @@ The connectors are listed below:
 
 The connectors for the Pacifica battery can be easily obtained on AliExpress for $15/10pcs.
 
-These connectors will be used instead of the [EV West Pacifica Battery Harness](https://www.evwest.com/catalog/product_info.php?products_id=539), because crimping your own purpose-built wires reduces the number of adapters and converters required. 
+These connectors will be used instead of the [EV West Pacifica Battery Harness](https://www.evwest.com/catalog/product_info.php?products_id=539), because crimping your own purpose-built wires reduces the number of adapters and converters required.
+
+But with everything together, I _finally_ had a car that could make it up the slight grade of my driveway:
+
+![First drive](/images/Car/Part3/FirstDrive.gif)
 
 
 ## Part 4, Body repair, bumpers and cosmetic issues
