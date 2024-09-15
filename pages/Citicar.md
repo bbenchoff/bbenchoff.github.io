@@ -8,6 +8,8 @@ layout: default
 
 # 1980 Citicar / Comuta-Car, Restoration
 
+![Hero image](/images/Car//OceanBeach/Hero.jpg)
+
 In the late 90s or early 2000s, right after I got my drivers license, I needed a car. I went to a convenience store, picked up an AutoTrader, and started leafing through the thinly printed pages. One ad caught my eye: a rare, weird, angular electric car from the 1970s. This was my introduction to the Citicar, a street-legal golf cart with ABS plastic body panels. It was glorious, and by far the coolest car in a magazine that also featured old Chargers sitting on blocks, one or two Mk4 Supras, first gen Miatas, and everything else that could be found in a 25-year-old AutoTrader. I'd like to repeat this for clarity: as a 17-year-old, a shitty plastic 70s wedge was cooler than the cars in _Fast and the Furious_. Now you know who I am.
 
 The Citicar was offered for a thousand dollars or so, and the ad said it only needed a few batteries to get the car moving again. This was awesome. Impractical, though, because the Citicar has a range of about 30 miles and I grew up in the middle of nowhere. Did I really have the skills necessary to get this car on the road? This car would just end up being a money pit, right? In my youth I was far too cautious, the gravest mistake anyone can make.
