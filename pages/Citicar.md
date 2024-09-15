@@ -8,11 +8,11 @@ layout: default
 
 # 1980 Citicar / Comuta-Car, Restoration
 
-In the late 90s or early 2000s, right after I got my drivers license, I needed a car. I went to a convenience store, picked up an AutoTrader, and started leafing through the thinly printed pages. One ad caught my eye: a rare, weird, angular electric car from the 1970s. This was my introduction to the Citicar, a street-legal golf cart with ABS plastic body panels. It was glorious, and by far the coolest car in a magazine that also featured Mk4 Supras, first gen Miatas, and everything else the 90s threw at us.
+In the late 90s or early 2000s, right after I got my drivers license, I needed a car. I went to a convenience store, picked up an AutoTrader, and started leafing through the thinly printed pages. One ad caught my eye: a rare, weird, angular electric car from the 1970s. This was my introduction to the Citicar, a street-legal golf cart with ABS plastic body panels. It was glorious, and by far the coolest car in a magazine that also featured old Chargers sitting on blocks, one or two Mk4 Supras, first gen Miatas, and everything else that could be found in a 25-year-old AutoTrader. I'd like to repeat this for clarity: as a 17-year-old, a shitty plastic 70s wedge was cooler than the cars in _Fast and the Furious_. Now you know who I am.
 
-The Citicar was offered for thousand dollars or so, and the ad said it only needed a few batteries to get the car moving again. This was awesome. Impractical, though, because the Citicar has a range of about 30 miles and I grew up in the middle of nowhere. Did I really have the skills necessary to get this car on the road? This car would just end up being a money pit, right? In my youth I was far too cautious, the gravest mistake anyone can make.
+The Citicar was offered for a thousand dollars or so, and the ad said it only needed a few batteries to get the car moving again. This was awesome. Impractical, though, because the Citicar has a range of about 30 miles and I grew up in the middle of nowhere. Did I really have the skills necessary to get this car on the road? This car would just end up being a money pit, right? In my youth I was far too cautious, the gravest mistake anyone can make.
 
-Fast forward half a lifetime and I'm in the middle of a COVID lock down. I have a job, I have money, and again I found one of these weird plastic cars on Craigslist being offered for a thousand dollars. It's time to do this, I guess.
+Fast forward half a lifetime and I'm in the middle of a COVID lock down. I have a job, I have money, and again I found one of these weird plastic cars on Craigslist being sold for a thousand dollars. It's time to do this, I guess.
 
 This is a log of the restoration of a 1980 Comuta-Car, acquired from a Craigslist ad in Fresno. It took far too long and cost far too much money, but this is the coolest car I could possibly own.
 
@@ -20,7 +20,7 @@ This is a log of the restoration of a 1980 Comuta-Car, acquired from a Craigslis
 
 The car was bought [off of Craigslist](/images/Car/Craigslist/Screencap.PNG) in Coarsegold, California, about half an hour north of Fresno. The bill of sale says $200 in the hope this will eventually be in a Lemons rally. Getting it to my SF garage involved driving out to Fresno, picking up a 10' UHaul box truck and car trailer, and bringing it home through Gilroy. 
 
-Tips and tricks for acquiring a Comutacar: [It *barely* fits in the back of a 10-foot UHaul truck](https://bbenchoff.github.io/images/Car/Acquiring/2.jpg). The easiest way to get it home is to rent a 10-foot UHaul, buy some ramps at Harbor Freight, and get three people to push it up into the truck. Without the batteries it only weighs ~700 pounds. No, you don't need a trailer, in fact a citicar does not fit on a the UHaul car trailer because the wheelbase is too narrow.
+Tips and tricks for acquiring a Comutacar: [It *barely* fits in the back of a 10-foot UHaul truck](https://bbenchoff.github.io/images/Car/Acquiring/2.jpg). The easiest way to get it home is to rent a 10-foot UHaul, buy some ramps at Harbor Freight, and get three people to push it up into the truck. Without the batteries it only weighs ~700 pounds. No, you don't need a trailer, in fact a citicar does not fit on a UHaul car trailer because the wheelbase is too narrow.
 
 The plan, at the time, was to fix the wiring in the car, put some batteries in, and see if the car can go around the block. Maybe to the grocery store. After that, I would assess putting some bigger lithium batteries in, and the possibility of upgrading the motor. An easy job, right? Should only take a few months.
 
@@ -58,7 +58,7 @@ With the fuse panel, a new turn signal stalk, a bunch of 14ga wire, and a boatlo
 
 ![Compairson between old and my schematic](/images/Car/Part2/SchComp.png)
 
-The difference is stark. The old schematic was unreadable not only because some wires were cut off from many generations of photocopying, but also because a mysterious 'turn signal relay board' that is completely undocumented.
+The difference is stark. The old schematic was unreadable not only because some wires were cut off from many generations of photocopying, but also because of a mysterious 'turn signal relay board' that is completely undocumented.
 
 After [a false start](https://twitter.com/ViolenceWorks/status/1493440131448991749) and a few [obviously crossed wires](https://twitter.com/ViolenceWorks/status/1494008660707606529) I was able to get the majority of the dash wiring done. There are a few bits of weirdness to the Citicar schematic, though; the headlamps are switched through two switches, the dash switch and the turn stalk. Because of this, only the top position of the dash switch turns on the headlamps, which are then switched through high and low beams with the turn stalk. The 'lower' setting of the dash light switch only activates the running lights, without the headlights. This is _weird_, but I suppose it's DOT compliant, it should be close to what the original wiring should be, and it'll work.
 
@@ -173,8 +173,9 @@ For a new speedometer, I have two options. The first is buying a CAN gauge I can
 <img src="/images/Car/GaugeCluster/1.png" alt="Gauge Cluster Assembly" height="400">
 <img src="/images/Car/GaugeCluster/stackup.png" alt="Gauge Cluster Assembly" height="400">
 
-My second attempt at a 'digital dash' is effectively an LED display pulled out of a bus. It's the most complicated device I've ever built an assembled.
+My second attempt at a 'digital dash' is effectively an LED display pulled out of a bus. It's the most complicated device I've ever built and assembled.
 
+## A picture of the final Dashboard
 
 ![Finished Dashboard pic 1](/images/Car/GaugeCluster/DashFinal1.jpg)
 ![Finished Dashboard pic 2](/images/Car/GaugeCluster/DashFinal2.jpg)
