@@ -215,8 +215,6 @@ Also on this board is a 'shield' of sorts. The CAN MOSFET board has several diff
 
 The circuit for the MOSFETs and optos are simple enough. For the 'microcontroller and CAN' part of the circuit, I settled on an ATMega328p, Microchip MCP2515 CAN controller, and Microchip MCP2551 CAN Transceiver. Yes, this is effectively an Arduino running my car, but with the proper application of watchdog timers, most concerns can be oblivated. See Jack Ganssle's [article on watchdogs](http://www.ganssle.com/watchdogs.htm) for some introduction to this.
 
-![The CAN MOSFET Board](/images/Car/GaugeCluster/sch.png)
-
 ### The Display
 
 #### Click to play video
@@ -254,6 +252,8 @@ The stock Comutacar includes a 'sub panel' below the dashboard for what can gene
 I will not be using the forced-air motor cooling and defrost system. The motor runs cool enough to not require cooling, and I am adapting a 12V / 150W Portable Car Heater to use as a defroster. This gives me space to add additional switches, or at least space for extra switches. I do not know what these switches will eventually do. One idea is to have a mode that changes the acceleration profile on the motor controller. Or a switch blinks the exterior lights randomly. Here's a pic of the five-switch extension panel, along with the stock heater/manifold controls:
 
 ![The extension panel](/images/Car/GaugeCluster/ExtensionPanel.png)
+
+The additional round display is the Curtis 3140, a display for the motor controller itself. While this display is not technically necessary, it is hugely helpful for debugging and programming the motor controller. The rightmost switch position in the heater controls is taken up by two switches needed to program the motor controller -- a 'Menu' button and a 'Mode' switch. 
 
 ### Integration with the rest of the car
 
