@@ -2,6 +2,8 @@
 
 I design strange things in hardware and software. Highlights include:
 
+- An <a href="https://bbenchoff.github.io/pages/IsoTherm.html">isolated thermocouple reader</a>, replicating a $2000 National Instruments module for $120.
+
 - I converted a car without semiconductors <a href="https://bbenchoff.github.io/pages/CANconversion.html">to use CAN for everything</a>.
 
 - <a href="https://bbenchoff.github.io/pages/QuicktakeLens.html">A Nikon lens adapter</a> for the first digital camera.
