@@ -17,10 +17,19 @@ I can do this for about $15 per channel.
 
 ### One chip does all the work
 
-The problem is that I need to read small (+/- 50mV) voltages with a microcontroller, and these inputs need to be isolated. There is a chip that does this, the [Texas Instruments AMC3336](https://www.ti.com/product/AMC3336) and related chips like the AC3306M05 (+/- 50mV), and AMC3305M25 (+/- 250mV). These chips are isolated delta-sigma (ΔΣ) DACs. They all operate with a single power supply of 3.3V, and they will read the microvolt voltages needed for thermocouple measurement.
+The problem is that I need to read small (+/- 50mV) voltages with a microcontroller, and these inputs need to be isolated. There is a chip that does this, the [Texas Instruments AMC3336](https://www.ti.com/product/AMC3336) and related chips like the AMC3306M05 (+/- 50mV), and AMC3305M25 (+/- 250mV). These chips are isolated delta-sigma (ΔΣ) DACs. They all operate with a single power supply of 3.3V, and they will read the microvolt voltages needed for thermocouple measurement.
 
+The specs for these chips is great, especially on the  AMC3306M05. single 3.3V supply will allow me to read a single thermocouple input, +/- 50mV, at about 16 bits of resolution. It has 1200V of isolation. The only problem is that it's a ΔΣ DAC, so I need to figure out how to read that.
+
+### Operation and reading of a ΔΣ DAC
+
+A ΔΣ DAC is simple to describe -- feed it a square wave, and it will give you another square wave at half the frequency, the duty cycle of which is proportional to the voltage on the input. Here's what it looks like on an oscilloscope, clock input on top, signal on bottom:
 
 ![AMC signals on an oscilloscope](/images/DS1Z_QuickPrint3.png)
+
+The ideal tool for this is the RP2040, also known as the Raspberry Pi microcontroller. The RP2040 has a PIO module that can toggle and read GPIOs __very fast__. Think of it as the microcontroller version of the [BeagleBone PRU](https://www.beagleboard.org/projects/pru).
+
+Each of the two PIOs on the RP2040 has four State Machines (SM), a "sub-processor", with a handful of registers (four, actually, x, y, and an input and output shift register) and runs a handful of instructions (read, write, shift in, jump, and decrement). The input and and output shift registers are 32 bits wide, meaning if you want to read a ΔΣ DAC, you can only read 32 points before shifting that data out to the main processor via DMA.
 
 ![A graphic explination of what the PIO code is doing](/images/PIOGraphic.png)
 
