@@ -76,6 +76,14 @@ This works for one channel, but because the RP2040 only has eight total State Ma
 
 ### Sync3 filters
 
+The PIO code gives me a bitstream for each output of an ACM3306 chip, but I still need to turn that into a voltage which will then be compared to a lookup table (and a bit more math) to get a temperature. The problem is noise. I'm processing about 15 million samples per second per channel, and with that comes a lot of noise.
+
+To process this data, I'm using a Sync3 filter. Each stage integrates the input signal, then applies a comb filter to remove unwanted frequency components. The code implements this as a class that processes blocks of 32 samples at a time, with a configurable decimation ratio that determines how many samples to accumulate before producing an output.
+
+![diagram of filter](/images/Sync3mermaid.png)
+
+The filter also includes a running average to further smooth the output. The result is remarkably clean voltage readings. I'm getting microvolt resolution and sample rates around 10Hz.
+
 ### Device Hardware
 
 ![Image of the PCB](/images/IsoThermPCB.png)
