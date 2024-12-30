@@ -72,7 +72,7 @@ A graphic representation of what's happening in this code is shown below. This c
 
 This code collects 32 bits into the Input Shift Register of the PIO, and shoves that over to the main CPU when it's full. using _builtin_popcount() I can count the number of high bits and eventually get the proportion of high bits to total bits in the ΔΣ signal.
 
-This works for one channel, but because the RP2040 only has eight total State Machines, I cannot read eight channels while generating the clock signal. The (RP2350)[https://www.raspberrypi.com/products/rp2350/] with twelve total SMs is a much better fit. I'll use that for the production version of this.
+This works for one channel, but because the RP2040 only has eight total State Machines, I cannot read eight channels while generating the clock signal. The [RP2350](https://www.raspberrypi.com/products/rp2350/) with twelve total SMs is a much better fit. I'll use that for the production version of this.
 
 ### Sync3 filters
 
@@ -85,6 +85,8 @@ For this to be a useful industrial DAQ, it needs to have inputs and outputs. For
 One thing I've noticed on industrial hardware is the complete lack of a user interface. I've used Ethernet DAQs where the only way to tell what IP address a device is set to is to use nmap after plugging it in. This device has a small OLED display that simply shows you its IP address. There are also side-mounted LEDs below this display and light pipes through the case. Even I question the utility of these LEDs but they look great and were cheap to implement.
 
 Connectivity is mostly through Modbus over Ethernet, although streaming over serial is also supported. This is in line with most of the other data acquisition tooling at my job.
+
+A thermocouple reader also needs cold-junction compensation, or a temperature meausrement of the interior of the device. This is accomplished by an [LMT01](https://www.ti.com/product/LMT01) temperature sensor placed underneath the header for the thermocouples. This is read by another bit of PIO code on the microcontroller, freeing up a little bit more processing power.
 
 ![Another hero image of the thing](/images/IsoThermEnclosure.png)
 
