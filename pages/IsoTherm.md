@@ -31,7 +31,45 @@ The ideal tool for this is the RP2040, also known as the Raspberry Pi microcontr
 
 Each of the two PIOs on the RP2040 has four State Machines (SM), a "sub-processor", with a handful of registers (four, actually, x, y, and an input and output shift register) and runs a handful of instructions (read, write, shift in, jump, and decrement). The input and and output shift registers are 32 bits wide, meaning if you want to read a ΔΣ DAC, you can only read 32 points before shifting that data out to the main processor via DMA.
 
+To use these PIOs with the ACM3306, one SM needs to generate a clock. Another SM needs to wait for an IRQ from the clock generator PIO, then read a pin and shove it into the Input Shift Register. The code for each is listed below
+
+### Clock Gen PIO code
+```
+.program clock_gen 
+    set pindirs, 1       ; Set pin direction to output
+.wrap_target
+    set pins, 1          ; Set pin high
+    nop                  ; Delay for low state
+    set pins, 0          ; Set pin low
+    irq nowait 0         ; Set IRQ 0 for the other SM
+    set pins, 1          ; Set pin high
+    nop                  ; Only want one IRQ
+    set pins, 0          ; Set pin low
+    nop                  ; Delay for low state
+.wrap
+```
+
+### ACM Read PIO code
+```
+.program sample_counter
+    set pindirs, 0          ; Set pin direction to input
+    set x, 31               ; Initialize x for 32 bits
+.wrap_target
+do_capture:
+    wait 1 irq 0            ; Wait for IRQ 0 (triggered by SM0)
+    in pins, 1              ; Read 1 bit and shift into ISR
+    jmp x-- do_capture      ; Loop until x is 0
+    push block              ; Push 32 bits from ISR to RX FIFO
+    set x, 31               ; Reload x for the next 32-bit capture
+.wrap
+```
+
+A graphic representation of what's happening in this code is shown below. This code relies on setting an IRQ on the clock_gen PIO code, and reading that IRQ in the sample_counter PIO code.
+
 ![A graphic explination of what the PIO code is doing](/images/PIOGraphic.png)
+
+This code collects 32 bits into the Input Shift Register of the PIO, and shoves that over to the main CPU when it's full. using _builtin_popcount() I can count the number of high bits and eventually get the proportion of high bits to total bits in the ΔΣ signal.
+
 
 
 [back](../)
