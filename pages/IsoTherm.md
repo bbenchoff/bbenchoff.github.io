@@ -70,6 +70,14 @@ A graphic representation of what's happening in this code is shown below. This c
 
 This code collects 32 bits into the Input Shift Register of the PIO, and shoves that over to the main CPU when it's full. using _builtin_popcount() I can count the number of high bits and eventually get the proportion of high bits to total bits in the ΔΣ signal.
 
+This works for one channel, but because the RP2040 only has eight total State Machines, I cannot read eight channels while generating the clock signal. The (RP2350)[https://www.raspberrypi.com/products/rp2350/] with twelve total SMs is a much better fit. I'll use that for the production version of this.
 
+### Sync3 filters
+
+### Device Hardware
+
+
+
+![Image of the PCB](/images/IsoThermPCB.png)
 
 [back](../)
