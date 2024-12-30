@@ -17,7 +17,9 @@ I can do this for about $15 per channel.
 
 ### One chip does all the work
 
-The problem is that I need to read small (+/- 50mV) voltages with a microcontroller, and these inputs need to be isolated. There is a chip that does this, the [Texas Instruments AMC3336](https://www.ti.com/product/AMC3336) and related chips like the AMC3306M05 (+/- 50mV), and AMC3305M25 (+/- 250mV). These chips are isolated delta-sigma (ΔΣ) DACs. They all operate with a single power supply of 3.3V, and they will read the microvolt voltages needed for thermocouple measurement.
+Thermocouples are just two bits of wire made of dissimilar metals that produce a voltage proportional to temperature. At full scale -- the minimum and maximum temperatures published in thermocouple lookup tables -- the voltages are fairly large and on the order of -10mV to about +50mV. That's 1/10000th to 1/50000ths of a Volt. To get sub 1°C resolution I will need to measure microvolts, or __millionths__ of a volt. With a range of +/- 50mV for the DAC, that means I need an effective resolution of at least 16 bits.
+
+These inputs also need to be isolated. There is a chip that does this, the [Texas Instruments AMC3336](https://www.ti.com/product/AMC3336) and related chips like the AMC3306M05 (+/- 50mV), and AMC3305M25 (+/- 250mV). These chips are isolated delta-sigma (ΔΣ) DACs. They all operate with a single power supply of 3.3V, and they will read the microvolt voltages needed for thermocouple measurement.
 
 The specs for these chips is great, especially on the  AMC3306M05. single 3.3V supply will allow me to read a single thermocouple input, +/- 50mV, at about 16 bits of resolution. It has 1200V of isolation. The only problem is that it's a ΔΣ DAC, so I need to figure out how to read that.
 
@@ -76,8 +78,15 @@ This works for one channel, but because the RP2040 only has eight total State Ma
 
 ### Device Hardware
 
-
-
 ![Image of the PCB](/images/IsoThermPCB.png)
+
+For this to be a useful industrial DAQ, it needs to have inputs and outputs. For this, I added a W5500 Ethernet controller. USB-C is the future, but I don't need USB3. I wired up a USB-C port as a USB 2.0 interface, which is sufficient. Power is provided either through the USB-C port or a barrel jack while four transistors form a power OR circuit, allowing this device to be powered by either the barrel jack or USB port.
+
+One thing I've noticed on industrial hardware is the complete lack of a user interface. I've used Ethernet DAQs where the only way to tell what IP address a device is set to is to use nmap after plugging it in. This device has a small OLED display that simply shows you its IP address. There are also side-mounted LEDs below this display and light pipes through the case. Even I question the utility of these LEDs but they look great and were cheap to implement.
+
+Connectivity is mostly through Modbus over Ethernet, although streaming over serial is also supported. This is in line with most of the other data acquisition tooling at my job.
+
+![Another hero image of the thing](/images/IsoThermEnclosure.png)
+
 
 [back](../)
