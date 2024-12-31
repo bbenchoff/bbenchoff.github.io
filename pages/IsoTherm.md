@@ -43,7 +43,10 @@ To use these PIOs with the ACM3306, one SM needs to generate a clock. Another SM
     set pins, 1          ; Set pin high
     nop                  ; Delay for low state
     set pins, 0          ; Set pin low
-    irq nowait 0         ; Set IRQ 0 for the other SM
+    irq nowait 0         ; Set IRQ 0 for the other SM.
+                         ; This is a non-blocking IRQ, it
+                         ; only sets a flag to be read by
+                         ; other state machines
     set pins, 1          ; Set pin high
     nop                  ; Only want one IRQ
     set pins, 0          ; Set pin low
@@ -58,7 +61,7 @@ To use these PIOs with the ACM3306, one SM needs to generate a clock. Another SM
     set x, 31               ; Initialize x for 32 bits
 .wrap_target
 do_capture:
-    wait 1 irq 0            ; Wait for IRQ 0 (triggered by SM0)
+    wait 1 irq 0            ; Wait for IRQ 0 (triggered by clock_gen)
     in pins, 1              ; Read 1 bit and shift into ISR
     jmp x-- do_capture      ; Loop until x is 0
     push block              ; Push 32 bits from ISR to RX FIFO
@@ -68,7 +71,7 @@ do_capture:
 
 A graphic representation of what's happening in this code is shown below. This code relies on setting an IRQ on the clock_gen PIO code, and reading that IRQ in the sample_counter PIO code.
 
-![A graphic explination of what the PIO code is doing](/images/PIOGraphic.png)
+![A graphic explanation of what the PIO code is doing](/images/PIOGraphic.png)
 
 This code collects 32 bits into the Input Shift Register of the PIO, and shoves that over to the main CPU when it's full. using _builtin_popcount() I can count the number of high bits and eventually get the proportion of high bits to total bits in the ΔΣ signal.
 
@@ -76,13 +79,24 @@ This works for one channel, but because the RP2040 only has eight total State Ma
 
 ### Sync3 filters
 
-The PIO code gives me a bitstream for each output of an ACM3306 chip, but I still need to turn that into a voltage which will then be compared to a lookup table (and a bit more math) to get a temperature. The problem is noise. I'm processing about 15 million samples per second per channel, and with that comes a lot of noise.
+The PIO code gives me a bitstream for each output of an ACM3306 chip, but I still need to turn that into a voltage which will eventually be converted into a temperature.
 
-To process this data, I'm using a Sync3 filter. Each stage integrates the input signal, then applies a comb filter to remove unwanted frequency components. The code implements this as a class that processes blocks of 32 samples at a time, with a configurable decimation ratio that determines how many samples to accumulate before producing an output.
+To process this data, I'm using a Sync3 filter that works like this:
+
+- **Integration Stage**: Each stage of the Sync3 filter sums the incoming signal over a specified period, more specifically a specified number of samples. I believe it's 4096 DMA transfers, so 131,072 individual samples (4098*32).
+- **Comb Filter**: This removes the noise and harmonics of the signal.
+- **Decimation**: After filtering, the Sync3 filter applies decimation or keeping only every nth sample. I believe I'm only keeping every 16th sample. This is the easiest place to 'tune' the filter, giving me the required signal resolution with the lowest computational cost.
+- **Running Average**: Putting a running average on the output of the filter gets rid of transient noise and outliers.
 
 ![diagram of filter](/images/Sync3mermaid.png)
 
 The filter also includes a running average to further smooth the output. The result is remarkably clean voltage readings. I'm getting microvolt resolution and sample rates around 10Hz.
+
+#### Somehow it's 120Mbps
+
+Because the microcontroller I'm using has a fantastic DMA system, I'm using the RP2040 to automatically transfer blocks of data from the PIO's RX FIFO to memory without CPU intervention. This greatly reduces the processing burden on the main CPU, enabling it to focus on tasks such as additional signal processing.
+
+As a quick aside, reading one channel of ACM DAC data is processing about 15 Megabits per second. Eight channels is 120Mbps. That's processing data faster than late 90s Ethernet on a chip that costs $4. That's absurd.
 
 ### Device Hardware
 
@@ -90,11 +104,11 @@ The filter also includes a running average to further smooth the output. The res
 
 For this to be a useful industrial DAQ, it needs to have inputs and outputs. For this, I added a W5500 Ethernet controller. USB-C is the future, but I don't need USB3. I wired up a USB-C port as a USB 2.0 interface, which is sufficient. Power is provided either through the USB-C port or a barrel jack while four transistors form a power OR circuit, allowing this device to be powered by either the barrel jack or USB port.
 
-One thing I've noticed on industrial hardware is the complete lack of a user interface. I've used Ethernet DAQs where the only way to tell what IP address a device is set to is to use nmap after plugging it in. This device has a small OLED display that simply shows you its IP address. There are also side-mounted LEDs below this display and light pipes through the case. Even I question the utility of these LEDs but they look great and were cheap to implement.
+One thing I've noticed on industrial hardware is the complete lack of a user interface. I've used Ethernet DAQs where the only way to tell what IP address a device is set to is to use nmap after plugging it in. This device has a small OLED display that shows you its own IP address. I expect this to save at least a man-week of work every year. There are also side-mounted LEDs below this display and light pipes through the case. Even I question the utility of these LEDs but they look great and were cheap to implement.
 
 Connectivity is mostly through Modbus over Ethernet, although streaming over serial is also supported. This is in line with most of the other data acquisition tooling at my job.
 
-A thermocouple reader also needs cold-junction compensation, or a temperature meausrement of the interior of the device. This is accomplished by an [LMT01](https://www.ti.com/product/LMT01) temperature sensor placed underneath the header for the thermocouples. This is read by another bit of PIO code on the microcontroller, freeing up a little bit more processing power.
+A thermocouple reader also needs cold-junction compensation, or a temperature measurement of the interior of the device. This is accomplished by an [LMT01](https://www.ti.com/product/LMT01) temperature sensor placed underneath the header for the thermocouples. This is read by another bit of PIO code on the microcontroller, freeing up a little bit more processing power.
 
 ![Another hero image of the thing](/images/IsoThermEnclosure.png)
 
