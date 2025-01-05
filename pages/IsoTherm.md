@@ -83,11 +83,11 @@ The standard input configuration for the AMC3306 is just two 10Ω resistors and 
 
 ![Datasheet analog front end](/images/DiffInputFilter.png)
 
-However, the data I was getting from this input was not very good. I tested the input on a T-type thermocouple at room temperature for about 9 hours, resulting in a range of 75mV; obviously a measurement error. The mean for that data was 0.683mV, with a standard deviation of 2.445mV. This is far too large of a range -- if one measurement is off by a standard deviation, it means a temperature difference of nearly 50°C. Here's the data plotted:
+However, the data I was getting from this input was not very good. I tested the input on a T-type thermocouple at room temperature for about 9 hours, resulting in a range of 75mV; obviously a measurement error, but absurd and worthy of a redesign. The mean for that data was 0.683mV, with a standard deviation of 2.445mV. This is far too large of a range -- if one measurement is off by a standard deviation, it means a temperature difference of nearly 50°C. Here's the data plotted:
 
 ![Data from test run, stock analog front end](/images/StockInput.png)
 
-I slightly redesigned the analog front end to decrease noise and provide a proper DC bias to ground. This comes at a cost of the AMC3306's common mode rejection ratio but testing proves it's good enough. This is the complete schematic for the DAC part of the circuit:
+I slightly redesigned the analog front end to decrease noise and provide a proper DC bias to ground. This better defines the common mode voltage, and adds a little more filtering by sprinkling caps on the PCB. This is the complete schematic for the DAC part of the circuit:
 
 ![revised analog front end](/images/NewInputFilter.png)
 
