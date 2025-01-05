@@ -77,6 +77,28 @@ This code collects 32 bits into the Input Shift Register of the PIO, and shoves 
 
 This works for one channel, but because the RP2040 only has eight total State Machines, I cannot read eight channels while generating the clock signal. The [RP2350](https://www.raspberrypi.com/products/rp2350/) with twelve total SMs is a much better fit. I'll use that for the production version of this.
 
+### The Analog Front End
+
+The standard input configuration for the AMC3306 is just two 10Ω resistors and a 10nF capacitor for an RC input filter. Very simple.
+
+![Datasheet analog front end](/images/DiffInputFilter.png)
+
+However, the data I was getting from this input was not very good. I tested the input on a T-type thermocouple at room temperature for about 9 hours, resulting in a range of 75mV; obviously a measurement error. The mean for that data was 0.683mV, with a standard deviation of 2.445mV. This is far too large of a range -- if one measurement is off by a standard deviation, it means a temperature difference of nearly 50°C. Here's the data plotted:
+
+![Data from test run, stock analog front end](/images/StockInput.png)
+
+I slightly redesigned the analog front end to decrease noise and provide a proper DC bias to ground. This comes at a cost of the AMC3306's common mode rejection ratio but testing proves it's good enough. This is the complete schematic for the DAC part of the circuit:
+
+![revised analog front end](/images/NewInputFilter.png)
+
+The data from the new analog front end is impressive. The standard deviation is now 0.105mV, an order of magnitude better than the input suggested from the datasheet. Now the standard deviation to temperature error is within a single degree, making this a usable data acquisition device. 
+
+![Data from test run, improved analog front end](/images/newdataHistogram.png)
+
+I'm going to put the comparison of the board layouts between versions of the input here, just because I'm sure I'll be referencing it later:
+
+![Board layout of the analog front end](/images/AMCAFE.png)
+
 ### Sync3 filters
 
 The PIO code gives me a bitstream for each output of an ACM3306 chip, but I still need to turn that into a voltage which will eventually be converted into a temperature.
