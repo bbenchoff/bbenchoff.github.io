@@ -87,7 +87,7 @@ However, the data I was getting from this input was not very good. I tested the 
 
 ![Data from test run, stock analog front end](/images/StockInput.png)
 
-I slightly redesigned the analog front end to decrease noise and provide a proper DC bias to ground. This better defines the common mode voltage, and adds a little more filtering by sprinkling caps on the PCB. This is the complete schematic for the DAC part of the circuit:
+The standard input configuration from the datasheet wasn't delivering the performance I needed, so I made two key modifications. First, I added 100kΩ resistors from each input to ground to provide a defined DC bias point. Without these, the inputs were essentially floating except for the internal chip biasing. Second, I added capacitors in parallel with these bias resistors to provide additional high-frequency noise filtering. This was possible because the AMC3306's isolation barrier means we don't need to rely on perfect common-mode rejection - the isolation takes care of rejecting large common-mode voltages for us. The combination of stable biasing and additional filtering improved the standard deviation of my measurements by more than an order of magnitude, from 2.445mV to 0.105mV, making the device actually usable for thermocouple measurements. Here's the revised front end:
 
 ![revised analog front end](/images/NewInputFilter.png)
 
