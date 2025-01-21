@@ -1,6 +1,8 @@
+# bbenchoff.github.io
+
 ## Design Portfolio
 
-I design strange things in hardware and software. Highlights include:<p>
+I design strange things in hardware and software. Highlights include:
 
 - An <a href="https://bbenchoff.github.io/pages/IsoTherm.html">isolated thermocouple reader</a>, replicating a $2000 National Instruments module for $120.
 
@@ -30,8 +32,11 @@ I design strange things in hardware and software. Highlights include:<p>
 	- <a href="https://bbenchoff.github.io/pages/parser.html">There is no standard for terminal escape codes</a>
 	- <a href="https://bbenchoff.github.io/pages/IS31FL3741.html">Now-unobtanium LED drivers</a>
 
+
+
 ![1980 Citicar](/images/Car/OceanBeach/Hero.jpg)
 ![Handheld Linux Thing](/images/SAB-4.png)
+![Isolated Thermocouple Device](/images/IsoThermHero.png)
 ![Quicktake Camera Shot](/images/Quicktake.jpg)
 ![Handheld Linux Thing](/images/SAB.png)
 ![A BeBox](/images/BeBox-Small.png)
