@@ -1,112 +1,200 @@
-<!doctype html>
-
-
-
-
-
-
-<html>
-  <head>
+<!DOCTYPE html>
+<html lang="en">
+<head>
     <meta charset="utf-8">
-    <meta http-equiv="X-UA-Compatible" content="chrome=1">
-    <title>{{ site.title | default: site.github.repository_name }} by {{ site.github.owner_name }}</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{{ site.title | default: site.github.repository_name }}</title>
+    <style>
+        :root {
+            --primary-color: #2d333b;
+            --text-color: #c9d1d9;
+            --bg-color: #22272e;
+            --accent-color: #539bf5;
+            --border-color: #444c56;
+        }
 
-    <link rel="stylesheet" href="{{ '/assets/css/style.css?v=' | append: site.github.build_revision | relative_url }}">
-    <meta name="viewport" content="width=device-width">
-    <!--[if lt IE 9]>
-    <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
-    <![endif]-->
-  </head>
-  <body>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
+            line-height: 1.6;
+            color: var(--text-color);
+            background: var(--bg-color);
+        }
+
+        .navbar {
+            display: none;
+            padding: 1rem;
+            background: var(--primary-color);
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .menu-button {
+            display: none;
+            background: none;
+            border: none;
+            color: var(--text-color);
+            font-size: 1.5rem;
+            cursor: pointer;
+        }
+
+        .wrapper {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        .sidebar {
+            width: 300px;
+            background: var(--primary-color);
+            padding: 2rem;
+            overflow-y: auto;
+            flex-shrink: 0;
+        }
+
+        .main-content {
+            flex-grow: 1;
+            padding: 2rem;
+            overflow-y: auto;
+        }
+
+        .sidebar h1 {
+            color: var(--accent-color);
+            margin-bottom: 1.5rem;
+        }
+
+        .sidebar h2, .sidebar h3 {
+            color: var(--text-color);
+            margin: 1.5rem 0 1rem;
+        }
+
+        .sidebar a {
+            color: var(--accent-color);
+            text-decoration: none;
+            display: inline-block;
+            margin: 0.25rem 0;
+        }
+
+        .sidebar a:hover {
+            text-decoration: underline;
+        }
+
+        .sidebar hr {
+            border: none;
+            border-top: 1px solid var(--border-color);
+            margin: 1.5rem 0;
+        }
+
+        img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 8px;
+            margin: 1rem 0;
+        }
+
+        @media (max-width: 768px) {
+            .wrapper {
+                flex-direction: column;
+            }
+
+            .navbar {
+                display: flex;
+            }
+
+            .menu-button {
+                display: block;
+            }
+
+            .sidebar {
+                display: none;
+                width: 100%;
+                position: fixed;
+                top: 60px;
+                left: 0;
+                height: calc(100vh - 60px);
+                z-index: 900;
+            }
+
+            .sidebar.active {
+                display: block;
+            }
+
+            .main-content {
+                margin-top: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <h1>{{ site.title | default: site.github.repository_name }}</h1>
+        <button class="menu-button" onclick="toggleMenu()">☰</button>
+    </nav>
+
     <div class="wrapper">
-      <header>
-        <a href="http://bbenchoff.github.io">
-	<h1>{{ site.title | default: site.github.repository_name }}</h1>
-	<hr>
-	<br><H2>
-	Contact
-	</H2>
-        <i class="fas fa-envelope-square"></i>
-        <a href="mailto:benchoff@gmail.com">Email</a>
-        <br><i class="fab fa-twitter-square"></i>
-        <a href="https://twitter.com/BBenchoff">Twitter</a>
-        <br><i class="fab fa-github-square"></i>
-        <a href="https://github.com/bbenchoff">Github</a>
-	<br><i class="fab fa-linkedin-square"></i>
-	<a href="https://www.linkedin.com/in/bbenchoff/">LinkedIn</a><br><hr>
+        <aside class="sidebar" id="sidebar">
+            <h1>{{ site.title | default: site.github.repository_name }}</h1>
+            <hr>
+            <h2>Contact</h2>
+            <a href="mailto:benchoff@gmail.com">Email</a><br>
+            <a href="https://twitter.com/BBenchoff">Twitter</a><br>
+            <a href="https://github.com/bbenchoff">Github</a><br>
+            <a href="https://www.linkedin.com/in/bbenchoff/">LinkedIn</a>
+            <hr>
+            <a href="https://github.com/bbenchoff/CV/blob/main/Brian%20Benchoff%20-%20Resume.pdf">Résumé (PDF)</a>
+            <hr>
+            <h3>Weird / Popular Stuff</h3>
+            <a href="https://bbenchoff.github.io/pages/Citicar.html">Citicar Restoration</a><br>
+            <a href="https://bbenchoff.github.io/pages/CANconversion.html">Converting a car to CAN</a><br>
+            <a href="https://www.640by480.com/">My Instagram clone for vintage digital cameras.</a>
+            
+            <h3>Software Development</h3>
+            <a href="https://bbenchoff.github.io/pages/IsoTherm.html">Reading ΔΣ DAQs at 120Mbps (C)</a><br>
+            <a href="http://bbenchoff.github.io/pages/InstaClone.html">Instagram Clone (Python, Django)</a><br>
+            <a href="http://bbenchoff.github.io/pages/IS31FL3741.html">IS31FL3741 LED driver library (C)</a><br>
+            <a href="http://bbenchoff.github.io/pages/NT35510.html">NT35510 TFT driver library (C)</a><br>
+            <a href="http://bbenchoff.github.io/pages/parser.html">Terminal Parser library (C & C++)</a>
+            
+            <h3>Hardware Development</h3>
+            <a href="https://bbenchoff.github.io/pages/IsoTherm.html">Isolated Thermocouple Reader</a><br>
+            <a href="https://bbenchoff.github.io/pages/QuicktakeLens.html">Nikon lens adapter</a><br>
+            <a href="http://bbenchoff.github.io/pages/LinuxDevice.html">The $15 Linux Machine</a><br>
+            <a href="http://bbenchoff.github.io/pages/dumb.html">Portable Dumb Terminal</a><br>
+            <a href="http://bbenchoff.github.io/pages/MrRobot.html">Mr. Robot Badge</a>
+            
+            <h3>CAD Design</h3>
+            <a href="http://bbenchoff.github.io/pages/keyboard.html">Silicone Membrane Keyboard</a><br>
+            <a href="http://bbenchoff.github.io/pages/Palmtop.html">Injection Molded Palmtop</a><br>
+            <a href="http://bbenchoff.github.io/pages/MiniITX.html">Retro-inspired industrial design</a><br>
+            <a href="https://bbenchoff.github.io/pages/BeBox.html">Quarter-Scale Retrocomputing</a>
+        </aside>
 
-	<hr><br><a href="https://github.com/bbenchoff/CV/blob/main/Brian%20Benchoff%20-%20Resume.pdf">Résumé (PDF)</a><br>
-        <br><hr>
-
-	<H3>Weird / Popular Stuff</H3>
-
-	<a href="https://bbenchoff.github.io/pages/Citicar.html">Citicar Restoration</a><br>
-  <a href="https://bbenchoff.github.io/pages/CANconversion.html">Converting a car to CAN</a><br>
-	<a href="https://www.640by480.com/">My Instagram clone for vintage digital cameras.</a><br>
-	
-	<br><hr>
-	<H3>Software Development</H3>
-  <a href="https://bbenchoff.github.io/pages/IsoTherm.html">Reading ΔΣ DAQs at 120Mbps (C)</a><br>
-	<a href="http://bbenchoff.github.io/pages/InstaClone.html">Instagram Clone (Python, Django)</a><br>
-	<a href="http://bbenchoff.github.io/pages/IS31FL3741.html">IS31FL3741 LED driver library (C)</a><br>
-	<a href="http://bbenchoff.github.io/pages/NT35510.html">NT35510 TFT driver library (C)</a><br>
-	<a href="http://bbenchoff.github.io/pages/parser.html">Terminal Parser library (C & C++)</a><br>
-
-	<br><hr>
-	<H3>Hardware Development</H3>
-  <a href="https://bbenchoff.github.io/pages/IsoTherm.html">Isolated Thermocouple Reader</a><br>
-	<a href="https://bbenchoff.github.io/pages/QuicktakeLens.html">Nikon lens adapter</a></br>
-	<a href="http://bbenchoff.github.io/pages/LinuxDevice.html">The $15 Linux Machine</a></br>
-	<a href="http://bbenchoff.github.io/pages/dumb.html">Portable Dumb Terminal</a><br>
-	<a href="http://bbenchoff.github.io/pages/MrRobot.html">Mr. Robot Badge</a><br>
-  <a href="http://bbenchoff.github.io/pages/atapi.html">Zip Drive Tower</a><br>
-	<a href="http://bbenchoff.github.io/pages/colorPCB.html">Full Color Circuit Boards</a><br>
-	<a href="http://bbenchoff.github.io/pages/RGBgaming.html">RGB Gaming Coaster</a><br>
-	<a href="http://bbenchoff.github.io/pages/FidgetSpinner.html">Serial Fidget Spinner</a><br>
-	<a href="http://bbenchoff.github.io/pages/BaudBox.html">Baud Box</a><br>
-	<a href="http://bbenchoff.github.io/pages/ShittyWall.html">A Wall of Circuit Boards</a><br>
-
-	<br><hr>
-	<H3>CAD Design</H3>
-	<a href="http://bbenchoff.github.io/pages/keyboard.html">Silicone Membrane Keyboard</a><br>
-	<a href="http://bbenchoff.github.io/pages/Palmtop.html">Injection Molded Palmtop</a><br>
-	<a href="http://bbenchoff.github.io/pages/MiniITX.html">Retro-inspired industrial design</a><br>
-	<a href="https://bbenchoff.github.io/pages/BeBox.html">Quarter-Scale Retrocomputing</a><br>
-	<a href="http://bbenchoff.github.io/pages/clamshell.html">Hardened clamshell computer</a><br>
-	<a href="http://bbenchoff.github.io/pages/Tread.html">3D Printed Tank Treads</a><br>
-	<a href="http://bbenchoff.github.io/pages/Porygon.html">Porygon</a><br>
-	
-
-        {% if site.github.is_project_page %}
-          <p class="view"><a href="{{ site.github.repository_url }}">View the Project on GitHub <small>{{ github_name }}</small></a></p>
-        {% endif %}
-      </header>
-      <section>
-
-      {{ content }}
-
-      </section>
-
-
-      <footer>
-        {% if site.github.is_project_page %}
-        <p>This project is maintained by <a href="{{ site.github.owner_url }}">{{ site.github.owner_name }}</a></p>
-        {% endif %}
-      </footer>
+        <main class="main-content">
+            {{ content }}
+        </main>
     </div>
-    <script src="{{ '/assets/js/scale.fix.js' | relative_url }}"></script>
 
-
-  {% if site.google_analytics %}
     <script>
-        (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
-        (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
-        m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
-        })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+        function toggleMenu() {
+            const sidebar = document.getElementById('sidebar');
+            sidebar.classList.toggle('active');
+        }
 
-        ga('create', '{{ site.google_analytics }}', 'auto');
-        ga('send', 'pageview');
+        // Close menu when clicking outside
+        document.addEventListener('click', function(event) {
+            const sidebar = document.getElementById('sidebar');
+            const menuButton = document.querySelector('.menu-button');
+            if (!sidebar.contains(event.target) && !menuButton.contains(event.target) && sidebar.classList.contains('active')) {
+                sidebar.classList.remove('active');
+            }
+        });
     </script>
-  {% endif %}
-  </body>
+</body>
 </html>
