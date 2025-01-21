@@ -1,6 +1,6 @@
 ## Design Portfolio
 
-I design strange things in hardware and software. Highlights include:
+I design strange things in hardware and software. Highlights include:<p>
 
 - An <a href="https://bbenchoff.github.io/pages/IsoTherm.html">isolated thermocouple reader</a>, replicating a $2000 National Instruments module for $120.
 
