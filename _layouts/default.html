@@ -8,7 +8,7 @@
         :root {
             --background: #ffffff;
             --text: #0a0a0a;
-            --accent: #00ff95;
+            --accent: #0af;
             --secondary: #888888;
             --hover: #a2a2a2;
         }
@@ -217,6 +217,53 @@
             transform: translateY(-2px);
             color: var(--accent);
         }
+
+        .project-card {
+            background: var(--secondary);
+            border-radius: 12px;
+            overflow: hidden;
+            transition: all 0.3s ease;
+            animation: fadeIn 0.6s ease-out forwards;
+            opacity: 0;
+            cursor: pointer;
+            position: relative;
+        }
+
+        .project-card a {
+            text-decoration: none;
+            color: inherit;
+            display: block;
+            height: 100%;
+        }
+
+        .project-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+        }
+
+        .project-card:active {
+            transform: translateY(-5px);
+            transition: transform 0.1s ease;
+        }
+
+        /* Add a subtle overlay effect on hover */
+        .project-card::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(255, 255, 255, 0);
+            transition: background 0.3s ease;
+            pointer-events: none;
+        }
+
+        .project-card:hover::after {
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+
     </style>
 </head>
 <body>
@@ -252,48 +299,56 @@
     </aside>
 
     <main class="main-content">
-        <h2 class="section-title">Featured Work</h2>
-        <div class="project-grid">
-            <article class="project-card" style="animation-delay: 0.1s;">
-                <img src="/images/Car/OceanBeach/Hero.jpg" alt="Citicar">
-                <div class="project-content">
-                    <h3>Citicar Restoration</h3>
-                    <p>Converting a vintage electric car to modern CAN bus technology</p>
-                    <span class="tag">Hardware</span>
-                    <span class="tag">Automotive</span>
-                </div>
-            </article>
-
-            <article class="project-card" style="animation-delay: 0.2s;">
-                <img src="/images/SAB.png" alt="Linux Device">
-                <div class="project-content">
-                    <h3>$15 Linux Machine</h3>
-                    <p>Ultra-low-cost Linux computer design</p>
-                    <span class="tag">Hardware</span>
-                    <span class="tag">Linux</span>
-                </div>
-            </article>
-
-            <article class="project-card" style="animation-delay: 0.3s;">
-                <img src="/images/Quicktake.jpg" alt="Quicktake">
-                <div class="project-content">
-                    <h3>Nikon Lens Adapter</h3>
-                    <p>Custom adapter for the first digital camera</p>
-                    <span class="tag">Hardware</span>
-                    <span class="tag">Photography</span>
-                </div>
-            </article>
-
-            <article class="project-card" style="animation-delay: 0.4s;">
-                <img src="/images/Keyboard-Small.png" alt="Keyboard">
-                <div class="project-content">
-                    <h3>Silicone Keyboard</h3>
-                    <p>Custom molded silicone membrane keyboard</p>
-                    <span class="tag">CAD</span>
-                    <span class="tag">Hardware</span>
-                </div>
-            </article>
-        </div>
+      <h2 class="section-title">Featured Work</h2>
+      <div class="project-grid">
+          <article class="project-card" style="animation-delay: 0.1s;">
+              <a href="https://bbenchoff.github.io/pages/Citicar.html">
+                  <img src="/images/Car/OceanBeach/Hero.jpg" alt="Citicar">
+                  <div class="project-content">
+                      <h3>Citicar Restoration</h3>
+                      <p>Converting a vintage electric car to modern CAN bus technology</p>
+                      <span class="tag">Hardware</span>
+                      <span class="tag">Automotive</span>
+                  </div>
+              </a>
+          </article>
+  
+          <article class="project-card" style="animation-delay: 0.2s;">
+              <a href="http://bbenchoff.github.io/pages/LinuxDevice.html">
+                  <img src="/images/SAB.png" alt="Linux Device">
+                  <div class="project-content">
+                      <h3>$15 Linux Machine</h3>
+                      <p>Ultra-low-cost Linux computer design</p>
+                      <span class="tag">Hardware</span>
+                      <span class="tag">Linux</span>
+                  </div>
+              </a>
+          </article>
+  
+          <article class="project-card" style="animation-delay: 0.3s;">
+              <a href="https://bbenchoff.github.io/pages/QuicktakeLens.html">
+                  <img src="/images/Quicktake.jpg" alt="Quicktake">
+                  <div class="project-content">
+                      <h3>Nikon Lens Adapter</h3>
+                      <p>Custom adapter for the first digital camera</p>
+                      <span class="tag">Hardware</span>
+                      <span class="tag">Photography</span>
+                  </div>
+              </a>
+          </article>
+  
+          <article class="project-card" style="animation-delay: 0.4s;">
+              <a href="http://bbenchoff.github.io/pages/keyboard.html">
+                  <img src="/images/Keyboard-Small.png" alt="Keyboard">
+                  <div class="project-content">
+                      <h3>Silicone Keyboard</h3>
+                      <p>Custom molded silicone membrane keyboard</p>
+                      <span class="tag">CAD</span>
+                      <span class="tag">Hardware</span>
+                  </div>
+              </a>
+          </article>
+      </div>
 
         {{ content }}
     </main>
