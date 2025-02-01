@@ -26,6 +26,21 @@
             line-height: 1.6;
         }
 
+        /* Add paragraph spacing */
+        .main-content p {
+            margin: 1.5em 0;
+        }
+
+        /* Ensure first paragraph doesn't have top margin if it follows a heading */
+        .main-content h1 + p,
+        .main-content h2 + p,
+        .main-content h3 + p,
+        .main-content h4 + p,
+        .main-content h5 + p,
+        .main-content h6 + p {
+            margin-top: 1em;
+        }
+
         /* Proper list indentation */
         .main-content ul {
             padding-left: 2em;
