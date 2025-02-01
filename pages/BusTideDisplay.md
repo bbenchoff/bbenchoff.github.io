@@ -16,8 +16,8 @@ This is somewhat different than the displays actually found at bus stops around 
 
 But there are a few problems:
 
-- The 511.org API *only* works with HTTPS
-- The API only gives me gzipped JSON. I need to decompress this on the device.
+- The 511.org API *only* works with HTTPS. 
+- The API *only* gives me gzipped JSON. I need to decompress this on the device.
 - I need to do this on an embedded device. I'm using a Pi Pico2W, simply because that's the bullshit I'm currently on.
 
 ## Problem 1: HTTPS and Decompressing JSON
@@ -40,9 +40,11 @@ The solution I came up with uses a simple array of stop data structures. Each st
 
 When new data comes in from the API, I clear out the old arrivals for that stop and fill in the new ones. There's also a cleanup function that removes arrivals that have already passed. The most interesting part is how the display function handles all this data - it looks through all stops and all arrivals, groups buses going to the same destination, and creates a consolidated list of arrival times. For example, if the 48 bus is coming to the same stop in 5, 20, and 35 minutes, it shows up as one line: "48 Inbound in 5, 20, 35 minutes". Pinging two stops means I can also get "28 to the Presidio in 2, 12, 23 minutes".
 
-This might seem like overkill for just checking bus times, but it means I can glance at the display and immediately see every bus that's coming to any stop near my house, sorted by arrival time.
+![Getting the bus displays for five bus stops around Market and Van Ness](/images/MuniBusses.png)
 
-# Problem 3: Let's add a display!
+The above is the device pinging five bus stops around Market and Van Ness. Each stop has several bus lines on it, and the code correctly displays the line, destination, and arrival time. This might seem like overkill for just checking bus times, but it means I can glance at the display and immediately see every bus that's coming to any stop near my house, sorted by arrival time.
+
+## Problem 3: Let's add a display!
 
 This thing needs a display, something low power, too. I settled on an ePaper display, the [Microtips MT-DEPG0750RWU790F30](https://www.mouser.com/ProductDetail/Microtips-Technology/MT-DEPG0750RWU790F30?qs=Y0Uzf4wQF3nnUJiBp%2FvOzg%3D%3D), a 7.5" display with a resolution of 480x800. There are a few things that brought me to this display: it has an on-chip framebuffer, which can [vastly increase capabilities if you're smart](https://bbenchoff.github.io/pages/dumb.html), and programmable waveforms for the eInk. With both of those features I might be able to increase the refresh rate to something that will play Bad Apple or Doom. We'll see.
 
