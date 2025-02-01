@@ -4,6 +4,8 @@
 
 I design strange things in hardware and software. Highlights include:
 
+- A display that <a href="https://bbenchoff.github.io/pages/BusTideDisplay.html">keeps track of public transit</a> near my house. Embedded decompression and SSL!
+
 - An <a href="https://bbenchoff.github.io/pages/IsoTherm.html">isolated thermocouple reader</a>, replicating a $2000 National Instruments module for $120.
 
 - <a href="https://bbenchoff.github.io/pages/Citicar.html">I converted a car without semiconductors</a> <a href="https://bbenchoff.github.io/pages/CANconversion.html">to use CAN for everything</a>.
