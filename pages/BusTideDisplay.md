@@ -40,9 +40,9 @@ The solution I came up with uses a simple array of stop data structures. Each st
 
 When new data comes in from the API, I clear out the old arrivals for that stop and fill in the new ones. There's also a cleanup function that removes arrivals that have already passed. The most interesting part is how the display function handles all this data - it looks through all stops and all arrivals, groups buses going to the same destination, and creates a consolidated list of arrival times. For example, if the 48 bus is coming to the same stop in 5, 20, and 35 minutes, it shows up as one line: "48 Inbound in 5, 20, 35 minutes". Pinging two stops means I can also get "28 to the Presidio in 2, 12, 23 minutes".
 
-![Getting the bus displays for five bus stops around Market and Van Ness](/images/MuniBusses.png)
+![Getting the bus displays four bus stops around Market and Van Ness](/images/MuniBusses.png)
 
-The above is the device pinging five bus stops around Market and Van Ness. Each stop has several bus lines on it, and the code correctly displays the line, destination, and arrival time. This might seem like overkill for just checking bus times, but it means I can glance at the display and immediately see every bus that's coming to any stop near my house, sorted by arrival time.
+The above is the device pinging four bus stops ({"15696", "15565", "13220", "15678"}) around Market and Van Ness. Each stop has several bus lines on it, and the code correctly displays the line, destination, and arrival time. This might seem like overkill for just checking bus times, but it means I can glance at the display and immediately see every bus that's coming to any stop near my house, sorted by arrival time.
 
 ## Problem 3: Let's add a display!
 
