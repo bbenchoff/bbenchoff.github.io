@@ -89,6 +89,7 @@
             backdrop-filter: blur(10px);
             width: 100%;
             border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+            justify-content: flex-start; /* Align buttons to the left */
         }
 
         .menu-button, .home-button {
@@ -100,6 +101,10 @@
             cursor: pointer;
             transition: all 0.2s ease;
             font-weight: 500;
+            text-decoration: none;
+            min-width: 100px;
+            text-align: center;
+            display: inline-block;
         }
 
         .menu-button:hover {
