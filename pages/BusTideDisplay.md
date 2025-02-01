@@ -6,7 +6,7 @@ layout: default
 
 # Multi-Stop Bus Tracker
 
-I live in a city with some of the best public transit in the country. I would like to know when the next bus will be arriving at a stop near my house. Not just one stop, either: there are several bus lines near my house that will all take me downtown, but they're all served by different stops. I need a device that will ping the city's API for _all_ the bus stops near my house, and condense that into a list I can put on a small display somewhere. Ideally, this is an embedded solution. I shouldn't need to boot an operating system to do this.
+I live in a city with some of the best public transit in the country. I would like to know when the next bus will be arriving at a stop near my house. Not just one stop, either: there are several bus lines near my house that will all take me downtown, but they're all served by different stops. I need a device that will ping the city's API for _all_ the bus stops near my house, and condense that into a list I can put on a small display somewhere. This should be an embedded solution. I shouldn't need to boot an operating system to do this.
 
 The ideal solution would be a small, low-power display mounted to a wall somewhere, telling me when the next bus will be showing up _somewhere_ around my house.
 
@@ -29,6 +29,8 @@ HTTPS was the easier of these problems to solve; the SSLClient library for Ardui
 Figuring out the payload was another matter entirely. At first, every response I was getting from the server was garbage, even when telling the server to send me *un*compressed JSON. Looking at the hex dump of the data I was receiving told me another story.
 
 ![The key insight that told me it was gzipped JSON](/images/HexDecoding.png)
+
+**I can not tell you how many times looking at a hex dump has saved my ass.**
 
 The 0x1F 0x8B is the magic number for gzip encoding. Once I saw that, I knew I needed a library for decompressing gzip on an embedded platform. I found the [miniz library](https://github.com/richgel999/miniz), a portable library in C that handles the decompression. Even with this library, it's tricky; I need to skip past the 10-byte header, extract the uncompressed size from the last 4 bytes, and decompress everything in between. I also need to manage the memory correctly with malloc() and free(), and no I haven't learned Rust yet. 
 
