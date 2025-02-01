@@ -92,7 +92,7 @@
             justify-content: flex-start; /* Align buttons to the left */
         }
 
-        .menu-button, .home-button {
+        .nav-button {
             background: var(--accent);
             border: none;
             color: white;
@@ -101,10 +101,17 @@
             cursor: pointer;
             transition: all 0.2s ease;
             font-weight: 500;
-            text-decoration: none;
             width: 80px;
+            height: 42px;
             text-align: center;
-            display: inline-block;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            box-sizing: border-box;
+        }
+        
+        .nav-button:hover {
+            opacity: 0.9;
         }
 
         .menu-button:hover, .home-button:hover {
@@ -201,8 +208,8 @@
 </head>
 <body>
     <nav class="navbar">
-        <button class="menu-button" onclick="toggleMenu()">Menu</button>
-        <a href="/" class="home-button">Main</a>
+        <button class="nav-button menu-button" onclick="toggleMenu()">Menu</button>
+        <button class="nav-button home-button" onclick="window.location.href='/'">Main</button>
     </nav>
 
     <aside class="sidebar" id="sidebar">
