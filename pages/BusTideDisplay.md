@@ -4,7 +4,7 @@ layout: default
 
 ---
 
-# Multi-Stop Bus Tracker
+# Multi-Stop Bus Tracker (and a tide display. and possibly weather.)
 
 ![The render of the Bus Display](/images/BusDisplayRender.png)
 
