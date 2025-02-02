@@ -13,7 +13,7 @@ I live in SF, with some of the best public transit in the country. I would like 
 
 ![The standard MUNI bus display at some bus stops](/images/MuniBusDisplay.jpg)
 
-This is somewhat different than the displays actually found at bus stops around the city (above); I need to track multiple bus stops. This can be done through the [511.org API](https://511.org/). Given any bus stop in the city, this API will give me predicted times of arrivals each bus scheduled at that stop, its line number/letter, and its destination.
+This is somewhat different than the displays actually found at bus stops around the city (above); I need to track multiple bus stops. This can be done through the [511.org API](https://511.org/). Given any bus stop in the city, this API will give me predicted times of arrivals each bus scheduled at that stop, its line number/letter, and its destination. There is a rate limit on this API of 60 seconds, but that only means I'm sending a request every 65 seconds.
 
 But there are a few problems:
 
