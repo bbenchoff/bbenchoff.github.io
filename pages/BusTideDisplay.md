@@ -49,7 +49,7 @@ The above is the device pinging four bus stops ({"15696", "15565", "13220", "156
 
 ## Problem 3: Let's add a display!
 
-This thing needs a display, something low power, too. I settled on an ePaper display, the [Microtips MT-DEPG0750RWU790F30](https://www.mouser.com/ProductDetail/Microtips-Technology/MT-DEPG0750RWU790F30?qs=Y0Uzf4wQF3nnUJiBp%2FvOzg%3D%3D), a 7.5" display with a resolution of 480x800. There are a few things that brought me to this display: it has an on-chip framebuffer, which can [vastly increase capabilities if you're smart](https://bbenchoff.github.io/pages/dumb.html), and programmable waveforms for the eInk. With both of those features I might be able to increase the refresh rate to something that will play Bad Apple or Doom. We'll see.
+This thing needs a display, something low power, too. I settled on an ePaper display, the [Microtips MT-DEPG0750RWU790F30](https://www.mouser.com/ProductDetail/Microtips-Technology/MT-DEPG0750RWU790F30?qs=Y0Uzf4wQF3nnUJiBp%2FvOzg%3D%3D), a 7.5" display with a resolution of 480x800. There are a few things that brought me to this display: it has an on-chip framebuffer, which can [vastly increase capabilities if you're smart](https://bbenchoff.github.io/pages/dumb.html), and programmable waveforms for the eInk. This is a display meant for price labels in a grocery store, so the refresh rate isn't great, but with partial updates it will be more than sufficient.
 
 ![The breakout PCB for the e-paper panel](/images/MicrotipsPCB.png)
 
