@@ -60,4 +60,14 @@ I whipped up a board in KiCad that would support this board. The panel driver ci
 Writing the driver/library for the e-paper display proceeded as it usually does when I write a display driver -- tearing my hair out and somehow it magically works.
 
 
+## An enclosure
+
+The enclosure is a 3-piece ordeal. The legs bolt onto the back with heat-set inserts installed in the back. The PCB/EPD assembly mounts to the back of the display with the solderable standoffs installed on the PCB. The front is a snap-fit assembly, with the geometry shown in the sectional diagram below.
+
+These parts were 3D printed on a Prusa Mk4 in carbon fiber-filled PC. I'm only building one of these, after all.
+
+![Front and back of the enclosure](/images/MicrotipsEnclosure.jpg)
+
+![sectional analysis of the enclosure](/images/MicrotipsSectional.png)
+
 [back](../)
