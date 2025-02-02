@@ -51,6 +51,13 @@ The above is the device pinging four bus stops ({"15696", "15565", "13220", "156
 
 This thing needs a display, something low power, too. I settled on an ePaper display, the [Microtips MT-DEPG0750RWU790F30](https://www.mouser.com/ProductDetail/Microtips-Technology/MT-DEPG0750RWU790F30?qs=Y0Uzf4wQF3nnUJiBp%2FvOzg%3D%3D), a 7.5" display with a resolution of 480x800. There are a few things that brought me to this display: it has an on-chip framebuffer, which can [vastly increase capabilities if you're smart](https://bbenchoff.github.io/pages/dumb.html), and programmable waveforms for the eInk. With both of those features I might be able to increase the refresh rate to something that will play Bad Apple or Doom. We'll see.
 
+![The breakout PCB for the e-paper panel](/images/MicrotipsPCB.png)
+
+![Schematic for the Epaper driver](/images/MicrotipsSchematic.png)
+
+I whipped up a board in KiCad that would support this board. The panel driver circuit is ripped straight from the datasheet and drives the panel with SPI. In addition to that, I added a few [solderable standoffs](https://www.digikey.com/en/products/detail/w%C3%BCrth-elektronik/9774060360R/4810237) and a power circuit built around TI's TPS560200, giving me 3.3V from 4.5V to 17V. There is a vertical USB-C (power only) on the board, because i envision this being something like a picture frame. There is also a ~12V power input ORed with the USB-C power input in case I ever want to install this inside a wall.
+
+Writing the driver/library for the e-paper display proceeded as it usually does when I write a display driver -- tearing my hair out and somehow it magically works.
 
 
 [back](../)
