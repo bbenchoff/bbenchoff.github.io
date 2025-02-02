@@ -31,7 +31,7 @@ Figuring out the payload was another matter entirely. At first, every response I
 
 ![The key insight that told me it was gzipped JSON](/images/HexDecoding.png)
 
-**I can not tell you how many times looking at a hex dump has saved my ass.**
+### I can not tell you how many times looking at a hex dump has saved my ass.
 
 The 0x1F 0x8B is the magic number for gzip encoding. Once I saw that, I knew I needed a library for decompressing gzip on an embedded platform. I found the [miniz library](https://github.com/richgel999/miniz), a portable library in C that handles the decompression. Even with this library, it's tricky; I need to skip past the 10-byte header, extract the uncompressed size from the last 4 bytes, and decompress everything in between. I also need to manage the memory correctly with malloc() and free(), and no I haven't learned Rust yet. 
 
