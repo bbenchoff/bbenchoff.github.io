@@ -6,6 +6,8 @@ layout: default
 
 # Multi-Stop Bus Tracker
 
+![The render of the Bus Display](/images/BusDisplayRender.png)
+
 I live in a city with some of the best public transit in the country. I would like to know when the next bus will be arriving at a stop near my house. Not just one stop, either: there are several bus lines near my house that will all take me downtown, but they're all served by different stops. I need a device that will ping the city's API for _all_ the bus stops near my house, and condense that into a list I can put on a small display somewhere. This should be an embedded solution. I shouldn't need to boot an operating system to do this.
 
 The ideal solution would be a small, low-power display mounted to a wall somewhere, telling me when the next bus will be showing up _somewhere_ around my house.
