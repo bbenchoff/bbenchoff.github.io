@@ -414,6 +414,29 @@
                 this.element.querySelector('.window-titlebar').style.background = 
                     'var(--system7-titlebar-active)';
             }
+                // Debounced save state to prevent too many saves during drag operations
+            debouncedSaveState() {
+                if (this.saveStateTimeout) {
+                    clearTimeout(this.saveStateTimeout);
+                }
+                this.saveStateTimeout = setTimeout(() => {
+                    if (typeof StateManager !== 'undefined') {
+                        StateManager.saveState();
+                    }
+                }, 500);
+            }
+
+            // Static method to restore a window from saved state
+            static restore(windowState) {
+                return new Window(
+                    windowState.title,
+                    windowState.content,
+                    windowState.type,
+                    0, // x and y are handled by options
+                    0, // x and y are handled by options
+                    windowState.position // Pass saved position as options
+                );
+            }
         }
 
  // File System Structure
@@ -860,6 +883,112 @@ function createDesktopIcon(name, icon, isAlias = false, position = {}) {
                 })
                 .catch(error => console.error('Error loading page:', error));
         }
+        // State management for System 7 interface
+        const StateManager = {
+            saveState() {
+                const windows = Array.from(document.querySelectorAll('.window')).map(window => ({
+                    title: window.querySelector('.window-title').textContent,
+                    content: window.querySelector('.window-content').innerHTML,
+                    position: {
+                        left: window.style.left,
+                        top: window.style.top,
+                        width: window.style.width,
+                        height: window.style.height,
+                        zIndex: window.style.zIndex
+                    },
+                    type: window.classList.contains('folder-window') ? 'folder' : 'document'
+                }));
+
+                const desktop = {
+                    background: document.getElementById('desktop').style.background,
+                    backgroundSize: document.getElementById('desktop').style.backgroundSize
+                };
+
+                const state = {
+                    windows,
+                    desktop,
+                    lastSaved: new Date().toISOString()
+                };
+
+                localStorage.setItem('system7State', JSON.stringify(state));
+            },
+
+            loadState() {
+                const savedState = localStorage.getItem('system7State');
+                if (!savedState) return;
+
+                const state = JSON.parse(savedState);
+
+                // Restore desktop background
+                const desktop = document.getElementById('desktop');
+                desktop.style.background = state.desktop.background;
+                desktop.style.backgroundSize = state.desktop.backgroundSize;
+
+                // Update menu checkmark
+                const backgroundName = this.getBackgroundNameFromStyle(state.desktop.background);
+                if (backgroundName) {
+                    const viewMenuItems = document.querySelectorAll('#view-menu .dropdown-item');
+                    viewMenuItems.forEach(item => {
+                        item.textContent = item.textContent.replace('✔ ', '');
+                        if (item.textContent.includes(backgroundName)) {
+                            item.textContent = '✔ ' + item.textContent;
+                        }
+                    });
+                }
+
+                // Restore windows
+                state.windows.forEach(windowState => {
+                    const win = new Window(
+                        windowState.title,
+                        windowState.content,
+                        windowState.type
+                    );
+                    
+                    // Restore position and size
+                    Object.assign(win.element.style, windowState.position);
+                });
+            },
+
+            getBackgroundNameFromStyle(backgroundStyle) {
+                const matches = backgroundStyle.match(/backgrounds\/(.*?)\./);
+                return matches ? matches[1] : null;
+            },
+
+            // Auto-save state periodically
+            startAutoSave(interval = 5000) {
+                setInterval(() => this.saveState(), interval);
+            }
+        };
+
+        // Add event listeners for state changes
+        document.addEventListener('DOMContentLoaded', () => {
+            // Load saved state when page loads
+            StateManager.loadState();
+            
+            // Start auto-saving
+            StateManager.startAutoSave();
+
+            // Save state when windows are closed
+            document.addEventListener('click', (e) => {
+                if (e.target.matches('.window-close')) {
+                    setTimeout(() => StateManager.saveState(), 100);
+                }
+            });
+
+            // Save state when background is changed
+            const viewMenuItems = document.querySelectorAll('#view-menu .dropdown-item');
+            viewMenuItems.forEach(item => {
+                item.addEventListener('click', () => {
+                    setTimeout(() => StateManager.saveState(), 100);
+                });
+            });
+        });
+
+        // Save state before page unload
+        window.addEventListener('beforeunload', () => {
+            StateManager.saveState();
+        });
+
     </script>
 </body>
 </html>
