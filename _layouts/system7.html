@@ -362,6 +362,15 @@
                 this.bringToFront();
                 
                 document.getElementById('desktop').appendChild(this.element);
+
+                // Adjust for mobile
+                if (window.innerWidth < 768) {
+                    this.element.style.width = '100%';
+                    this.element.style.height = 'calc(100% - 20px)';
+                    this.element.style.top = '20px';
+                    this.element.style.left = '0';
+                    this.element.style.resize = 'none';
+                }
             }
 
             makeDraggable() {
