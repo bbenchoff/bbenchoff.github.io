@@ -559,10 +559,10 @@ const fileSystem = {
                         file: 'Porygon'
                     }
                 }
-            }
+            },
             'JP': {
                 type: 'document',
-                icon: 'jp.png',
+                icon: 'jp.png'
             }
         }
     }
@@ -634,6 +634,15 @@ function handleDoubleClick(name) {
                         new Window(name, content, 'document');
                     }
                 });
+        } else if (name === 'JP') {
+            const videoContent = `
+                <video width="200" height="200" autoplay loop>
+                    <source src="/assets/videos/TheKing.mp4" type="video/mp4">
+                    Your browser does not support the video tag.
+                </video>
+            `;
+            new Window('TheKing', videoContent, 'document', window.innerWidth / 2 - 100, window.innerHeight / 2 - 100);
+            return;
         } else {
             console.log('Item not found:', name);
         }
