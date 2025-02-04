@@ -1,4 +1,4 @@
-# **Acess Main Security Grid**
+# **Access Main Security Grid**
 
 ![Ah Ah Ah! You didn't say the magic word!](/images/run.jpg)
 
