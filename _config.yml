@@ -1,5 +1,31 @@
+title: Brian Benchoff
+description: Design Portfolio
 theme: jekyll-theme-minimal
-title: bbenchoff.github.io
-baseurl: /
+repository: bbenchoff/bbenchoff.github.io
+github:
+  is_project_page: true
+  repository_url: https://github.com/bbenchoff/bbenchoff.github.io
 
+baseurl: ""
+url: ""
 
+# Define default layouts
+defaults:
+  -
+    scope:
+      path: ""
+    values:
+      layout: "default"
+  -
+    scope:
+      path: "system7"
+    values:
+      layout: "system7"
+
+includes: ['system7']
+defaults:
+  -
+    scope:
+      path: "system7"
+    values:
+      layout: "system7"
