@@ -20,32 +20,32 @@
             --system7-menubar-bg: #ffffff;
             --system7-titlebar-active: linear-gradient(
                 to bottom,
-                #acacac 0%,
-                #acacac 4px,
+                #d8d8d8 0%,
+                #d8d8d8 4px,
                 #000000 4px,
                 #000000 5px,
-                #acacac 5px,
-                #acacac 7px,
+                #d8d8d8 5px,
+                #d8d8d8 7px,
                 #000000 7px,
                 #000000 8px,
-                #acacac 8px,
-                #acacac 10px,
+                #d8d8d8 8px,
+                #d8d8d8 10px,
                 #000000 10px,
                 #000000 11px,
-                #acacac 11px,
-                #acacac 13px,
+                #d8d8d8 11px,
+                #d8d8d8 13px,
                 #000000 13px,
                 #000000 14px,
-                #acacac 14px,
-                #acacac 16px,
+                #d8d8d8 14px,
+                #d8d8d8 16px,
                 #000000 16px,
                 #000000 17px,
-                #acacac 17px,
-                #acacac 19px,
+                #d8d8d8 17px,
+                #d8d8d8 19px,
                 #000000 19px,
                 #000000 20px,
-                #acacac 20px,
-                #acacac 22px
+                #d8d8d8 20px,
+                #d8d8d8 22px
             );
             --system7-titlebar-inactive: #FFFFFF;
         }
@@ -128,12 +128,17 @@
         .window-title {
             text-align: center;
             flex-grow: 1;
-            background: #FFFFFF;
+            background: #ffffff;
             color: black;
             padding: 0 5px;
             position: absolute;
             left: 50%;
             transform: translateX(-50%);
+        }
+
+
+        .window-titlebar.inactive .window-title {
+            background: #ffffff;
         }
 
         .window-close {
