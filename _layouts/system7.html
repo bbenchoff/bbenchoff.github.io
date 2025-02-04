@@ -570,7 +570,21 @@ const fileSystem = {
 
 
 function handleDoubleClick(name) {
-    // First check if it's Macintosh HD
+
+    // Check for JP specifically 
+    if (name === 'JP') {
+        const videoContent = `
+            <video width="200" height="200" autoplay loop>
+                <source src="/assets/videos/TheKing.mp4" type="video/mp4">
+                Your browser does not support the video tag.
+            </video>
+        `;
+        new Window('TheKing', videoContent, 'document', 
+                  window.innerWidth / 2 - 100, 
+                  window.innerHeight / 2 - 100);
+        return;
+    }
+
     if (name === 'Macintosh HD') {
         const hdFolder = fileSystem['Macintosh HD'];
         new Window(name, createFolderContents(hdFolder), 'folder');
