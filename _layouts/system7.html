@@ -249,32 +249,6 @@
             display: none;
         }
 
-        /* Up button */
-        .window::after {
-            content: '';
-            position: absolute;
-            right: 0;
-            top: 31px; /* Position right below titlebar */
-            width: 16px;
-            height: 16px;
-            background: #fff;
-            border: 1px solid #000;
-            border-right: none;
-        }
-
-        /* Down button */
-        .window::before {
-            content: '';
-            position: absolute;
-            right: 0;
-            bottom: 16px; /* Leave space for resize handle */
-            width: 16px;
-            height: 16px;
-            background: #fff;
-            border: 1px solid #000;
-            border-right: none;
-        }
-
         /* Resize handle 
         .window {
             resize: both;
@@ -291,7 +265,9 @@
             border: 1px solid #000;
             box-shadow: inset 1px 1px 0 #fff, inset -1px -1px 0 #bcbcbc;
             cursor: se-resize;
+            z-index: 1;
         }
+
 
         .window.resizable::after {
             content: '';
@@ -414,26 +390,6 @@
             padding: 0 10px;
             color: var(--system7-text);
             font-family: 'ChicagoFLF', -apple-system, sans-serif;
-        }
-
-        /* Remove the following older scrollbar styles as they're no longer needed */
-        .window-content::after,
-        .window-content::before,
-        .window::after,
-        .window::before {
-            content: none;
-        }
-
-        .window-resizer {
-            position: absolute;
-            right: 0;
-            bottom: 0;
-            width: 16px;
-            height: 16px;
-            background: #dedede;
-            border: 1px solid #000;
-            box-shadow: inset 1px 1px 0 #fff, inset -1px -1px 0 #bcbcbc;
-            cursor: se-resize;
         }
 
         .window-content::-webkit-scrollbar-button:end:increment {
