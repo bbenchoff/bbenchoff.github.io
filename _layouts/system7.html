@@ -161,8 +161,7 @@
             width: 16px;
         }
 
-        .window-content::-webkit-scrollbar-button:start:decrement,
-        .window-content::-webkit-scrollbar-button:end:increment {
+        .window-content::-webkit-scrollbar-button {
             display: block;
             width: 16px;
             height: 16px;
@@ -170,29 +169,21 @@
             box-shadow: inset 1px 1px 0 #fff, inset -1px -1px 0 #bcbcbc;
             border: 1px solid #000;
         }
-
         .window-content::-webkit-scrollbar-button:vertical:decrement {
-            border-left: 1px solid #000;
-            border-right: 1px solid #000;
-            border-top: 1px solid #000;
-            background: linear-gradient(transparent 75%, #000 0) 50%/8px 4px no-repeat,
-                        linear-gradient(transparent 50%, #000 0) 50%/6px 4px no-repeat,
-                        linear-gradient(transparent 25%, #000 0) 50%/4px 4px no-repeat,
-                        linear-gradient(#000 50%, #000 0) 50%/2px 4px no-repeat,
+            background: linear-gradient(180deg, #000 0, transparent 25%) 50%/4px 4px no-repeat,
+                        linear-gradient(180deg, transparent 50%, #000 0) 50%/6px 4px no-repeat,
+                        linear-gradient(180deg, transparent 75%, #000 0) 50%/8px 4px no-repeat,
                         #dedede;
+            border-top: 1px solid #000;
         }
 
         .window-content::-webkit-scrollbar-button:vertical:increment {
-            border-left: 1px solid #000;
-            border-right: 1px solid #000;
-            border-bottom: 1px solid #000;
-            background: linear-gradient(0deg, transparent 75%, #000 0) 50%/8px 4px no-repeat,
+                    background: linear-gradient(0deg, #000 0, transparent 25%) 50%/4px 4px no-repeat,
                         linear-gradient(0deg, transparent 50%, #000 0) 50%/6px 4px no-repeat,
-                        linear-gradient(0deg, transparent 25%, #000 0) 50%/4px 4px no-repeat,
-                        linear-gradient(0deg, #000 50%, #000 0) 50%/2px 4px no-repeat,
+                        linear-gradient(0deg, transparent 75%, #000 0) 50%/8px 4px no-repeat,
                         #dedede;
+            border-bottom: 1px solid #000;
         }
-
         .window-content::-webkit-scrollbar-button:start {
             display: block;
             width: 16px;
