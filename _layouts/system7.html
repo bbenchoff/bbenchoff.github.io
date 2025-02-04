@@ -517,13 +517,38 @@
                         <div class="window-close"></div>
                         <div class="window-title">${title}</div>
                     </div>
-                    <div class="window-content platinum-scrollbars">${content}</div>
+                    <div class="window-content">${content}</div>
                     <div class="window-resizer"></div>
                 `;
 
                 this.makeDraggable();
                 this.makeCloseable();
-                this.makeResizable();
+                // Add resizable functionality
+                    const resizer = this.element.querySelector('.window-resizer');
+                    if (resizer) {
+                        resizer.addEventListener('mousedown', (e) => {
+                            e.preventDefault();
+                            const startWidth = this.element.offsetWidth;
+                            const startHeight = this.element.offsetHeight;
+                            const startX = e.clientX;
+                            const startY = e.clientY;
+                            
+                            const onMouseMove = (moveEvent) => {
+                                const newWidth = startWidth + (moveEvent.clientX - startX);
+                                const newHeight = startHeight + (moveEvent.clientY - startY);
+                                this.element.style.width = `${newWidth}px`;
+                                this.element.style.height = `${newHeight}px`;
+                            };
+                            
+                            const onMouseUp = () => {
+                                document.removeEventListener('mousemove', onMouseMove);
+                                document.removeEventListener('mouseup', onMouseUp);
+                            };
+                            
+                            document.addEventListener('mousemove', onMouseMove);
+                            document.addEventListener('mouseup', onMouseUp);
+                        });
+                    };
                 this.bringToFront();
                 
                 document.getElementById('desktop').appendChild(this.element);
