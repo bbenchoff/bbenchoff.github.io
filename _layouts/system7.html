@@ -579,9 +579,11 @@ function handleDoubleClick(name) {
                 Your browser does not support the video tag.
             </video>
         `;
-        new Window('TheKing', videoContent, 'document', 
-                  window.innerWidth / 2 - 100, 
-                  window.innerHeight / 2 - 100);
+        const jpWindow = new Window('TheKing', videoContent, 'document', 
+                                     window.innerWidth / 2 - 100, 
+                                     window.innerHeight / 2 - 100);
+        jpWindow.element.style.width = '200px';
+        jpWindow.element.style.height = '200px';
         return;
     }
 
