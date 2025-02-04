@@ -4,7 +4,7 @@
 
 If you’ve ever seen *Jurassic Park*, you know the scene. Samuel L. Jackson’s character sits down to undo Dennis Nedry’s sabotage, only to be met with the ultimate trolling animation: a looping clip of Nedry wagging his finger, smugly reminding you that you "didn't say the magic word."
 
-This is *that* animation. Over and over.
+This is *that* animation. Over and over. 
 
 ## **What is this?**
 *Nedry* is a small application for classic Mac OS (pre-OS 9) that does one thing: it plays the infamous "Ah Ah Ah! You didn’t say the magic word!" animation from *Jurassic Park* on an endless loop. That’s it. No fancy features. No deep functionality.
