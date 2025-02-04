@@ -290,6 +290,7 @@
             <div class="dropdown-item" onclick="openPage('BusTideDisplay')">Bus Tracker Display</div>
             <div class="dropdown-item" onclick="openPage('IsoTherm')">Isolated Thermocouple</div>
             <div class="dropdown-item" onclick="openPage('Citicar')">Citicar</div>
+            <div class="dropdown-item" onclick="openPage('nedry')">Dennis Nedry</div>
             <div class="dropdown-item" onclick="openPage('CANconversion')">CAN Car Conversion</div>
             <div class="dropdown-item" onclick="openPage('QuicktakeLens')">Nikon Lens Adapter</div>
             <div class="dropdown-item" onclick="openPage('LinuxDevice')">The $15 Linux Machine</div>
@@ -458,6 +459,11 @@ const fileSystem = {
                 type: 'folder',
                 icon: 'folder-icon.png',
                 contents: {
+                    'Dennis Nedry': {
+                        type: 'document',
+                        icon: 'doc-icon.png',
+                        file: 'nedry'
+                    },
                     'Embedded SSL and GZIP': {
                         type: 'document',
                         icon: 'doc-icon.png',
