@@ -4,6 +4,8 @@
 
 I design strange things in hardware and software. Highlights include:
 
+- This blog is now <a href="https://bbenchoff.github.io/system7">Mac System 7.5.3</a>.
+
 - A display that <a href="https://bbenchoff.github.io/pages/BusTideDisplay.html">keeps track of public transit</a> near my house. Embedded decompression and SSL!
 
 - An <a href="https://bbenchoff.github.io/pages/IsoTherm.html">isolated thermocouple reader</a>, replicating a $2000 National Instruments module for $120.
