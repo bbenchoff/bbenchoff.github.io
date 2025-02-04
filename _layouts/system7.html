@@ -149,6 +149,7 @@
             overflow: auto;
             height: calc(100% - 42px);
             position: relative;
+            font-family: Arial, Geneva, sans-serif; /* Ensure text uses Arial */
         }
 
         .window-content img {
@@ -160,8 +161,7 @@
             width: 16px;
         }
 
-        .window-content::-webkit-scrollbar-button:start:decrement,
-        .window-content::-webkit-scrollbar-button:end:increment {
+        .window-content::-webkit-scrollbar-button:start:decrement {
             display: block;
             width: 16px;
             height: 16px;
@@ -394,7 +394,17 @@
 
         .window-content::-webkit-scrollbar-button:end:increment {
             position: absolute;
-            bottom: 16px;
+            bottom: 0; /* Ensure the 'down' button is at the bottom of the scroll bar */
+            width: 16px;
+            height: 16px;
+            background-color: #dedede;
+            box-shadow: inset 1px 1px 0 #fff, inset -1px -1px 0 #bcbcbc;
+            border: 1px solid #000;
+            background: linear-gradient(0deg, transparent 75%, #000 0) 50%/8px 4px no-repeat,
+                        linear-gradient(0deg, transparent 50%, #000 0) 50%/6px 4px no-repeat,
+                        linear-gradient(0deg, transparent 25%, #000 0) 50%/4px 4px no-repeat,
+                        linear-gradient(0deg, #000 50%, #000 0) 50%/2px 4px no-repeat,
+                        #dedede;
         }
 
     </style>
