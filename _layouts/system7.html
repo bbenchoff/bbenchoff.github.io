@@ -791,6 +791,15 @@ document.addEventListener('dblclick', (e) => {
     handleDoubleClick(name);
 });
 
+// Add this at the start of your script
+document.addEventListener('DOMContentLoaded', () => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const page = urlParams.get('page');
+    if (page) {
+        openPage(page);
+    }
+});
+
 // Create folder contents
 function createFolderContents(folder) {
     let html = '';
