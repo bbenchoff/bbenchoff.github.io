@@ -157,87 +157,7 @@
             height: auto;
         }
 
-        .window-content::-webkit-scrollbar {
-            width: 16px;
-        }
-
-        .window-content::-webkit-scrollbar-button {
-            display: block;
-            width: 16px;
-            height: 16px;
-            background-color: #dedede;
-            box-shadow: inset 1px 1px 0 #fff, inset -1px -1px 0 #bcbcbc;
-            border: 1px solid #000;
-        }
-        .window-content::-webkit-scrollbar-button:vertical:decrement {
-            background: linear-gradient(180deg, #000 0, transparent 25%) 50%/4px 4px no-repeat,
-                        linear-gradient(180deg, transparent 50%, #000 0) 50%/6px 4px no-repeat,
-                        linear-gradient(180deg, transparent 75%, #000 0) 50%/8px 4px no-repeat,
-                        #dedede;
-            border-top: 1px solid #000;
-        }
-
         .window-content::-webkit-scrollbar-button:vertical:increment {
-                    background: linear-gradient(0deg, #000 0, transparent 25%) 50%/4px 4px no-repeat,
-                        linear-gradient(0deg, transparent 50%, #000 0) 50%/6px 4px no-repeat,
-                        linear-gradient(0deg, transparent 75%, #000 0) 50%/8px 4px no-repeat,
-                        #dedede;
-            border-bottom: 1px solid #000;
-        }
-        .window-content::-webkit-scrollbar-button:start {
-            display: block;
-            width: 16px;
-            height: 16px;
-            background-color: #dedede;
-            box-shadow: inset 1px 1px 0 #fff, inset -1px -1px 0 #bcbcbc;
-        }
-
-        .window-content::-webkit-scrollbar-track {
-            background-color: #aaaaab;
-            border: 1px solid #000;
-            box-shadow: inset 1px 1px 0 #787877, inset -1px 2px 0 #cdcccd, inset 2px 0 0 #888889, inset -2px 0 0 #bcbcbc;
-            background: radial-gradient(circle at .5px .5px,#787877 .5px,transparent 0) 0/4px 2px repeat,
-                        radial-gradient(circle at 2.5px 1.5px,#787877 .5px,transparent 0) 0/4px 2px repeat,
-                        #dedede;
-        }
-
-        .window-content::-webkit-scrollbar-track:vertical {
-            box-shadow: inset 1px 1px 0 #787877, inset -1px 2px 0 #cdcccd, inset 2px 0 0 #888889, inset -2px 0 0 #bcbcbc;
-        }
-
-        .window-content::-webkit-scrollbar-track:horizontal {
-            box-shadow: inset 1px 1px 0 #787877, inset 2px -1px 0 #cdcccd, inset 0 2px 0 #888889, inset 0 -2px 0 #bcbcbc;
-        }
-
-        .window-content::-webkit-scrollbar-thumb {
-            box-shadow: inset 1px 1px 0 #cdcdfc, inset -1px -1px 0 #6867c6;
-            width: 14px;
-            border: 1px solid #000;
-            background: linear-gradient(transparent 12.5%, #353594 0, #353594 25%, transparent 0,
-                                    transparent 37.5%, #353594 0, #353594 50%, transparent 0,
-                                    transparent 62.5%, #353594 0, #353594 75%, transparent 0,
-                                    transparent 87.5%, #353594 0) 50%/7px 8px no-repeat,
-                        linear-gradient(#cdcdfc 12.5%, transparent 0, transparent 25%, #cdcdfc 0,
-                                    #cdcdfc 37.5%, transparent 0, transparent 50%, #cdcdfc 0,
-                                    #cdcdfc 62.5%, transparent 0, transparent 75%, #cdcdfc 0,
-                                    #cdcdfc 87.5%, transparent 0) 49%/7px 8px no-repeat,
-                        #9b9bf9;
-        }
-
-        .window-content::-webkit-scrollbar-thumb:vertical {
-            background: linear-gradient(transparent 12.5%, #353594 0, #353594 25%, transparent 0,
-                                     transparent 37.5%, #353594 0, #353594 50%, transparent 0,
-                                     transparent 62.5%, #353594 0, #353594 75%, transparent 0,
-                                     transparent 87.5%, #353594 0) 50%/7px 8px no-repeat,
-                        linear-gradient(#cdcdfc 12.5%, transparent 0, transparent 25%, #cdcdfc 0,
-                                      #cdcdfc 37.5%, transparent 0, transparent 50%, #cdcdfc 0,
-                                      #cdcdfc 62.5%, transparent 0, transparent 75%, #cdcdfc 0,
-                                      #cdcdfc 87.5%, transparent 0) 49%/7px 8px no-repeat,
-                        #9b9bf9;
-        }
-
-
-        .window-content::-webkit-scrollbar-corner {
             display: none;
         }
 
@@ -382,21 +302,6 @@
             padding: 0 10px;
             color: var(--system7-text);
             font-family: 'ChicagoFLF', -apple-system, sans-serif;
-        }
-
-        .window-content::-webkit-scrollbar-button:end:increment {
-            position: absolute;
-            bottom: 0; /* Ensure the 'down' button is at the bottom of the scroll bar */
-            width: 16px;
-            height: 16px;
-            background-color: #dedede;
-            box-shadow: inset 1px 1px 0 #fff, inset -1px -1px 0 #bcbcbc;
-            border: 1px solid #000;
-            background: linear-gradient(0deg, transparent 75%, #000 0) 50%/8px 4px no-repeat,
-                        linear-gradient(0deg, transparent 50%, #000 0) 50%/6px 4px no-repeat,
-                        linear-gradient(0deg, transparent 25%, #000 0) 50%/4px 4px no-repeat,
-                        linear-gradient(0deg, #000 50%, #000 0) 50%/2px 4px no-repeat,
-                        #dedede;
         }
 
     </style>
