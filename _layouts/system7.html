@@ -155,7 +155,17 @@
             width: 16px;
         }
 
-        .window-content::-webkit-scrollbar-button:end {
+        .window-content::-webkit-scrollbar-button:start:decrement,
+        .window-content::-webkit-scrollbar-button:end:increment {
+            display: block;
+            width: 16px;
+            height: 16px;
+            background-color: #dedede;
+            box-shadow: inset 1px 1px 0 #fff, inset -1px -1px 0 #bcbcbc;
+            border: 1px solid #000;
+        }
+
+        .window-content::-webkit-scrollbar-button:start {
             display: block;
             width: 16px;
             height: 16px;
@@ -199,37 +209,6 @@
             border-left: 1px solid #000;
             box-shadow: inset 1px 1px 0 #fff;
             background: #cdcccd;
-        }
-
-        .window-content img {
-            max-width: 100%;
-            height: auto;
-            display: block;
-            margin: 10px 0;
-        }
-
-        /* Scrollbar track */
-        .window-content::after {
-            content: '';
-            position: absolute;
-            right: 0;
-            top: 30px; /* Space for up button */
-            bottom: 30px; /* Space for down button and resize handle */
-            width: 16px;
-            background: #fff;
-            border-left: 1px solid #000;
-        }
-
-        /* Scrollbar thumb */
-        .window-content::before {
-            content: '';
-            position: absolute;
-            right: 1px;
-            width: 14px;
-            height: 40px; /* Adjust based on content */
-            background: #c0c0c0;
-            border: 1px solid #000;
-            z-index: 1;
         }
 
         /* Up button */
@@ -394,6 +373,23 @@
             content: none;
         }
 
+        .window-resizer {
+            position: absolute;
+            right: 0;
+            bottom: 0;
+            width: 16px;
+            height: 16px;
+            background: #dedede;
+            border: 1px solid #000;
+            box-shadow: inset 1px 1px 0 #fff, inset -1px -1px 0 #bcbcbc;
+            cursor: se-resize;
+        }
+
+        .window-content::-webkit-scrollbar-button:end:increment {
+            position: absolute;
+            bottom: 16px;
+        }
+
     </style>
 </head>
 <body>
@@ -490,6 +486,7 @@
                         <div class="window-title">${title}</div>
                     </div>
                     <div class="window-content platinum-scrollbars">${content}</div>
+                    <div class="window-resizer"></div>
                 `;
 
                 this.makeDraggable();
