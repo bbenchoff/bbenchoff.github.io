@@ -147,6 +147,33 @@
             overflow: auto;
             height: calc(100% - 42px);
             font-family: Arial, Geneva, sans-serif;
+            scrollbar-width: thin;
+            scrollbar-width: none; /* Hide default scrollbar on Firefox */
+            -ms-overflow-style: none; /* Hide default scrollbar on IE/Edge */
+        }
+
+        /* Hide default WebKit scrollbar */
+        .window-content::-webkit-scrollbar {
+            display: none;
+        }
+
+                /* Custom scrollbar container */
+        .window-content {
+            position: relative;
+        }
+        .window-content::-webkit-scrollbar-track {
+            background: #FFFFFF;
+            border: 1px solid #C0C0C0;
+        }
+
+        .window-content::-webkit-scrollbar-thumb {
+            background: #C0C0C0;
+            border: 4px solid #FFFFFF;
+            border-radius: 8px;
+        }
+
+        .window-content::-webkit-scrollbar-thumb:hover {
+            background: #A0A0A0;
         }
 
         .window-content img {
@@ -154,6 +181,73 @@
             height: auto;
             display: block;
             margin: 10px 0;
+        }
+
+        /* Scrollbar track */
+        .window-content::after {
+            content: '';
+            position: absolute;
+            right: 0;
+            top: 30px; /* Space for up button */
+            bottom: 30px; /* Space for down button and resize handle */
+            width: 16px;
+            background: #fff;
+            border-left: 1px solid #000;
+        }
+
+        /* Scrollbar thumb */
+        .window-content::before {
+            content: '';
+            position: absolute;
+            right: 1px;
+            width: 14px;
+            height: 40px; /* Adjust based on content */
+            background: #c0c0c0;
+            border: 1px solid #000;
+            z-index: 1;
+        }
+
+        /* Up button */
+        .window::after {
+            content: '';
+            position: absolute;
+            right: 0;
+            top: 31px; /* Position right below titlebar */
+            width: 16px;
+            height: 16px;
+            background: #fff;
+            border: 1px solid #000;
+            border-right: none;
+        }
+
+        /* Down button */
+        .window::before {
+            content: '';
+            position: absolute;
+            right: 0;
+            bottom: 16px; /* Leave space for resize handle */
+            width: 16px;
+            height: 16px;
+            background: #fff;
+            border: 1px solid #000;
+            border-right: none;
+        }
+
+        /* Resize handle */
+        .window {
+            resize: both;
+        }
+
+        .window.resizable::after {
+            content: '';
+            position: absolute;
+            right: 0;
+            bottom: 0;
+            width: 16px;
+            height: 16px;
+            background: #c0c0c0;
+            border: 1px solid #000;
+            cursor: se-resize;
         }
 
         /* Icons in folder windows keep their grid layout */
@@ -467,7 +561,7 @@ const fileSystem = {
                 contents: {
                     'Dennis Nedry': {
                         type: 'document',
-                        icon: 'doc-icon.png',
+                        icon: 'jp.png',
                         file: 'nedry'
                     },
                     'Embedded SSL and GZIP': {
