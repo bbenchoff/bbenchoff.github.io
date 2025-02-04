@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>{{ site.title | default: site.github.repository_name }}</title>
+    <link rel="stylesheet" href="/assets/css/scrollbars.css">
     <style>
         @font-face {
             font-family: 'ChicagoFLF';
@@ -147,32 +148,30 @@
             overflow: auto;
             height: calc(100% - 42px);
             font-family: Arial, Geneva, sans-serif;
+        }
+
+        .window-content.platinum-scrollbars {
             scrollbar-width: thin;
-            scrollbar-width: none; /* Hide default scrollbar on Firefox */
-            -ms-overflow-style: none; /* Hide default scrollbar on IE/Edge */
+            scrollbar-color: #C0C0C0 #FFFFFF;
         }
 
-        /* Hide default WebKit scrollbar */
-        .window-content::-webkit-scrollbar {
-            display: none;
+        .window-content.platinum-scrollbars::-webkit-scrollbar {
+            width: 16px;
+            height: 16px;
         }
 
-                /* Custom scrollbar container */
-        .window-content {
-            position: relative;
-        }
-        .window-content::-webkit-scrollbar-track {
+        .window-content.platinum-scrollbars::-webkit-scrollbar-track {
             background: #FFFFFF;
             border: 1px solid #C0C0C0;
         }
 
-        .window-content::-webkit-scrollbar-thumb {
+        .window-content.platinum-scrollbars::-webkit-scrollbar-thumb {
             background: #C0C0C0;
             border: 4px solid #FFFFFF;
             border-radius: 8px;
         }
 
-        .window-content::-webkit-scrollbar-thumb:hover {
+        .window-content.platinum-scrollbars::-webkit-scrollbar-thumb:hover {
             background: #A0A0A0;
         }
 
@@ -455,7 +454,7 @@
                         <div class="window-close"></div>
                         <div class="window-title">${title}</div>
                     </div>
-                    <div class="window-content">${content}</div>
+                    <div class="window-content platinum-scrollbars">${content}</div>
                 `;
 
                 this.makeDraggable();
