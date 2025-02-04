@@ -276,7 +276,7 @@
 
 .aqua-scrollbars::-webkit-scrollbar-thumb {
     width: 14px;
-    background: #a7ebff;
+    background: #a7ebff;  
     border-radius: 8px
 }
 
