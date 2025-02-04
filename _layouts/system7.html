@@ -341,8 +341,13 @@
                 
                 this.element.style.left = x + 'px';
                 this.element.style.top = y + 'px';
-                this.element.style.width = '600px'; // Set initial width to 600px
-                this.element.style.height = '400px';
+                if (title === 'Macintosh HD') {
+                    this.element.style.width = '500px'; // Reduced width by 50px
+                    this.element.style.height = '300px'; // Reduced height by 100px
+                } else {
+                    this.element.style.width = '600px'; // Set initial width to 600px
+                    this.element.style.height = '400px';
+                }
 
                 this.element.innerHTML = `
                     <div class="window-titlebar">
