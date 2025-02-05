@@ -1,7 +1,7 @@
 /* Calculator styles */
 .calculator-window {
     width: 160px !important;
-    height: 256px !important;
+    height: 255px !important;
     resize: none !important;
     border-radius: 8px;
     background: #e0e0e0;
@@ -37,6 +37,7 @@
     display: grid;
     grid-template-columns: repeat(4, 1fr);
     gap: 4px;
+    position: relative;
 }
 
 .calculator-button {
@@ -54,9 +55,8 @@
 }
 
 /* Larger text for operators */
-.calculator-button[data-action="operator"],
-.calculator-button[data-action="equals"] {
-    font-size: 18px;
+.calculator-button[data-action="operator"] {
+    font-size: 16px;
     font-weight: bold;
 }
 
@@ -64,23 +64,34 @@
     background: #000000;
     color: #ffffff;
     box-shadow: none;
-    top: 1px;
-    left: 1px;
+    transform: translate(1px, 1px);
 }
 
 .calculator-button.wide {
     grid-column: span 2;
 }
 
+/* Absolutely positioned + button */
+.plus-button {
+    position: absolute !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    width: calc(25% - 3px) !important;
+    height: 60px !important;
+    line-height: 60px !important;
+    top: auto !important;
+    left: auto !important;
+}
+
 /* Titlebar styles */
-.calculator-window .window-titlebar {
+.system7 .calculator-window .window-titlebar {
     border-radius: 8px 8px 0 0;
     border-bottom: 1px solid #000000;
     background: #000000 !important;
     background-image: none !important;
 }
 
-.calculator-window .window-titlebar .window-title {
+.system7 .calculator-window .window-titlebar .window-title {
     position: absolute;
     left: 50%;
     transform: translateX(-50%);
@@ -89,7 +100,6 @@
     padding: 0 5px;
 }
 
-/* Override for inactive state with higher specificity */
 .system7 .calculator-window .window-titlebar.inactive {
     background: #ffffff !important;
     background-image: none !important;
@@ -105,7 +115,7 @@
     display: none;
 }
 
-/* Remove all scrollbars */
+/* Remove scrollbars */
 .calculator-window::-webkit-scrollbar,
 .calculator-window .window-content::-webkit-scrollbar {
     display: none;
@@ -114,10 +124,4 @@
 .calculator-window {
     -ms-overflow-style: none;
     scrollbar-width: none;
-}
-
-/* Layout adjustments for = button */
-.calculator-button[data-action="equals"] {
-    grid-row: span 2;
-    height: 100%;
 }

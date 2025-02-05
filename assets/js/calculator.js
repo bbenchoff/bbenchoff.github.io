@@ -1,74 +1,79 @@
 class Calculator {
     constructor() {
-        this.currentValue = '0';
-        this.previousValue = null;
-        this.operation = null;
+        this.stack = [];
+        this.currentInput = '0';
         this.newNumber = true;
     }
 
     updateDisplay(display) {
-        display.textContent = this.currentValue;
+        display.textContent = this.currentInput;
     }
 
     handleNumber(num, display) {
         if (this.newNumber) {
-            this.currentValue = num;
+            this.currentInput = num;
             this.newNumber = false;
         } else {
-            this.currentValue = this.currentValue === '0' ? num : this.currentValue + num;
+            this.currentInput = this.currentInput === '0' ? num : this.currentInput + num;
         }
         this.updateDisplay(display);
+    }
+
+    pushToStack() {
+        if (!this.newNumber) {
+            this.stack.push(parseFloat(this.currentInput));
+            this.newNumber = true;
+        }
     }
 
     handleOperator(op, display) {
-        if (this.operation && !this.newNumber) {
-            this.calculate(display);
-        }
-        this.previousValue = this.currentValue;
-        this.operation = op;
-        this.newNumber = true;
-    }
+        this.pushToStack();
+        
+        if (this.stack.length < 2) return;
 
-    calculate(display) {
-        if (this.previousValue === null || this.newNumber) return;
-
-        const prev = parseFloat(this.previousValue);
-        const current = parseFloat(this.currentValue);
+        const b = this.stack.pop();
+        const a = this.stack.pop();
         let result;
 
-        switch (this.operation) {
+        switch (op) {
             case '+':
-                result = prev + current;
+                result = a + b;
                 break;
             case '-':
-                result = prev - current;
+                result = a - b;
                 break;
             case '×':
-                result = prev * current;
+                result = a * b;
                 break;
             case '÷':
-                result = prev / current;
+                if (b === 0) {
+                    this.currentInput = 'Error';
+                    this.stack = [];
+                    this.updateDisplay(display);
+                    return;
+                }
+                result = a / b;
                 break;
-            default:
-                return;
+            case '=':
+                result = b;  // Just push the last number back
+                break;
         }
 
-        this.currentValue = result.toString();
-        this.operation = null;
-        this.newNumber = true;
+        this.stack.push(result);
+        this.currentInput = result.toString();
         this.updateDisplay(display);
+        this.newNumber = true;
     }
 
     clear(display) {
-        this.currentValue = '0';
-        this.previousValue = null;
-        this.operation = null;
+        this.stack = [];
+        this.currentInput = '0';
         this.newNumber = true;
         this.updateDisplay(display);
     }
 
     clearEntry(display) {
-        this.currentValue = '0';
+        this.currentInput = '0';
         this.newNumber = true;
         this.updateDisplay(display);
     }
@@ -94,9 +99,9 @@ function createCalculator() {
                 <div class="calculator-button" data-number>1</div>
                 <div class="calculator-button" data-number>2</div>
                 <div class="calculator-button" data-number>3</div>
-                <div class="calculator-button" data-action="equals">=</div>
                 <div class="calculator-button wide" data-number>0</div>
                 <div class="calculator-button" data-number>.</div>
+                <div class="calculator-button plus-button" data-action="operator">+</div>
             </div>
         </div>
     `;
@@ -115,8 +120,6 @@ function createCalculator() {
             calculator.handleNumber(button.textContent, display);
         } else if (button.dataset.action === 'operator') {
             calculator.handleOperator(button.textContent, display);
-        } else if (button.dataset.action === 'equals') {
-            calculator.calculate(display);
         } else if (button.dataset.action === 'clear') {
             if (button.textContent === 'C') {
                 calculator.clear(display);
@@ -128,8 +131,8 @@ function createCalculator() {
 
     // Position the calculator window in the center of the screen
     const desktop = document.getElementById('desktop');
-    const x = (desktop.offsetWidth - 180) / 2;
-    const y = (desktop.offsetHeight - 260) / 2;
+    const x = (desktop.offsetWidth - 160) / 2;
+    const y = (desktop.offsetHeight - 255) / 2;
     calcWindow.element.style.left = `${x}px`;
     calcWindow.element.style.top = `${y}px`;
 }
