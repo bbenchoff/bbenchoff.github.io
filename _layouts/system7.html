@@ -334,11 +334,11 @@
 
             /* Ensure the Access main security grid window specifically isn't too large */
             .window[style*="width: 230px"][style*="height: 250px"] {
-                width: calc(100% - 40px) !important;
-                max-width: 230px !important;
-                max-height: 250px !important;
+                width: 230px !important;
+                height: 250px !important;
                 left: 50% !important;
                 transform: translateX(-50%);
+                resize: none !important;
             }
         }
 
@@ -748,10 +748,15 @@ function handleDoubleClick(name) {
             </video>
         `;
         const jpWindow = new Window('The King', videoContent, 'document', 
-                                     window.innerWidth / 2 - 125, 
+                                     window.innerWidth / 2 - 115, 
                                      window.innerHeight / 2 - 125);
         jpWindow.element.style.width = '230px';
         jpWindow.element.style.height = '250px';
+        jpWindow.element.style.resize = 'none';
+        const resizeHandle = jpWindow.element.querySelector('.window-resizer');
+        if (resizeHandle) {
+            resizeHandle.remove();
+        }
         return;
     }
 
