@@ -1,0 +1,123 @@
+/* Calculator styles */
+.calculator-window {
+    width: 160px !important;
+    height: 256px !important;
+    resize: none !important;
+    border-radius: 8px;
+    background: #e0e0e0;
+    overflow: hidden !important;
+}
+
+.calculator-window .window-content {
+    padding: 8px;
+    background: #d4d4d4;
+    border-radius: 0 0 8px 8px;
+    overflow: hidden !important;
+}
+
+.calculator {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.calculator-display {
+    background: #ffffff;
+    border: 1px solid #000000;
+    padding: 4px 8px;
+    text-align: right;
+    font-family: 'ChicagoFLF', monospace;
+    font-size: 18px;
+    height: 24px;
+    line-height: 24px;
+    margin-bottom: 4px;
+}
+
+.calculator-buttons {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 4px;
+}
+
+.calculator-button {
+    background: #ffffff;
+    border: 1px solid #000000;
+    text-align: center;
+    cursor: pointer;
+    font-family: 'ChicagoFLF', monospace;
+    font-size: 14px;
+    height: 28px;
+    line-height: 28px;
+    box-shadow: 1px 1px 0 #000000;
+    position: relative;
+    user-select: none;
+}
+
+/* Larger text for operators */
+.calculator-button[data-action="operator"],
+.calculator-button[data-action="equals"] {
+    font-size: 18px;
+    font-weight: bold;
+}
+
+.calculator-button:active {
+    background: #000000;
+    color: #ffffff;
+    box-shadow: none;
+    top: 1px;
+    left: 1px;
+}
+
+.calculator-button.wide {
+    grid-column: span 2;
+}
+
+/* Titlebar styles */
+.calculator-window .window-titlebar {
+    border-radius: 8px 8px 0 0;
+    border-bottom: 1px solid #000000;
+    background: #000000 !important;
+    background-image: none !important;
+}
+
+.calculator-window .window-titlebar .window-title {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    background: transparent !important;
+    color: #ffffff;
+    padding: 0 5px;
+}
+
+/* Override for inactive state with higher specificity */
+.system7 .calculator-window .window-titlebar.inactive {
+    background: #ffffff !important;
+    background-image: none !important;
+    --system7-titlebar-active: none !important;
+}
+
+.system7 .calculator-window .window-titlebar.inactive .window-title {
+    background: transparent !important;
+    color: #000000 !important;
+}
+
+.calculator-window .window-resizer {
+    display: none;
+}
+
+/* Remove all scrollbars */
+.calculator-window::-webkit-scrollbar,
+.calculator-window .window-content::-webkit-scrollbar {
+    display: none;
+}
+
+.calculator-window {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+}
+
+/* Layout adjustments for = button */
+.calculator-button[data-action="equals"] {
+    grid-row: span 2;
+    height: 100%;
+}

@@ -6,6 +6,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>{{ site.title | default: site.github.repository_name }}</title>
     <link rel="stylesheet" href="/assets/css/scrollbars.css">
+    <link rel="stylesheet" href="/assets/css/calculator.css">
+    <script src="/assets/js/calculator.js"></script>
     <style>
         @font-face {
             font-family: 'ChicagoFLF';
@@ -372,6 +374,8 @@
         <!-- Dropdown menus -->
         <div id="apple-menu" class="dropdown-menu">
             <div class="dropdown-item" onclick="showAboutWindow()">About This Website...</div>
+            <div class="dropdown-divider"></div>
+            <div class="dropdown-item" onclick="createCalculator()">Calculator</div>
         </div>
         
         <div id="file-menu" class="dropdown-menu">
