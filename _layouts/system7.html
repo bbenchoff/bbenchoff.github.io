@@ -432,6 +432,8 @@
 
                 this.makeDraggable();
                 this.makeCloseable();
+                this.makeActivatable();
+
                 // Add resizable functionality
                     const resizer = this.element.querySelector('.window-resizer');
                     if (resizer) {
@@ -462,7 +464,15 @@
                 
                 document.getElementById('desktop').appendChild(this.element);
             }
-
+            makeActivatable() {
+                // Add click handler to entire window
+                this.element.addEventListener('mousedown', (e) => {
+                    // Ignore clicks on the close button
+                    if (!e.target.classList.contains('window-close')) {
+                        this.bringToFront();
+                    }
+                });
+            }
             makeDraggable() {
                 const titlebar = this.element.querySelector('.window-titlebar');
                 let isDragging = false;
