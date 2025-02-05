@@ -5,10 +5,14 @@
     border-radius: 8px;
     background: #e0e0e0;
     overflow: hidden !important;
-    position: fixed !important;  /* Override mobile positioning */
-    transform: none !important;  /* Prevent any transforms */
-    max-width: 160px !important;  /* Prevent responsive scaling */
-    min-width: 160px !important;  /* Ensure minimum width */
+    position: fixed !important;
+    left: 50% !important;
+    top: 50% !important;
+    transform: translate(-50%, -50%) !important;
+    max-width: 160px !important;
+    min-width: 160px !important;
+    margin: 0 !important;
+    padding: 0 !important;
 }
 
 .calculator-window .window-content {
@@ -16,12 +20,14 @@
     background: #d4d4d4;
     border-radius: 0 0 8px 8px;
     overflow: hidden !important;
+    height: calc(100% - 45px) !important;
 }
 
 .calculator {
     display: flex;
     flex-direction: column;
     gap: 8px;
+    height: 100%;
 }
 
 .calculator-display {
@@ -34,6 +40,7 @@
     height: 24px;
     line-height: 24px;
     margin-bottom: 4px;
+    user-select: none;
 }
 
 .calculator-buttons {
@@ -41,6 +48,7 @@
     grid-template-columns: repeat(4, 1fr);
     gap: 4px;
     position: relative;
+    flex: 1;
 }
 
 .calculator-button {
@@ -55,9 +63,9 @@
     box-shadow: 1px 1px 0 #000000;
     position: relative;
     user-select: none;
+    touch-action: manipulation;
 }
 
-/* Larger text for operators */
 .calculator-button[data-action="operator"] {
     font-size: 16px;
     font-weight: bold;
@@ -74,7 +82,6 @@
     grid-column: span 2;
 }
 
-/* Absolutely positioned + button */
 .plus-button {
     position: absolute !important;
     right: 0 !important;
@@ -87,38 +94,37 @@
 }
 
 /* Titlebar styles */
-.system7 .calculator-window .window-titlebar {
+.calculator-window .window-titlebar {
     border-radius: 8px 8px 0 0;
     border-bottom: 1px solid #000000;
     background: #000000 !important;
     background-image: none !important;
+    height: 22px !important;
 }
 
-.system7 .calculator-window .window-titlebar .window-title {
+.calculator-window .window-title {
     position: absolute;
     left: 50%;
     transform: translateX(-50%);
     background: transparent !important;
     color: #ffffff;
     padding: 0 5px;
+    line-height: 22px;
 }
 
-.system7 .calculator-window .window-titlebar.inactive {
+.calculator-window .window-titlebar.inactive {
     background: #ffffff !important;
-    background-image: none !important;
-    --system7-titlebar-active: none !important;
 }
 
-.system7 .calculator-window .window-titlebar.inactive .window-title {
-    background: transparent !important;
-    color: #000000 !important;
+.calculator-window .window-titlebar.inactive .window-title {
+    color: #000000;
 }
 
 .calculator-window .window-resizer {
-    display: none;
+    display: none !important;
 }
 
-/* Remove scrollbars */
+/* Hide scrollbars */
 .calculator-window::-webkit-scrollbar,
 .calculator-window .window-content::-webkit-scrollbar {
     display: none;
@@ -129,25 +135,34 @@
     scrollbar-width: none;
 }
 
-/* Override the general mobile styles specifically for calculator */
+/* Ensure mobile-specific overrides don't affect calculator */
 @media (max-width: 768px) {
-    .window:not(.calculator-window) {
-        width: calc(100% - 20px) !important;
-        height: calc(100% - 30px) !important;
-        top: 25px !important;
-        left: 10px !important;
-        resize: none;
-        max-width: 500px;
-        margin: 0 auto;
-    }
-
     .calculator-window {
         width: 160px !important;
         height: 255px !important;
-        top: 50% !important;
+        position: fixed !important;
         left: 50% !important;
+        top: 50% !important;
         transform: translate(-50%, -50%) !important;
+        max-width: 160px !important;
+        min-width: 160px !important;
         margin: 0 !important;
         padding: 0 !important;
+    }
+    
+    .calculator-window .window-content {
+        padding: 8px !important;
+        height: calc(100% - 45px) !important;
+    }
+    
+    /* Prevent any inherited mobile styles */
+    .calculator-window * {
+        transform: none;
+    }
+    
+    /* Improve touch targets on mobile */
+    .calculator-button {
+        min-height: 28px;
+        touch-action: manipulation;
     }
 }
