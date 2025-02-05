@@ -331,6 +331,15 @@
                 left: 50% !important;
                 transform: translateX(-50%);
             }
+
+            /* Ensure the Access main security grid window specifically isn't too large */
+            .window[style*="width: 230px"][style*="height: 250px"] {
+                width: calc(100% - 40px) !important;
+                max-width: 230px !important;
+                max-height: 250px !important;
+                left: 50% !important;
+                transform: translateX(-50%);
+            }
         }
 
         .clock {
