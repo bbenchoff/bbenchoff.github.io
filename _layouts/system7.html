@@ -925,13 +925,20 @@ function createDesktopIcon(name, icon, isAlias = false, position = {}) {
                 </div>
             `;
             const aboutWindow = new Window('About This Website', content, 'document', window.innerWidth / 2 - 200, window.innerHeight / 2 - 100);
+            
+            // Remove resize handle and disable resizing
+            const resizeHandle = aboutWindow.element.querySelector('.window-resizer');
+            if (resizeHandle) {
+                resizeHandle.remove();
+            }
+            
+            // Set fixed dimensions and styles
             aboutWindow.element.style.resize = 'none';
             aboutWindow.element.style.overflow = 'hidden';
-            aboutWindow.element.style.width = '400px'; // Set width to 400px
+            aboutWindow.element.style.width = '400px';
             aboutWindow.element.style.height = '150px';
             aboutWindow.element.querySelector('.window-content').style.overflow = 'hidden';
         }
-
         // Initialize the interface
         initializeDesktop();
 
