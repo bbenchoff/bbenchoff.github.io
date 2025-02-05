@@ -578,6 +578,75 @@
             }
         }
 
+// Update saveState method to include window type
+StateManager.saveState = function() {
+    const windows = Array.from(document.querySelectorAll('.window')).map(window => ({
+        title: window.querySelector('.window-title').textContent,
+        content: window.querySelector('.window-content').innerHTML,
+        position: {
+            left: window.style.left,
+            top: window.style.top,
+            width: window.style.width,
+            height: window.style.height,
+            zIndex: window.style.zIndex
+        },
+        isCalculator: window.classList.contains('calculator-window'),
+        type: window.classList.contains('folder-window') ? 'folder' : 'document'
+    }));
+
+    const desktop = {
+        background: document.getElementById('desktop').style.background,
+        backgroundSize: document.getElementById('desktop').style.backgroundSize
+    };
+
+    const state = {
+        windows,
+        desktop,
+        lastSaved: new Date().toISOString()
+    };
+
+    localStorage.setItem('system7State', JSON.stringify(state));
+};
+
+// Update Window.restore to handle calculator windows
+Window.restore = function(windowState) {
+    const win = new Window(
+        windowState.title,
+        windowState.content,
+        windowState.type
+    );
+    
+    // Restore position and size
+    Object.assign(win.element.style, windowState.position);
+    
+    // If this is a calculator window, add the calculator class and reinitialize calculator
+    if (windowState.isCalculator) {
+        win.element.classList.add('calculator-window');
+        const calculator = new Calculator();
+        const display = win.element.querySelector('.calculator-display');
+        
+        // Reattach calculator event listeners
+        win.element.addEventListener('click', (e) => {
+            const button = e.target.closest('.calculator-button');
+            if (!button) return;
+
+            if (button.hasAttribute('data-number')) {
+                calculator.handleNumber(button.textContent, display);
+            } else if (button.dataset.action === 'operator') {
+                calculator.handleOperator(button.textContent, display);
+            } else if (button.dataset.action === 'clear') {
+                if (button.textContent === 'C') {
+                    calculator.clear(display);
+                } else if (button.textContent === 'E') {
+                    calculator.clearEntry(display);
+                }
+            }
+        });
+    }
+    
+    return win;
+};
+
  // File System Structure
 const fileSystem = {
     'Macintosh HD': {
