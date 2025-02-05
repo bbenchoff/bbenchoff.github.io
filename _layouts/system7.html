@@ -308,11 +308,27 @@
 
         @media (max-width: 768px) {
             .window {
-                width: 100% !important;
-                height: calc(100% - 20px) !important;
-                top: 20px !important;
-                left: 0 !important;
+                width: calc(100% - 20px) !important; /* Add 10px padding on each side */
+                height: calc(100% - 30px) !important; /* Adjusted for top bar + padding */
+                top: 25px !important; /* Slightly more space from the top */
+                left: 10px !important; /* Add left padding */
                 resize: none;
+                max-width: 500px; /* Prevent windows from getting too wide */
+                margin: 0 auto; /* Center the window if screen is wider than max-width */
+            }
+
+            /* Make sure content fits nicely */
+            .window-content {
+                padding: 8px;
+                font-size: 14px; /* Slightly smaller text on mobile */
+            }
+
+            /* Ensure the About window specifically isn't too large */
+            .window[style*="width: 400px"][style*="height: 150px"] {
+                width: calc(100% - 40px) !important;
+                max-width: 400px !important;
+                left: 50% !important;
+                transform: translateX(-50%);
             }
         }
 
