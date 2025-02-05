@@ -44,22 +44,30 @@
 }
 
 .calculator-buttons {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 4px;
-    position: relative;
-    flex: 1;
+    display: grid !important;
+    grid-template-columns: repeat(4, 1fr) !important;
+    gap: 4px !important;
+    position: relative !important;
+    flex: 1 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    width: 100% !important;
+    height: auto !important;
 }
 
 .calculator-button {
-    background: #ffffff;
-    border: 1px solid #000000;
-    text-align: center;
-    cursor: pointer;
-    font-family: 'ChicagoFLF', monospace;
-    font-size: 14px;
-    height: 28px;
-    line-height: 28px;
+    background: #ffffff !important;
+    border: 1px solid #000000 !important;
+    text-align: center !important;
+    cursor: pointer !important;
+    font-family: 'ChicagoFLF', monospace !important;
+    font-size: 14px !important;
+    height: 28px !important;
+    line-height: 28px !important;
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    box-sizing: border-box !important;
     box-shadow: 1px 1px 0 #000000;
     position: relative;
     user-select: none;
@@ -136,7 +144,18 @@
 }
 
 /* Ensure mobile-specific overrides don't affect calculator */
+/* Override the general mobile styles specifically for calculator */
 @media (max-width: 768px) {
+    .window:not(.calculator-window) {
+        width: calc(100% - 20px) !important;
+        height: calc(100% - 30px) !important;
+        top: 25px !important;
+        left: 10px !important;
+        resize: none;
+        max-width: 500px;
+        margin: 0 auto;
+    }
+
     .calculator-window {
         width: 160px !important;
         height: 255px !important;
