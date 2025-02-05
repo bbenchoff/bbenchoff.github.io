@@ -1,27 +1,25 @@
 .calculator-window {
-    width: 160px !important;
-    height: 255px !important;
-    resize: none !important;
+    width: 160px;
+    height: 255px;
+    resize: none;
     border-radius: 8px;
     background: #e0e0e0;
-    overflow: hidden !important;
-    position: fixed !important;  /* Override mobile positioning /
-    transform: none !important;  / Prevent any transforms /
-    max-width: 160px !important;  / Prevent responsive scaling /
-    min-width: 160px !important;  / Ensure minimum width */
+    overflow: hidden;
 }
 
 .calculator-window .window-content {
     padding: 8px;
     background: #d4d4d4;
     border-radius: 0 0 8px 8px;
-    overflow: hidden !important;
+    overflow: hidden;
+    height: calc(100% - 45px);
 }
 
 .calculator {
     display: flex;
     flex-direction: column;
     gap: 8px;
+    height: 100%;
 }
 
 .calculator-display {
@@ -34,6 +32,7 @@
     height: 24px;
     line-height: 24px;
     margin-bottom: 4px;
+    user-select: none;
 }
 
 .calculator-buttons {
@@ -41,6 +40,7 @@
     grid-template-columns: repeat(4, 1fr);
     gap: 4px;
     position: relative;
+    flex: 1;
 }
 
 .calculator-button {
@@ -55,9 +55,9 @@
     box-shadow: 1px 1px 0 #000000;
     position: relative;
     user-select: none;
+    touch-action: manipulation;
 }
 
-/* Larger text for operators */
 .calculator-button[data-action="operator"] {
     font-size: 16px;
     font-weight: bold;
@@ -74,51 +74,48 @@
     grid-column: span 2;
 }
 
-/* Absolutely positioned + button */
 .plus-button {
-    position: absolute !important;
-    right: 0 !important;
-    bottom: 0 !important;
-    width: calc(25% - 3px) !important;
-    height: 60px !important;
-    line-height: 60px !important;
-    top: auto !important;
-    left: auto !important;
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    width: calc(25% - 3px);
+    height: 60px;
+    line-height: 60px;
+    top: auto;
+    left: auto;
 }
 
 /* Titlebar styles */
-.system7 .calculator-window .window-titlebar {
+.calculator-window .window-titlebar {
     border-radius: 8px 8px 0 0;
     border-bottom: 1px solid #000000;
-    background: #000000 !important;
-    background-image: none !important;
+    background: #000000;
+    height: 22px;
 }
 
-.system7 .calculator-window .window-titlebar .window-title {
+.calculator-window .window-title {
     position: absolute;
     left: 50%;
     transform: translateX(-50%);
-    background: transparent !important;
+    background: transparent;
     color: #ffffff;
     padding: 0 5px;
+    line-height: 22px;
 }
 
-.system7 .calculator-window .window-titlebar.inactive {
-    background: #ffffff !important;
-    background-image: none !important;
-    --system7-titlebar-active: none !important;
+.calculator-window .window-titlebar.inactive {
+    background: #ffffff;
 }
 
-.system7 .calculator-window .window-titlebar.inactive .window-title {
-    background: transparent !important;
-    color: #000000 !important;
+.calculator-window .window-titlebar.inactive .window-title {
+    color: #000000;
 }
 
 .calculator-window .window-resizer {
     display: none;
 }
 
-/* Remove scrollbars */
+/* Hide scrollbars */
 .calculator-window::-webkit-scrollbar,
 .calculator-window .window-content::-webkit-scrollbar {
     display: none;
@@ -129,8 +126,16 @@
     scrollbar-width: none;
 }
 
-/* Override the general mobile styles specifically for calculator */
+/* Mobile styles */
+/* Initial desktop positioning */
+.calculator-window {
+    left: 50% !important;
+    top: 50% !important;
+    /*transform: translate(-50%, -50%);*/
+}
+
 @media (max-width: 768px) {
+    /* Override general window styles but keep calculator specific */
     .window:not(.calculator-window) {
         width: calc(100% - 20px) !important;
         height: calc(100% - 30px) !important;
@@ -141,13 +146,23 @@
         margin: 0 auto;
     }
 
+    /* Calculator specific mobile styles */
     .calculator-window {
+        position: fixed !important;
+        left: 50% !important;
+        top: 50% !important;
+        /*transform: translate(-50%, -50%) !important;*/
         width: 160px !important;
         height: 255px !important;
-        top: 50% !important;
-        left: 50% !important;
-        /*transform: translate(-50%, -50%) !important;*/
         margin: 0 !important;
-        padding: 0 !important;
+    }
+
+    .calculator-window .window-content {
+        padding: 8px !important;
+    }
+    
+    /* Improve touch targets */
+    .calculator-button {
+        min-height: 28px;
     }
 }
