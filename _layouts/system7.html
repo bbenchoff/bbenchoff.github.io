@@ -50,6 +50,13 @@
             --system7-titlebar-inactive: #FFFFFF;
         }
 
+        html, body {
+        margin: 0;
+        padding: 0;
+        overflow: hidden;
+        height: 100vh;
+        }
+
         .system7 {
             background-color: var(--system7-bg);
             font-family: 'ChicagoFLF', -apple-system, sans-serif;
@@ -273,7 +280,7 @@
 
         .dropdown-menu {
             position: absolute;
-            top: 32px; /* This positions it below the menubar */
+            top: 24px; /* This positions it below the menubar */
             background: var(--system7-menubar-bg);
             border: 1px solid var(--system7-border);
             box-shadow: 2px 2px 0 rgba(0,0,0,0.2);
@@ -388,6 +395,15 @@
     </div>
 
     <script>
+        // Add this at the start of your script
+    document.addEventListener('DOMContentLoaded', () => {
+        const urlParams = new URLSearchParams(window.location.search);
+        const page = urlParams.get('page');
+        if (page) {
+            openPage(page);
+        }
+    });
+    
         // Window management
         class Window {
                 constructor(title, content, type = 'document', x = 20, y = 50) {
@@ -789,15 +805,6 @@ document.addEventListener('dblclick', (e) => {
     const name = icon.dataset.name;
     console.log('Double clicked:', name); // Debug log
     handleDoubleClick(name);
-});
-
-// Add this at the start of your script
-document.addEventListener('DOMContentLoaded', () => {
-    const urlParams = new URLSearchParams(window.location.search);
-    const page = urlParams.get('page');
-    if (page) {
-        openPage(page);
-    }
 });
 
 // Create folder contents
