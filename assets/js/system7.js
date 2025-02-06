@@ -1,159 +1,158 @@
-document.addEventListener('DOMContentLoaded', () => {
-    const urlParams = new URLSearchParams(window.location.search);
-    const page = urlParams.get('page');
-    if (page) {
-        openPage(page);
-    }
-    initializeDesktop();
-    updateClock();
-    setInterval(updateClock, 1000);
-});
-
-// Window management
-class Window {
-    constructor(title, content, type = 'document', x = 20, y = 50) {
-        this.element = document.createElement('div');
-        this.element.className = 'window';
-        if (type === 'folder') this.element.classList.add('folder-window');
-        
-        this.element.style.left = x + 'px';
-        this.element.style.top = y + 'px';
-        if (title === 'Macintosh HD') {
-            this.element.style.width = '500px'; 
-            this.element.style.height = '200px'; 
-        } else {
-            this.element.style.width = '600px';
-            this.element.style.height = '400px';
+<script>
+        // Add this at the start of your script
+    document.addEventListener('DOMContentLoaded', () => {
+        const urlParams = new URLSearchParams(window.location.search);
+        const page = urlParams.get('page');
+        if (page) {
+            openPage(page);
         }
-
-        this.element.innerHTML = `
-            <div class="window-titlebar">
-                <div class="window-close"></div>
-                <div class="window-title">${title}</div>
-            </div>
-            <div class="window-content">${content}</div>
-            <div class="window-resizer"></div>
-        `;
-
-        this.makeDraggable();
-        this.makeCloseable();
-        this.makeActivatable();
-
-        // Add resizable functionality
-        const resizer = this.element.querySelector('.window-resizer');
-        if (resizer) {
-            resizer.addEventListener('mousedown', (e) => {
-                e.preventDefault();
-                const startWidth = this.element.offsetWidth;
-                const startHeight = this.element.offsetHeight;
-                const startX = e.clientX;
-                const startY = e.clientY;
+    });
+    
+        // Window management
+        class Window {
+                constructor(title, content, type = 'document', x = 20, y = 50) {
+                this.element = document.createElement('div');
+                this.element.className = 'window';
+                if (type === 'folder') this.element.classList.add('folder-window');
                 
-                const onMouseMove = (moveEvent) => {
-                    const newWidth = startWidth + (moveEvent.clientX - startX);
-                    const newHeight = startHeight + (moveEvent.clientY - startY);
-                    this.element.style.width = `${newWidth}px`;
-                    this.element.style.height = `${newHeight}px`;
-                };
-                
-                const onMouseUp = () => {
-                    document.removeEventListener('mousemove', onMouseMove);
-                    document.removeEventListener('mouseup', onMouseUp);
-                };
-                
-                document.addEventListener('mousemove', onMouseMove);
-                document.addEventListener('mouseup', onMouseUp);
-            });
-        };
-        this.bringToFront();
-        
-        document.getElementById('desktop').appendChild(this.element);
-    }
-    makeActivatable() {
-        // Add click handler to entire window
-        this.element.addEventListener('mousedown', (e) => {
-            // Ignore clicks on the close button
-            if (!e.target.classList.contains('window-close')) {
+                this.element.style.left = x + 'px';
+                this.element.style.top = y + 'px';
+                if (title === 'Macintosh HD') {
+                    this.element.style.width = '500px'; 
+                    this.element.style.height = '200px'; 
+                } else {
+                    this.element.style.width = '600px';
+                    this.element.style.height = '400px';
+                }
+
+                this.element.innerHTML = `
+                    <div class="window-titlebar">
+                        <div class="window-close"></div>
+                        <div class="window-title">${title}</div>
+                    </div>
+                    <div class="window-content">${content}</div>
+                    <div class="window-resizer"></div>
+                `;
+
+                this.makeDraggable();
+                this.makeCloseable();
+                this.makeActivatable();
+
+                // Add resizable functionality
+                    const resizer = this.element.querySelector('.window-resizer');
+                    if (resizer) {
+                        resizer.addEventListener('mousedown', (e) => {
+                            e.preventDefault();
+                            const startWidth = this.element.offsetWidth;
+                            const startHeight = this.element.offsetHeight;
+                            const startX = e.clientX;
+                            const startY = e.clientY;
+                            
+                            const onMouseMove = (moveEvent) => {
+                                const newWidth = startWidth + (moveEvent.clientX - startX);
+                                const newHeight = startHeight + (moveEvent.clientY - startY);
+                                this.element.style.width = `${newWidth}px`;
+                                this.element.style.height = `${newHeight}px`;
+                            };
+                            
+                            const onMouseUp = () => {
+                                document.removeEventListener('mousemove', onMouseMove);
+                                document.removeEventListener('mouseup', onMouseUp);
+                            };
+                            
+                            document.addEventListener('mousemove', onMouseMove);
+                            document.addEventListener('mouseup', onMouseUp);
+                        });
+                    };
                 this.bringToFront();
+                
+                document.getElementById('desktop').appendChild(this.element);
             }
-        });
-    }
-    makeDraggable() {
-        const titlebar = this.element.querySelector('.window-titlebar');
-        let isDragging = false;
-        let currentX;
-        let currentY;
-        let initialX;
-        let initialY;
-
-        titlebar.addEventListener('mousedown', (e) => {
-            isDragging = true;
-            initialX = e.clientX - this.element.offsetLeft;
-            initialY = e.clientY - this.element.offsetTop;
-            this.bringToFront();
-        });
-
-        document.addEventListener('mousemove', (e) => {
-            if (isDragging) {
-                e.preventDefault();
-                currentX = e.clientX - initialX;
-                currentY = e.clientY - initialY;
-                this.element.style.left = currentX + 'px';
-                this.element.style.top = currentY + 'px';
+            makeActivatable() {
+                // Add click handler to entire window
+                this.element.addEventListener('mousedown', (e) => {
+                    // Ignore clicks on the close button
+                    if (!e.target.classList.contains('window-close')) {
+                        this.bringToFront();
+                    }
+                });
             }
-        });
+            makeDraggable() {
+                const titlebar = this.element.querySelector('.window-titlebar');
+                let isDragging = false;
+                let currentX;
+                let currentY;
+                let initialX;
+                let initialY;
 
-        document.addEventListener('mouseup', () => {
-            isDragging = false;
-        });
-    }
+                titlebar.addEventListener('mousedown', (e) => {
+                    isDragging = true;
+                    initialX = e.clientX - this.element.offsetLeft;
+                    initialY = e.clientY - this.element.offsetTop;
+                    this.bringToFront();
+                });
 
-    makeCloseable() {
-        const closeButton = this.element.querySelector('.window-close');
-        closeButton.addEventListener('click', () => {
-            this.element.remove();
-        });
-    }
+                document.addEventListener('mousemove', (e) => {
+                    if (isDragging) {
+                        e.preventDefault();
+                        currentX = e.clientX - initialX;
+                        currentY = e.clientY - initialY;
+                        this.element.style.left = currentX + 'px';
+                        this.element.style.top = currentY + 'px';
+                    }
+                });
 
-    bringToFront() {
-        const windows = document.querySelectorAll('.window');
-        let maxZ = 0;
-        windows.forEach(win => {
-            const z = parseInt(win.style.zIndex || 0);
-            maxZ = Math.max(maxZ, z);
-            win.querySelector('.window-titlebar').style.background = 
-                'var(--system7-titlebar-inactive)';
-        });
-        this.element.style.zIndex = maxZ + 1;
-        this.element.querySelector('.window-titlebar').style.background = 
-            'var(--system7-titlebar-active)';
-    }
-    // Debounced save state to prevent too many saves during drag operations
-    debouncedSaveState() {
-        if (this.saveStateTimeout) {
-            clearTimeout(this.saveStateTimeout);
+                document.addEventListener('mouseup', () => {
+                    isDragging = false;
+                });
+            }
+
+            makeCloseable() {
+                const closeButton = this.element.querySelector('.window-close');
+                closeButton.addEventListener('click', () => {
+                    this.element.remove();
+                });
+            }
+
+            bringToFront() {
+                const windows = document.querySelectorAll('.window');
+                let maxZ = 0;
+                windows.forEach(win => {
+                    const z = parseInt(win.style.zIndex || 0);
+                    maxZ = Math.max(maxZ, z);
+                    win.querySelector('.window-titlebar').style.background = 
+                        'var(--system7-titlebar-inactive)';
+                });
+                this.element.style.zIndex = maxZ + 1;
+                this.element.querySelector('.window-titlebar').style.background = 
+                    'var(--system7-titlebar-active)';
+            }
+                // Debounced save state to prevent too many saves during drag operations
+            debouncedSaveState() {
+                if (this.saveStateTimeout) {
+                    clearTimeout(this.saveStateTimeout);
+                }
+                this.saveStateTimeout = setTimeout(() => {
+                    if (typeof StateManager !== 'undefined') {
+                        StateManager.saveState();
+                    }
+                }, 500);
+            }
+
+            // Static method to restore a window from saved state
+            static restore(windowState) {
+                return new Window(
+                    windowState.title,
+                    windowState.content,
+                    windowState.type,
+                    0, // x and y are handled by options
+                    0, // x and y are handled by options
+                    windowState.position // Pass saved position as options
+                );
+            }
         }
-        this.saveStateTimeout = setTimeout(() => {
-            if (typeof StateManager !== 'undefined') {
-                StateManager.saveState();
-            }
-        }, 500);
-    }
 
-    // Static method to restore a window from saved state
-    static restore(windowState) {
-        return new Window(
-            windowState.title,
-            windowState.content,
-            windowState.type,
-            0, // x and y are handled by options
-            0, // x and y are handled by options
-            windowState.position // Pass saved position as options
-        );
-    }
-}
-
-// File System Structure
+ // File System Structure
 const fileSystem = {
     'Macintosh HD': {
         type: 'folder',
@@ -315,7 +314,9 @@ const fileSystem = {
     }
 };
 
+
 function handleDoubleClick(name) {
+
     // Check for Access main security grid specifically 
     if (name === 'Access main security grid') {
         const videoContent = `
@@ -439,6 +440,7 @@ function createFolderContents(folder) {
     return html;
 }
 
+
 function initializeDesktop() {
     const desktop = document.getElementById('desktop');
     const ICON_HEIGHT = 80; // Height of each icon including spacing
@@ -491,71 +493,230 @@ function createDesktopIcon(name, icon, isAlias = false, position = {}) {
     return div;
 }
 
-// Menu system
-document.querySelectorAll('.menubar-item').forEach(item => {
-    item.addEventListener('click', (e) => {
-        const menuName = item.dataset.menu;
-        const menu = document.getElementById(menuName + '-menu');
-        if (menu) {
-            closeAllMenus();
-            menu.style.display = 'block';
-            menu.style.left = item.offsetLeft + 'px';
-            // No need to add top positioning as it's handled by CSS
+        // Menu system
+        document.querySelectorAll('.menubar-item').forEach(item => {
+            item.addEventListener('click', (e) => {
+                const menuName = item.dataset.menu;
+                const menu = document.getElementById(menuName + '-menu');
+                if (menu) {
+                    closeAllMenus();
+                    menu.style.display = 'block';
+                    menu.style.left = item.offsetLeft + 'px';
+                    // No need to add top positioning as it's handled by CSS
+                }
+            });
+        });
+
+        function closeAllMenus() {
+            document.querySelectorAll('.dropdown-menu').forEach(menu => {
+                menu.style.display = 'none';
+            });
         }
-    });
-});
 
-function closeAllMenus() {
-    document.querySelectorAll('.dropdown-menu').forEach(menu => {
-        menu.style.display = 'none';
-    });
-}
+        document.addEventListener('click', (e) => {
+            if (!e.target.closest('.menubar-item')) {
+                closeAllMenus();
+            }
+        });
 
-document.addEventListener('click', (e) => {
-    if (!e.target.closest('.menubar-item')) {
-        closeAllMenus();
-    }
-});
+        // Theme toggle function
+        function toggleTheme() {
+            window.location.href = '{{ site.baseurl }}/';
+        }
 
-// Theme toggle function
-function toggleTheme() {
-    window.location.href = '{{ site.baseurl }}/';
-}
+        function showAboutWindow() {
+            const content = `
+                <div style="display: flex; align-items: center;">
+                    <img src="/assets/images/moof.png" alt="Moof" style="width: 64px; height: 64px; margin-right: 20px;">
+                    <div>
+                        <p>This is my design portfolio, built in Jekyll and a bit of CSS.</p><p>While I have experience in classic Mac OS programming, CSS is far more frustrating than Metrowerks Codewarrior and ResEdit.</p>
+                    </div>
+                </div>
+            `;
+            const aboutWindow = new Window('About This Website', content, 'document', window.innerWidth / 2 - 200, window.innerHeight / 2 - 150);
+            
+            // Remove resize handle and disable resizing
+            const resizeHandle = aboutWindow.element.querySelector('.window-resizer');
+            if (resizeHandle) {
+                resizeHandle.remove();
+            }
+            
+            // Set fixed dimensions and styles
+            aboutWindow.element.style.resize = 'none';
+            aboutWindow.element.style.overflow = 'hidden';
+            aboutWindow.element.style.width = '400px';
+            aboutWindow.element.style.height = '200px'; // Increased height
+            aboutWindow.element.querySelector('.window-content').style.overflow = 'hidden';
+        }
+        // Initialize the interface
+        initializeDesktop();
 
-function showAboutWindow() {
-    const content = `
-        <div style="display: flex; align-items: center;">
-            <img src="/assets/images/moof.png" alt="Moof" style="width: 64px; height: 64px; margin-right: 20px;">
-            <div>
-                <p>This is my design portfolio, built in Jekyll and a bit of CSS.</p><p>While I have experience in classic Mac OS programming, CSS is far more frustrating than Metrowerks Codewarrior and ResEdit.</p>
-            </div>
-        </div>
-    `;
-    const aboutWindow = new Window('About This Website', content, 'document', window.innerWidth / 2 - 200, window.innerHeight / 2 - 150);
-    
-    // Remove resize handle and disable resizing
-    const resizeHandle = aboutWindow.element.querySelector('.window-resizer');
-    if (resizeHandle) {
-        resizeHandle.remove();
-    }
-    
-    // Set fixed dimensions and styles
-    aboutWindow.element.style.resize = 'none';
-    aboutWindow.element.style.overflow = 'hidden';
-    aboutWindow.element.style.width = '400px';
-    aboutWindow.element.style.height = '200px'; // Increased height
-    aboutWindow.element.querySelector('.window-content').style.overflow = 'hidden';
-}
+        function updateClock() {
+            const now = new Date();
+            const hours = now.getHours().toString().padStart(2, '0');
+            const minutes = now.getMinutes().toString().padStart(2, '0');
+            document.getElementById('clock').textContent = `${hours}:${minutes}`;
+        }
 
-// Initialize the interface
-initializeDesktop();
+        setInterval(updateClock, 1000);
+        updateClock();
 
-function updateClock() {
-    const now = new Date();
-    const hours = now.getHours().toString().padStart(2, '0');
-    const minutes = now.getMinutes().toString().padStart(2, '0');
-    document.getElementById('clock').textContent = `${hours}:${minutes}`;
-}
+        function setBackground(image) {
+            const desktop = document.getElementById('desktop');
+            const viewMenuItems = document.querySelectorAll('#view-menu .dropdown-item');
+            viewMenuItems.forEach(item => {
+                item.textContent = item.textContent.replace('✔ ', '');
+            });
+            switch (image) {
+                case 'MacOS':
+                    desktop.style.background = "url('/assets/images/backgrounds/MacOS.jpg') no-repeat center center fixed";
+                    desktop.style.backgroundSize = 'cover';
+                    document.querySelector('#view-menu .dropdown-item:nth-child(1)').textContent = '✔ MacOS';
+                    break;
+                case 'cats':
+                    desktop.style.background = "url('/assets/images/backgrounds/cats.png') repeat";
+                    desktop.style.backgroundSize = 'auto';
+                    document.querySelector('#view-menu .dropdown-item:nth-child(2)').textContent = '✔ Cats';
+                    break;
+                case 'circuits':
+                    desktop.style.background = "url('/assets/images/backgrounds/circuits.png') repeat";
+                    desktop.style.backgroundSize = 'auto';
+                    document.querySelector('#view-menu .dropdown-item:nth-child(3)').textContent = '✔ Circuits';
+                    break;
+                case 'grass':
+                    desktop.style.background = "url('/assets/images/backgrounds/grass.png') repeat";
+                    desktop.style.backgroundSize = 'auto';
+                    document.querySelector('#view-menu .dropdown-item:nth-child(4)').textContent = '✔ Grass';
+                    break;
+                case 'pebbles':
+                    desktop.style.background = "url('/assets/images/backgrounds/pebbles.png') repeat";
+                    desktop.style.backgroundSize = 'auto';
+                    document.querySelector('#view-menu .dropdown-item:nth-child(5)').textContent = '✔ Pebbles';
+                    break;
+                case 'plaid':
+                desktop.style.background = "url('/assets/images/backgrounds/plaid.png') repeat";
+                    desktop.style.backgroundSize = 'auto';
+                    document.querySelector('#view-menu .dropdown-item:nth-child(6)').textContent = '✔ Plaid';
+                    break;
+            }
+        }
 
-setInterval(updateClock, 1000);
-updateClock();
+        function openPage(page) {
+            fetch(`/pages/${page}.html`)
+                .then(response => response.text())
+                .then(content => {
+                    const tempDiv = document.createElement('div');
+                    tempDiv.innerHTML = content;
+                    const mainContent = tempDiv.querySelector('.main-content');
+                    const windowContent = mainContent ? mainContent.innerHTML : content;
+                    new Window(page, windowContent, 'document');
+                })
+                .catch(error => console.error('Error loading page:', error));
+        }
+        // State management for System 7 interface
+        const StateManager = {
+            saveState() {
+                const windows = Array.from(document.querySelectorAll('.window')).map(window => ({
+                    title: window.querySelector('.window-title').textContent,
+                    content: window.querySelector('.window-content').innerHTML,
+                    position: {
+                        left: window.style.left,
+                        top: window.style.top,
+                        width: window.style.width,
+                        height: window.style.height,
+                        zIndex: window.style.zIndex
+                    },
+                    type: window.classList.contains('folder-window') ? 'folder' : 'document'
+                }));
+
+                const desktop = {
+                    background: document.getElementById('desktop').style.background,
+                    backgroundSize: document.getElementById('desktop').style.backgroundSize
+                };
+
+                const state = {
+                    windows,
+                    desktop,
+                    lastSaved: new Date().toISOString()
+                };
+
+                localStorage.setItem('system7State', JSON.stringify(state));
+            },
+
+            loadState() {
+                const savedState = localStorage.getItem('system7State');
+                if (!savedState) return;
+
+                const state = JSON.parse(savedState);
+
+                // Restore desktop background
+                const desktop = document.getElementById('desktop');
+                desktop.style.background = state.desktop.background;
+                desktop.style.backgroundSize = state.desktop.backgroundSize;
+
+                // Update menu checkmark
+                const backgroundName = this.getBackgroundNameFromStyle(state.desktop.background);
+                if (backgroundName) {
+                    const viewMenuItems = document.querySelectorAll('#view-menu .dropdown-item');
+                    viewMenuItems.forEach(item => {
+                        item.textContent = item.textContent.replace('✔ ', '');
+                        if (item.textContent.includes(backgroundName)) {
+                            item.textContent = '✔ ' + item.textContent;
+                        }
+                    });
+                }
+
+                // Restore windows
+                state.windows.forEach(windowState => {
+                    const win = new Window(
+                        windowState.title,
+                        windowState.content,
+                        windowState.type
+                    );
+                    
+                    // Restore position and size
+                    Object.assign(win.element.style, windowState.position);
+                });
+            },
+
+            getBackgroundNameFromStyle(backgroundStyle) {
+                const matches = backgroundStyle.match(/backgrounds\/(.*?)\./);
+                return matches ? matches[1] : null;
+            },
+
+            // Auto-save state periodically
+            startAutoSave(interval = 5000) {
+                setInterval(() => this.saveState(), interval);
+            }
+        };
+
+        // Add event listeners for state changes
+        document.addEventListener('DOMContentLoaded', () => {
+            // Load saved state when page loads
+            StateManager.loadState();
+            
+            // Start auto-saving
+            StateManager.startAutoSave();
+
+            // Save state when windows are closed
+            document.addEventListener('click', (e) => {
+                if (e.target.matches('.window-close')) {
+                    setTimeout(() => StateManager.saveState(), 100);
+                }
+            });
+
+            // Save state when background is changed
+            const viewMenuItems = document.querySelectorAll('#view-menu .dropdown-item');
+            viewMenuItems.forEach(item => {
+                item.addEventListener('click', () => {
+                    setTimeout(() => StateManager.saveState(), 100);
+                });
+            });
+        });
+
+        // Save state before page unload
+        window.addEventListener('beforeunload', () => {
+            StateManager.saveState();
+        });
+
+    </script>
