@@ -1,43 +1,59 @@
-# bbenchoff.github.io
+# **👋 Welcome to My Design Portfolio**  
+### **Hardware, Embedded Systems & Strange Projects**
 
-## Design Portfolio
+I design, build, and reverse-engineer **hardware, embedded systems, and unconventional tech**. My work spans **low-level firmware, PCB design, industrial design, and creative problem-solving**—whether that’s modernizing a **1970s electric car**, designing a **$15 Linux handheld**, or reverse-engineering **legacy consumer electronics**.
 
-I design strange things in hardware and software. Highlights include:
+🛠 **What I Do Best:**  
+✔ Embedded Systems (RP2040, STM32, AVR, Linux SBCs)  
+✔ Hardware & PCB Design (High-Speed, CAN Bus, DAQ, Power Systems)  
+✔ Industrial Design & Manufacturing (3D Printing, CNC, Injection Molding)  
+✔ Reverse Engineering & Hacking (Legacy Hardware, Retrocomputing, UI/UX)  
 
-- This blog is now <a href="https://bbenchoff.github.io/system7">Mac System 7.5.3</a>.
+---
 
-- A display that <a href="https://bbenchoff.github.io/pages/BusTideDisplay.html">keeps track of public transit</a> near my house. Embedded decompression and SSL!
+## **📌 Featured Projects**
+### 🚗 **Restoring & Modernizing a 1970s EV**
+🔹 **[The Citicar Restoration](https://bbenchoff.github.io/pages/Citicar.html)** – Bringing a **vintage electric car back to life**  
+🔹 **[Car CAN Bus Conversion](https://bbenchoff.github.io/pages/CANconversion.html)** – Replacing **all relays & analog systems with a CAN-based network**  
 
-- An <a href="https://bbenchoff.github.io/pages/IsoTherm.html">isolated thermocouple reader</a>, replicating a $2000 National Instruments module for $120.
+### 💻 **Embedded & Open Hardware**
+🔹 **[The $15 Linux Machine](https://bbenchoff.github.io/pages/LinuxDevice.html)** – A fully functional **Linux handheld** for under $15  
+🔹 **[Isolated Thermocouple Reader](https://bbenchoff.github.io/pages/IsoTherm.html)** – A **low-cost alternative** to a $2,000 industrial module  
 
-- <a href="https://bbenchoff.github.io/pages/Citicar.html">I converted a car without semiconductors</a> <a href="https://bbenchoff.github.io/pages/CANconversion.html">to use CAN for everything</a>.
+### 🔬 **Reverse Engineering & Retro Tech**
+🔹 **[BaudBox: A 256-Key ASCII Keyboard](https://bbenchoff.github.io/pages/BaudBox.html)** – A serial input device for **manual debugging & obscure ASCII characters**  
+🔹 **[Rebuilding a Zip Drive Tower](https://bbenchoff.github.io/pages/atapi.html)** – Stacking **fifteen ATAPI Zip-100 drives into a USB RAID array**  
 
-- <a href="https://bbenchoff.github.io/pages/QuicktakeLens.html">A Nikon lens adapter</a> for the first digital camera.
+### 🎨 **Industrial & UI/UX Design**
+🔹 **[Custom Silicone Keyboards](https://bbenchoff.github.io/pages/keyboard.html)** – Designing **low-cost, high-durability keyboards**  
+🔹 **[Full-Color Circuit Boards](https://bbenchoff.github.io/pages/colorPCB.html)** – Experimental **multi-color PCBs beyond standard manufacturing**  
+🔹 **[Portable Dumb Terminal](https://bbenchoff.github.io/pages/dumb.html)** – A **VT100-style ANSI terminal** in a pocket-sized form factor  
 
-- <a href="https://www.640by480.com/">I made an Instagram clone</a> for my pics of San Francisco take with vintage digital cameras.
+---
 
-- <a href="https://www.exaluminal.com/">Exaluminal</a>, a device that tell you the Earth will be destroyed by a supernova hours before it happens. This was <a href="https://news.ycombinator.com/item?id=31760485">#1 on Hacker News</a>, but Orange Website Bad.
+## **📄 About Me & Work**
+I specialize in **building functional, practical, and sometimes ridiculous hardware**. My goal is to **design great products**, solve difficult engineering challenges, and push the boundaries of **low-cost, hackable, and open-source hardware**.
 
-- Here's a <a href="http://bbenchoff.github.io/pages/LinuxDevice.html">$15 Linux Machine</a>. Also #1 on Hacker News, but Orange Website Bad.
+📝 **[Download My Resume](https://github.com/bbenchoff/CV/blob/main/Brian%20Benchoff%20-%20Resume.pdf)** | 🔗 **[GitHub](https://github.com/bbenchoff)** | ✉ **[Email Me](mailto:benchoff@gmail.com)**  
 
-- I'm restoring <a href="https://bbenchoff.github.io/pages/Citicar.html">a vintage electric car</a>
+---
 
-- The time <a href="https://bbenchoff.github.io/pages/MrRobot.html">I built a blockchain of Tide pods</a>
-	- This was part of the <a href="https://github.com/bbenchoff/MrRobotBadge">indie DEFCON badge I made</a>
-- Reverse engineering <a href="https://bbenchoff.github.io/pages/atapi.html">20-year-old consumer electronics
-	- You would not belive how useful a <a href="https://www.amazon.com/Pixiss-Fiberglass-5-inches-Corrosion-Electrical/dp/B07M94Y12J">fiberglass pen</a> is.
-- I made <a href="https://bbenchoff.github.io/pages/colorPCB.html">full-color printed circuit boards</a>
+## **⚡ Want to Work Together?**
+I’m open to **collaborations, consulting, and full-time roles** in:  
+🔹 **Embedded Systems & Hardware Engineering**  
+🔹 **Industrial Design & Product Development**  
+🔹 **Retrocomputing, Open Hardware & Niche Devices**  
 
-- I also do CAD work
-	- <a href="https://bbenchoff.github.io/pages/keyboard.html">With molded silicone</a>
-	- <a href="https://bbenchoff.github.io/pages/Palmtop.html">and injection molded plastic</a>
-- And embedded development:
-	- <a href="https://bbenchoff.github.io/pages/NT35510.html">Write a TFT driver they said</a>
-	- <a href="https://bbenchoff.github.io/pages/parser.html">There is no standard for terminal escape codes</a>
-	- <a href="https://bbenchoff.github.io/pages/IS31FL3741.html">Now-unobtanium LED drivers</a>
+💬 **Let’s Talk → [Email Me](mailto:benchoff@gmail.com)**  
 
+---
 
+## **🚀 Bonus: Want Something More Fun?**
+[🔄 Switch to System 7 Mode →](https://bbenchoff.github.io/system7) *(For the full retrocomputing experience!)*  
 
+---
+
+## **📷 Gallery**
 ![1980 Citicar](/images/Car/OceanBeach/Hero.jpg)
 ![Handheld Linux Thing](/images/SAB-4.png)
 ![Isolated Thermocouple Device](/images/IsoThermHero.png)
@@ -47,11 +63,3 @@ I design strange things in hardware and software. Highlights include:
 ![RGB Gaming Coaster](/images/RGBGaming-small.jpg)
 ![Silicone Keyboard](/images/Keyboard-Small.png)
 ![Tower of Zip drives](/images/Zip-Small.png)
-
-
-
-
-
-
-
-
