@@ -4,6 +4,9 @@ document.addEventListener('DOMContentLoaded', () => {
     if (page) {
         openPage(page);
     }
+    initializeDesktop();
+    updateClock();
+    setInterval(updateClock, 1000);
 });
 
 // Window management
@@ -543,6 +546,7 @@ function showAboutWindow() {
     aboutWindow.element.style.height = '200px'; // Increased height
     aboutWindow.element.querySelector('.window-content').style.overflow = 'hidden';
 }
+
 // Initialize the interface
 initializeDesktop();
 
@@ -555,7 +559,3 @@ function updateClock() {
 
 setInterval(updateClock, 1000);
 updateClock();
-
-function setBackground(image) {
-    const desktop = document.getElementById('desktop');
-    const
