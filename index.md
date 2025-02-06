@@ -1,4 +1,4 @@
-# **👋 Welcome to My Design Portfolio**  
+# **Benchoff Design Portfolio**  
 ### **Hardware, Embedded Systems & Strange Projects**
 
 I design, build, and reverse-engineer **hardware, embedded systems, and unconventional tech**. My work spans **low-level firmware, PCB design, industrial design, and creative problem-solving**—whether that’s modernizing a **1970s electric car**, designing a **$15 Linux handheld**, or reverse-engineering **legacy consumer electronics**.
@@ -34,7 +34,7 @@ I design, build, and reverse-engineer **hardware, embedded systems, and unconven
 ## **📄 About Me & Work**
 I specialize in **building functional, practical, and sometimes ridiculous hardware**. My goal is to **design great products**, solve difficult engineering challenges, and push the boundaries of **low-cost, hackable, and open-source hardware**.
 
-📝 **[Download My Resume](https://github.com/bbenchoff/CV/blob/main/Brian%20Benchoff%20-%20Resume.pdf)** | 🔗 **[GitHub](https://github.com/bbenchoff)** | ✉ **[Email Me](mailto:benchoff@gmail.com)**  
+📝 **[Download My Resume](https://github.com/bbenchoff/CV/blob/main/Brian%20Benchoff%20-%20Resume.pdf)** | 🔗 **[GitHub](https://github.com/bbenchoff)** | ✉ **[Email Me](mailto:benchoff@gmail.com)** | 🥑 **[Linkedin](https://www.linkedin.com/in/bbenchoff/)**
 
 ---
 
@@ -42,7 +42,7 @@ I specialize in **building functional, practical, and sometimes ridiculous hardw
 I’m open to **collaborations, consulting, and full-time roles** in:  
 🔹 **Embedded Systems & Hardware Engineering**  
 🔹 **Industrial Design & Product Development**  
-🔹 **Retrocomputing, Open Hardware & Niche Devices**  
+🔹 **Automotive and EV**  
 
 💬 **Let’s Talk → [Email Me](mailto:benchoff@gmail.com)**  
 
