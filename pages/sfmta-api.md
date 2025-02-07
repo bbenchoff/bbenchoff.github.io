@@ -45,7 +45,13 @@ To make this data useful for the Multi-stop bus tracker project, I developed an 
 
 Analysis of the data revealed several insights about San Francisco's transit system:
 
-- The busiest stops are concentrated along Market Street between 3rd Street and the Embarcadero
+The SFMTA API uses cable cars just like the tourists do. The dumb (tourist) way to use a cable car is to line up at the terminus and wait your turn for a cable car. The smart (local) way to use a cable car is to walk one block up the hill and get on the next car. The cable car operators know this, and do not fill the cars to capacity at the terminus; they leave space for locals.
+
+The physical reality of the universe is reflected in the API data and pulling expected departures from the cable car terminus stops. It's a 58 year wait for a cable car at the terminus (no, really, I've seen an estimated arrival in 58 years at the Market and Powell turnaround), but if you walk a block up the street, the next car will be there in a few minutes.
+
+Other interesting bits include:
+
+- The busiest stops are (obviously) concentrated along Market Street between 3rd Street and the Embarcadero
 - The 714 bus exists! It runs from 4am to 5am on weekdays
 - A lot of stops aren't used. The dataset behind the API could use some cleanup.
 
