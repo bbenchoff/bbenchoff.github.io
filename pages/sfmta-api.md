@@ -55,6 +55,10 @@ Other interesting bits include:
 - The 714 bus exists! It runs from 4am to 5am on weekdays
 - A lot of stops aren't used. The dataset behind the API could use some cleanup.
 
+There is a way to square the circle on the last observation: these may be 'opportunistic' bus stops. For example, the dataset show Stop ID 16160 as not being on any route. I know for a fact that I can pick up a 48 bus at that stop. Likewise, the dataset shows the 29 bus does not stop at Stop ID 16549. I've never been on a 29 bus that doesn't stop there if I want to get off there.
+
+It's not so much that the total dataset needs these abandoned stops removed, it's that the data for each line needs stops _added_.
+
 The processed data is available as stops_routes_data.csv, which includes:
 - Stop numbers
 - Stop descriptions
