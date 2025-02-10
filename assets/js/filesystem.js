@@ -15,7 +15,7 @@ const fileSystem = {
                     },
                     'Embedded SSL and GZIP': {
                         type: 'document',
-                        icon: 'doc-icon.png',
+                        icon: 'gzip.png',
                         file: 'BusTideDisplay'
                     },
                     'SFMTA-API': {
@@ -45,7 +45,7 @@ const fileSystem = {
                     },
                     'Terminal Parsing Library': {
                         type: 'document',
-                        icon: 'doc-icon.png',
+                        icon: 'terminal.png',
                         file: 'parser'
                     }
                 }
@@ -66,7 +66,7 @@ const fileSystem = {
                     },
                     'E-Ink Bus Station Display': {
                         type: 'document',
-                        icon: 'doc-icon.png',
+                        icon: 'buscircle.png',
                         file: 'BusTideDisplay'
                     },
                     '$15 Linux Device': {
@@ -76,22 +76,22 @@ const fileSystem = {
                     },
                     'Portable Dumb Terminal': {
                         type: 'document',
-                        icon: 'doc-icon.png',
+                        icon: 'terminal.png',
                         file: 'dumb'
                     },
                     'Mr. Robot Badge': {
                         type: 'document',
-                        icon: 'doc-icon.png',
+                        icon: 'RobotHead.png',
                         file: 'MrRobot'
                     },
                     'Zip Drive Tower': {
                         type: 'document',
-                        icon: 'doc-icon.png',
+                        icon: 'zipdisk.png',
                         file: 'atapi'
                     },
                     'Full Color Circuit Boards': {
                         type: 'document',
-                        icon: 'doc-icon.png',
+                        icon: 'razer.png',
                         file: 'colorPCB'
                     },
                     'RGB Gaming Coaster': {
