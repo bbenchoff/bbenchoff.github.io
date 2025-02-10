@@ -365,16 +365,25 @@ const MenuManager = {
     },
 
     getActiveProgram() {
-        const activeWindow = this.getActiveWindow();
-        
-        // If no active window, return Finder
-        if (!activeWindow) return 'Finder';
-        
-        // If window is a folder window, return Finder
-        if (activeWindow.classList.contains('folder-window')) {
+        // If Finder was explicitly activated, return it
+        if (this._finderActive) {
             return 'Finder';
         }
+
+        // Find the active window (highest z-index and has 'active' class)
+        const activeWindow = Array.from(document.querySelectorAll('.window'))
+            .find(win => win.classList.contains('active'));
         
+        if (!activeWindow) {
+            return 'Finder';
+        }
+
+        // If active window is a folder window, return Finder
+        if (activeWindow.classList.contains('folder-window')) {
+            this._finderActive = true;
+            return 'Finder';
+        }
+
         // Return the title of the active window
         return activeWindow.querySelector('.window-title').textContent;
     }
@@ -460,25 +469,32 @@ MenuManager.showAll = function() {
 };
 
 MenuManager.switchToProgram = function(programName) {
+    // Reset Finder active state
+    this._finderActive = (programName === 'Finder');
+    
     const windows = Array.from(document.querySelectorAll('.window'));
     const highestZ = this.getHighestZIndex();
     let newZ = highestZ + 1;
     
-    // If switching to Finder, deactivate all windows
     if (programName === 'Finder') {
+        // When switching to Finder, deactivate ALL windows and set their z-index lower
         windows.forEach(window => {
+            window.style.zIndex = Math.max(1, parseInt(window.style.zIndex || 1) - newZ);
             window.querySelector('.window-titlebar').style.background = 
                 'var(--system7-titlebar-inactive)';
         });
+        
         // Update application name and icon
         const appMenu = document.querySelector('.app-menu');
         appMenu.querySelector('.app-icon').src = '/assets/images/MacSE.png';
         appMenu.querySelector('.app-name').textContent = 'Finder';
     } else {
         // Regular program switching logic
+        let foundMatchingWindow = false;
         windows.forEach(window => {
             const title = window.querySelector('.window-title').textContent;
             if (title === programName) {
+                foundMatchingWindow = true;
                 if (window.classList.contains('hidden')) {
                     window.classList.remove('hidden');
                     window.style.visibility = 'visible';
@@ -489,28 +505,37 @@ MenuManager.switchToProgram = function(programName) {
             } else {
                 window.querySelector('.window-titlebar').style.background = 
                     'var(--system7-titlebar-inactive)';
+                window.style.zIndex = Math.max(1, parseInt(window.style.zIndex || 1));
             }
         });
+
+        // If no matching windows were found, switch to Finder
+        if (!foundMatchingWindow) {
+            this.switchToProgram('Finder');
+            return;
+        }
     }
     
     this.updateApplicationMenu();
 };
 
 MenuManager.getActiveProgram = function() {
-    const activeWindow = this.getActiveWindow();
+    // If Finder was explicitly activated, return it
+    if (this._finderActive) {
+        return 'Finder';
+    }
+
+    // Find the active window (highest z-index and has 'active' class)
+    const activeWindow = Array.from(document.querySelectorAll('.window'))
+        .find(win => win.classList.contains('active'));
     
-    // If no active window, or all windows hidden, return Finder
-    if (!activeWindow || this.areAllProgramsHidden()) {
+    if (!activeWindow) {
         return 'Finder';
     }
 
-    // If active window is a folder, return Finder
+    // If active window is a folder window, return Finder
     if (activeWindow.classList.contains('folder-window')) {
-        return 'Finder';
-    }
-
-    // If window is hidden, it can't be active
-    if (activeWindow.classList.contains('hidden')) {
+        this._finderActive = true;
         return 'Finder';
     }
 
@@ -528,4 +553,9 @@ MenuManager.areAllProgramsHidden = function() {
     // If no program windows exist, or all program windows are hidden
     return programWindows.length === 0 || 
            programWindows.every(w => w.classList.contains('hidden'));
+};
+
+MenuManager.forceFinderActive = function() {
+    this._finderActive = true;
+    this.updateApplicationMenu();
 };

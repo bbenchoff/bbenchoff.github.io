@@ -152,20 +152,20 @@ class Window {
         windows.forEach(win => {
             const z = parseInt(win.style.zIndex || 0);
             maxZ = Math.max(maxZ, z);
+            win.classList.remove('active');
             win.querySelector('.window-titlebar').style.background = 
                 'var(--system7-titlebar-inactive)';
         });
+        
         this.element.style.zIndex = maxZ + 1;
+        this.element.classList.add('active');
         this.element.querySelector('.window-titlebar').style.background = 
             'var(--system7-titlebar-active)';
 
-        // Update active application name
-        const windowTitle = this.element.querySelector('.window-title').textContent;
-        updateActiveApplication(windowTitle);
-
-        // Update application menu when window is brought to front
+        // Update MenuManager
         if (typeof MenuManager !== 'undefined') {
-            setTimeout(() => MenuManager.updateApplicationMenu(), 0);
+            MenuManager._finderActive = this.element.classList.contains('folder-window');
+            MenuManager.updateApplicationMenu();
         }
     }
 

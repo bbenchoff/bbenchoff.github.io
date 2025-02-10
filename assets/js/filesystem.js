@@ -91,12 +91,12 @@ const fileSystem = {
                     },
                     'Full Color Circuit Boards': {
                         type: 'document',
-                        icon: 'razer.png',
+                        icon: 'doc-icon.png',
                         file: 'colorPCB'
                     },
                     'RGB Gaming Coaster': {
                         type: 'document',
-                        icon: 'doc-icon.png',
+                        icon: 'razer.png',
                         file: 'RGBgaming'
                     },
                     'Serial Fidget Spinner': {
@@ -113,6 +113,11 @@ const fileSystem = {
                         type: 'document',
                         icon: 'doc-icon.png',
                         file: 'ShittyWall'
+                    },
+                    'Rebuild Duo Batteries': {
+                        type: 'document',
+                        icon: 'Duo.png',
+                        file: 'DuoBatt'
                     }
                 }
             },

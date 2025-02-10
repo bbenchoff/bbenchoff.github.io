@@ -128,31 +128,28 @@ function initializeEventListeners() {
             }
         }
 
-        // Handle clicks on the desktop (not on windows or menus)
+        // Handle clicks directly on the desktop (not on windows or menus)
         if (e.target.id === 'desktop') {
             e.preventDefault();
             e.stopPropagation();
-
-            // Deactivate all windows
+            
+            // Deactivate all windows and set to base z-index
             document.querySelectorAll('.window').forEach(win => {
                 win.classList.remove('active');
+                win.style.zIndex = '1';
                 win.querySelector('.window-titlebar').style.background = 
                     'var(--system7-titlebar-inactive)';
             });
 
-            // Update application name and menu with slight delay to ensure DOM updates
-            setTimeout(() => {
-                const appMenu = document.querySelector('.app-menu');
-                if (appMenu) {
-                    appMenu.querySelector('.app-icon').src = '/assets/images/finder-icon.png';
-                    appMenu.querySelector('.app-name').textContent = 'Finder';
-                }
-
-                // Switch to Finder in menu manager
-                if (typeof MenuManager !== 'undefined') {
-                    MenuManager.switchToProgram('Finder');
-                }
-            }, 10);
+            // Set Finder as active application
+            const appMenu = document.querySelector('.app-menu');
+            appMenu.querySelector('.app-icon').src = '/assets/images/MacSE.png';
+            appMenu.querySelector('.app-name').textContent = 'Finder';
+            
+            // Force MenuManager to update with Finder as active
+            if (typeof MenuManager !== 'undefined') {
+                MenuManager.forceFinderActive();
+            }
         }
     });
 
