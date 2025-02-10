@@ -8,6 +8,11 @@ const fileSystem = {
                 type: 'folder',
                 icon: 'folder-icon.png',
                 contents: {
+                    'System 7 Web Theme': {
+                        type: 'document',
+                        icon: 'finder-icon.png',
+                        file: 'system7'
+                    },
                     'Dennis Nedry': {
                         type: 'document',
                         icon: 'jp.png',
