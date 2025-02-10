@@ -25,7 +25,7 @@ const fileSystem = {
                     },
                     'Reading ΔΣ DAQs': {
                         type: 'document',
-                        icon: 'doc-icon.png',
+                        icon: 'deltasig.png',
                         file: 'IsoTherm'
                     },
                     'Instagram Clone': {
@@ -56,7 +56,7 @@ const fileSystem = {
                 contents: {
                     'Isolated Thermocouple Reader': {
                         type: 'document',
-                        icon: 'doc-icon.png',
+                        icon: 'deltasig.png',
                         file: 'IsoTherm'
                     },
                     'Nikon Lens Adapter': {
@@ -273,7 +273,7 @@ function initializeDesktop() {
     // Add aliases to main projects
     const projects = [
         { name: 'Bus Tracker Display', icon: 'muni.png' },
-        { name: 'Isolated Thermocouple', icon: 'doc-icon.png' },
+        { name: 'Isolated Thermocouple', icon: 'deltasig.png' },
         { name: 'Citicar', icon: 'redcar.png' },
         { name: 'CAN Car Conversion', icon: 'can.png' }
     ];
