@@ -72,7 +72,7 @@ These parts were 3D printed on a Prusa Mk4 in carbon fiber-filled PC. I'm only b
 
 # Displaying Images
 
-While standard bitmap fonts are good enough for the text, the bus routes themselves needed something _extra_. I created about seventy 180x180 pixel graphics for **all** of the bus and transit routes in SF. The design is Bahnschrift Bold, 175pt for the main letter/number, 24pt of supplementary text. Rail lines are in giant circles, cable cars are cute little cable cars, and the 39 Coit is Coit tower.
+While standard bitmap fonts are good enough for the text, the bus routes themselves needed something _extra_. I created about seventy 180x180 pixel graphics for **all** of the bus and transit routes in SF. The design is Bahnschrift Bold, 175pt for the main letter/number, 24pt of supplementary text. Rail lines are in giant circles, cable cars are cute little cable cars, and the 39 Coit is Coit tower. I'm not happy with all of the route logos, but it's a start:
 
 ![Bitmaps of all the bus route logos](/images/BusTiledRoutes.jpg)
 
