@@ -6,10 +6,9 @@ layout: default
 
 # Multi-Stop Bus Tracker (and a tide display. and possibly weather.)
 
-![The render of the Bus Display](/images/BusDisplayRender.png)
+![The render of the Bus Display](/images/BusDisplayReal.png)
 
 I live in SF, with some of the best public transit in the country. I would like to know when the next bus will be arriving at a stop near my house. Not just one stop, either: there are several bus lines that will all take me downtown, but they're all served by different stops. I need a device that will ping the city's API for _all_ the bus stops near my house, and condense that into a list I can put on a small display somewhere. I don't want to dedicate a whole computer to this task, so I need to build an embedded solution.
-
 
 ![The standard MUNI bus display at some bus stops](/images/MuniBusDisplay.jpg)
 
@@ -20,6 +19,16 @@ But there are a few problems:
 - The 511.org API *only* works with HTTPS. 
 - The API *only* gives me gzipped JSON. I need to decompress this on the device.
 - I need to do this on an embedded device. I'm using a Pi Pico2W, simply because that's the bullshit I'm currently on.
+
+## Previous work and initial steps
+
+I started this project with just a Raspberry Pi Pico (with Ethernet) simply as a proof of concept that it's possible to pull arrival data in an embedded device. [Some reddit user](https://www.reddit.com/r/sanfrancisco/comments/16x7zi4/made_a_next_muni_timer_with_a_few_other_handy/) built something similar with an ESP-32, but was confounded by the fact that 511.org only works with HTTPS, and the API only returns gzipped JSON. The solution for that project was to build a Node app to download and decompress the data. This is not an ideal solution.
+
+There is [another project that does something like this](https://github.com/mmichon/esp-nextbus-mini/tree/master), using an ESP-8266. This project does not ping the 511.org API directly, but simply downloads data from [nextbus](http://nextbus.com/). Again, the two key problems are not addressed. This uses a second server, and doesn't interact with the 'ground truth' of the actual API data. Also the display on both of the above devices is really small.
+
+The ideal solution should work even if there are only two computers left on the planet -- the 511.org server, and this device. This means solving the problems of getting data over HTTPS and decompressing the JSON file. I should also use a _good_ display for this, because I really hate how small those little I₂C displays are.
+
+To solve these problems, I picked up a Pi Pico board with an Ethernet module tacked on. In my real job I've found this to be a great way to get data off a network, and the Pico should have more than enough RAM to store the decompressed JSON as well as a screenbuffer or two. The Pico with Ethernet board allowed me to move over to a PicoW board in the future, giving me WiFi connectivity. 
 
 ## Problem 1: HTTPS and Decompressing JSON
 
@@ -49,18 +58,37 @@ The above is the device pinging four bus stops ({"15696", "15565", "13220", "156
 
 ## Problem 3: Let's add a display!
 
-This thing needs a display, something low power, too. I settled on an ePaper display, the [Microtips MT-DEPG0750RWU790F30](https://www.mouser.com/ProductDetail/Microtips-Technology/MT-DEPG0750RWU790F30?qs=Y0Uzf4wQF3nnUJiBp%2FvOzg%3D%3D), a 7.5" display with a resolution of 480x800. There are a few things that brought me to this display: it has an on-chip framebuffer, which can [vastly increase capabilities if you're smart](https://bbenchoff.github.io/pages/dumb.html), and programmable waveforms for the eInk. This is a display meant for price labels in a grocery store, so the refresh rate isn't great, but with partial updates it will be more than sufficient.
+This thing needs a display, something low power, too. I settled on an ePaper display, the [Microtips MT-DEPG0750RWU790F30](https://www.mouser.com/ProductDetail/Microtips-Technology/MT-DEPG0750RWU790F30?qs=Y0Uzf4wQF3nnUJiBp%2FvOzg%3D%3D), a 7.5" display with a resolution of 480x800. There are a few things that brought me to this display: it has an on-chip framebuffer, which can [vastly increase capabilities if you're smart](https://bbenchoff.github.io/pages/dumb.html), and programmable waveforms for the eInk. This is a display meant for price labels in a grocery store, so the refresh rate isn't great.
 
 ![The breakout PCB for the e-paper panel](/images/MicrotipsPCB.png)
 
 ![Schematic for the Epaper driver](/images/MicrotipsSchematic.png)
 
-I whipped up a board in KiCad that would support this board. The panel driver circuit is ripped straight from the datasheet and drives the panel with SPI. In addition to that, I added a few [solderable standoffs](https://www.digikey.com/en/products/detail/w%C3%BCrth-elektronik/9774060360R/4810237) and a power circuit built around TI's TPS560200, giving me 3.3V from 4.5V to 17V. There is a vertical USB-C (power only) on the board, because i envision this being something like a picture frame. There is also a ~12V power input ORed with the USB-C power input in case I ever want to install this inside a wall.
+I whipped up a board in KiCad that would support this board. The panel driver circuit is ripped straight from the datasheet and drives the panel with SPI. In addition to that, I added a few [solderable standoffs](https://www.digikey.com/en/products/detail/w%C3%BCrth-elektronik/9774060360R/4810237) and a power circuit built around TI's TPS560200, giving me 3.3V from 4.5V to 17V. There is a vertical USB-C (power only) on the board, because i envision this being something like a picture frame. There is also a ~12VDC power input ORed with the USB-C power input in case I ever want to install this inside a wall.
 
 Writing the driver/library for the e-paper display proceeded as it usually does when I write a display driver -- tearing my hair out and somehow it magically works.
 
+## E-Paper display pain points
+
+This is not instructions on how to write a driver for an e-paper display. Instead, this is a log of what I found difficult. If you just want the code, it's somewhere over [in the github repo for this project](https://github.com/bbenchoff/nextBusPico).
+
+### Pain Points and Displaying Images
+
+This code uses a small subset of the [Adafruit GFX library](https://github.com/adafruit/Adafruit-GFX-Library) for housekeeping tasks such as rotation and loading a set image format into RAM. This also gives me a stock font so error messages can be displayed on the screen. However, the actual display needs a much more robust and aesthetically pleasing solution.
+
+While standard bitmap fonts are good enough for the text, the bus routes themselves needed something _extra_. I created about seventy 180x180 pixel graphics for **all** of the bus and transit routes in SF. The design is Bahnschrift Bold, 175pt for the main letter/number, 24pt of supplementary text. Rail lines are in giant circles, cable cars are cute little cable cars, and the 39 Coit is Coit tower. I'm not happy with all of the route logos, but it's a start:
+
+![Bitmaps of all the bus route logos](/images/BusTiledRoutes.jpg)
+
+I had a few pain points in developing this code, the first being what happens every time I write a display driver. Because I'm using this in a portrait orientation, the display was all cattywampus -- up was right, left was down, and at one point the display was mirrored in the vertical axis. This is a pain, but I just had to work through it.
+
+The second pain point was the lack of a partial refresh for the display. The core function of this display means it doesn't change much. It's just a list of bus lines, their destinations, a stop point, and a list of minutes until the bus arrives. Obviously the arrival time changes every 60 seconds, but the rest of the display will usually only change late at night when the busses stop running or early in the morning. A partial refresh for just the arrival times is the way to go.
+
+Unfortunately, the display I'm using for this project doesn't support partial refresh. I thought it did -- why wouldn't an e-paper display support partial refresh? The MT-DEPG0750RWU790F30 does not, however. But pinouts for 7.5" e-paper displays are all very similar, and I can use the same breakout board to test out other panels.
 
 ## An enclosure
+
+![The render of the Bus Display](/images/BusDisplayRender.png)
 
 The enclosure is a 3-piece ordeal. The legs bolt onto the back with heat-set inserts installed in the back. The PCB/EPD assembly mounts to the back of the display with the solderable standoffs installed on the PCB. The front is a snap-fit assembly, with the geometry shown in the sectional diagram below.
 
@@ -70,10 +98,5 @@ These parts were 3D printed on a Prusa Mk4 in carbon fiber-filled PC. I'm only b
 
 ![sectional analysis of the enclosure](/images/MicrotipsSectional.png)
 
-# Displaying Images
-
-While standard bitmap fonts are good enough for the text, the bus routes themselves needed something _extra_. I created about seventy 180x180 pixel graphics for **all** of the bus and transit routes in SF. The design is Bahnschrift Bold, 175pt for the main letter/number, 24pt of supplementary text. Rail lines are in giant circles, cable cars are cute little cable cars, and the 39 Coit is Coit tower. I'm not happy with all of the route logos, but it's a start:
-
-![Bitmaps of all the bus route logos](/images/BusTiledRoutes.jpg)
-
 [back](../)
+`
