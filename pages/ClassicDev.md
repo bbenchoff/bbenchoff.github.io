@@ -32,4 +32,6 @@ To talk to the outside world, I'm using a local **FTP Server**. Communicating wi
 
 Combined, these tools represent something close to the state of the art around 1999. This is right around the time of the Blue & White G3, and OS 8.6, the beginnings of the not-beige era, while still allowing me to write something that will run on anything from Macintosh SE to a G4 Cube.
 
+ <img src="/images/MetrowerksDisk.png" alt="The Metrowerks Guy" align="left" hspace="10" width="296">
+
 [back](../)
