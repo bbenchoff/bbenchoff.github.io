@@ -4,9 +4,9 @@ layout: default
 
 ![Mac Octocat](/images/MacOctocat.png)
 
-## Classic Mac GitHub Client
+## GitRez, A Classic Mac GitHub Client
 
-I'm building a GitHub Desktop client for Classic Mac OS, allowing vintage Mac enthusiasts to participate in modern version control without leaving their beloved System 7-9 environment. With my hobby of writing software that _should_ exist for the classic Mac environment, like [Nedry](https://github.com/bbenchoff/Nedry), the program everybody saw in _Jurassic Park_, and Instagram-like thing for the first digital cameras, I needed a version control system.
+I'm building a GitHub Desktop client for Classic Mac OS, allowing vintage Mac enthusiasts to participate in modern version control without leaving their beloved System 7-9 environment. With my hobby of writing software that _should_ exist for the classic Mac environment, like [Nedry](https://github.com/bbenchoff/Nedry), the program everybody saw in _Jurassic Park_, and a native client for my [Instagram-like thing for vintage digital cameras](https://640by480.com/), I need some sort of version control.
 
 ### Current state of the art for version control
 
