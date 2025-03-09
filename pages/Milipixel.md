@@ -10,7 +10,7 @@ layout: default
 
 ## What is Milipixel?
 
-Milipixel is a complete ecosystem for vintage digital photography, bridging 1990s hardware with modern image sharing. The platform celebrates the distinctive aesthetic of early digital cameras like the Apple QuickTake, Kodak DCS-420, early Sony Mavica, and Casio QV series.
+Milipixel is a photo sharing app for classic Macintosh hardware focused on vintage digital photography. The platform celebrates the distinctive CCD sensor aesthetic of early digital cameras like the Apple QuickTake, Kodak DCS-420, early Sony Mavica, and Casio QV series.
 
 This page details the Classic Mac client application that connects these vintage systems to the [Milipixel.com](https://milipixel.com) platform.
 
