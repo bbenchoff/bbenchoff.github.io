@@ -6,7 +6,7 @@ layout: default
 
 ## Classic Mac Development
 
- <img src="/images/MetrowerksCD.png" alt="The Metrowerks Guy" align="right" hspace="10" width="268">
+ <img src="/images/MetrowerksCD.png" alt="The Metrowerks CD Guy" align="right" hspace="10" width="268">
 
  This is the page I'm using for a description of my Classic Mac development environment. This is how I make software for old Macintosh computers from the Macintosh SE to the titanium PowerBook G4. 
 
@@ -20,8 +20,6 @@ layout: default
 
 I'm using **Metrowerks CodeWarrior Pro 4** because this seems to be the sweet spot for my rig. There is good support for OS 8/9 systems, while still allowing for cross-compilation to M68k platforms and the creation of a Fat Binary. Of course I'm using C++.
 
-Version control is provided by Apple's **SourceServer**. This is a version control system that was provided by Apple with the Macintosh Programmer's Workbench. [CWProjector](https://web.archive.org/web/20071009211617/http://www.electricfish.com/products/CWProjector/) integrates Projector with the CodeWarrior IDE. No, I don't like this, which is why I'm building a Git desktop client.
-
 **ResEdit** also makes an appearance, but a lot of the resource-intensive (pun intended) work is being done with **Resorcerer 2.2**. This is a resource editor that adds support for new Appearance Manager controls introduced in OS 8.
 
 **MacTCP Watcher** is used to debug internet connections...
@@ -32,6 +30,6 @@ To talk to the outside world, I'm using a local **FTP Server**. Communicating wi
 
 Combined, these tools represent something close to the state of the art around 1999. This is right around the time of the Blue & White G3, and OS 8.6, the beginnings of the not-beige era, while still allowing me to write something that will run on anything from Macintosh SE to a G4 Cube.
 
- <img src="/images/MetrowerksDisk.png" alt="The Metrowerks Guy" align="left" hspace="10" width="296">
+ <img src="/images/MetrowerksDisk.png" alt="The Metrowerks Disk Guy" align="left" hspace="10" width="296">
 
 [back](../)
