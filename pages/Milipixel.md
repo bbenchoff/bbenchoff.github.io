@@ -20,7 +20,9 @@ The client is built for Mac OS 7-9 systems, with a particular focus on supportin
 
 ### Networking Stack
 
-The application uses OpenTransport for its core networking capabilities, combined with a compact implementation of wolfSSL to enable secure HTTPS connections to the Milipixel API. This approach allows even vintage Macs to connect securely to modern web services without compromising on encryption standards.
+OpenTransport is used for core networking capabilities, but to enable HTTPS connections I needed an SSL implementation. I chose [PolarSSL](https://github.com/cuberite/polarssl), as it is based on MbedTLS, the same SSL solution used for [ssheven](https://github.com/cy384/ssheven). Ssheven is one of the few other modern pieces of classic Mac software I'm aware of that supports SSL, most of the others relying on "hardware" SSL either through proxies or just emulating a network adapter on an ESP32. It's astonishing what thirty years of hardware advances can do.
+
+The application uses OpenTransport for its core networking capabilities, combined with a compact implementation of PolarSSL to enable secure HTTPS connections to the Milipixel API. This approach allows even vintage Macs to connect securely to modern web services without compromising on encryption standards.
 
 ```c
 /* Example of our secure connection setup */
@@ -159,14 +161,15 @@ void OptimizeMemoryUsage(void) {
 
 ## Features
 
-<img src="/images/MilipixelGridView.png" alt="Thumbnail Grid View" align="left" hspace="10" width="250">
+<img src="/images/MilipixelGridView.png" alt="Thumbnail Grid View" hspace="10">
 
 ### Viewing Experience
 
-- **Thumbnail Grid**: A clean 2×2 grid for browsing multiple images
+- **Thumbnail Grid**: A clean grid for browsing multiple images
 - **Detail View**: Full-screen viewing of individual images
 - **Adaptive Scaling**: Automatically scales images to fit window size while preserving aspect ratio
-- **EXIF Display**: Shows available camera metadata (when present)
+- **EXIF Display**: Shows available camera metadata (when present, which is not often)
+- **Slideshow**: A full-screen slideshow of images, either random or your favorites.
 
 ### Image Management
 
@@ -184,9 +187,9 @@ void OptimizeMemoryUsage(void) {
 ## System Requirements
 
 - **Processor**: 68030 or better (optimized for PowerPC)
-- **RAM**: 8MB minimum, 32MB recommended
+- **RAM**: 4MB minimum, 8MB recommended
 - **System**: Mac OS 7.1 through Mac OS 9.2.2
-- **Display**: 640×480 minimum resolution with 256 colors
+- **Display**: 512x384 minimum resolution
 - **Networking**: Open Transport 1.1.2 or later
 - **Storage**: 5MB for application, variable for cached images
 
@@ -211,9 +214,7 @@ The client is available as a Stuffit archive (.sit) with an Installer VISE packa
 
 This client represents a fascinating intersection of vintage and modern technology. While developing for Classic Mac OS presents unique challenges, especially in networking and memory management, it's been rewarding to create software that gives these vintage systems new life in the modern internet landscape.
 
-Particular attention was paid to supporting the QuickTake camera's direct connection capabilities, allowing direct import from camera to application on suitably equipped Macs.
-
-Future versions will include more social features and potentially support for more obscure vintage camera formats beyond JPEG.
+Future work will go into supporting the QuickTake camera's direct connection capabilities, allowing direct import from camera to application to the Internet. Additionally, I may also add in support for MacTCP, obliviating the requirement for OpenTransport. I'm not especially confident a transition to MacTCP can be done, but I will investigate the possibility further.
 
 ## About the Developer
 
