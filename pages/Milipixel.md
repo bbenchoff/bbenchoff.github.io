@@ -15,65 +15,46 @@ Milipixel is a photo sharing app for classic Macintosh hardware focused on vinta
 This page details the Classic Mac client application that connects these vintage systems to the [Milipixel.com](https://milipixel.com) platform.
 
 ## Technical Implementation
+The client is built for Mac OS 7-9 systems, with a particular focus on supporting the sub-megapixel digital cameras of the mid-to-late 1990s. It's a native application written in C using Metrowerks CodeWarrior Pro 4, creating a fat binary that runs on both 68k and PowerPC Macs. This was not developed in a VM; this was made on a real Power Macintosh G3 desktop and a bookcase full of Inside Macintosh.
 
-The client is built for Mac OS 7-9 systems, with a particular focus on supporting the sub-megapixel digital cameras of the mid-to-late 1990s. It's a native application written in C/C++ using Metrowerks CodeWarrior Pro 4, creating a fat binary that runs on both 68k and PowerPC Macs. This was not developed in a VM; this was made on a real Power Macintosh G3 desktop and a bookcase full of _Inside Macintosh_.
+## Networking Stack
+The application uses OpenTransport for its core networking capabilities. To enable secure HTTPS connections to modern web services, I integrated [PolarSSL](https://github.com/cuberite/polarssl) (a precursor to MbedTLS), which required careful adaptation for the Classic Mac environment. This was a significant challenge.
 
-### Networking Stack
-
-OpenTransport is used for core networking capabilities, but to enable HTTPS connections I needed an SSL implementation. I chose [PolarSSL](https://github.com/cuberite/polarssl), as it is based on MbedTLS, the same SSL solution used for [ssheven](https://github.com/cy384/ssheven). Ssheven is one of the few other modern pieces of classic Mac software I'm aware of that supports SSL, most of the others relying on "hardware" SSL either through proxies or just emulating a network adapter on an ESP32. It's astonishing what thirty years of hardware advances can do.
-
-The application uses OpenTransport for its core networking capabilities, combined with a compact implementation of PolarSSL to enable secure HTTPS connections to the Milipixel API. This approach allows even vintage Macs to connect securely to modern web services without compromising on encryption standards.
+PolarSSL was written for C99 compilers, and my version of Codewarrior only supported C89/90. I started programming in C before 1999, so some of this is familiar, but god damn I have no idea how anyone could live like this. There were even more problems with the conversion between DOS/UNIX filesystems and the Macintosh. You know how you can write `#include "mbedtls/aes.h"`, and the compiler will pull in code from the `aes.h` file that's in the `mbedtls` folder? You can't do that on a Mac! There is a text-based file location sort of _thing_ in the classic Mac OS, but I couldn't find any way to use that in Codewarrior. Yeah, it was fun.
 
 ```c
 /* Example of our secure connection setup */
-OSStatus EstablishSecureConnection(void) {
+OSStatus ConnectToServer(void) {
     OSStatus err = noErr;
+    InetHostInfo hostInfo;
+    InetAddress inAddr;
     
-    // Initialize wolfSSL
-    wolfSSL_Init();
-    
-    // Create a new wolfSSL context
-    WOLFSSL_CTX* ctx = wolfSSL_CTX_new(wolfTLSv1_2_client_method());
-    if (ctx == NULL) {
-        return -1;
-    }
-    
-    // Establish TCP connection first through OpenTransport
-    err = ConnectToServer();
+    /* Look up the host address */
+    err = OTInetStringToAddress(gInetService, (char*)API_HOST, &hostInfo);
     if (err != noErr) {
-        wolfSSL_CTX_free(ctx);
         return err;
     }
     
-    // Create wolfSSL object
-    WOLFSSL* ssl = wolfSSL_new(ctx);
-    if (ssl == NULL) {
-        DisconnectFromServer();
-        wolfSSL_CTX_free(ctx);
-        return -1;
+    /* Set up the address for the remote host */
+    OTInitInetAddress(&inAddr, API_PORT, hostInfo.addrs[0]);
+    
+    /* Connect using the appropriate protocol */
+    if (gProtocolType == kProtocolHTTPS) {
+        /* Use SSL for HTTPS connection */
+        err = SSL_Connect(&gSSLState, &inAddr);
+        if (err != noErr) {
+            return err;
+        }
+    } else {
+        /* Use standard TCP for HTTP connection */
+        /* TCP connection code... */
     }
     
-    // Set up custom I/O functions that use OpenTransport
-    wolfSSL_SetIORecv(ctx, OpenTransportReceive);
-    wolfSSL_SetIOSend(ctx, OpenTransportSend);
-    
-    // Perform the TLS handshake
-    int ret = wolfSSL_connect(ssl);
-    if (ret != SSL_SUCCESS) {
-        // Handle error
-        DisconnectFromServer();
-        wolfSSL_free(ssl);
-        wolfSSL_CTX_free(ctx);
-        return -1;
-    }
-    
-    // Store the SSL context for later use
-    gSSL = ssl;
-    gSSLContext = ctx;
-    
-    return noErr;
+    return err;
 }
 ```
+
+The SSL implementation includes a custom entropy source specifically designed for Classic Mac OS, drawing randomness from sources like the system clock, mouse movement, memory states, and the amount of time it takes for the screensaver to activate. All of these sources are mashed up and XORed together to create something resembling a real source of randomness for secure key generation. I make no guarantees about it.
 
 ### Image Processing
 
