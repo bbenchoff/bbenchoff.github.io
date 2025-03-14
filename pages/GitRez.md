@@ -2,7 +2,7 @@
 layout: default
 ---
 
-![Mac Octocat](/images/MacOctocat.png)
+![Github box art](/images/GitHubBoxArt.png)
 
 ## GitRez, A Classic Mac GitHub Client
 
@@ -98,5 +98,7 @@ The UI is built with the Appearance Manager and PowerPlant framework, supporting
 This is a work in progress. I've implemented the fork splitting/recombination system and basic API connectivity. The UI and full GitHub API integration are in development. My plan is to open-source the client once it reaches a usable state.
 
 This project demonstrates that vintage computing doesn't have to mean isolation from modern development practices. Classic Mac developers can participate in contemporary collaborative coding while preserving the unique qualities of our favorite classic operating system.
+
+![Mac Octocat](/images/MacOctocat.png)
 
 [back](../)
