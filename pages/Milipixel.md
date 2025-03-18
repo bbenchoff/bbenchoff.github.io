@@ -6,7 +6,7 @@ layout: default
 
 # Milipixel: A Classic Mac Client for Vintage Digital Photography
 
-<img src="/images/MilipixelScreenshot.png" alt="Milipixel Client Screenshot" align="right" hspace="10" width="350">
+![Milipixel Box Art](/images/MilipixelBoxArt.png)
 
 ## What is Milipixel?
 
