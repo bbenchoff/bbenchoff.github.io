@@ -26,12 +26,28 @@ The application uses Open Transport for its core networking capabilities, but Op
 
 Mbedtls was written for C99 compilers, but my version of CodeWarrior only supports C89/C90. The transition required significant code modifications:
 
-* Removing variadic macros in debug functions
 * Creating compatibility layers for modern C integer types
 * Restructuring code to declare variables at block beginnings (C89 requirement)
 * Addressing include path limitations in Mac's archaic file system
 
 That last bit -- addressing the path limitations -- is a big one. You know how you can write `#include "mbedtls/aes.h"`, and the compiler will pull in code from the `aes.h` file that's in the `mbedtls` folder? You can't do that on a Mac! There is a text-based file location sort of _thing_ in the classic Mac OS, but I couldn't find any way to use that in Codewarrior. Yeah, it was fun.
+
+The biggest problem? **C89 doesn't support variadic macros or method overloading**. Holy hell this is annoying as shit. If you don't know what I'm talking about, here's an example of method overloading:
+
+```
+void print(int x);
+void print(const char* s);
+```
+
+Those are two functions, both of them return nothing, but one of them takes an int, and the other a string. _They're both named the same thing_. This works if you have method overloading, like is found in C99. C89/90 doesn't have it, and it's a bitch and a half to port C89 code to C99 because of this. This also shows up in variadic macros, which I believe is a portmanteau of _variable argument_. It's something like this
+
+```
+#define superprint(...) fprintf(stderr, __VA_ARGS__);
+```
+
+This is a way to do something like method overloading, but using the preprocessor instead of the language itself. Obviously we see more method overloading this century simply because languages support it now, so different names for the same thing, I guess.
+
+Yeah, this was an incredibly time consuming and boring fix. But now I have a C89 port of mbedtls.
 
 ### Entropy Collection Nightmare
 
