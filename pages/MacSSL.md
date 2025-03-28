@@ -42,6 +42,54 @@ This is a way to do something like method overloading, but using the preprocesso
 
 Yeah, this was an incredibly time consuming and boring fix. But now I have a C89 port of mbedtls.
 
+### Conversion to 64-bit data structures
+
+The mbedtls library uses 64-bit data types. `int64_t`, `uint64_t`, and the like. My compiler doesn't know what those are. So I need to create them. Out of fucking thin air and structs, I guess. This is done in a redefinition of `stdint.h`, shown below:
+
+```c
+/* This is the definition of 64-bit data types */
+
+typedef struct {
+    uint32_t high;
+    uint32_t low;
+} uint64_t;
+
+typedef struct {
+    int32_t high;
+    int32_t low;
+} int64_t
+
+```
+
+The mbedtls library does very few operations on these 64-bit data types, zeroing the values and shifting right, mostly. In the same header file, I made a few functions which make that easier:
+
+```c
+/* Function to set a 64-bit value to zero */
+static inline void uint64_zero(uint64_t *x)
+{
+    x->high = 0;
+    x->low = 0;
+}
+
+/* Function to shift a uint64_t right by some amount */
+static inline uint64_t uint64_t_shift_right(uint64_t x, int shift)
+{
+    uint64_t result;
+
+    if(shift >= 32)
+    {
+        result.high = 0;
+        result.low = x.high >> (shift-32);
+    } else {
+        result.high = x.high >> shift;
+        result.lot = (x.low >> shift) | (x.high << (32 - shift));
+    }
+    return result;
+}
+```
+
+This provides a basic framework for working with 64-bit data types, but it's not automatic. Every single 64-bit operation in the code needs to be modified. There's no fast way to do this, it's simply hitting compile, looking at the next error, changing that to something that will work, and hitting compile again. It takes forever.
+
 ### Entropy Collection Nightmare
 
 I've discoverd a great plot hole in an Asimov short story. If you're wondering how can the net amount of entropy of the universe be massively decreased, the answer isn't to use a computer trillions of years in the future, the answer is to use a computer built thirty years ago.
