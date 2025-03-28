@@ -4,7 +4,7 @@ layout: default
 
 ---
 
-# A port of Mbed-TLS for Mac System 7/8/9
+# A C89/C90 port of Mbed-TLS for Mac System 7/8/9
 
 There is one thing holding back classic Mac development: modern web encryption. It's a problem. Even though Macs from Performas up to the original iMac were contemporaneous with the early Internet, there are very few applications aware of the modern Internet, with HTTPS, SSL, TLS, and all that computationally-expensive encryption. [Classilla](https://www.floodgap.com/software/classilla/) and [iCab](https://www.icab.de/) make a good attempt, but support for modern encryption is still limited. That's not to say it's impossible:  [SSHeven](https://github.com/cy384/ssheven) is an SSH implementation for the Mac OS 7/8/9 that also uses mbedtls, though it does this through cross-compilation and [Retro68](https://github.com/autc04/Retro68/).
 
@@ -13,7 +13,7 @@ If I want to write Internet-aware applications _on_ a classic Mac, I need to por
 ![picture of the app running](/images/soeadsfadsfasdf)
 
 ## Technical Implementation
-The client is built for Mac OS 7-9 systems, with a particular focus on supporting the sub-megapixel digital cameras of the mid-to-late 1990s. It's a native application written in C using Metrowerks CodeWarrior Pro 4, creating a fat binary that runs on both 68k and PowerPC Macs. This was not developed in a VM; this was made on a real Power Macintosh G3 desktop and a bookcase full of Inside Macintosh.
+The client is built for Mac OS 7-9 systems using OpenTransport. Right now it's effectively a proof of concept pulling JSON data from the API on [640by480.com](https://640by480.com/), my weird little 'Instagram for vintage digital cameras'. But this works. I'm getting data over HTTPS. This is also the first time I'm aware of that a Mac SE/30 can read data over HTTPS without using a proxy server. 
 
 ### SSL Implementation Challenges
 
@@ -21,9 +21,9 @@ Mbedtls was written for C99 compilers, but my version of CodeWarrior only suppor
 
 * Creating compatibility layers for modern C integer types
 * Restructuring code to declare variables at block beginnings (C89 requirement)
-* Addressing include path limitations in Mac's archaic file system
+* Addressing include path limitations in Mac's un-*NIX-like file system
 
-That last bit -- addressing the path limitations -- is a big one. You know how you can write `#include "mbedtls/aes.h"`, and the compiler will pull in code from the `aes.h` file that's in the `mbedtls` folder? You can't do that on a Mac! There is a text-based file location sort of _thing_ in the classic Mac OS, but I couldn't find any way to use that in Codewarrior. Yeah, it was fun.
+That last bit -- addressing the path limitations -- is a big one. You know how you can write `#include "mbedtls/aes.h"`, and the compiler will pull in code from the `aes.h` file that's in the `mbedtls` folder? You can't do that on a Mac! There is a text-based file location sort of _thing_ in the classic Mac OS, but I couldn't find any way to use that in Codewarrior. The solution is basically to put all the files from Mbed-TLS into the project as a flat directory. Yes, Metroworks Codewarrior has an option for DOS/UNIX-like file paths when importing files, but I couldn't figure out how to do that.
 
 The biggest problem? **C89 doesn't support variadic macros or method overloading. 64-bit ints are completely unknown on this platform** Holy hell this is annoying as shit. If you don't know what I'm talking about, here's an example of method overloading:
 
@@ -32,7 +32,7 @@ void print(int x);
 void print(const char* s);
 ```
 
-Those are two functions, both of them return nothing, but one of them takes an int, and the other a string. _They're both named the same thing_. This works if you have method overloading, like is found in C99. C89/90 doesn't have it, and it's a bitch and a half to port C89 code to C99 because of this. This also shows up in variadic macros, which I believe is a portmanteau of _variable argument_. It's something like this
+Those are two functions, both of them return nothing, but one of them takes an int, and the other a string. _They're both named the same thing_. This works if you have method overloading, like is found in C99. C89/90 doesn't have it, and it's a bitch and a half to port C89 code to C99 because of this. This also shows up in variadic macros, which I believe is a portmanteau of _variable argument_. It's something like this:
 
 ```c
 #define superprint(...) fprintf(stderr, __VA_ARGS__);
@@ -40,7 +40,7 @@ Those are two functions, both of them return nothing, but one of them takes an i
 
 This is a way to do something like method overloading, but using the preprocessor instead of the language itself. Obviously we see more method overloading this century simply because languages support it now, so different names for the same thing, I guess.
 
-Yeah, this was an incredibly time consuming and boring fix. But now I have a C89 port of mbedtls.
+Yeah, this was an incredibly time consuming and boring fix.
 
 ### Conversion to 64-bit data structures
 
@@ -88,7 +88,7 @@ static inline uint64_t uint64_t_shift_right(uint64_t x, int shift)
 }
 ```
 
-This provides a basic framework for working with 64-bit data types, but it's not automatic. Every single 64-bit operation in the code needs to be modified. There's no fast way to do this, it's simply hitting compile, looking at the next error, changing that to something that will work, and hitting compile again. It takes forever.
+This provides a basic framework for working with 64-bit data types, but it's not automatic. Every single 64-bit operation in the code needs to be modified. There's no fast way to do this, it's simply hitting compile, looking at the next error, changing that to something that will work, and hitting compile again.
 
 ### Entropy Collection Nightmare
 
@@ -106,6 +106,10 @@ The classic Mac OS has very little entropy, something required for high-quality 
 * The amount of time it takes for the screensaver to activate
 
 All of these sources are combined and XORed together for a pool of randomness that's sufficient for crypto operations. I wouldn't exactly call this _random_, but it's random enough to initialize the crypto subsystems in mbedtls. It works, but I make no guarantees about its security of this entropy function. *This mbedtls implementation should be considered insecure*.
+
+### Certificate Handling
+
+Yes, this code can handle certificates. 
 
 ### SSL Handshake Failures
 
