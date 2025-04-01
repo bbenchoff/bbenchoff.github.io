@@ -12,7 +12,7 @@ If I want to write Internet-aware applications _on_ a classic Mac, I need to por
 
 ![picture of the app running](/images/MacSSL1.png)
 
-![A picture of the app failed](/images/MacSSL2.pngS)
+![A picture of the app failed](/images/MacSSL2.png)
 
 ## Technical Implementation
 The client is built for Mac OS 7-9 systems using OpenTransport. Right now it's effectively a proof of concept pulling JSON data from the API on [640by480.com](https://640by480.com/), my weird little 'Instagram for vintage digital cameras'. But this works. I'm getting data over HTTPS. This is also the first time I'm aware of that a Mac SE/30 can read data over HTTPS without using a proxy server. 
