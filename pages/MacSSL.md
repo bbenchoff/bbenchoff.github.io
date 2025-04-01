@@ -297,6 +297,8 @@ static inline int uint64_is_non_zero(uint64_t x)
 
 The mbedtls library does very few operations on these 64-bit data types, zeroing the values, xor and the like, and shifting right and left. This provides a basic framework for working with 64-bit data types, but it's not automatic. Every single 64-bit operation in the code needs to be modified. There's no fast way to do this, it's simply hitting compile, looking at the next error, changing that to something that will work, and hitting compile again.
 
+After finishing this header file, I had a mostly complete 64-bit data type written for a system that really didn't support it in the first place.
+
 ### Entropy Collection Nightmare
 
 I've discoverd a great plot hole in an Asimov short story. If you're wondering how can the net amount of entropy of the universe be massively decreased, the answer isn't to use a computer trillions of years in the future, the answer is to use a computer built thirty years ago.
