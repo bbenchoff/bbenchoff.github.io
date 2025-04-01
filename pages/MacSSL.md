@@ -10,7 +10,9 @@ There is one thing holding back classic Mac development: modern web encryption. 
 
 If I want to write Internet-aware applications _on_ a classic Mac, I need to port an SSL library. That's what I did here. It's just a proof of concept, but it is a (mostly) complete port of [Mbed-TLS](https://github.com/Mbed-TLS/mbedtls) compiled on a Power Macintosh G3 desktop using Metrowerks Codewarrior Pro 4.
 
-![picture of the app running](/images/soeadsfadsfasdf)
+![picture of the app running](/images/MacSSL1.png)
+
+![A picture of the app failed](/images/MacSSL2.pngS)
 
 ## Technical Implementation
 The client is built for Mac OS 7-9 systems using OpenTransport. Right now it's effectively a proof of concept pulling JSON data from the API on [640by480.com](https://640by480.com/), my weird little 'Instagram for vintage digital cameras'. But this works. I'm getting data over HTTPS. This is also the first time I'm aware of that a Mac SE/30 can read data over HTTPS without using a proxy server. 
