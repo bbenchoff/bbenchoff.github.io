@@ -4,20 +4,44 @@ layout: default
 
 ---
 
-# A C89/C90 port of Mbed-TLS for Mac System 7/8/9
+# MacSSL
+## A port of Mbed-TLS for the Classic Macintosh OS 7/8/9
 
-There is one thing holding back classic Mac development: modern web encryption. It's a problem. Even though Macs from Performas up to the original iMac were contemporaneous with the early Internet, there are very few applications aware of the modern Internet with HTTPS, SSL, TLS, and all that computationally-expensive encryption. [Classilla](https://www.floodgap.com/software/classilla/) and [iCab](https://www.icab.de/) make a good attempt, but support for modern encryption is still limited. That's not to say it's impossible:  [SSHeven](https://github.com/cy384/ssheven) is an SSH implementation for the Mac OS 7/8/9 that also uses Mbed-TLS, though it does this through cross-compilation and [Retro68](https://github.com/autc04/Retro68/).
+This is a C89/C90 port of MbedTLS for Mac System 7/8/9. It works, and compiles under Metrowerks Codewarrior Pro 4. Here's the proof:
 
-If I want to write Internet-aware applications _on_ a classic Mac, I need to port an SSL library. That's what I did here. It's just a proof of concept, but it is a (mostly) complete port of [Mbed-TLS](https://github.com/Mbed-TLS/mbedtls) compiled on a Power Macintosh G3 desktop using Metrowerks Codewarrior Pro 4.
+![Proof of pulling an API request down](https://bbenchoff.github.io/images/640by480Client.png)
 
-![picture of the app running](/images/MacSSL1.png)
+This is a basic app that performs a GET request on whatever is in api.h, and prints the result out to the text box (with a lot of debug information, of course). The idea of this project was to build an 'app' of sorts for [640by480](https://640by480.com/), my 'instagram clone for vintage digital cameras'. The idea would be to login, post images, view images, and read comments. I would need HTTPS for that, so here we are: a port of MbedTLS for the classic mac.
 
-![A picture of the app failed](/images/MacSSL2.png)
+## What this port is based on, and limitations
 
-## Technical Implementation
-The client is built for Mac OS 7-9 systems using OpenTransport. Right now it's effectively a proof of concept pulling JSON data from the API on [640by480.com](https://640by480.com/), my weird little 'Instagram for vintage digital cameras'. But this works. I'm getting data over HTTPS. This is also the first time I'm aware of that a Mac SE/30 can read data over HTTPS without using a proxy server. 
+This port is based on [polarssl](https://github.com/cuberite/polarssl), itself a fork of [Mbed-TLS](https://github.com/Mbed-TLS/mbedtls), version 2.29.9, or thereabouts. This is a C library that implements the crypto primitives, X.509 certificate manipulation, and the SSL/TLS protocols.
 
-### SSL Implementation Challenges
+Currently, the bare minimum configuration of this library supports the following:
+
+### Ciphersuites
+* `MBEDTLS_TLS_RSA_WITH_AES_128_CBC_SHA`
+* `MBEDTLS_TLS_RSA_WITH_AES_256_CBC_SHA`
+
+### Elliptic Curves
+* `MBEDTLS_ECP_DP_SECP256R1`
+
+### Signature Algorithms
+* `SHA-256 + RSA`
+* `SHA-384 + RSA`
+* `SHA-1 + RSA`
+
+### Certificate Handling
+* Root cert `ISRG Root X1`
+* Intermediate cert `Let's Encrypt R11`
+
+All of this is wrapped up into support for `TLS 1.1`. This was enough for what _I_ wanted to do, but it provides a basic framework for adding `TLS 1.2`, additional ciphersuites like `ECDHE_RSA_WITH_CHACHA20_POLY1305_SHA256`, and more elliptic curves such as `ECP_DP_CURVE25519`. The framework is there, but if you want to add these it's going to take a little work.
+
+## The Example App
+
+This repository produces a FAT-compiled application for Mac System 7/8/9. It works through the OpenTransport library, i.e. MacTCP is not supported. This application sends a GET request to the API endpoint of a server [https://640by480.com/api/v1/posts](https://640by480.com/api/v1/posts), and returns the results to a text box, and also writes a file to the disk in the same location the application is run from. This file, `SSL-Debug.txt`, also saves the debug info from `mbedtls_debug_set_threshold()`; the value of this debug threshold can be adjusted in `SSLWrapper.c`. More info on that below.
+
+## SSL Implementation Challenges
 
 Mbedtls was written for C99 compilers, but my version of CodeWarrior only supports C89/C90. The transition required significant code modifications:
 
@@ -26,9 +50,9 @@ Mbedtls was written for C99 compilers, but my version of CodeWarrior only suppor
 * Restructuring code to declare variables at block beginnings (C89 requirement)
 * Addressing include path limitations in Mac's un-*NIX-like file system
 
-That last bit -- addressing the path limitations -- is a big one. You know how you can write `#include "mbedtls/aes.h"`, and the compiler will pull in code from the `aes.h` file that's in the `mbedtls` folder? You can't do that on a Mac! There is a text-based file location sort of _thing_ in the classic Mac OS, but I couldn't find any way to use that in Codewarrior. The solution is basically to put all the files from Mbed-TLS into the project as a flat directory. Yes, Metroworks Codewarrior has an option for DOS/UNIX-like file paths when importing files, but I couldn't figure out how to do that.
+That last bit -- addressing the path limitations -- is a big one. You know how you can write `#include "mbedtls/aes.h"`, and the compiler will pull in code from the `aes.h` file that's in the `mbedtls` folder? You can't do that on a Mac! Or at least I couldn't figure out how Codewarrior defines paths.  The solution is basically to put all the files from Mbed-TLS into the project as a flat directory.
 
-The biggest problem? **C89 doesn't support variadic macros or method overloading. 64-bit ints are completely unknown on this platform** Holy hell this is annoying as shit. If you don't know what I'm talking about, here's an example of method overloading:
+The biggest problem? **C89 doesn't support variadic macros or method overloading. 64-bit ints are completely unknown on this platform**. If you don't know what I'm talking about, here's an example of method overloading:
 
 ```c
 void print(int x);
@@ -47,7 +71,7 @@ Yeah, this was an incredibly time consuming and boring fix.
 
 ### Conversion to 64-bit data structures
 
-The mbedtls library uses 64-bit data types. `int64_t`, `uint64_t`, and the like. My compiler doesn't know what those are. So I need to create them. Out of fucking thin air and structs, I guess. This is done in a redefinition of `stdint.h`, shown below:
+The mbedtls library uses 64-bit data types. `int64_t`, `uint64_t`, and the like. My compiler doesn't know what those are. So I need to create them. This is done in a redefinition of `stdint.h`, shown below:
 
 ```c
 /*
@@ -301,7 +325,7 @@ The mbedtls library does very few operations on these 64-bit data types, zeroing
 
 After finishing this header file, I had a mostly complete 64-bit data type written for a system that really didn't support it in the first place.
 
-### Entropy Collection Nightmare
+## Entropy Collection Nightmare
 
 I've discoverd a great plot hole in an Asimov short story. If you're wondering how can the net amount of entropy of the universe be massively decreased, the answer isn't to use a computer trillions of years in the future, the answer is to use a computer built thirty years ago.
 
@@ -318,31 +342,17 @@ The classic Mac OS has very little entropy, something required for high-quality 
 
 All of these sources are combined and XORed together for a pool of randomness that's sufficient for crypto operations. I wouldn't exactly call this _random_, but it's random enough to initialize the crypto subsystems in mbedtls. It works, but I make no guarantees about its security of this entropy function. *This mbedtls implementation should be considered insecure*.
 
-### Certificate Handling
+## Certificate Handling
 
-Yes, this code can handle certificates. 
+Yes, this code can handle certificates. The current certificate handling is set to `OPTIONAL`, but it does work when `REQUIRED`.
 
-### SSL Handshake Failures
+The root certificate is the ISRG Root X1, and the intermediate certificate is the Let's Encrypt R11. This provides enough to connect to the end certificate for 640by480.com. Root certificate trust is stored in the code at SSLWrapper.c.
 
-Even after solving the entropy issues, the SSL handshake failures persisted with strange error codes:
+## Debug Log
 
-* -26880 (0xFFFF9700): MBEDTLS_ERR_SSL_FATAL_ALERT_MESSAGE
-* -30848 (0xFFFF8780): MBEDTLS_ERR_X509_UNKNOWN_VERSION
-* -30592 (0xFFFF8880): MBEDTLS_ERR_X509_CERT_VERIFY_FAILED
+As mentioned above, this app has two methods of output: it displays information (and eventually the result of the GET request) to a textbox. It also saves _everything_ to a file on disk. This bifurcation of debug information is due to the 32k limit of a TETextBox of the classic Macintosh Toolbox. This window cannot display more than 32000 characters without a bit of work, and the combination of debug information and the GET result will probably push that over the 32k limit.
 
-Resolving these required extensive config adjustments:
-
-* Disabling OS-specific modules (MBEDTLS_NET_C, MBEDTLS_TIMING_C)
-* Enabling proper certificate handling via MBEDTLS_CERTS_C
-* Removing problematic ECP implementations (MBEDTLS_ECP_INTERNAL_ALT)
-* Expanding TLS version support range (1.0-1.2)
-* Selecting compatible cipher suites for older hardware
-* Custom implementations of networking functions (ot_send, ot_recv)
-* Correct integration with mbedtls_ssl_set_bio()
-
-Flow control issues also caused misleading "SSL handshake successful" messages after failed handshakes, requiring fixes to properly handle errors and implementing better retry logic for non-blocking I/O.
-
-### Something Something
+This means I can save all of the SSL debug information to a file, and paste it here. This is the internal debug info of a connection with this app:
 
 ```
 === SSL DEBUG LOG STARTED ===
