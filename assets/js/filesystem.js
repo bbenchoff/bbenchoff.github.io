@@ -8,6 +8,11 @@ const fileSystem = {
                 type: 'folder',
                 icon: 'folder-icon.png',
                 contents: {
+                    'SSL for OS 7': {
+                        type: 'document',
+                        icon: 'Metrowerks.png',
+                        file: 'MaacSSL'
+                    },
                     'System 7 Web Theme': {
                         type: 'document',
                         icon: 'finder-icon.png',

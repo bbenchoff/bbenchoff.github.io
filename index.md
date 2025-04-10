@@ -12,6 +12,10 @@ I design, build, and reverse-engineer **hardware, embedded systems, and unconven
 ---
 
 ## **📌 Featured Projects**
+### 💻 **Coding Projects**
+🔹**[A port of Mbed-TLS for the Classic Macintosh OS 7/8/9](https://bbenchoff.github.io/pages/MacSSL.html)** -- SSL/TLS **for something that was never meant to have it**
+🔹**[Embedded SSL and GZIP](https://bbenchoff.github.io/pages/BusTideDisplay.html)** -- Because **you don't need to run everything in Linux**
+
 ### 🚗 **Restoring & Modernizing a 1970s EV**
 🔹 **[The Citicar Restoration](https://bbenchoff.github.io/pages/Citicar.html)** – Bringing a **vintage electric car back to life**  
 🔹 **[Car CAN Bus Conversion](https://bbenchoff.github.io/pages/CANconversion.html)** – Replacing **all relays & analog systems with a CAN-based network**  

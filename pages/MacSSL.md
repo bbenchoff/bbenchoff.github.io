@@ -11,6 +11,8 @@ This is a C89/C90 port of MbedTLS for Mac System 7/8/9. It works, and compiles u
 
 ![Proof of pulling an API request down](https://bbenchoff.github.io/images/640by480Client.png)
 
+And here's the repository: [https://github.com/bbenchoff/MacSSL](https://github.com/bbenchoff/MacSSL).
+
 This is a basic app that performs a GET request on whatever is in api.h, and prints the result out to the text box (with a lot of debug information, of course). The idea of this project was to build an 'app' of sorts for [640by480](https://640by480.com/), my 'instagram clone for vintage digital cameras'. The idea would be to login, post images, view images, and read comments. I would need HTTPS for that, so here we are: a port of MbedTLS for the classic mac.
 
 ## What this port is based on, and limitations
