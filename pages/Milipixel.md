@@ -14,6 +14,57 @@ Milipixel is a photo sharing app for classic Macintosh hardware focused on vinta
 
 This page details the Classic Mac client application that connects these vintage systems to the [Milipixel.com](https://milipixel.com) platform.
 
+## Features
+
+<img src="/images/MilipixelGridView.png" alt="Thumbnail Grid View" hspace="10">
+
+### Viewing Experience
+
+- **Thumbnail Grid**: A clean grid for browsing multiple images
+- **Detail View**: Full-screen viewing of individual images
+- **Adaptive Scaling**: Automatically scales images to fit window size while preserving aspect ratio
+- **EXIF Display**: Shows available camera metadata (when present, which is not often)
+- **Slideshow**: A full-screen slideshow of images, either random or your favorites.
+
+### Image Management
+
+- **Download**: Retrieve photos from the Milipixel.com platform
+- **Upload**: Send your own vintage camera photos to the service
+- **Local Storage**: Save images for offline viewing
+- **Metadata Editing**: Add titles and descriptions to your photos
+
+### Social Features
+
+- **Favorites**: Mark photos you love
+- **Comments**: View and add comments to photos
+- **User Profiles**: See collections by photographer
+
+## System Requirements
+
+- **Processor**: 68030 or better (optimized for PowerPC)
+- **RAM**: 4MB minimum, 8MB recommended
+- **System**: Mac OS 7.1 through Mac OS 9.2.2
+- **Display**: 512x384 minimum resolution
+- **Networking**: Open Transport 1.1.2 or later
+- **Storage**: 5MB for application, variable for cached images
+
+## Current Status
+
+Milipixel client v0.9 beta is available for testing. The core viewing functionality is complete, with upload capabilities still in development. The application successfully connects to the Milipixel.com API using secure HTTPS connections and properly displays JPEG images from the most popular vintage digital cameras.
+
+<div style="text-align: center">
+    <img src="/images/MilipixelProgress.png" alt="Development Progress" width="500">
+</div>
+
+## Download
+
+You can download the current beta from:
+- [Milipixel.com/downloads](https://milipixel.com/downloads)
+- [Macintosh Garden](https://macintoshgarden.org/apps/milipixel)
+- [Mac GUI](https://www.macgui.com/downloads/?file_id=42672)
+
+The client is available as a Stuffit archive (.sit) with an Installer VISE package. Both 68k and PowerPC code is included in a single fat binary.
+
 ## Technical Implementation
 The client is built for Mac OS 7-9 systems, with a particular focus on supporting the sub-megapixel digital cameras of the mid-to-late 1990s. It's a native application written in C using Metrowerks CodeWarrior Pro 4, creating a fat binary that runs on both 68k and PowerPC Macs. This was not developed in a VM; this was made on a real Power Macintosh G3 desktop and a bookcase full of Inside Macintosh.
 
@@ -88,9 +139,10 @@ Flow control issues also caused misleading "SSL handshake successful" messages a
 
 ### Memory, Resources, and Debugging
 
-///Something about memory, and resources
+Despite a lot of work, I was still getting an error during the SSL handshake. The only way I had to debug this was MbedTLS' built-in debugging capability. This usually writes to the console with `printf` statements... but the classic Mac doesn't have a console. Or `printf`, really. So I implemented my own. This reqired rewriting the debug code, then modifying all the calls to the debug code totalling about a thousand statements spread throughout the library. This was tedious.
 
-Despite a lot of work, I was still getting an error during the SSL handshake. The only way I had to debug this was MbedTLS' built-in debugging capability. This usually writes to the console with `printf` statements... but the classic Mac doesn't have a console. Or `printf`, really. So I implemented my own. This reqired rewriting the debug code, then modifying all the calls to the debug code totalling about 600 statements spread throughout the library. This was tedious.
+The basic structure of my prototype app dumped all of the debug info to a text box, specifically a TETextBox, as it is called in the Macintosh Toolbox. A TETextBox can hold somewhere around 32000 characters, after which things stop working as intended. This was fixed by also writing debug information to a file. This allowed for a complete capture of _everything_ related to the SSL handshake and I was quickly able to debug the program.
+
 
 ## Image Processing
 
@@ -190,56 +242,6 @@ SimCity 2000. As a UI this is brilliant. At the top, there's a menu bar, which g
 
 So the UI is settled -- I'll use a main window where the viewport is a much larger virtual canvas where I'll put the thumbnails. The zoom control means I don't necessarily need to worry about dozens of different resolutions. Drop a dozen or so images on a gigantic viewport, and I can zoom and scroll to my heart's delight. Clicking on an image opens up a new window with the 'large' version of the pic and the author, description, and comments for that post. SimCity 2000 is the inspiration for the UI, and it will work really, really well.
 
-## Features
-
-<img src="/images/MilipixelGridView.png" alt="Thumbnail Grid View" hspace="10">
-
-### Viewing Experience
-
-- **Thumbnail Grid**: A clean grid for browsing multiple images
-- **Detail View**: Full-screen viewing of individual images
-- **Adaptive Scaling**: Automatically scales images to fit window size while preserving aspect ratio
-- **EXIF Display**: Shows available camera metadata (when present, which is not often)
-- **Slideshow**: A full-screen slideshow of images, either random or your favorites.
-
-### Image Management
-
-- **Download**: Retrieve photos from the Milipixel.com platform
-- **Upload**: Send your own vintage camera photos to the service
-- **Local Storage**: Save images for offline viewing
-- **Metadata Editing**: Add titles and descriptions to your photos
-
-### Social Features
-
-- **Favorites**: Mark photos you love
-- **Comments**: View and add comments to photos
-- **User Profiles**: See collections by photographer
-
-## System Requirements
-
-- **Processor**: 68030 or better (optimized for PowerPC)
-- **RAM**: 4MB minimum, 8MB recommended
-- **System**: Mac OS 7.1 through Mac OS 9.2.2
-- **Display**: 512x384 minimum resolution
-- **Networking**: Open Transport 1.1.2 or later
-- **Storage**: 5MB for application, variable for cached images
-
-## Current Status
-
-Milipixel client v0.9 beta is available for testing. The core viewing functionality is complete, with upload capabilities still in development. The application successfully connects to the Milipixel.com API using secure HTTPS connections and properly displays JPEG images from the most popular vintage digital cameras.
-
-<div style="text-align: center">
-    <img src="/images/MilipixelProgress.png" alt="Development Progress" width="500">
-</div>
-
-## Download
-
-You can download the current beta from:
-- [Milipixel.com/downloads](https://milipixel.com/downloads)
-- [Macintosh Garden](https://macintoshgarden.org/apps/milipixel)
-- [Mac GUI](https://www.macgui.com/downloads/?file_id=42672)
-
-The client is available as a Stuffit archive (.sit) with an Installer VISE package. Both 68k and PowerPC code is included in a single fat binary.
 
 ## Development Notes
 
