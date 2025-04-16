@@ -10,7 +10,7 @@ layout: default
 
 ## What is Milipixel?
 
-Milipixel is a photo sharing app for classic Macintosh hardware focused on vintage digital photography. The platform celebrates the distinctive CCD sensor aesthetic of early digital cameras like the Apple QuickTake, Kodak DCS-420, early Sony Mavica, and Casio QV series.
+Milipixel is an online photo sharing app for classic Macintosh hardware focused on vintage digital photography. The platform celebrates the distinctive CCD sensor aesthetic of early digital cameras like the Apple QuickTake, Kodak DCS-420, early Sony Mavica, and Casio QV series. It's Internet-aware, meaning you can upload your pictures to the web, download pictures from other photographers, as well as comment, like, and share pictures you find interesting. It's Instagram or Flickr, if it was built in 1994, and available only for Macintosh computers.
 
 This page details the Classic Mac client application that connects these vintage systems to the [Milipixel.com](https://milipixel.com) platform.
 
@@ -39,15 +39,6 @@ This page details the Classic Mac client application that connects these vintage
 - **Comments**: View and add comments to photos
 - **User Profiles**: See collections by photographer
 
-## System Requirements
-
-- **Processor**: 68030 or better (optimized for PowerPC)
-- **RAM**: 4MB minimum, 8MB recommended
-- **System**: Mac OS 7.1 through Mac OS 9.2.2
-- **Display**: 512x384 minimum resolution
-- **Networking**: Open Transport 1.1.2 or later
-- **Storage**: 5MB for application, variable for cached images
-
 ## Current Status
 
 Milipixel client v0.9 beta is available for testing. The core viewing functionality is complete, with upload capabilities still in development. The application successfully connects to the Milipixel.com API using secure HTTPS connections and properly displays JPEG images from the most popular vintage digital cameras.
@@ -65,7 +56,18 @@ You can download the current beta from:
 
 The client is available as a Stuffit archive (.sit) with an Installer VISE package. Both 68k and PowerPC code is included in a single fat binary.
 
-## Technical Implementation
+## System Requirements
+
+- **Processor**: 68030 or better (optimized for PowerPC)
+- **RAM**: 4MB minimum, 8MB recommended
+- **System**: Mac OS 7.1 through Mac OS 9.2.2
+- **Display**: 512x384 minimum resolution
+- **Networking**: Open Transport 1.1.2 or later
+- **Storage**: 5MB for application, variable for cached images
+
+<hr>
+
+# Technical Implementation
 The client is built for Mac OS 7-9 systems, with a particular focus on supporting the sub-megapixel digital cameras of the mid-to-late 1990s. It's a native application written in C using Metrowerks CodeWarrior Pro 4, creating a fat binary that runs on both 68k and PowerPC Macs. This was not developed in a VM; this was made on a real Power Macintosh G3 desktop and a bookcase full of Inside Macintosh.
 
 ## Networking Stack
