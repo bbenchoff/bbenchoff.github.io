@@ -6,7 +6,7 @@ layout: default
 
 # Milipixel: A Classic Mac Client for Vintage Digital Photography
 
-![Milipixel Box Art](/images/MilipixelBoxArt.png)
+<center>![Milipixel Box Art](/images/MilipixelBoxArt.png)</center>
 
 ## What is Milipixel?
 
@@ -220,7 +220,7 @@ Future work will go into supporting the QuickTake camera's direct connection cap
 
 ## About the Developer
 
-I'm a vintage Mac enthusiast focused on creating software that connects classic machines to modern services. My other projects include [GitRez](https://github.com/bbenchoff/GitRez), a GitHub client for Classic Mac OS, and [Nedry](https://github.com/bbenchoff/Nedry), a recreation of the Unix system seen in Jurassic Park.
+I'm a vintage Mac enthusiast focused on creating software that connects classic machines to modern services. My other projects include [GitRez](https://github.com/bbenchoff/GitRez), a GitHub client for Classic Mac OS, and [Nedry](https://github.com/bbenchoff/Nedry), a recreation of the "UNIX system" seen in Jurassic Park.
 
 [back to main page](../)
 
