@@ -68,10 +68,10 @@ The client is available as a Stuffit archive (.sit) with an Installer VISE packa
 <hr>
 
 # Technical Implementation
-The client is built for Mac OS 7-9 systems, with a particular focus on supporting the sub-megapixel digital cameras of the mid-to-late 1990s. It's a native application written in C using Metrowerks CodeWarrior Pro 4, creating a fat binary that runs on both 68k and PowerPC Macs. This was not developed in a VM; this was made on a real Power Macintosh G3 desktop and a bookcase full of Inside Macintosh.
+The client is built for Mac OS 7-9 systems, with a particular focus on supporting the sub-megapixel digital cameras of the mid-to-late 1990s. It's a native application written in C using Metrowerks CodeWarrior Pro 4, creating a fat binary that runs on both 68k and PowerPC Macs. This was not developed in a VM; this was made on a real Power Macintosh G3 desktop and a bookcase full of Inside Macintosh volumes.
 
 ## Networking Stack
-There are several Internet-aware applications for the Classic Mac OS, but the biggest limitation for this ecosystem is the absence of a SSL and TLS. Without SSL and TLS, you can't open a website that begins with HTTPS, and doing anything like 'logging in' and 'pulling from the API' are fever dreams of madmen. I _have_ to get SSL and TLS working before doing anything else.
+There are several Internet-aware applications for the Classic Mac OS, but the biggest limitation for this ecosystem is the absence of a SSL and TLS. Without SSL and TLS, you can't open a website that begins with HTTPS, and doing anything like 'logging in' and 'pulling from the API' are fever dreams of madmen. I _had_ to get SSL and TLS working before doing anything else.
 
 The application uses Open Transport for its core networking capabilities, but Open Transport does not have SSL/TLS functionality. The [Mbed-TLS](https://github.com/Mbed-TLS/mbedtls) library is a small, portable TLS library that will give me what I need. There is proof it will work with my system; [SSHeven](https://github.com/cy384/ssheven) is an SSH implementation for the Mac OS 7/8/9 that also uses mbedtls, though it does this through cross-compilation and [Retro68](https://github.com/autc04/Retro68/). All I need to do is port the mbedtls code to something that will compile and run in Codewarrior. 
 
@@ -85,66 +85,33 @@ Mbedtls was written for C99 compilers, but my version of CodeWarrior only suppor
 
 That last bit -- addressing the path limitations -- is a big one. You know how you can write `#include "mbedtls/aes.h"`, and the compiler will pull in code from the `aes.h` file that's in the `mbedtls` folder? You can't do that on a Mac! There is a text-based file location sort of _thing_ in the classic Mac OS, but I couldn't find any way to use that in Codewarrior. Yeah, it was fun.
 
-The biggest problem? **C89 doesn't support variadic macros or method overloading. 64-bit ints are completely unknown on this platform** Holy hell this is annoying as shit. If you don't know what I'm talking about, here's an example of method overloading:
-
-```c
-void print(int x);
-void print(const char* s);
-```
-
-Those are two functions, both of them return nothing, but one of them takes an int, and the other a string. _They're both named the same thing_. This works if you have method overloading, like is found in C99. C89/90 doesn't have it, and it's a bitch and a half to port C89 code to C99 because of this. This also shows up in variadic macros, which I believe is a portmanteau of _variable argument_. It's something like this
-
-```c
-#define superprint(...) fprintf(stderr, __VA_ARGS__);
-```
-
-This is a way to do something like method overloading, but using the preprocessor instead of the language itself. Obviously we see more method overloading this century simply because languages support it now, so different names for the same thing, I guess.
-
-Yeah, this was an incredibly time consuming and boring fix. But now I have a C89 port of mbedtls.
+The biggest problem? **C89 doesn’t support method overloading or variadic macros**—two things modern C devs take for granted. That means no superprint(...) macros and no same-name functions that take different arguments. Refactoring this across a massive library like mbedtls? Painful. This was an incredibly time consuming and boring fix, but now I have a C89 port of mbedtls.
 
 ### Entropy Collection Nightmare
 
-I've discoverd a great plot hole in an Asimov short story. If you're wondering how can the net amount of entropy of the universe be massively decreased, the answer isn't to use a computer trillions of years in the future, the answer is to use a computer built thirty years ago.
+I've discovered a great plot hole in an Asimov short story. If you're wondering how to massively reduce the net entropy of the universe, forget about a computer trillions of years in the future. Just use one built thirty years ago.
 
-The classic Mac OS has very little entropy, something required for high-quality randomness. This meant my SSL implementation gave the error code `MBEDTLS_ERR_ENTROPY_SOURCE_FAILED`. I created a custom entropy collection system that draws from multiple sources:
-
-* System clock and tick counts at microsecond resolution
-* Mouse movement tracking
-* Memory states and allocation patterns
-* Hardware timing variations
-* Network packet timing with OTGetTimeStamp()
-* TCP sequence numbers and connection statistics
-* Time delays between user interactions
-* The amount of time it takes for the screensaver to activate
+The classic Mac OS has very little entropy, something required for high-quality randomness. This meant my SSL implementation gave the error code `MBEDTLS_ERR_ENTROPY_SOURCE_FAILED`. I created a custom entropy collection system that draws from multiple sources including: • System clock at microsecond resolution • Mouse movement tracking • Hardware timing variation • Network packet timing with `OTGetTimeStamp()` • The name of files in the System folder • The amount of time it takes for the screensaver to activate
 
 All of these sources are combined and XORed together for a pool of randomness that's sufficient for crypto operations. I wouldn't exactly call this _random_, but it's random enough to initialize the crypto subsystems in mbedtls. It works, but I make no guarantees about its security of this entropy function. *This mbedtls implementation should be considered insecure*.
 
 ### SSL Handshake Failures
 
-Even after solving the entropy issues, the SSL handshake failures persisted with strange error codes:
+Getting entropy working was only half the battle. The SSL handshake was still failing—often, and with cryptic error codes like:
 
-* -26880 (0xFFFF9700): MBEDTLS_ERR_SSL_FATAL_ALERT_MESSAGE
-* -30848 (0xFFFF8780): MBEDTLS_ERR_X509_UNKNOWN_VERSION
-* -30592 (0xFFFF8880): MBEDTLS_ERR_X509_CERT_VERIFY_FAILED
+* 26880 (0xFFFF9700): MBEDTLS_ERR_SSL_FATAL_ALERT_MESSAGE
+* 30848 (0xFFFF8780): MBEDTLS_ERR_X509_UNKNOWN_VERSION
+* 30592 (0xFFFF8880): MBEDTLS_ERR_X509_CERT_VERIFY_FAILED
 
-Resolving these required extensive config adjustments:
+Fixing these handshake issues required a full audit of the mbedTLS configuration. I disabled OS-specific modules like `MBEDTLS_NET_C` and `MBEDTLS_TIMING_C`, and enabled proper certificate support with `MBEDTLS_CERTS_C`. I removed problematic elliptic curve code such as `MBEDTLS_ECP_INTERNAL_ALT`, since it wasn’t needed and tended to break things. I expanded support for older TLS versions, allowing 1.0 through 1.2—because anything newer simply doesn’t work on this hardware. A carefully selected set of cipher suites was chosen to avoid overloading these ancient machines. I also had to write custom `ot_send` and `ot_recv` functions for Open Transport, and hook them into `mbedtls_ssl_set_bio()` to make sure the I/O layer actually routed data where it was supposed to.
 
-* Disabling OS-specific modules (MBEDTLS_NET_C, MBEDTLS_TIMING_C)
-* Enabling proper certificate handling via MBEDTLS_CERTS_C
-* Removing problematic ECP implementations (MBEDTLS_ECP_INTERNAL_ALT)
-* Expanding TLS version support range (1.0-1.2)
-* Selecting compatible cipher suites for older hardware
-* Custom implementations of networking functions (ot_send, ot_recv)
-* Correct integration with mbedtls_ssl_set_bio()
-
-Flow control issues also caused misleading "SSL handshake successful" messages after failed handshakes, requiring fixes to properly handle errors and implementing better retry logic for non-blocking I/O.
+Then there was a fun little surprise: flow control bugs in the SSL stack sometimes threw up false positives—reporting “handshake successful” even when the handshake had actually failed. I had to dig into the error handling and implement proper retry logic, especially around non-blocking sockets. It wasn’t just broken—it was misleadingly broken. Great.
 
 ### Memory, Resources, and Debugging
 
 Despite a lot of work, I was still getting an error during the SSL handshake. The only way I had to debug this was MbedTLS' built-in debugging capability. This usually writes to the console with `printf` statements... but the classic Mac doesn't have a console. Or `printf`, really. So I implemented my own. This reqired rewriting the debug code, then modifying all the calls to the debug code totalling about a thousand statements spread throughout the library. This was tedious.
 
 The basic structure of my prototype app dumped all of the debug info to a text box, specifically a TETextBox, as it is called in the Macintosh Toolbox. A TETextBox can hold somewhere around 32000 characters, after which things stop working as intended. This was fixed by also writing debug information to a file. This allowed for a complete capture of _everything_ related to the SSL handshake and I was quickly able to debug the program.
-
 
 ## Image Processing
 
@@ -232,7 +199,7 @@ void OptimizeMemoryUsage(void) {
 
 ## The UI
 
-Milipixel supports a truly vast range of screen resolutions from `512x342` of the 68030 compact Macs (and the LC II I'm using for testing) up to `1024x768` and higher. By counting the number of pixels, the range of resolutions is _an order of magnitude_. Today we can take for granted that a picture 1024 posted to the Internet will look good -- everyone's screen is that wide, and if it's not the operating system will scale it properly. Not so on the Mac! I struggled some time coming up with a user interface that would work as well with an SE/30 as it would with a Bondi Blue iMac.
+Milipixel supports a truly vast range of screen resolutions from `512x342` of the 68030 compact Macs (and the LC II I'm using for testing) up to `1024x768` and higher. By counting the number of pixels, the range of resolutions is nearly _an order of magnitude_. Today we can take for granted that a picture 1024 posted to the Internet will look good -- everyone's screen is that wide, and if it's not the operating system will scale it properly. Not so on the Mac! I struggled some time coming up with a user interface that would work as well with an SE/30 as it would with a Bondi Blue iMac.
 
 The initial idea was to capitalize on the server-side resizing of [640by480.com](https://640by480.com/). When uploading a file to the website, it resizes that image to two sizes -- one with a bounding box of 250x250, and another with a bounding box of 640x640. If the aspect ratio is correct, this means I will get an images either `250x187` or `187x250`, and `640x480` or `480x640`. Displaying thumbnails on the smallest screen is of paramount importance, but unfortunately with a screen resolution of `512x324` I could only display two images at a time -- not exactly an 'instagram built in 1994' experience.
 
