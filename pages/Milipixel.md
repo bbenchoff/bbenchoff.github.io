@@ -6,7 +6,9 @@ layout: default
 
 # Milipixel: A Classic Mac Client for Vintage Digital Photography
 
-<center>![Milipixel Box Art](/images/MilipixelBoxArt.png)</center>
+<center>
+![Milipixel Box Art](/images/MilipixelBoxArt.png)
+</center>
 
 ## What is Milipixel?
 
