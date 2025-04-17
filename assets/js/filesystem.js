@@ -11,7 +11,7 @@ const fileSystem = {
                     'SSL for OS 7': {
                         type: 'document',
                         icon: 'Metrowerks.png',
-                        file: 'MaacSSL'
+                        file: 'MacSSL'
                     },
                     'System 7 Web Theme': {
                         type: 'document',
