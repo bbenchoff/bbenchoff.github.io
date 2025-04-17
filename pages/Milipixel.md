@@ -68,8 +68,11 @@ The client is available as a Stuffit archive (.sit) with an Installer VISE packa
 
 <hr>
 
+<img style="float: right;" alt="The Metrowerks Guy" src="http://https://bbenchoff.github.io/images/MetrowerksCD.png">
 # Technical Implementation
-The client is built for Mac OS 7-9 systems, with a particular focus on supporting the sub-megapixel digital cameras of the mid-to-late 1990s. It's a native application written in C using Metrowerks CodeWarrior Pro 4, creating a fat binary that runs on both 68k and PowerPC Macs. This was not developed in a VM; this was made on a real Power Macintosh G3 desktop and a bookcase full of Inside Macintosh volumes.
+The client is built for Mac OS 7-9 systems, with a particular focus on supporting the sub-megapixel digital cameras of the mid-to-late 1990s. It's a native application written in C using Metrowerks CodeWarrior Pro 4, creating a fat binary that runs on both 68k and PowerPC Macs.
+
+This was not developed in a VM; this was made on a real Power Macintosh G3 desktop and a bookcase full of Inside Macintosh volumes. It was tested on a Mac LC II running System 7.1 and Open Transport 1.1.2, with an LC PDS Ethernet card and 10 Megs of RAM. This is as close to _real hardware_ as you would ever want classic Mac development to get.
 
 ## Networking Stack
 ### Making TLS Work On A Computer From 1991
