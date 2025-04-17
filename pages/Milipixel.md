@@ -72,50 +72,18 @@ The client is available as a Stuffit archive (.sit) with an Installer VISE packa
 The client is built for Mac OS 7-9 systems, with a particular focus on supporting the sub-megapixel digital cameras of the mid-to-late 1990s. It's a native application written in C using Metrowerks CodeWarrior Pro 4, creating a fat binary that runs on both 68k and PowerPC Macs. This was not developed in a VM; this was made on a real Power Macintosh G3 desktop and a bookcase full of Inside Macintosh volumes.
 
 ## Networking Stack
-There are several Internet-aware applications for the Classic Mac OS, but the biggest limitation for this ecosystem is the absence of a SSL and TLS. Without SSL and TLS, you can't open a website that begins with HTTPS, and doing anything like 'logging in' and 'pulling from the API' are fever dreams of madmen. I _had_ to get SSL and TLS working before doing anything else.
+### Making TLS Work On A Computer From 1991
+Classic Mac OS lacks SSL/TLS support, making secure HTTPS connections impossible. [I ported Mbed-TLS to create MacSSL](https://bbenchoff.github.io/pages/MacSSL.html), battling C89's limitations (no method overloading, no variadic macros) and ancient file system constraints. This was painful, and about half of the total amount of work that went into Milipixel.
 
-The application uses Open Transport for its core networking capabilities, but Open Transport does not have SSL/TLS functionality. The [Mbed-TLS](https://github.com/Mbed-TLS/mbedtls) library is a small, portable TLS library that will give me what I need. There is proof it will work with my system; [SSHeven](https://github.com/cy384/ssheven) is an SSH implementation for the Mac OS 7/8/9 that also uses mbedtls, though it does this through cross-compilation and [Retro68](https://github.com/autc04/Retro68/). All I need to do is port the mbedtls code to something that will compile and run in Codewarrior. 
-
-### SSL Implementation Challenges
-
-Mbedtls was written for C99 compilers, but my version of CodeWarrior only supports C89/C90. The transition required significant code modifications:
-
-* Creating compatibility layers for modern C integer types
-* Restructuring code to declare variables at block beginnings (C89 requirement)
-* Addressing include path limitations in Mac's archaic file system
-
-That last bit -- addressing the path limitations -- is a big one. You know how you can write `#include "mbedtls/aes.h"`, and the compiler will pull in code from the `aes.h` file that's in the `mbedtls` folder? You can't do that on a Mac! There is a text-based file location sort of _thing_ in the classic Mac OS, but I couldn't find any way to use that in Codewarrior. Yeah, it was fun.
-
-The biggest problem? **C89 doesn’t support method overloading or variadic macros**—two things modern C devs take for granted. That means no superprint(...) macros and no same-name functions that take different arguments. Refactoring this across a massive library like mbedtls? Painful. This was an incredibly time consuming and boring fix, but now I have a C89 port of mbedtls.
-
-### Entropy Collection Nightmare
-
+### Inventing Randomness
 I've discovered a great plot hole in an Asimov short story. If you're wondering how to massively reduce the net entropy of the universe, forget about a computer trillions of years in the future. Just use one built thirty years ago.
 
-The classic Mac OS has very little entropy, something required for high-quality randomness. This meant my SSL implementation gave the error code `MBEDTLS_ERR_ENTROPY_SOURCE_FAILED`. I created a custom entropy collection system that draws from multiple sources including: • System clock at microsecond resolution • Mouse movement tracking • Hardware timing variation • Network packet timing with `OTGetTimeStamp()` • The name of files in the System folder • The amount of time it takes for the screensaver to activate
+The classic Mac OS has virtually no entropy for cryptography, giving me `MBEDTLS_ERR_ENTROPY_SOURCE_FAILED` errors. My solution combines system clock, mouse movements, file system data, and even screen saver timing to create just enough randomness to initialize the crypto subsystems. It's not _truly_ random, but it's random enough to work. _This should not in any way be considered secure_, but it's enough to complete an SSL handshake
 
-All of these sources are combined and XORed together for a pool of randomness that's sufficient for crypto operations. I wouldn't exactly call this _random_, but it's random enough to initialize the crypto subsystems in mbedtls. It works, but I make no guarantees about its security of this entropy function. *This mbedtls implementation should be considered insecure*.
-
-### SSL Handshake Failures
-
-Getting entropy working was only half the battle. The SSL handshake was still failing—often, and with cryptic error codes like:
-
-* 26880 (0xFFFF9700): MBEDTLS_ERR_SSL_FATAL_ALERT_MESSAGE
-* 30848 (0xFFFF8780): MBEDTLS_ERR_X509_UNKNOWN_VERSION
-* 30592 (0xFFFF8880): MBEDTLS_ERR_X509_CERT_VERIFY_FAILED
-
-Fixing these handshake issues required a full audit of the mbedTLS configuration. I disabled OS-specific modules like `MBEDTLS_NET_C` and `MBEDTLS_TIMING_C`, and enabled proper certificate support with `MBEDTLS_CERTS_C`. I removed problematic elliptic curve code such as `MBEDTLS_ECP_INTERNAL_ALT`, since it wasn’t needed and tended to break things. I expanded support for older TLS versions, allowing 1.0 through 1.2—because anything newer simply doesn’t work on this hardware. A carefully selected set of cipher suites was chosen to avoid overloading these ancient machines. I also had to write custom `ot_send` and `ot_recv` functions for Open Transport, and hook them into `mbedtls_ssl_set_bio()` to make sure the I/O layer actually routed data where it was supposed to.
-
-Then there was a fun little surprise: flow control bugs in the SSL stack sometimes threw up false positives—reporting “handshake successful” even when the handshake had actually failed. I had to dig into the error handling and implement proper retry logic, especially around non-blocking sockets. It wasn’t just broken—it was misleadingly broken. Great.
-
-### Memory, Resources, and Debugging
-
-Despite a lot of work, I was still getting an error during the SSL handshake. The only way I had to debug this was MbedTLS' built-in debugging capability. This usually writes to the console with `printf` statements... but the classic Mac doesn't have a console. Or `printf`, really. So I implemented my own. This reqired rewriting the debug code, then modifying all the calls to the debug code totalling about a thousand statements spread throughout the library. This was tedious.
-
-The basic structure of my prototype app dumped all of the debug info to a text box, specifically a TETextBox, as it is called in the Macintosh Toolbox. A TETextBox can hold somewhere around 32000 characters, after which things stop working as intended. This was fixed by also writing debug information to a file. This allowed for a complete capture of _everything_ related to the SSL handshake and I was quickly able to debug the program.
+### Getting Let's Encrypt To Trust Me
+After countless handshake failures with cryptic error codes, I configured MacSSL to handle ISRG Root X1 and Let's Encrypt R11 certificates, with custom `ot_send` and `ot_recv` functions for Open Transport. The full MacSSL implementation [is on GitHub for other vintage Mac developers](https://github.com/bbenchoff/MacSSL).
 
 ## Image Processing
-
 For JPEG decoding, I've integrated Aaron Giles' JPEG library, specifically designed for Classic Mac OS systems. This optimized library provides efficient decoding even on 68k processors, allowing smooth display of images on systems ranging from an SE/30 to PowerPC machines.
 
 ```c
