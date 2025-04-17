@@ -68,7 +68,7 @@ The client is available as a Stuffit archive (.sit) with an Installer VISE packa
 
 <hr>
 
-<img style="float: right;" alt="The Metrowerks Guy" src="http://https://bbenchoff.github.io/images/MetrowerksCD.png">
+<img style="float: right;" alt="The Metrowerks Guy" src="https://bbenchoff.github.io/images/MetrowerksCD.png">
 # Technical Implementation
 The client is built for Mac OS 7-9 systems, with a particular focus on supporting the sub-megapixel digital cameras of the mid-to-late 1990s. It's a native application written in C using Metrowerks CodeWarrior Pro 4, creating a fat binary that runs on both 68k and PowerPC Macs.
 
