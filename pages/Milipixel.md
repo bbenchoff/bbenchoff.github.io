@@ -171,7 +171,7 @@ void OptimizeMemoryUsage(void) {
 
 ## The UI
 
-Milipixel supports a truly vast range of screen resolutions from `512x342` of the 68030 compact Macs (and the LC II I'm using for testing) up to `1024x768` and higher. By counting the number of pixels, the range of resolutions is nearly _an order of magnitude_. Today we can take for granted that a picture 1024 posted to the Internet will look good -- everyone's screen is that wide, and if it's not the operating system will scale it properly. Not so on the Mac! I struggled some time coming up with a user interface that would work as well with an SE/30 as it would with a Bondi Blue iMac.
+Milipixel supports a truly vast range of screen resolutions from `512x342` of the 68030 compact Macs (and the LC II I'm using for testing) up to `1024x768` and higher. By counting the number of pixels, the range of resolutions is nearly _an order of magnitude_. Today we can take for granted that a picture 1024 pixels wide posted to the Internet will look good -- everyone's screen is that wide, and if it's not the operating system will scale it properly. Not so on the Mac! I struggled some time coming up with a user interface that would work as well with an SE/30 as it would with a Bondi Blue iMac.
 
 The initial idea was to capitalize on the server-side resizing of [640by480.com](https://640by480.com/). When uploading a file to the website, it resizes that image to two sizes -- one with a bounding box of 250x250, and another with a bounding box of 640x640. If the aspect ratio is correct, this means I will get an images either `250x187` or `187x250`, and `640x480` or `480x640`. Displaying thumbnails on the smallest screen is of paramount importance, but unfortunately with a screen resolution of `512x324` I could only display two images at a time -- not exactly an 'instagram built in 1994' experience.
 
@@ -181,8 +181,11 @@ I needed inspiration on how to lay these images out on a screen, so I turned to 
 
 SimCity 2000. As a UI this is brilliant. At the top, there's a menu bar, which gives me the File menu, a View menu, and even an Edit menu for copy and paste. The main screen is the map view, with scroll bars, and I can scroll around the entire screen. This window can be moved and resized. It's exactly what I need.
 
-So the UI is settled -- I'll use a main window where the viewport is a much larger virtual canvas where I'll put the thumbnails. The zoom control means I don't necessarily need to worry about dozens of different resolutions. Drop a dozen or so images on a gigantic viewport, and I can zoom and scroll to my heart's delight. Clicking on an image opens up a new window with the 'large' version of the pic and the author, description, and comments for that post. SimCity 2000 is the inspiration for the UI, and it will work really, really well.
+![Quick and dirty prototype of the UI](/images/MilipixelUI.png)
 
+The above render shows a 1:1 prototype of what I'm going for. All thumbnails will be rendered on a large canvas with scroll bars enabled. On small displays, this canvas will be scaled to 50%. On large displays, the thumbnails will be rendered at full size. Clicking on a thumbnail opens up a new window with the 'detail' view -- the image at full resolution, along with the author, description, and whatever comments are attached to that image.
+
+There is one downside to this approach. The canvas view will be rather large, at least seven or eight hundred pixels square. This is at least half a megabyte of memory, double that if we're using 16-bit color. It's a lot for the older systems I'm targeting, but _this_ is how you do the UI for an Instagram clone built in 1994. I can't figure out a way to do this that looks better.
 
 ## Development Notes
 
