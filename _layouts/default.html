@@ -14,7 +14,32 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
     <title>{{ site.title | default: site.github.repository_name }}</title>
-    
+
+    <!-- Add SEO meta description -->
+    <meta name="description" content="{{ page.description | default: site.description | default: 'San Francisco hardware and embedded engineer.' }}">
+
+    <!-- Add JSON-LD Person Schema -->
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "Person",
+        "name": "Brian Benchoff",
+        "jobTitle": "Hardware Engineer",
+        "url": "{{ site.url }}",
+        "address": {
+        "@type": "PostalAddress",
+        "addressLocality": "San Francisco",
+        "addressRegion": "CA",
+        "addressCountry": "US"
+        },
+        "sameAs": [
+        "https://github.com/bbenchoff",
+        "https://twitter.com/BBenchoff",
+        "https://www.linkedin.com/in/bbenchoff/"
+        ]
+    }
+    </script>
+        
     <!-- Add Prism CSS for code highlighting -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css" rel="stylesheet" />
     <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/line-numbers/prism-line-numbers.min.css" rel="stylesheet" />
