@@ -12,6 +12,64 @@
     
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    {%- assign site_desc = site.description | default: "San Francisco hardware engineer building IoT, CAN-bus EV, and retro-tech projects." -%}
+    {%- assign desc = page.description
+                    | default: page.excerpt
+                    | default: site_desc
+                    | strip_html | strip_newlines
+                    | truncate: 160 -%}
+    <meta name="description" content="{{ desc }}">
+    
+
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      {% if page.url == "/" %}
+      "@type": "Person",
+      "@id": "{{ site.url }}#me",
+      "name": "Brian Benchoff",
+      "jobTitle": "Hardware Engineer",
+      "url": "{{ site.url }}",
+      "image": "{{ site.url }}/assets/profile.jpg",
+      "address": {
+        "@type": "PostalAddress",
+        "addressLocality": "San Francisco",
+        "addressRegion": "CA",
+        "addressCountry": "US"
+      },
+      "sameAs": [
+        "https://github.com/bbenchoff",
+        "https://twitter.com/yourhandle",
+        "https://www.linkedin.com/in/your-linkedin/"
+      ],
+      "knowsAbout": [
+        {%- comment -%}
+          Build the array by scanning every post’s tags AND the
+          explicit list you keep in _data/knowsabout.yml (optional).
+        {%- endcomment -%}
+        {%- assign kb = site.data.knowsabout | default: "" -%}
+        {%- capture tagstring -%}{% for p in site.posts %}{% for t in p.tags %}{{ t }}|{% endfor %}{% endfor %}{%- endcapture -%}
+        {%- assign tagset = tagstring | split:"|" | uniq | sort -%}
+        {%- assign total = tagset | concat: kb -%}
+        {%- assign uniq_total = total | uniq -%}
+        {%- for word in uniq_total -%}
+          "{{ word | strip }}"{% if forloop.last == false %},{% endif %}
+        {%- endfor -%}
+      ]
+      {% else %}
+      "@type": "BlogPosting",
+      "headline": "{{ page.title | xml_escape }}",
+      "description": "{{ desc | xml_escape }}",
+      "author": { "@id": "{{ site.url }}#me" },
+      "mainEntityOfPage": { "@type": "WebPage", "@id": "{{ site.url }}{{ page.url }}" },
+      "image": "{{ page.image | default: site.url | append: '/assets/og-default.jpg' }}",
+      "datePublished": "{{ page.date | date_to_xmlschema }}",
+      "dateModified": "{{ page.last_modified_at | default: page.date | date_to_xmlschema }}"
+      {% endif %}
+    }
+    </script>    
+    
     <title>{{ site.title | default: site.github.repository_name }}</title>
     
     <!-- Add Prism CSS for code highlighting -->
