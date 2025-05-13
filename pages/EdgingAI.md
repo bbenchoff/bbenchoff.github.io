@@ -4,7 +4,7 @@ layout: default
 
 ---
 
-# Datacenter GPUs and a Raspberry Pi
+# Raspberry Pis and Datacenter GPUs
 ## or, I Built an Offline LLM Box: Pi CM5 + A100 = 80 tokens/sec in a Shoebox
 
 I'm reasonably impressed with the state of AI in 2025, but the wizened computer nerd in me hates that everything is cloud-based and reliant on an Internet connection. The 1337 haxxor hates that all the data goes off into a Microsoft datacenter. And the electrical engineer part of me wants to fix this.
