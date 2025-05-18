@@ -30,180 +30,40 @@ While most off-the-shelf ARM chips can't run datacenter silicon, a few parts can
  
  _Sidenote: The NXP LS1046A might also work — it uses the same SerDes blocks and supports PCIe Gen 3 — but documentation on its BAR sizing and IOMMU support is sparse. It’s significantly cheaper, so I’ll be testing it as a lower-cost path forward. NXP engineers please reach out!_
 
-Sure it will pull four or five hundred Watts, but there's a market for what is basically a Raspberry Pi attached to a monstrous GPU with dozens of Teraflops per second of computing horsepower.
+To that end, and before spending weeks routing DDR4 and PCIe, I found an LX2160A single board computer on eBay. This board, a SolidRun LX2160A-CEX7 with ClearFog ITX breakout board, allowed me to test the hardware stack and provided me with a standard PCIe slot for testing various GPUs. For the OS, I installed Ubuntu 22.04 ARM64 with kernel 6.8‑rc7, adding the boot flags `pci=realloc,resizable_bar=1` to ensure the PCIe subsystem was properly configured. The board idled at just 11W without a GPU - impressively efficient for a 16-core system.
 
-Let's think through what's actually moving between the CPU and GPU during inference:
-1. Initially, the model weights (~5-50GB depending on model size) are loaded to GPU memory
-2. The prompt tokens are sent to the GPU (tiny, a few kilobytes)
-3. The GPU computes the next token and sends it back (again, bytes)
-4. Repeat steps 2-3 until completion
+The ClearFog has two PCIe slots: one x8 and one x16 (electrically x8). This gives me options for GPU placement. The x16 slot will make it easier to use standard GPUs without adapters. Time to connect a real GPU and see if the theory holds up.
 
-The bottlenecks in traditional server architecture are excessive for this use case:
-- 12+ core CPUs (unnecessary for inference)
-- Enterprise-grade motherboards (expensive)
-- Multiple PCIe slots (only need one)
-- Server-grade power supplies (complex, loud)
-
-What's the minimum viable system? I need:
-- A CPU with PCIe lanes (modest performance is fine)
-- Single PCIe x16 connection for the GPU
-- Power delivery for the GPU
-- Basic I/O
-- Linux support
-
-My first thought is to use a Raspberry Pi Compute Module. The CM4 has PCIe Gen 2 x1, which is a start but not ideal. The upcoming CM5 is rumored to have PCIe Gen 3 x4, which would be significantly better. Let's see what's possible.
-
-## BAR Size and Memory Mapping Woes
-
-
-
-
-
-
-For initial testing, I'll need to determine:
-1. The minimum BAR size required for functional inference
-2. Whether the PCIe configuration allows "Above 4G Decoding" for larger BAR support
-3. If Resizable BAR is supported, which would be ideal
-
-As a first step, I'll try a Raspberry Pi CM4 with a PCIe carrier board to test these boundaries.
-
-# Prototype 1: Raspberry Pi CM4 Test
-
-I grabbed a Raspberry Pi CM4 8GB module and a carrier board with a PCIe x1 slot. The CM4 only supports PCIe Gen 2 x1, which gives a theoretical maximum bandwidth of 500 MB/s. This is definitely a limiting factor, but sufficient for a proof of concept. I'll expand on this if I can get the core functionality working.
-
-Here's my initial test setup:
-- Raspberry Pi CM4 (8GB RAM)
-- Waveshare CM4 IO Board Plus
-- PCIe riser cable
-- External power supply for GPU testing
-
-![Initial Raspberry Pi CM4 setup](/images/CM4_Setup.jpg)
-
-After setting up Ubuntu 22.04 on the CM4, I immediately ran into the first major hurdle: the Pi's PCIe controller only supports a 32-bit address space with a 1GB BAR size limit. This is far too small for modern GPUs, which often need multi-gigabyte BAR windows.
-
-I tried every kernel parameter trick in the book:
-pci=realloc
-pci=assign-busses
-pci=hpmmio
-pci=hpmemsize=1024M
-
-Nothing worked. Even when I could get a GPU recognized (tried with a modest GTX 1650 first), only a tiny fraction of its memory was accessible.
-
-Digging into the BCM2711 (the CM4's SoC) documentation revealed the fundamental limitation: its PCIe controller simply wasn't designed with large BAR mappings in mind. This makes sense for its target applications, but it's a roadblock for my GPU plans.
-
-The hard truth: No one will ever run top-of-the-line GPUs on current Raspberry Pi hardware. The SoC simply doesn't support the necessary PCIe features.
-
-I need a more capable ARM SoC with proper PCIe support.
-
-# Finding a Better Brain: NXP LX2160A
-
-After researching SoCs with better PCIe support, the NXP LX2160A emerged as a prime candidate:
-- 16 ARM A72 cores (overkill, but nice)
-- 24 lanes of PCIe Gen 3 (perfect!)
-- Documented support for large BAR sizes
-- Available on reasonably priced developer boards
-
-The SolidRun ClearFog CX LX2 board offers this SoC in a compact package with two PCIe x8 slots, which makes it ideal for my use case. At around $750, it's not cheap, but it's far less expensive than a full server.
-
-I ordered the ClearFog board along with 64GB of DDR4 SODIMMs. While waiting for delivery, I started planning the software stack and acquiring the GPU I'd use for testing.
-
-# Part 1: The ClearFog Shakedown
-
-When the ClearFog CX LX2 board arrived, I immediately noticed the robust build quality. This is clearly enterprise-grade hardware, with hefty heatsinks on the SoC and proper server-class components.
-
-![ClearFog CX LX2 board with heatsink](/images/ClearFog_Board.jpg)
-
-I added the 64GB of RAM (2x32GB DDR4 SODIMMs) and flashed the latest UEFI firmware (HoneyComb-UEFI-2025‑02.bin). Connecting the serial console for initial setup, I was greeted with exactly what I hoped to see:
-Detected memory : 65536 MB
-Resizable BAR   : Enabled
-Above‑4 G Dec   : Enabled
-
-This is crucial. "Resizable BAR" means the board can dynamically adjust the PCIe BAR size, allowing much larger memory mappings than the Pi could ever manage. "Above-4G Decoding" means it can address memory beyond the traditional 32-bit boundary.
-
-For the OS, I installed Ubuntu 22.04 ARM64 with kernel 6.8‑rc7, adding the boot flags `pci=realloc,resizable_bar=1` to ensure the PCIe subsystem was properly configured. The board idled at just 11W without a GPU - impressively efficient for a 16-core system.
-
-The ClearFog has two PCIe slots: one x8 and one x16 (electrically x8). This gives me options for GPU placement. The x16 slot will make it easier to use standard GPUs without adapters.
-
-Time to connect a real GPU and see if the theory holds up.
-
-# Part 2: V100 SXM2 Says "Hello"
-
-I needed a way to validate my concept with a real datacenter GPU, but I didn't want to spend tens of thousands on a new A100. Fortunately, the secondary market for previous-generation datacenter GPUs is thriving, with many data centers upgrading and selling their older hardware.
-
-I managed to find a Tesla V100 SXM2 module on eBay for around $300. The SXM2 format is fascinating - it's NVIDIA's proprietary mezzanine connector used in their DGX systems, not a standard PCIe card. This presents another challenge: how to connect it to my system.
+I needed a way to validate my concept with a real datacenter GPU, but I didn't want to spend tens of thousands on a new A100 right away. Fortunately, the secondary market for previous-generation datacenter GPUs is thriving, with many data centers upgrading and selling their older hardware. I managed to find a Tesla V100 SXM2 module on eBay for around $300. The SXM2 format is fascinating - it's NVIDIA's proprietary mezzanine connector used in their DGX systems, not a standard PCIe card. This presents another challenge: how to connect it to my system.
 
 ![NVIDIA V100 SXM2 module](/images/V100_SXM2.jpg)
 
-The solution came in the form of what eBay sellers call a "green SXM2 test board" - essentially a scrap Dell mezzanine card with a PCIe bridge that converts an SXM2 connection to a standard PCIe x16 edge connector. These adapters are used for testing but work fine for our purposes.
-
-This adapter includes a 0.9V VRM capable of delivering 250A - a crucial component since these GPUs have power requirements completely different from standard PCIe cards. The V100 SXM2 requires a dedicated 0.9V rail rather than the 12V that PCIe slots provide.
-
-For power, I connected two 8-pin GPU power cables from a Mean-Well UHP-750-12 power supply to the adapter board. After checking all connections and jumpering the board's PWREN (power enable) pin, I powered up the ClearFog with the V100 connected.
+The solution came in the form of what eBay sellers call a "green SXM2 test board" - essentially a scrap Dell mezzanine card with a PCIe bridge that converts an SXM2 connection to a standard PCIe x16 edge connector. These adapters are used for testing but work fine for our purposes. This adapter includes a 0.9V VRM capable of delivering 250A - a crucial component since these GPUs have power requirements completely different from standard PCIe cards. The V100 SXM2 requires a dedicated 0.9V rail rather than the 12V that PCIe slots provide. For power, I connected two 8-pin GPU power cables from a Mean-Well UHP-750-12 power supply to the adapter board. After checking all connections and jumpering the board's PWREN (power enable) pin, I powered up the ClearFog with the V100 connected.
 
 Running `lspci`, I saw exactly what I'd hoped for:
+```
 01:00.0 3D controller: NVIDIA Corporation Tesla V100-SXM2-16GB (rev a1)
 LnkSta: Speed 8GT/s, Width x8
 BAR1  : 16 GiB
+```
 
 Success! The V100 is recognized, operating at full PCIe Gen 3 x8 speed, and most importantly, showing a 16GB BAR size. This confirms that the ClearFog board can indeed address the full GPU memory.
 
 I installed NVIDIA's driver 575.51.03 (with open-source kernel modules) without any errors. As a quick test, I loaded Llama-2-7B in FP16 format:
+```
 Model load time: 9 seconds
 Steady token generation: 52 tokens/second
 PCIe utilization after model load: 1%
+```
 
-This validated several key points:
-1. The ARM CPU can successfully control the datacenter GPU
-2. The PCIe link is more than sufficient (only 1% utilization during inference)
-3. Performance is respectable even with this older GPU
+This validated several key points: The ARM CPU can successfully control the datacenter GPU. The PCIe link is more than sufficient (only 1% utilization during inference). Performance is respectable even with this older GPU. The V100 was a perfect proof of concept, but it's still not powerful enough for my target performance. Time to go bigger. And time to build a custom carrier board.
 
-The V100 was a perfect proof of concept, but it's still not powerful enough for my target performance. Time to go bigger.
+## Custom carrier board and SXM4
 
-# Part 3: Swinging for the Fences with an A100
+With the CPU validated, I had to turn this into a product. This meant a custom carrier board with an SXM4 socket for an A100 GPU. This included an proper power delivery for the GPU, a clean PCIe routing, thermal management, as well as putting in all the standard I/O and connectivity. I guess a 10Gb Ethernet port would probably be useful in the future, right?
 
-With the V100 test successful, I was ready to try a more powerful GPU. The NVIDIA A100 represents a significant leap in AI performance, with 80GB of HBM2e memory and tensor cores optimized for transformer models.
 
-These cards typically cost $10,000+ new, but as data centers upgrade to H100s, used A100s are appearing on the secondary market for $3,000-5,000. Still expensive, but attainable for a serious project.
-
-I managed to find an 80GB A100 SXM4 module for $4,600. The SXM4 format is the successor to SXM2, with even more complex power requirements - specifically a 0.8V rail capable of delivering a staggering 550A at peak.
-
-I couldn't find a direct SXM4-to-PCIe adapter like I had for the V100, but I discovered a company called Soldered-Electronics that makes OAM-to-PCIe risers that are compatible with SXM4 with some modifications. The riser includes its own VRM fixed at 0.95V - not ideal as it's above the A100's specification of 0.8V, but within tolerance for inference workloads that don't push the GPU to its thermal limits.
-
-![A100 SXM4 module with riser adapter](/images/A100_Riser.jpg)
-
-After carefully connecting the A100 to the riser and the riser to the ClearFog's PCIe x16 slot, I powered everything up. The system recognized the GPU immediately:
-02:00.0 3D controller: NVIDIA Corporation GA100 [A100 SXM4 80GB] (rev a1)
-LnkSta: Speed 8GT/s, Width x8
-BAR1  : 32 GiB
-
-The PCIe link was operating at Gen 3 x8 as expected, and we had a massive 32GB BAR window - plenty for our needs.
-
-Now for the real test: loading a larger model. I chose Llama-3-13B in FP16 format (approximately 70GB when loaded) and measured performance:
-Model load time: 25 seconds
-Steady token generation: 87 tokens/second
-GPU power consumption: 266W
-Total system power at wall: 292W
-PCIe slot finger temperature: 82°C
-
-87 tokens per second! This exceeds my target of 80 tokens/second, and the power consumption is reasonable at under 300W total. The only concerning figure was the PCIe slot temperature of 82°C - a bit high for extended operation.
-
-To address the temperature issue, I soldered 12 AWG wires directly from the power supply to the SXM's sense pads, bypassing some of the riser's power delivery components that were generating excess heat. This brought the slot temperature down to a more reasonable 75°C under sustained load.
-
-The ClearFog and A100 combination proved everything I needed except long-term thermals and neat packaging. The external VRM brick and janky riser adapter weren't suitable for a finished product, but the concept was validated. Time to design a proper integrated solution.
-
-# Part 4: Designing the Solebox Mainboard
-
-With the concept proven, I needed to design a proper mainboard that would integrate all the components into a clean, reliable system. I decided to design a custom carrier board for the NXP LX2 SoC that would include:
-
-1. An integrated SXM4 socket directly on the board
-2. Proper power delivery circuitry for the GPU
-3. Clean PCIe routing
-4. Thermal management solutions
-5. Standard I/O and connectivity
-
-I started by forking Solid-Run's open mechanical STEP files for the ClearFog board, which gave me the correct dimensions and mounting points for the COM-Express module that contains the LX2 SoC.
-
-I stretched the PCB to 305mm × 190mm to accommodate the SXM4 socket while maintaining a practical form factor that would still fit in a shoebox-sized enclosure. The layout resembled a pizza peel with a GPU bolted onto it, which I found oddly appropriate.
+I started by forking Solid-Run's open mechanical STEP files for the ClearFog board, as well as NXP reference implementations for the LX2160A to produce a shoebox-sized board with everything I needed. 
 
 ![CAD rendering of custom board design](/images/Solebox_PCB_CAD.jpg)
 
