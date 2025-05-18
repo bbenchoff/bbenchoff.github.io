@@ -351,6 +351,21 @@
                 transform: translateX(-50%);
                 resize: none !important;
             }
+                    /* Sidebar-style paragraph for fully italic content */
+            p > em:only-child {
+                display: block;
+                max-width: 300px;
+                float: right;
+                clear: both;
+                background: #f0f0f0;
+                border-left: 4px solid #0af;
+                padding: 1em;
+                margin: 1.5em;
+                font-style: normal; /* Prevent nested italics looking double-italic */
+                font-size: 0.95em;
+                color: #333;
+                box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            }
         }
 
         .clock {
