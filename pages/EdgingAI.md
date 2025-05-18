@@ -17,7 +17,16 @@ This is the project I'm planning: A small Linux box that hosts a datacenter GPU.
 
 ## Step 0, The idea and analysis
 
-The basic idea of this project is that if you keep a model and context inside a GPU, you don't need a rack-sized server for the interface. An 'AI on a desktop' would just be a server-class GPU with a tiny Linux core serving as the front end. Sure it will pull four or five hundred Watts, but there's a market for what is basically a Raspberry Pi attached to a monstrous GPU with dozens of Teraflops per second of computing horsepower.
+The basic idea of this project is that if you keep a model and context inside a GPU, you don't need a rack-sized server for the interface. An 'AI on a desktop' would just be a server-class GPU with a tiny Linux core serving as the front end. Obviously, the experiments started with a Raspberry Pi (**CM5**), and then proceeded to the **RockChip RK3588**. Both of these have PCIe busses, the Pi having PCIe Gen2x1, and the Rockchip sporting PCIe Gen3x4. Neither of these chips will support a big Nvidia GPU for very specific reasons.
+
+When a PCIe device connects to a system, it needs to map its memory into the CPU's address space through something called **Base Address Registers** (BARs). This is where the first challenge arises: most ARM-based SoCs like those in the Raspberry Pi have limited BAR space. The amount of GPU memory that can be addressed directly by the CPU is determined by the BAR size. High-end GPUs like the A100 have 80GB of memory, but typical consumer motherboards might only allow 4GB or 8GB to be mapped at once.
+
+For AI inference, the BAR size limit isn't necessarily a deal-breaker. As long as I can transfer the model to GPU memory once during initialization, the limited BAR size mainly affects how I load the model and doesn't impact inference speed. However, there's another problem: **many SoCs, including those used in the Pi and similar SBCs, don't support the required MMIO window sizes or IOMMU features.** These needed to fully initialize high-end GPUs. Even if the GPU is recognized on the PCIe bus, the system often can't map enough of its memory space to bring the card fully online. Without an IOMMU (Input–Output Memory Management Unit), devices like GPUs must use 1:1 physical address mappings for DMA, which doesn't work when the CPU can't see or map the full GPU memory region. This means the GPU driver either fails to initialize or gets stuck in a partial state — effectively bricking the GPU for compute purposes.
+
+Every cheap Linux chip you’ve heard of — i.MX, Rockchip, Broadcom, Allwinner, Amlogic, Mediatec — runs into this. No big BARs, no 64-bit MMIO, no IOMMU. In short: set-top box chips and the silicon in a chromebook weren’t built to drive datacenter silicon.
+
+
+Sure it will pull four or five hundred Watts, but there's a market for what is basically a Raspberry Pi attached to a monstrous GPU with dozens of Teraflops per second of computing horsepower.
 
 Let's think through what's actually moving between the CPU and GPU during inference:
 1. Initially, the model weights (~5-50GB depending on model size) are loaded to GPU memory
@@ -42,11 +51,10 @@ My first thought is to use a Raspberry Pi Compute Module. The CM4 has PCIe Gen 2
 
 ## BAR Size and Memory Mapping Woes
 
-When a PCIe device connects to a system, it needs to map its memory into the CPU's address space through something called Base Address Registers (BARs). This is where the first challenge arises: most ARM-based SoCs like those in the Raspberry Pi have limited BAR space.
 
-The amount of GPU memory that can be addressed directly by the CPU is determined by the BAR size. High-end GPUs like the A100 have 80GB of memory, but typical consumer motherboards might only allow 4GB or 8GB to be mapped at once.
 
-For AI inference, the BAR size limit isn't necessarily a deal-breaker. As long as I can transfer the model to GPU memory once during initialization, the limited BAR size mainly affects how I load the model and doesn't impact inference speed.
+
+
 
 For initial testing, I'll need to determine:
 1. The minimum BAR size required for functional inference
