@@ -384,20 +384,40 @@
             min-width: 200px;
         }
 
-        .window-content p.callout-sidebar {
+        .window-content .callout-sidebar {
             float: right;
             clear: both;
             width: 280px;
-            background: #dcdcdc; /* System 7 gray */
-            border: 1px solid black;
-            padding: 10px 12px;
             margin: 1.5em 0 1.5em 1.5em;
+        
+            /* Window container */
+            border: 1px solid black;
+            background: #dcdcdc;
             font-family: 'ChicagoFLF', sans-serif;
-            font-size: 16px;
+            font-size: 13px;
             color: black;
-            font-style: normal;
-            box-shadow:
-                inset -1px -1px 0 #fff,
-                inset 1px 1px 0 #000;
+            box-shadow: 2px 2px 0 rgba(0,0,0,0.2);
         }
         
+        /* Titlebar */
+        .callout-sidebar .titlebar {
+            background: linear-gradient(to bottom, #d8d8d8 0%, #d8d8d8 4px, #000 4px, #000 5px,
+                                        #d8d8d8 5px, #d8d8d8 7px, #000 7px, #000 8px,
+                                        #d8d8d8 8px, #d8d8d8 10px, #000 10px, #000 11px,
+                                        #d8d8d8 11px, #d8d8d8 13px, #000 13px, #000 14px,
+                                        #d8d8d8 14px, #d8d8d8 16px, #000 16px, #000 17px,
+                                        #d8d8d8 17px, #d8d8d8 19px, #000 19px, #000 20px,
+                                        #d8d8d8 20px, #d8d8d8 22px);
+            color: black;
+            padding: 2px 6px;
+            font-size: 12px;
+            font-weight: bold;
+            border-bottom: 1px solid black;
+            text-align: center;
+        }
+        
+        /* Content inside the "window" */
+        .callout-sidebar .content {
+            padding: 10px;
+            font-style: normal;
+        }
