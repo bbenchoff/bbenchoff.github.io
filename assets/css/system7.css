@@ -384,40 +384,62 @@
             min-width: 200px;
         }
 
-        .window-content .callout-sidebar {
+        .window-content p.callout-sidebar {
             float: right;
             clear: both;
             width: 280px;
             margin: 1.5em 0 1.5em 1.5em;
-        
-            /* Window container */
-            border: 1px solid black;
             background: #dcdcdc;
+            border: 1px solid black;
+            box-shadow: 2px 2px 0 rgba(0,0,0,0.2);
             font-family: 'ChicagoFLF', sans-serif;
             font-size: 13px;
-            color: black;
-            box-shadow: 2px 2px 0 rgba(0,0,0,0.2);
+            font-style: normal;
+            position: relative;
+            padding-top: 20px; /* space for titlebar */
+            padding: 20px 10px 10px 10px;
         }
         
-        /* Titlebar */
-        .callout-sidebar .titlebar {
-            background: linear-gradient(to bottom, #d8d8d8 0%, #d8d8d8 4px, #000 4px, #000 5px,
-                                        #d8d8d8 5px, #d8d8d8 7px, #000 7px, #000 8px,
-                                        #d8d8d8 8px, #d8d8d8 10px, #000 10px, #000 11px,
-                                        #d8d8d8 11px, #d8d8d8 13px, #000 13px, #000 14px,
-                                        #d8d8d8 14px, #d8d8d8 16px, #000 16px, #000 17px,
-                                        #d8d8d8 17px, #d8d8d8 19px, #000 19px, #000 20px,
-                                        #d8d8d8 20px, #d8d8d8 22px);
-            color: black;
+        /* Titlebar generated automatically */
+        .window-content p.callout-sidebar::before {
+            content: "Sidenote";
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
             padding: 2px 6px;
             font-size: 12px;
-            font-weight: bold;
-            border-bottom: 1px solid black;
             text-align: center;
-        }
-        
-        /* Content inside the "window" */
-        .callout-sidebar .content {
-            padding: 10px;
-            font-style: normal;
+            background: linear-gradient(to bottom,
+                #d8d8d8 0%,
+                #d8d8d8 4px,
+                #000 4px,
+                #000 5px,
+                #d8d8d8 5px,
+                #d8d8d8 7px,
+                #000 7px,
+                #000 8px,
+                #d8d8d8 8px,
+                #d8d8d8 10px,
+                #000 10px,
+                #000 11px,
+                #d8d8d8 11px,
+                #d8d8d8 13px,
+                #000 13px,
+                #000 14px,
+                #d8d8d8 14px,
+                #d8d8d8 16px,
+                #000 16px,
+                #000 17px,
+                #d8d8d8 17px,
+                #d8d8d8 19px,
+                #000 19px,
+                #000 20px,
+                #d8d8d8 20px,
+                #d8d8d8 22px
+            );
+            border-bottom: 1px solid black;
+            font-weight: bold;
+            font-family: 'ChicagoFLF', sans-serif;
+            color: black;
         }
