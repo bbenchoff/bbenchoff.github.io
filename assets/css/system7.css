@@ -384,62 +384,44 @@
             min-width: 200px;
         }
 
-        .window-content p.callout-sidebar {
-            float: right;
-            clear: both;
-            width: 280px;
-            margin: 1.5em 0 1.5em 1.5em;
-            background: #dcdcdc;
-            border: 1px solid black;
-            box-shadow: 2px 2px 0 rgba(0,0,0,0.2);
+        .window-content p.callout-sidebar::before {
+            content: "";
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 22px;
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
             font-family: 'ChicagoFLF', sans-serif;
-            font-size: 13px;
-            font-style: normal;
-            position: relative;
-            padding-top: 20px; /* space for titlebar */
-            padding: 20px 10px 10px 10px;
+            font-size: 12px;
+            font-weight: bold;
+            color: black;
+            border-bottom: 1px solid black;
+            background: repeating-linear-gradient(
+                to bottom,
+                #d8d8d8 0px,
+                #d8d8d8 4px,
+                #000000 4px,
+                #000000 5px
+            );
         }
         
-        /* Titlebar generated automatically */
-        .window-content p.callout-sidebar::before {
+        .window-content p.callout-sidebar::after {
             content: "Sidenote";
             position: absolute;
             top: 0;
             left: 0;
             right: 0;
-            padding: 2px 6px;
-            font-size: 12px;
-            text-align: center;
-            background: linear-gradient(to bottom,
-                #d8d8d8 0%,
-                #d8d8d8 4px,
-                #000 4px,
-                #000 5px,
-                #d8d8d8 5px,
-                #d8d8d8 7px,
-                #000 7px,
-                #000 8px,
-                #d8d8d8 8px,
-                #d8d8d8 10px,
-                #000 10px,
-                #000 11px,
-                #d8d8d8 11px,
-                #d8d8d8 13px,
-                #000 13px,
-                #000 14px,
-                #d8d8d8 14px,
-                #d8d8d8 16px,
-                #000 16px,
-                #000 17px,
-                #d8d8d8 17px,
-                #d8d8d8 19px,
-                #000 19px,
-                #000 20px,
-                #d8d8d8 20px,
-                #d8d8d8 22px
-            );
-            border-bottom: 1px solid black;
-            font-weight: bold;
+            height: 22px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: #dcdcdc;
             font-family: 'ChicagoFLF', sans-serif;
+            font-size: 12px;
+            font-weight: bold;
             color: black;
+            z-index: 1;
         }
