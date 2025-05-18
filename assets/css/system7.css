@@ -384,17 +384,20 @@
             min-width: 200px;
         }
 
-        p.sidebar {
-            display: block;
-            max-width: 300px;
+        .window-content p.callout-sidebar {
             float: right;
             clear: both;
-            background: #f0f0f0;
-            border-left: 4px solid #0af;
-            padding: 1em;
-            margin: 1.5em;
+            width: 280px;
+            background: #dcdcdc; /* System 7 gray */
+            border: 1px solid black;
+            padding: 10px 12px;
+            margin: 1.5em 0 1.5em 1.5em;
+            font-family: 'ChicagoFLF', sans-serif;
+            font-size: 13px;
+            color: black;
             font-style: normal;
-            font-size: 0.95em;
-            color: #333;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            box-shadow:
+                inset -1px -1px 0 #fff,
+                inset 1px 1px 0 #000;
         }
+        
