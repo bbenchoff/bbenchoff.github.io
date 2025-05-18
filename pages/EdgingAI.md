@@ -1,12 +1,11 @@
-Here's the complete Solebox project log in Markdown format:
-markdown---
+---
 layout: default
 
 
 ---
 
 # Solebox: Really Tiny Linux and Datacenter GPUs
-## or, I'm Building an Offline LLM Box: Pi CM5 + A100 = 80 tokens/sec in a Shoebox
+## or, Offline LLM Box: Pi CM5 + A100 = 80 tokens/sec in a Shoebox
 ### or, and I'm loathe to do this, "The Sole of a New Machine"
 
 For most cases, whether it's an LLM writing your term paper or recreating scenes from *No Country For Old Men* in the style of Miyazaki, an AI isn't bound by the bandwidth of a PCI bus. If you keep your models and context on the GPU, there are only a few kilobytes being transferred between the CPU and GPU at any given time. This is interesting, because anyone can build a small, personal, private Linux box out of salvaged datacenter GPUs. All I need to do is wire up one of these AI chips.
@@ -23,8 +22,13 @@ When a PCIe device connects to a system, it needs to map its memory into the CPU
 
 For AI inference, the BAR size limit isn't necessarily a deal-breaker. As long as I can transfer the model to GPU memory once during initialization, the limited BAR size mainly affects how I load the model and doesn't impact inference speed. However, there's another problem: **many SoCs, including those used in the Pi and similar SBCs, don't support the required MMIO window sizes or IOMMU features.** These needed to fully initialize high-end GPUs. Even if the GPU is recognized on the PCIe bus, the system often can't map enough of its memory space to bring the card fully online. Without an IOMMU (Input–Output Memory Management Unit), devices like GPUs must use 1:1 physical address mappings for DMA, which doesn't work when the CPU can't see or map the full GPU memory region. This means the GPU driver either fails to initialize or gets stuck in a partial state — effectively bricking the GPU for compute purposes.
 
-Every cheap Linux chip you’ve heard of — i.MX, Rockchip, Broadcom, Allwinner, Amlogic, Mediatec — runs into this. No big BARs, no 64-bit MMIO, no IOMMU. In short: set-top box chips and the silicon in a chromebook weren’t built to drive datacenter silicon.
+Every cheap Linux chip you’ve heard of — i.MX, Rockchip, Broadcom, Allwinner, Amlogic, Mediatek — runs into this. No big BARs. No 64-bit MMIO. No IOMMU. Set-top box chips and the silicon inside Chromebooks weren’t built to drive datacenter GPUs.
 
+### The solution to the problem
+
+While most off-the-shelf ARM chips can't run datacenter silicon, a few parts can. The **NXP Layerscape LX2160A** is one of them — a 16-core ARMv8 chip with full 64-bit address space, proper IOMMU, large MMIO windows, and up to x16 lanes of PCIe Gen 4. It was built for high-performance networking and storage, but it's one of the only ARM SoCs that can reliably enumerate and initialize a GPU like the A100.
+ 
+ __Sidenote: The NXP LS1046A might also work — it uses the same SerDes blocks and supports PCIe Gen 3 — but documentation on its BAR sizing and IOMMU support is sparse. It’s significantly cheaper, so I’ll be testing it as a lower-cost path forward. NXP engineers please reach out!__
 
 Sure it will pull four or five hundred Watts, but there's a market for what is basically a Raspberry Pi attached to a monstrous GPU with dozens of Teraflops per second of computing horsepower.
 
