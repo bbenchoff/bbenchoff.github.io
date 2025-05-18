@@ -384,44 +384,36 @@
             min-width: 200px;
         }
 
-        .window-content p.callout-sidebar::before {
-            content: "";
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            height: 22px;
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
+        .window-content p.callout-sidebar {
+            float: right;
+            clear: both;
+            width: 280px;
+            margin: 1.5em 0 1.5em 1.5em;
+            background: #dcdcdc;
+            border: 1px solid black;
+            box-shadow: 2px 2px 0 rgba(0,0,0,0.2);
             font-family: 'ChicagoFLF', sans-serif;
-            font-size: 12px;
-            font-weight: bold;
-            color: black;
-            border-bottom: 1px solid black;
-            background: repeating-linear-gradient(
-                to bottom,
-                #d8d8d8 0px,
-                #d8d8d8 4px,
-                #000000 4px,
-                #000000 5px
-            );
+            font-size: 13px;
+            font-style: normal;
+            position: relative;
+            padding-top: 22px; /* matches titlebar height */
+            padding: 22px 10px 10px 10px;
         }
         
-        .window-content p.callout-sidebar::after {
+        /* Flat System 7-style titlebar */
+        .window-content p.callout-sidebar::before {
             content: "Sidenote";
             position: absolute;
             top: 0;
             left: 0;
             right: 0;
             height: 22px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background-color: #dcdcdc;
-            font-family: 'ChicagoFLF', sans-serif;
-            font-size: 12px;
+            line-height: 22px;
+            text-align: center;
+            background: #d8d8d8;
+            border-bottom: 1px solid black;
             font-weight: bold;
+            font-size: 16px;
+            font-family: 'ChicagoFLF', sans-serif;
             color: black;
-            z-index: 1;
         }
