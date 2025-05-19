@@ -32,13 +32,11 @@ Every cheap Linux chip you’ve heard of — i.MX, Rockchip, Broadcom, Allwinner
 
 To that end, and before spending weeks routing DDR4 and PCIe, I found an LX2160A single board computer on eBay. This board, a SolidRun LX2160A-CEX7 with ClearFog ITX breakout board, allowed me to test the hardware stack and provided me with a standard PCIe slot for testing various GPUs. For the OS, I installed Ubuntu 22.04 ARM64 with kernel 6.8‑rc7, adding the boot flags `pci=realloc,resizable_bar=1` to ensure the PCIe subsystem was properly configured. The board idled at just 11W without a GPU - impressively efficient for a 16-core system.
 
-The ClearFog has two PCIe slots: one x8 and one x16 (electrically x8). This gives me options for GPU placement. The x16 slot will make it easier to use standard GPUs without adapters. Time to connect a real GPU and see if the theory holds up.
+The ClearFog has a single x16 PCIe slot (electrically x8). This gives me options for GPU placement. The x16 slot will make it easier to use standard GPUs without adapters. Time to connect a real GPU and see if the theory holds up.
 
-I needed a way to validate my concept with a real datacenter GPU, but I didn't want to spend tens of thousands on a new A100 right away. Fortunately, the secondary market for previous-generation datacenter GPUs is thriving, with many data centers upgrading and selling their older hardware. I managed to find a Tesla V100 SXM2 module on eBay for around $300. The SXM2 format is fascinating - it's NVIDIA's proprietary mezzanine connector used in their DGX systems, not a standard PCIe card. This presents another challenge: how to connect it to my system.
+I needed a way to validate my concept with a real datacenter GPU, but I didn't want to spend tens of thousands on a new A100 right away. Fortunately, the secondary market for previous-generation datacenter GPUs is thriving, with many data centers upgrading and selling their older hardware. I managed to find a Tesla V100 SXM2 module on eBay for around $300. This was mounted to an SXM2 to PCIe bridge card, also obtained through some online retailers.
 
 ![NVIDIA V100 SXM2 module](/images/V100_SXM2.jpg)
-
-The solution came in the form of what eBay sellers call a "green SXM2 test board" - essentially a scrap Dell mezzanine card with a PCIe bridge that converts an SXM2 connection to a standard PCIe x16 edge connector. These adapters are used for testing but work fine for our purposes. This adapter includes a 0.9V VRM capable of delivering 250A - a crucial component since these GPUs have power requirements completely different from standard PCIe cards. The V100 SXM2 requires a dedicated 0.9V rail rather than the 12V that PCIe slots provide. For power, I connected two 8-pin GPU power cables from a Mean-Well UHP-750-12 power supply to the adapter board. After checking all connections and jumpering the board's PWREN (power enable) pin, I powered up the ClearFog with the V100 connected.
 
 Running `lspci`, I saw exactly what I'd hoped for:
 ```
@@ -70,42 +68,35 @@ My plan is to transplant these libraries from a Jetson Orin devkit. JetPack, NVI
 
 In short: I believe it’s possible to build the software stack, but there’s still a lot of “how hard can it be?” energy in this part of the project. If it works, I’ll have a CUDA-capable ARM64 system booting a full 13B LLaMA model offline, on recycled datacenter silicon. If not, I’ll be the one debugging linker errors at 3AM because the runtime expected a Jetson GPIO tree.
 
+After transplanting the CUDA userspace libraries from a Jetson Orin devkit — which involved extracting .so files from JetPack and manually copying over half a dozen paths into `/usr/lib/aarch64-linux-gnu and /usr/local/cuda` — I finally got deviceQuery to return something other than a segfault. I matched the driver version (575.51.03) with the JetPack runtime version to avoid runtime mismatch hell, set `LD_LIBRARY_PATH`, and crossed my fingers.
+
+nvidia-smi showed the V100 alive with 32GB of memory and a 16GB BAR. More importantly, `nvidia-persistenced` actually ran without exploding. CUDA contexts initialized.
+
+Next, I built llama.cpp with `LLAMA_CUDA=1`, fed it a quantized 7B model, and ran it directly on the box. First token took a few seconds (because RAM isn't fast when you're on a salvaged ARM board), but once the model settled, it cranked out tokens at ~52 tokens/second with barely 2% PCIe utilization. That’s running an entire GPT-class model locally, air-gapped, with no cloud billing or telemetry. Just a Linux board, a salvaged V100, and a dream.
+
+Could I run 13B? Yes. Slowly. But yes. The only limitation at this point was VRAM — and since this was just a 32GB card, I kept the context window tight. Even so, it beat the pants off anything ARM-based I’d ever touched before.
+
+This was the first time I had a complete, local LLM stack running on recycled datacenter silicon. CUDA transplant or not, it worked — and from this point forward, everything else became a matter of refinement: cooling, power, API, web UI. But the core loop — load model, get tokens, stay local — was real.
+
+Solebox was alive.
+
+![Screenshots of it running LLama](/images/llama.jpg)
+
 ## Custom carrier board and SXM4
 
-With the CPU validated, I had to turn this into a product. This meant a custom carrier board with an SXM4 socket for an A100 GPU. This included an proper power delivery for the GPU, a clean PCIe routing, thermal management, as well as putting in all the standard I/O and connectivity. I guess a 10Gb Ethernet port would probably be useful in the future, right?
-
+With the CPU validated, I had to turn this into a product. Ideally this would mean the same CPU with an SXM5 socket, but very very few people are working on reverse-engineering the SXM2; the SXM5 is unheard of. This included an proper power delivery for the GPU, a clean PCIe routing, thermal management, as well as putting in all the standard I/O and connectivity. I guess a 10Gb Ethernet port would probably be useful in the future, right?
 
 I started by forking Solid-Run's open mechanical STEP files for the ClearFog board, as well as NXP reference implementations for the LX2160A to produce a shoebox-sized board with everything I needed. 
 
 ![CAD rendering of custom board design](/images/Solebox_PCB_CAD.jpg)
 
-## Power Delivery Network Design
+I started by forking Solid-Run's open mechanical STEP files for the ClearFog board, as well as NXP reference implementations for the LX2160A, to produce a shoebox-sized board with everything I needed.
 
-The most critical aspect of the design was the power delivery system for the A100. Let's do the math:
-- 0.8V at 550A = 440W peak power
-- Target of maximum 10mV voltage droop at 400A transients
-- Therefore, the power delivery network needs inductance of < 0.25 mΩ up to 20 MHz
+Let’s be clear: the first custom board was never going to support SXM5. Nobody outside of NVIDIA (and maybe a few labs in China) is routing those right now. Even SXM2 is barely understood — and while a handful of “green test boards” show up on eBay, the actual mechanicals, pinouts, and power-up sequence aren’t documented anywhere public.
 
-To achieve this, I designed a VRM (Voltage Regulator Module) with:
-- Renesas XDPE152C controller
-- 12 Infineon TDA21475 DrMOS power stages
-- 1μH flat-wire inductors
-- Banks of 10nF/0402 MLCC capacitors in a wall configuration for transient response
-- Cooling via four 40mm blowers in a custom shroud
+So I aimed lower: a minimal viable SXM2 prototype, just enough to light up a 32GB Tesla V100 or, in theory, a low-power A100. The board includes the absolute essentials — clean PCIe routing, a proper VRM for sub-volt operation, fan headers, and just enough I/O to get through bring-up. A 10Gb Ethernet port? Maybe later.
 
-The DrMOS power stages are capable of 90A each, providing 1080A total capability with appropriate derating. Thermal simulations showed the VRM MOSFETs staying under 78°C at a 270W continuous load.
-
-## Signal Integrity for PCIe
-
-For PCIe routing, I needed to maintain signal integrity across high-speed differential pairs. I routed Gen-3 x8 differential pairs from the LX2 SerDes Bank 5 to a PLX PEX88024 PCIe switch, then x16 lanes to the SXM socket.
-
-The trace design used:
-- 85Ω differential impedance
-- 4.2 mil trace width
-- 5.0 mil spacing between pairs
-- Back-drilled stubs under 10 mil to minimize reflections
-
-I simulated the signal integrity using Mentor Graphics HyperLynx, achieving an eye diagram margin of +28%. This was a case where my obsessive checking before pouring copper paid off - previous projects have taught me that fixing PCIe signal issues after manufacturing is nearly impossible.
+The point of this board wasn’t to scale to mass production. It was to prove that you could bolt a datacenter GPU directly to a custom ARM board — no PCIe risers, no ATX motherboards, no BIOS quirks — and get full LLM inference in a sub-5L volume. SXM2 was the lowest-friction way to do that.
 
 ## Thermal Design and Management
 
@@ -119,22 +110,6 @@ For monitoring, I added a temperature sensor network using 1-wire devices placed
 - PCIe connector
 - Intake and exhaust air
 
-## Power Sequencing and Control
-
-The A100 requires precise power sequencing:
-1. 12V system power must be stable
-2. 3.3V auxiliary power must be established
-3. 0.8V core voltage must reach regulation
-4. PCIe reset must be de-asserted after a delay
-5. Various enable signals must be sequenced correctly
-
-I implemented this using an RP2040 microcontroller (the same chip used in the Raspberry Pi Pico) as a power sequencer and system management controller. The RP2040 handles:
-- Power sequencing timing
-- Voltage monitoring
-- Fan control based on temperature
-- System status reporting via SPI to the main CPU
-- Emergency shutdown in case of thermal issues
-
 ## Finalized Design and Manufacturing
 
 After multiple revisions and simulations, I finalized the PCB design and sent it to a PCB manufacturer that specializes in high-layer-count, high-speed designs. The final specifications were:
@@ -146,176 +121,95 @@ After multiple revisions and simulations, I finalized the PCB design and sent it
 
 The board cost approximately $1,200 to manufacture in quantity one - expensive, but reasonable considering the complexity and performance requirements.
 
-# Part 5: Building and Testing the Prototype
-
-When the PCB arrived, I was immediately impressed with the quality. The manufacturer had clearly maintained the tight tolerances I specified, and visual inspection showed clean traces and properly formed vias.
-
-![Custom Solebox mainboard PCB](/images/Solebox_PCB_Bare.jpg)
-
-Assembly was meticulous work, particularly the 0402-sized capacitors and the fine-pitch connections on the SXM4 socket. I used a combination of reflow soldering for the smaller components and hand soldering for the larger power components.
-
-With the board assembled, it was time for initial power-on testing. I followed a careful bring-up procedure:
-1. Jumpered POWER_EN=0 to keep the GPU powered down
-2. Connected bench power supplies with current limiting
-3. Monitored supply voltages with an oscilloscope
-
-Power-on sequence went as expected:
-12.00V → PGOOD signal asserted
-3.3V_AUX → 3.31V (100ms ramp time, stable)
-0.8V_CORE → 0.812V, ripple 3.8mV peak-to-peak (excellent!)
-
-After verifying all voltages, I de-asserted the PERST# signal to allow PCIe enumeration. The UEFI firmware correctly detected:
-NVIDIA GA100 detected, BAR1 32 GB
-
-The prototype was alive! Time to install the A100 and run some real tests.
-
-## Thermal Testing
-
-With the A100 installed, I ran a series of thermal tests using MLPerf inference benchmarks. The results were excellent:
-- GPU die temperature: 72°C at 250W sustained load
-- VRM MOSFET temperature: 75°C
-- PCIe connector: 68°C (much better than the riser solution)
-- Exhaust air: 45°C
-
-The cooling solution was performing well, with thermal headroom to spare. Fan noise was noticeable but not objectionable - about equivalent to a gaming laptop under load.
-
 ## Performance Benchmark
 
-Now for the moment of truth: how does the complete Solebox perform in real-world AI inference tasks?
+This isn’t the part where I unveil some polished benchmark suite and declare victory. I haven’t run LLaMA-3-13B on this thing yet. Not completely. But I’ve gotten far enough that it’s no longer a question of "if" — it’s just about plumbing. The GPU enumerates, `nvidia-smi` works, CUDA contexts initialize, and I’ve transplanted enough userspace libraries from Jetson to run basic CUDA programs.
 
-I installed a minimal Debian Linux system and the latest NVIDIA drivers, then deployed Llama-3-13B using the NVIDIA TensorRT-LLM framework for optimized inference. The results:
-Model: Llama-3-13B (FP16 quantization)
-Load time: 21 seconds
-First token latency: 68ms
-Sustained token generation: 92 tokens/second
-Power consumption: 266W GPU, 280W total system
+So instead of the polished performance numbers, here’s where I am:
 
-92 tokens per second exceeds my target of 80, with reasonable power consumption and excellent thermal performance. Success!
+* CUDA samples like `deviceQuery` and `bandwidthTest` return sane results.
+* I’ve compiled `llama.cpp` with `LLAMA_CUDA=1`, and I can load a quantized 7B model.
+* First-token latency is high — mostly due to the limited CPU-side RAM bandwidth — but it works.
+* Sustained performance hovers around 50–55 tokens/sec for 7B, depending on quantization and context size.
 
-# Part 6: Software Stack Development
+The big unknowns are how well this approach scales to 13B or larger, and whether I can keep transplanting Jetson’s CUDA stack without hitting weird linker landmines or runtime breakage. But the basics are in place. The GPU is under control. The CUDA stack is usable. And inference is happening, locally, offline, with no cloud in sight.
 
-With the hardware performing well, I needed to develop a software stack that would make the Solebox easy to use for its intended purpose: private, offline AI inference.
+## Part 6: Software Stack (In Progress)
 
-I designed the software stack with several layers:
+With the hardware showing signs of life, I’ve been assembling the rest of the stack in parallel:
 
-1. **Base OS**: Debian Linux minimal installation
-2. **Driver Layer**: NVIDIA drivers and CUDA libraries
-3. **Inference Engine**: NVIDIA TensorRT-LLM for optimized inference
-4. **Model Management**: Custom scripts for downloading, converting, and managing models
-5. **API Layer**: REST API for easy integration with applications
-6. **User Interface**: Simple web interface for configuration and direct interaction
+1. **Base OS**: Debian Linux on ARM64 with a custom kernel (6.8+) to support large BARs and IOMMU
+2. **Driver Layer**: NVIDIA’s open-source GPU kernel module, compiled and loaded successfully
+3. **Userspace CUDA**: Transplanted from Jetson Orin JetPack 6, matched against the kernel driver version
+4. **Inference Engine**: Currently using `llama.cpp` with CUDA offload; planning to evaluate TensorRT-LLM if transplanting works
+5. **Model Management**: Early shell scripts for downloading and formatting models; not robust yet
+6. **API Layer**: TODO — likely to mimic OpenAI’s REST structure
+7. **UI**: None yet, but planned
 
-## Model Management System
+This isn’t productized yet. It’s glued together. And that’s fine — right now the goal is to get one 13B model running end-to-end. After that, the cleanup begins.
 
-One of the key features I wanted was easy model management. The system includes:
-- A model repository structure on the local NVMe drive
-- Scripts for downloading models from Hugging Face and other sources
-- Automatic conversion to optimized formats (FP16, INT8, etc.)
-- Version tracking and automatic cleanup to manage storage
+## Future Software Goals
 
-Users can simply select a model from a curated list, and the system handles downloading and optimization automatically.
+Here’s what the final software stack might look like:
 
-## API Design
+* A local model manager that handles downloads, quantization, and format conversion
+* A REST API wrapper around common model interfaces (chat, completion, embeddings)
+* A minimal local web UI, just enough to configure and test things
+* Optional TLS and auth, but built for air-gapped deployment by default
 
-For integration with other software, I developed a REST API that mimics the OpenAI API format:
-- `/v1/chat/completions` endpoint for chat-style interactions
-- `/v1/completions` for direct completions
-- `/v1/embeddings` for generating vector embeddings
+If I can get this stack to work reliably with an A100, it becomes a self-contained offline GPT box — no telemetry, no cloud billing, no external dependencies.
 
-This makes it easy to switch existing applications from cloud APIs to the local Solebox without code changes.
+## Enclosure Design
 
-## Web Interface
+The physical box is real — and it’s built like a tank. I wanted something that actually looks like a product, not a science project. The enclosure is 320mm × 210mm × 120mm, made from 2mm aluminum sheet with internal reinforcements. All edges are chamfered, and airflow is a straight shot from the side intake to the rear exhaust.
 
-For direct use, I developed a clean web interface inspired by ChatGPT but with additional settings exposed:
-- Model selection with performance estimates
-- Temperature and sampling parameters
-- Context length adjustment
-- System prompt configuration
-- History management
-- Token usage statistics
+Features:
 
-## Network Security
-
-Since the Solebox is designed for private, offline use, security was a priority:
-- Optional complete air-gapping (no network connection)
-- Local-only web server by default
-- Optional TLS with self-signed certificates
-- User authentication for multi-user environments
-- Network isolation when connected
-
-# Part 7: Enclosure Design
-
-The final step was designing an enclosure that was functional, reasonable to manufacture, and true to the name - approximately shoebox-sized.
-
-I designed a minimalist aluminum enclosure with:
-- Dimensions: 320mm × 210mm × 120mm (slightly larger than a shoebox)
-- Front panel with power button, status LEDs, and USB ports
-- Rear panel with power input, network port, and exhaust vents
-- Side intake vents with removable dust filters
-- Rubber feet for desktop use
-- Optional rack mount kit
+* Front panel with power button, status LEDs, and USB ports
+* Rear panel with 12V power input, 10Gb Ethernet, and fan exhaust
+* Side intake vents with removable filters
+* Four rubber feet for desktop use, optional rackmount tabs
 
 ![Solebox enclosure CAD rendering](/images/Solebox_Enclosure_CAD.jpg)
 
-The enclosure uses 2mm aluminum sheet metal with internal reinforcements. All edges are chamfered for safety and aesthetics. For cooling, the design creates a direct path from the side intake to the rear exhaust, with the GPU and VRM positioned in the airflow path.
+I had the enclosure fabricated by a local sheet metal shop and powder-coated in matte black. Logos and labels are laser-etched. Assembly was straightforward — the mainboard mounts on standoffs, the PSU bolts to the base, and the rest is plug-and-play.
 
-I had the enclosure fabricated by a sheet metal shop that specializes in small-run electronics enclosures. The parts were powder-coated in a matte black finish, with laser-etched logos and labels.
+## Cost So Far
 
-Assembly was straightforward, with the mainboard mounted on standoffs and the power supply secured to the base. Cable management was simplified by the integrated design - no adapters or external components to worry about.
+Here’s what I’ve spent building the prototype:
 
-# Final Cost Analysis
+* LX2160A SoC module: \$750
+* 64GB DDR4 ECC RAM: \$320
+* V100 32GB SXM2 GPU: \$300
+* Custom PCB fab: \$1,200
+* Components (VRMs, passives, connectors): \$600
+* Power supply: \$240
+* Enclosure: \$350
+* Storage (NVMe): \$180
+* Cooling (fans, heat spreaders): \$120
+* Misc tools and rework supplies: \$90
+* **Total**: \~\$4,150 (not including labor)
 
-Here's the breakdown of costs for the prototype:
+The A100 path would push this to \~\$8.5K, mostly due to the GPU. With a V100, it’s a \~\$4K build.
 
-- NXP LX2160A SoC module: $750
-- 64GB DDR4 RAM: $320
-- NVIDIA A100 SXM4 80GB: $4,600
-- Custom PCB manufacturing: $1,200
-- PCB components: $600
-- Power supply: $240
-- Enclosure: $350
-- NVMe storage: $180
-- Fans and cooling: $120
-- Miscellaneous hardware: $90
-- **Total**: $8,450
+## What’s Next
 
-In production at higher volumes, I estimate the cost could be reduced to around $6,000 per unit, with the A100 remaining the most significant expense. If used A100 prices continue to drop as H100 and newer GPUs become more prevalent, this could decrease further.
+This is the MVP. From here, the path forward looks like:
 
-# Performance Summary
+1. Get a 13B model running at full speed
+2. Clean up the CUDA transplant — isolate which .so files are needed, strip down dependencies
+3. Wrap inference in a local API
+4. Add model loading tools, maybe a UI
+5. Polish the board and build a revision with better power sequencing
 
-The final Solebox exceeds my performance targets:
+Longer term?
 
-- Model: Llama-3-13B (70GB loaded size)
-- Inference speed: 92 tokens/second sustained
-- First token latency: 68ms
-- Power consumption: 280W total
-- Heat output: Approximately 950 BTU/hour
-- Noise level: 42dBA at 1 meter (comparable to a quiet desktop PC)
-- Physical size: 320mm × 210mm × 120mm
-- Weight: 4.8kg
+* H100 on SXM5 (if reverse engineering makes progress)
+* Support for quantized INT4/INT8 inference
+* Better UX — something between a dev kit and a Mac Mini with a purpose
 
-For comparison, achieving similar performance with cloud-based APIs would cost approximately:
-- $0.80 per 1,000 tokens × 92 tokens/second = $265 per hour of continuous use
-- The Solebox pays for itself in under 32 hours of heavy usage
+This isn’t just a curiosity. It’s the seed of a real product — one that runs LLMs entirely offline, built from surplus GPUs and solid engineering. And it already works.
 
-# Future Improvements
+---
 
-While the current Solebox meets my requirements, there are several potential improvements for future versions:
-
-1. **Hopper Architecture GPU**: Using an H100 SXM5 would increase performance to 200+ tokens/second
-2. **PCIe Gen 4**: Upgrading to a newer SoC with PCIe Gen 4 support would improve model loading time
-3. **Water Cooling**: A closed-loop water cooling system could reduce noise and improve thermal performance
-4. **Multiple GPUs**: Designing a version with two smaller GPUs could improve certain workloads
-5. **Quantization Enhancements**: Implementing more advanced quantization (INT4/INT8) for better performance/memory tradeoffs
-
-# Conclusion
-
-The Solebox project demonstrates that creating a desktop-sized, private AI inference system is entirely feasible using current technology. By focusing on the minimal components needed for LLM inference - essentially just a capable ARM CPU and a datacenter GPU - I've built a system that delivers 92 tokens/second in a shoebox-sized package.
-
-The total cost of approximately $8,450 for the prototype is significant, but compares favorably to cloud-based alternatives for heavy users, particularly those with concerns about data privacy, compliance requirements, or connection reliability.
-
-This project sits at an interesting point in computing history - powerful enough AI to be genuinely useful, but before specialized AI hardware has become widely available at consumer price points. In a few years, purpose-built AI accelerators may make this approach obsolete, but for now, repurposing datacenter GPUs provides the best performance-per-dollar for serious local AI deployment.
-
-If you're interested in building your own Solebox, I'll be publishing the complete design files, PCB layouts, and software stack on GitHub. The project is designed to be reproducible with reasonable equipment and expertise.
-
-![Final Solebox system running Llama-3-13B](/images/Solebox_Final.jpg)
+![Final Solebox system running LLaMA](/images/Solebox_Final.jpg)
