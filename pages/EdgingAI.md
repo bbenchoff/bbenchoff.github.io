@@ -26,7 +26,7 @@ Every cheap Linux chip you’ve heard of — i.MX, Rockchip, Broadcom, Allwinner
 
 ### The solution to the problem
 
- <p class="callout-sidebar">Sidenote: The NXP LS1046A might also work — it uses the same SerDes blocks and supports PCIe Gen 3 — but documentation on its BAR sizing and IOMMU support is sparse. It’s significantly cheaper, so I’ll be testing it as a lower-cost path forward. NXP engineers please reach out!</p>
+ <p class="callout-sidebar">The NXP LS1046A might also work — it uses the same SerDes blocks and supports PCIe Gen 3 — but documentation on its BAR sizing and IOMMU support is sparse. It’s __significantly cheaper__, so I’ll be testing it as a lower-cost path forward. NXP engineers please reach out!</p>
  
  While most off-the-shelf ARM chips can't run datacenter silicon, a few parts can. The **NXP Layerscape LX2160A** is one of them — a 16-core ARMv8 chip with full 64-bit address space, proper IOMMU, large MMIO windows, and up to x16 lanes of PCIe Gen 4. It was built for high-performance networking and storage, but it's one of the only ARM SoCs that can reliably enumerate and initialize a GPU like the A100.
 
@@ -57,6 +57,18 @@ PCIe utilization after model load: 1%
 ```
 
 This validated several key points: The ARM CPU can successfully control the datacenter GPU. The PCIe link is more than sufficient (only 1% utilization during inference). Performance is respectable even with this older GPU. The V100 was a perfect proof of concept, but it's still not powerful enough for my target performance. Time to go bigger. And time to build a custom carrier board.
+
+## Speculating the Software Stack
+
+If the hardware side holds up, the next challenge is getting the software stack to work — and this part is still full of unknowns. While I haven’t completed this step yet, here’s the plan and the risks.
+
+NVIDIA now publishes open-source kernel modules for their datacenter GPUs. This means I can, in theory, compile and load the driver on an ARM64 SoC like the LX2160A. If that works, the GPU should enumerate, nvidia-smi should function, and CUDA contexts should initialize.
+
+That only gets me halfway. The real issue is the userspace CUDA stack — things like `libcudart.so`, `libcublas.so`, `libnvrtc.so`, and the rest of the runtime that tools like LLaMA and TensorRT-LLM depend on. NVIDIA doesn’t release generic ARM64 CUDA installers. These libraries are only available for a few platforms: Jetson, NVIDIA Grace, and some enterprise ARM servers under NDA.
+
+My plan is to transplant these libraries from a Jetson Orin devkit. JetPack, NVIDIA’s software SDK for Jetson, includes a complete CUDA stack for ARM64. With some effort, I should be able to extract those .so files and drop them into a compatible root filesystem on the LX2160A. This isn’t guaranteed to work — library versions need to match the driver, certain paths (like `/usr/local/cuda` or `/opt/nvidia`) might need to be recreated, and the driver may expect specific syscalls or device tree quirks from Jetson hardware.
+
+In short: I believe it’s possible to build the software stack, but there’s still a lot of “how hard can it be?” energy in this part of the project. If it works, I’ll have a CUDA-capable ARM64 system booting a full 13B LLaMA model offline, on recycled datacenter silicon. If not, I’ll be the one debugging linker errors at 3AM because the runtime expected a Jetson GPIO tree.
 
 ## Custom carrier board and SXM4
 
