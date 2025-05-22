@@ -7,11 +7,13 @@ layout: default
 # Nvidia GPUs and ARM Single Board Computers
 ## or, Why GPUs and Raspberry Pis Don’t Mix
 
-In computing, you get compute, storage, and bandwidth. Pick any two, and you can do something cool. Early multimedia PCs had powerful CPUs and plenty of local storage on CDs but no bandwidth to speak of. So we got Myst and Microsoft Encarta. Thin clients flip that equation with fast network pipes and decent CPUs, but no storage. Deep space probes have more than enough compute and storage, but trickle data back over slow radio links. This shows up everywhere. If you have two of these things, you can usually fake the third. Compress harder, cache locally, stream dynamically, whatever it takes.
+Compute, storage, and bandwidth. Pick any two and you can do something cool. Early multimedia PCs had powerful CPUs and plenty of local storage on CDs but no connection to the Internet. So we got Myst and Microsoft Encarta. Thin clients flip that equation with fast network pipes and decent CPUs, but no storage. Deep space probes have more than enough compute and storage, but trickle data back over slow radio links. This pattern shows up everywhere in computing history. If you have two of these resources, you can usually fake the third through clever engineering—compress harder, cache locally, stream dynamically, whatever it takes.
 
-This holds up with modern applications of AI. GPUs, by virtue of being GPUs, have enough compute. Memory on that GPU is the limiting factor for running a model. Once you load a model and context into GPU memory, you're barely touching the PCI bus. You only need kilobytes of bandwidth to tell an AI to recreate scenes from *No Country For Old Men* in the style of Miyazaki, after all.
+This applies to modern AI tasks. GPUs have the compute power for AI's parallel operations and the memory to store large models. Once you load a neural network into that GPU memory, inference becomes almost entirely self-contained on the GPU. Meanwhile, the connection between CPU and GPU carries only lightweight traffic: prompts going in, tokens coming out. You only need kilobytes of bandwidth to tell an AI to recreate scenes from No Country For Old Men in the style of Miyazaki.
 
-If that's the case, why do we need a gigantic CPU attached to a gigantic GPU? Why can't we just run a datacenter GPU off a small ARM chip? The spoiler is that you can't run a datacenter GPU with a Raspberry Pi. But you can do something that's even cooler.
+If bandwidth requirements are so minimal during inference, why do we need massive, power-hungry CPUs paired with these GPUs? Why not just connect a datacenter-grade GPU to something tiny and efficient, like a Raspberry Pi? After all, the Pi would just be feeding small prompts to the GPU and passing responses back to users.
+
+The short answer is that you can't actually run a modern datacenter GPU with a Raspberry Pi. But you can do something that's even more interesting.
 
 ## Step 0, The idea and analysis
 
