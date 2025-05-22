@@ -5,7 +5,7 @@ layout: default
 ---
 
 # Solebox: Really Tiny Linux and Datacenter GPUs
-## or, Offline LLM Box: Pi CM5 + A100 = 80 tokens/sec in a Shoebox
+## or, Offline LLM Box: Pi CM5 + V100 = 80 tokens/sec in a Shoebox
 ### or, and I'm loathe to do this, "The Sole of a New Machine"
 
 For most cases, whether it's an LLM writing your term paper or recreating scenes from *No Country For Old Men* in the style of Miyazaki, an AI isn't bound by the bandwidth of a PCI bus. If you keep your models and context on the GPU, there are only a few kilobytes being transferred between the CPU and GPU at any given time. This is interesting, because anyone can build a small, personal, private Linux box out of salvaged datacenter GPUs. All I need to do is wire up one of these AI chips.
@@ -28,9 +28,9 @@ Every cheap Linux chip you’ve heard of — i.MX, Rockchip, Broadcom, Allwinner
 
  <p class="callout-sidebar">The NXP LS1046A might also work — it uses the same SerDes blocks and supports PCIe Gen 3 — but documentation on its BAR sizing and IOMMU support is sparse. It’s __significantly cheaper__, so I’ll be testing it as a lower-cost path forward. NXP engineers please reach out!</p>
  
- While most off-the-shelf ARM chips can't run datacenter silicon, a few parts can. The **NXP Layerscape LX2160A** is one of them — a 16-core ARMv8 chip with full 64-bit address space, proper IOMMU, large MMIO windows, and up to x16 lanes of PCIe Gen 4. It was built for high-performance networking and storage, but it's one of the only ARM SoCs that can reliably enumerate and initialize a GPU like the A100.
+ While most off-the-shelf ARM chips can't run datacenter silicon, a few parts can. The **NXP Layerscape LX2160A** is one of them — a 16-core ARMv8 chip with full 64-bit address space, proper IOMMU, large MMIO windows, and up to x16 lanes of PCIe Gen 4. It's usually found in [5G Base Stations](https://www.sageran.com/products/4g5g-portfolio/unity-outdoor-integrated-base-station-2w.html), [telecom equipment that inexplicably has 'NSA' in the product name](https://www.nexcom.com/Products/network-and-communication-solutions/edge-cloud-solutions/sd-wan-appliance/sd-wan-appliance-nsa-6310) and a [VPX module used for defense and aerospace](https://www.curtisswrightds.com/products/computing/processors/3u-vpx/vpx3-1708-v3-1708), but it's one of the only ARM SoCs that can reliably enumerate and initialize a GPU like the A100.
 
-To that end, and before spending weeks routing DDR4 and PCIe, I found an LX2160A single board computer on eBay. This board, a SolidRun LX2160A-CEX7 with ClearFog ITX breakout board, allowed me to test the hardware stack and provided me with a standard PCIe slot for testing various GPUs. For the OS, I installed Ubuntu 22.04 ARM64 with kernel 6.8‑rc7, adding the boot flags `pci=realloc,resizable_bar=1` to ensure the PCIe subsystem was properly configured. The board idled at just 11W without a GPU - impressively efficient for a 16-core system.
+To that end, I found an LX2160A single board computer on eBay. This board, a SolidRun LX2160A-CEX7 with ClearFog ITX breakout board, allowed me to test the hardware stack and provided me with a standard PCIe slot for testing various GPUs. For the OS, I installed Ubuntu 22.04 ARM64 with kernel 6.8‑rc7, adding the boot flags `pci=realloc,resizable_bar=1` to ensure the PCIe subsystem was properly configured. The board idled at just 11W without a GPU - impressively efficient for a 16-core system.
 
 The ClearFog has a single x16 PCIe slot (electrically x8). This gives me options for GPU placement. The x16 slot will make it easier to use standard GPUs without adapters. Time to connect a real GPU and see if the theory holds up.
 
