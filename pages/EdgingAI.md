@@ -26,20 +26,17 @@ Every cheap Linux chip you’ve heard of — i.MX, Rockchip, Broadcom, Allwinner
 
 ### The solution to the problem
 
- <p class="callout-sidebar">The NXP LS1046A was also investigated as an extremely cost-reduced version of this project compared to the LX2160A. The LS1046A does not work for this application. While the LS1043 and LS1046 chips have a full System MMU support in the Linux kernel, there is [the only 64-bit BAR window tops-out at 4 GiB](https://community.nxp.com/t5/Layerscape/4GB-BAR-on-PCIe-RC-on-LS1046A/m-p/1244197?utm_source=chatgpt.com), so a V100’s 32 GiB BAR-1 cannot fit .</p>
+ <p class="callout-sidebar">The NXP LS1046A was also investigated as an extremely cost-reduced version of this project compared to the LX2160A. The LS1046A does not work for this application. While the LS1043 and LS1046 chips have a full System MMU support in the Linux kernel, The only 64-bit BAR window tops-out at 4 GiB, so a V100’s 32 GiB BAR-1 cannot fit .</p>
  
  While most off-the-shelf ARM chips can't run datacenter silicon, a few parts can. The **NXP Layerscape LX2160A** is one of them — a 16-core ARMv8 chip with full 64-bit address space, proper IOMMU, large MMIO windows, and up to x16 lanes of PCIe Gen 4. It's usually found in [5G Base Stations](https://www.sageran.com/products/4g5g-portfolio/unity-outdoor-integrated-base-station-2w.html), [telecom equipment that inexplicably has 'NSA' in the product name](https://www.nexcom.com/Products/network-and-communication-solutions/edge-cloud-solutions/sd-wan-appliance/sd-wan-appliance-nsa-6310) and a [VPX module used for defense and aerospace](https://www.curtisswrightds.com/products/computing/processors/3u-vpx/vpx3-1708-v3-1708). It's also one of the only ARM SoCs that can reliably enumerate and initialize a GPU like the A100.
 
 <p class="callout-sidebar">
-<strong>Other chips outside of the i.MX/Rockchip/Allwinner/Mediatek confederation were also investigated for this project.</strong>
-• <em>Marvell CN96xx modules exist (Gateworks Venice, Avnet COM-e) but start at US $800 in volume and burn 45-65 W – double the LX2160A for the same core count.</em>
-• <em>The Zynq UltraScale+ (specifically the $300 XCZU2CG) also has PCIe Gen 2 x 4 and needs eight 4 GiB iATU windows to host a single 32 GiB BAR. The Zynq could theoretically run a 32GB GPU, but with zero headroom for anything bigger. </em>
-• <em>The Ampere Altra, a device **specifically designed for this purpose** costs a fortune, and they only sell to OEMs.</em>
+Other chips outside of the i.MX/Rockchip/Allwinner/Mediatek confederation were also investigated for this project. Marvell CN96xx modules exist (Gateworks Venice, Avnet COM-e) but start at US $800 in volume and burn 45-65 W – double the LX2160A for the same core count. The Zynq UltraScale+ (specifically the $300 XCZU2CG) also has PCIe Gen 2 x 4 and needs eight 4 GiB iATU windows to host a single 32 GiB BAR. The Zynq could theoretically run a 32GB GPU, but with zero headroom for anything bigger. The Ampere Altra, a device **specifically designed for this purpose** costs a fortune, and they only sell to OEMs. 
 </p>
 
 To that end, I found an LX2160A single board computer on eBay. This board, a SolidRun LX2160A-CEX7 with ClearFog ITX breakout board, allowed me to test the hardware stack and provided me with a standard PCIe slot for testing various GPUs. For the OS, I installed Ubuntu 22.04 ARM64 with kernel 6.8‑rc7, adding the boot flags `pci=realloc,resizable_bar=1` to ensure the PCIe subsystem was properly configured. The board idled at just 11W without a GPU - impressively efficient for a 16-core system.
 
-The ClearFog has a single x16 PCIe slot (electrically x8). This gives me options for GPU placement. The x16 slot will make it easier to use standard GPUs without adapters.
+The ClearFog has a single x16 PCIe slot (electrically x8 but they chopped the end off the connector so an x16 card will fit, neat). This gives me options for GPU placement. The x16 slot will make it easier to use standard GPUs without adapters.
 
 I needed a way to validate my concept with a real datacenter GPU, but I didn't want to spend tens of thousands on a new A100 right away. Fortunately, the secondary market for previous-generation datacenter GPUs is thriving, with many data centers upgrading and selling their older hardware. I managed to find a Tesla V100 SXM2 module on eBay for around $300. This was mounted to an SXM2 to PCIe bridge card, also obtained through some online retailers.
 
