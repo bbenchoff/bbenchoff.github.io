@@ -9,11 +9,12 @@ layout: default
 
 Compute, storage, and bandwidth. Pick any two and you can do something cool. Early multimedia PCs had powerful CPUs and plenty of local storage on CDs but no connection to the Internet. So we got Myst and Microsoft Encarta. Thin clients flip that equation with fast network pipes and decent CPUs, but no storage. Deep space probes have more than enough compute and storage, but trickle data back over slow radio links. This pattern shows up everywhere in computing history. If you have two of these resources, you can usually fake the third through clever engineering—compress harder, cache locally, stream dynamically, whatever it takes.
 
-This applies to modern AI tasks. GPUs have the compute power for AI's parallel operations and the memory to store large models. Once you load a neural network into that GPU memory, inference becomes almost entirely self-contained on the GPU. Meanwhile, the connection between CPU and GPU carries only lightweight traffic: prompts going in, tokens coming out. You only need kilobytes of bandwidth to tell an AI to recreate scenes from No Country For Old Men in the style of Miyazaki.
+This applies to modern AI tasks. GPUs have the compute power for AI and the memory to store large models. Once a neural network is loaded, inference becomes almost entirely self-contained: the CPU sends prompts in, and the GPU sends tokens out. You only need kilobytes of bandwidth to tell an AI to recreate scenes from _No Country For Old Men_ in the style of Miyazaki.
 
 If bandwidth requirements are so minimal during inference, why do we need massive, power-hungry CPUs paired with these GPUs? Why not just connect a datacenter-grade GPU to something tiny and efficient, like a Raspberry Pi? After all, the Pi would just be feeding small prompts to the GPU and passing responses back to users.
 
-The short answer is that you can't actually run a modern datacenter GPU with a Raspberry Pi. But you can do something that's even more interesting.
+The short answer is that you can’t actually run a modern datacenter GPU with a Raspberry Pi. But with a few hacks, you can build something even more absurd.
+
 
 ## Step 0, The idea and analysis
 
