@@ -7,7 +7,8 @@ layout: default
 # Reverse Engineering the Nvidia SXM2 Socket
 
 <p class="callout-sidebar">
-Nvidia’s SXM documentation is only released under mutual NDA. The pinout shown here was derived solely from publicly purchased hardware and non-destructive continuity probing, which is lawful reverse-engineering under U.S. and many other jurisdictions’ “fair use” and interoperability exemptions. Consider this an invitation for lawyers to suck it.
+<strong>LEGAL:</strong><br>
+Nvidia’s SXM documentation is only released under mutual NDA. The pinout shown here was derived solely from publicly purchased hardware and non-destructive continuity probing, which is lawful reverse-engineering under U.S. and many other jurisdictions’ “fair use” and interoperability exemptions.
 </p>
 
 For another project, it was necessary for me to acquire the pinout for Nvidia's [SXM2 socket](https://en.wikipedia.org/wiki/SXM_(socket)). This is a high-bandwidth mezzanine connector used in Nvidia datacenter GPUs. The SXM2 "standard" is quite old at the time of this writing (mid-2025), but details of this connector, including a pinout or even mechanical drawings, are still locked under NDAs at Nvidia's behest.
@@ -26,7 +27,7 @@ This is, to the best of my ability, the pinout for an SXM2 module:
 
 ## The Temperature Sensor
 
-Apart from the can controller circuitry on the back of the card, there is one other small piece of active electronics on this card: a temperature sensor right behind the PCIe Meg-Array connector. 
+Apart from the fan controller circuitry on the back of the card, there is one other small piece of active electronics on this card: a temperature sensor right behind the PCIe Meg-Array connector. 
 
 ![The Temperature Sensor Chip](/images/TempSensorChip.jpg)
 ![Schematic of the Temperature Sensor](/images/TempSensorSch.png)
