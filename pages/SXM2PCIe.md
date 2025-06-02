@@ -6,6 +6,10 @@ layout: default
 
 # Reverse Engineering the Nvidia SXM2 Socket
 
+<p class="callout-sidebar">
+Nvidia’s SXM documentation is only released under mutual NDA. The pinout shown here was derived solely from publicly purchased hardware and non-destructive continuity probing, which is lawful reverse-engineering under U.S. and many other jurisdictions’ “fair use” and interoperability exemptions. Consider this an invitation for lawyers to suck it.
+</p>
+
 For another project, it was necessary for me to acquire the pinout for Nvidia's [SXM2 socket](https://en.wikipedia.org/wiki/SXM_(socket)). This is a high-bandwidth mezzanine connector used in Nvidia datacenter GPUs. The SXM2 "standard" is quite old at the time of this writing (mid-2025), but details of this connector, including a pinout or even mechanical drawings, are still locked under NDAs at Nvidia's behest.
 
 Therefore, to get the details on this pinout, I had to do it the old-fashioned way. I had to reverse engineer it.
