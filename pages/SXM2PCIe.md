@@ -6,16 +6,18 @@ layout: default
 
 # Reverse Engineering the Nvidia SXM2 Socket
 
+**Note: all the files are hosted [in a Github repo](https://github.com/bbenchoff/SXM2toPCIe)**S
+
 <p class="callout-sidebar">
 <strong>LEGAL:</strong><br>
-Nvidia’s SXM documentation is only released under mutual NDA. The pinout shown here was derived solely from publicly purchased hardware and non-destructive continuity probing, which is lawful reverse-engineering under U.S. and many other jurisdictions’ “fair use” and interoperability exemptions.
+Nvidia’s SXM documentation is only released under mutual NDA. The pinout shown here was derived solely from publicly purchased hardware and non-destructive continuity probing, which is lawful reverse-engineering under U.S. and many other jurisdictions’ fair use and interoperability exemptions.
 </p>
 
 For another project, it was necessary for me to acquire the pinout for Nvidia's [SXM2 socket](https://en.wikipedia.org/wiki/SXM_(socket)). This is a high-bandwidth mezzanine connector used in Nvidia datacenter GPUs. The SXM2 "standard" is quite old at the time of this writing (mid-2025), but details of this connector, including a pinout or even mechanical drawings, are still locked under NDAs at Nvidia's behest.
 
 Therefore, to get the details on this pinout, I had to do it the old-fashioned way. I had to reverse engineer it.
 
-The basis of this reverse engineering came from a PCIe SXM2 carrier board that can be found on the Chinese parts of the internet. My carrier board is effectively identical to [this carrier board purchased by l4rz](https://l4rz.net/running-nvidia-sxm-gpus-in-consumer-pcs/). It contains everything needed: an SXM2 footprint with a single Amphenol Meg-Array connector, power delivered by two 2x3 PCIe power headers, and not much else. There's some circuitry on the back for a fan PWM controller, but not much else. The NVLink connector -- the second Meg-Array connector -- is not populated, because this card is only meant for a single SXM2 module.
+The basis of this reverse engineering came from a PCIe SXM2 carrier board that can be found on the Chinese parts of the internet. My carrier board is effectively identical to [this carrier board purchased by l4rz](https://l4rz.net/running-nvidia-sxm-gpus-in-consumer-pcs/). It contains everything needed: an SXM2 footprint with a single Amphenol Meg-Array connector, and power is delivered by two 2x3 PCIe power headers. There's some circuitry on the back for a fan PWM controller, but not much else. The NVLink connector -- the second Meg-Array connector -- is not populated, because this card is only meant for a single SXM2 module.
 
 Because of the simplicity of this circuit, it really is __mostly__ only a matter of testing the continuity of all the pins with a multimeter. __Mostly__.
 
