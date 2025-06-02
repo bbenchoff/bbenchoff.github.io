@@ -22,10 +22,14 @@ This is, to the best of my ability, the pinout for an SXM2 module:
 
 ## The Temperature Sensor
 
-Apart from the can controller circuitry on the back of the card, there is one other small piece of active electronics on this card: a temperature sensor right behind the PCIe Meg-Array connector. This IC is unidentifiable from its markings (X06L), but its function can be inferred.
+Apart from the can controller circuitry on the back of the card, there is one other small piece of active electronics on this card: a temperature sensor right behind the PCIe Meg-Array connector. 
 
 ![The Temperature Sensor Chip](/images/TempSensorChip.jpg)
 ![Schematic of the Temperature Sensor](/images/TempSensorSch.png)
+
+The broad strokes of this device is an SOT-23-3 package, with pin 3 wired to pin K18 on the Meg-Array connector. Pin K19 on the Meg-Array is wired to GND on the device (pin 1), and a 10k resistor is wired between GND and VIN (pin 2). This implies an NTC thermistor-based temperature sensor, or a digital temperature sensor with an analog output mode. 
+
+This IC is unidentifiable from its markings (X06L), even after consulting [http://www.smdmarkingcodes.com/](http://www.smdmarkingcodes.com/) and looking at the pictures of __all__ the SOT-23 temperature sensors on [LCSC](https://www.lcsc.com/). This means an exact match is impossible, but does not mean a drop-in replacement cannot be found. I inferred the function of each pin of the chip (power, ground, and output), and wired them up to a power supply and my multimeter. By measuring the voltage output of the chip under different conditions (room temperature, an ice cube, and a hot air gun set to 100C), I was able to plot a curve that allowed me to find a suitable drop-in replacement:
 
 
 [back](../)
