@@ -1,7 +1,7 @@
 ---
 layout: default
 
-
+description: Open-source pinout, schematic, and footprint for NVIDIA SXM2 to PCIe adapter.
 ---
 
 # Reverse Engineering the Nvidia SXM2 Socket
@@ -10,7 +10,7 @@ layout: default
 
 <p class="callout-sidebar">
 <strong>LEGAL NOTICE:</strong><br>
-Nvidia’s SXM documentation is only released under mutual NDA. The pinout shown here was derived <strong>solely</strong> from publicly purchased hardware, non-destructive continuity probing, and electrical measurement, which is lawful reverse-engineering under U.S. and many other jurisdictions’ fair use and interoperability exemptions e.g. 17 U.S.C. § 107, 17 U.S.C. § 1201(f), and Directive 2009/24/EC Art. 6. No confidential documents were accessed or breached, and no trademark or trade-secret rights are waived or implied. For concerns regarding copyright or trade secrets, please contact benchoff@gmail.com.”
+Nvidia’s SXM documentation is only released under mutual NDA. The pinout shown here was derived <strong>solely</strong> from publicly purchased hardware, non-destructive continuity probing, and electrical measurement, which is lawful reverse-engineering under U.S. and many other jurisdictions’ fair use and interoperability exemptions e.g. 17 U.S.C. § 107, 17 U.S.C. § 1201(f), and Directive 2009/24/EC Art. 6. No confidential documents were accessed or breached, and no trademark or trade-secret rights are waived or implied. For concerns regarding copyright or trade secrets, please contact benchoff@gmail.com.
 </p>
 
 For another project, it was necessary for me to acquire the pinout for Nvidia's [SXM2 socket](https://en.wikipedia.org/wiki/SXM_(socket)). This is a high-bandwidth mezzanine connector used in Nvidia datacenter GPUs. The SXM2 "standard" is quite old at the time of this writing (mid-2025), but details of this connector, including a pinout or even mechanical drawings, are still locked under NDAs at Nvidia's behest.
