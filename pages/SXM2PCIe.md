@@ -6,7 +6,7 @@ layout: default
 
 # Reverse Engineering the Nvidia SXM2 Socket
 
-**Note: all the files are hosted [in a Github repo](https://github.com/bbenchoff/SXM2toPCIe)**S
+**Note: all the files are hosted [in a Github repo](https://github.com/bbenchoff/SXM2toPCIe)**
 
 <p class="callout-sidebar">
 <strong>LEGAL:</strong><br>
@@ -28,7 +28,7 @@ This is, to the best of my ability, the pinout for an SXM2 module:
 ![Graphic of the SXM2 pinout](/images/SXM2Pinout.png)
 
 Also in table format:
-
+``` 
 |Row|A|B|C|D|E|F|G|H|J|K|
 |---|---|---|---|---|---|---|---|---|---|---|
 |1|GND|PERp1|GND|PERp2|GND|GND|PETp0|GND|PETp2|GND|
@@ -71,19 +71,56 @@ Also in table format:
 |38|12V|12V|12V|12V|12V|12V|12V|12V|12V|12V|
 |39|GND|GND|GND|GND|GND|GND|GND|GND|GND|GND|
 |40|12V|12V|12V|12V|12V|12V|12V|12V|12V|12V|
+```
 
+## The Temperature Sensor That Wasn't
 
-## The Temperature Sensor
-
-Apart from the fan controller circuitry on the back of the card, there is one other small piece of active electronics on this card: a temperature sensor right behind the PCIe Meg-Array connector. 
+Apart from the fan controller circuitry on the back of the card, there is one other small piece of active electronics on this card: a mysterious SOT-23-3 component positioned right behind the PCIe Meg-Array connector.
 
 ![The Temperature Sensor Chip](/images/TempSensorChip.jpg)
 ![Schematic of the Temperature Sensor](/images/TempSensorSch.png)
 
-The broad strokes of this device is an SOT-23-3 package, with pin 3 wired to pin K18 on the Meg-Array connector. Pin K19 on the Meg-Array is wired to GND on the device (pin 1), and a 10k resistor is wired between GND and VIN (pin 2). This implies an NTC thermistor-based temperature sensor, or a digital temperature sensor with an analog output mode. 
+At first glance, the circuit topology was deceiving. An SOT-23-3 package with a 10k pull-up resistor to 3.3V, connected to undocumented SXM2 pins K18 and K19? My initial assumption was a temperature sensor - perhaps an analog output thermistor or similar monitoring device. The pinout seemed to match: power, ground, and output.
 
-This IC is unidentifiable from its markings (X06L), even after consulting [http://www.smdmarkingcodes.com/](http://www.smdmarkingcodes.com/) and looking at the pictures of __all__ the SOT-23 temperature sensors on [LCSC](https://www.lcsc.com/). This means an exact match is impossible, but does not mean a drop-in replacement cannot be found. I inferred the function of each pin of the chip (power, ground, and output), and wired them up to a power supply and my multimeter. By measuring the voltage output of the chip under different conditions (room temperature, an ice cube, and a hot air gun set to 100C), I was able to plot a curve that allowed me to find a suitable drop-in replacement:
+The component bears the marking "X06L" with "1F" rotated 90 degrees - a code that doesn't appear in any of the standard SMD marking databases, including smdmarkingcodes.com or LCSC's extensive catalog. Without documentation, I had to resort to reverse engineering.
 
+### Initial testing: it's not a temperature sensor
+
+My first round of testing quickly disproved the temperature sensor theory. With the component powered in-circuit, I subjected it to temperature extremes - ice cubes and hot air at 100°C - with no change in output voltage. What I did discover was far more interesting: the output voltage tracked the input voltage with a consistent ~0.4V drop:
+
+* 2.5V In -> 2.13V Out
+* 3.3V In -> 2.93V Out
+* 3.9V In -> 3.5V Out
+
+This behavior immediately suggested a diode, not an active component.
+
+### Detailed Characterization
+
+After desoldering the component for thorough testing, I confirmed my suspicions. Diode mode measurements revealed:
+
+* Pin 2 to Pin 3: 0.54V forward drop
+* All other pin combinations: Open circuit
+* Pin 1: Completely unconnected internally
+
+This is the unmistakable signature of a single diode in an SOT-23-3 package, where pin 1 serves only as a mechanical support. To identify the specific type, I performed a forward voltage vs. current characterization:
+
+| Resistor Value | Measured VF | Calculated Current | Notes |
+|----------------|-------------|-------------------|-------|
+| 33kΩ           | 0.482V      | 0.085mA          | Very low current |
+| 3.3kΩ          | 0.521V      | 0.842mA          | Close to 1mA |
+| 680Ω           | 0.549V      | 4.049mA          | ~4mA |
+| 330Ω           | 0.563V      | 8.294mA          | ~8mA |
+| 150Ω           | 0.576V      | 18.16mA          | ~18mA |
+
+The key observations is a very low forward voltage, highly suggesting a BAT54 series Schottky diode.
+
+These measurements perfectly match the characteristics of a low VF Schottky diode, most likely a BAT54 or equivalent. The "X06L" marking is almost certainly a house code from a Chinese manufacturer for this common jellybean part.
+
+### Circuit Function
+
+The actual circuit is elegantly simple: a Schottky diode drops the 3.3V auxiliary power from the PCIe slot by ~0.4V before feeding it to the SXM2 module's K18 pin. The 10k resistor provides a pull-up to ensure a defined state when unpowered. Without NVIDIA's proprietary SXM2 documentation, the exact purpose remains speculative, but likely candidates include protection, preventing reverse current flow from the GPU module, or signal conditioning, creating a logic level offset for internal monitoring.
+
+For anyone repairing these adapters, a BAT54 Schottky diode in SOT-23-3 package is a perfect replacement. Connect it with the anode to the 10k resistor node and cathode to K18, leaving pin 1 unconnected. The specific variant (BAT54S, BAT54A, etc.) doesn't matter as long as it has similar forward voltage characteristics.
 
 ## The Mechanical Footprint
 
