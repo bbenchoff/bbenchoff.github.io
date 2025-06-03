@@ -124,15 +124,26 @@ The actual circuit is elegantly simple: a Schottky diode drops the 3.3V auxiliar
 
 For anyone repairing these adapters, a BAT54 Schottky diode in SOT-23-3 package is a perfect replacement. Connect it with the anode to the 10k resistor node and cathode to K18, leaving pin 1 unconnected. The specific variant (BAT54S, BAT54A, etc.) doesn't matter as long as it has similar forward voltage characteristics.
 
+### Finding the correct part
+
+Even though I can characterize this part and infer its function -- as well as make a reasonable copy of it for my own board -- I still can not find a drop-in compatible replacement. The standard BAT54 from Vishay, in SOT-23-3 packaging, has Pin 2 as NC, Pin 1 as the Anode, and Pin 3 as the Cathode. My part has Pin 1 as NC, Pin 2 as the Anode, and Pin 3 as the Cathode. A complete search of Schottkys on LCSC returned no parts that match this configuration. As such, I opted to replace the mystery SOT-23 package with a two-pin SOD-123 package (LCSC Part C549277). The schematic I'm using is below:
+
+![The corrected, reversed engineered 'protection' schematic](/images/SXMProtectionCircuit.png)
+
+## The Actual Schematic
+
+
+
+
 ## The Mechanical Footprint
 
 Finally, the mechanical part of the build. The actual footprint.
 
-The footprint itself is just two Meg-Array connectors, but one is left unpopulated. Easy enough. The __hard__ part is the mechanical portion. The SXM2 module is fastened to the board with eight individual M3 screws. These are M3 SMD standoffs, soldered to the opposite side of the board.
+The footprint itself is just two Meg-Array connectors, but one is left unpopulated. Easy enough. The __hard__ part is the mechanical portion. The SXM2 module is fastened to the board with eight individual M3 screws. These are M3 SMD standoffs, soldered to the opposite side of the board. Other than that, it's a standard PCIe x16 card.
 
 ![Render of the board, both sides](/images/SXM2Render.png)
 
-Other than that, it's a standard PCIe x16 card.
+Because I don't have a coordinate measuring machine or optical comparator in my pocket, I used a pair of digital calipers to measure the footprint of all the features of the board. By carefully referencing all of the measurements from the SMD M3 standoffs (and between the standoffs themselves), I eventually got the correct footprint. This, surprisingly, worked. All of the features of my SXM2 socket mate with the SXM2 module. You can do a lot with a pair of digital calipers.
 
 ![board in KiCad](/images/SXM2Board.png)
 
