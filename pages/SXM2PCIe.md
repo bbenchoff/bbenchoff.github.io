@@ -9,8 +9,8 @@ layout: default
 **Note: all the files are hosted [in a Github repo](https://github.com/bbenchoff/SXM2toPCIe)**
 
 <p class="callout-sidebar">
-<strong>LEGAL:</strong><br>
-Nvidia’s SXM documentation is only released under mutual NDA. The pinout shown here was derived solely from publicly purchased hardware and non-destructive continuity probing, which is lawful reverse-engineering under U.S. and many other jurisdictions’ fair use and interoperability exemptions.
+<strong>LEGAL NOTICE:</strong><br>
+Nvidia’s SXM documentation is only released under mutual NDA. The pinout shown here was derived <strong>solely</strong> from publicly purchased hardware, non-destructive continuity probing, and electrical measurement, which is lawful reverse-engineering under U.S. and many other jurisdictions’ fair use and interoperability exemptions e.g. 17 U.S.C. § 107, 17 U.S.C. § 1201(f), and Directive 2009/24/EC Art. 6. No confidential documents were accessed or breached, and no trademark or trade-secret rights are waived or implied. For concerns regarding copyright or trade secrets, please contact benchoff@gmail.com.”
 </p>
 
 For another project, it was necessary for me to acquire the pinout for Nvidia's [SXM2 socket](https://en.wikipedia.org/wiki/SXM_(socket)). This is a high-bandwidth mezzanine connector used in Nvidia datacenter GPUs. The SXM2 "standard" is quite old at the time of this writing (mid-2025), but details of this connector, including a pinout or even mechanical drawings, are still locked under NDAs at Nvidia's behest.
@@ -22,6 +22,8 @@ The basis of this reverse engineering came from a PCIe SXM2 carrier board that c
 Because of the simplicity of this circuit, it really is __mostly__ only a matter of testing the continuity of all the pins with a multimeter. __Mostly__.
 
 ## The Pinout
+
+Again, because you people don't read, all of the files needed to build your own SXM2 to PCIe adapter are [in a Github repo](https://github.com/bbenchoff/SXM2toPCIe).
 
 This is, to the best of my ability, the pinout for an SXM2 module:
 
