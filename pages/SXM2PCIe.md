@@ -23,7 +23,7 @@ Because of the simplicity of this circuit, it really is __mostly__ only a matter
 
 ## The Pinout
 
-Again, because you people don't read, all of the files needed to build your own SXM2 to PCIe adapter are [in a Github repo](https://github.com/bbenchoff/SXM2toPCIe).
+**__Again, all of the files needed to build your own SXM2 to PCIe adapter are [in a Github repo](https://github.com/bbenchoff/SXM2toPCIe).__**
 
 This is, to the best of my ability, the pinout for an SXM2 module:
 
