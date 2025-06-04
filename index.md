@@ -14,13 +14,13 @@ I design, build, and reverse-engineer **hardware, embedded systems, and unconven
 <!-- 🆕 Latest Work Section -->
 <section id="latest-work">
   <h2>🆕 Latest Work</h2>
-  <ul>
+  <ul class="latest-work-list">
     {% assign sorted_posts = site.pages | where_exp: "page", "page.last_modified_at" | sort: "last_modified_at" | reverse %}
     {% for post in sorted_posts limit:3 %}
-      <li>
+      <li class="latest-work-item">
         <h3><a href="{{ post.url | relative_url }}">{{ post.title }}</a></h3>
-        <p>{{ post.description }}</p>
-        <p><small>Last updated on {{ post.last_modified_at | date: "%B %d, %Y" }}</small></p>
+        <br>{{ post.description }}
+        <br><small>Last updated on {{ post.last_modified_at | date: "%B %d, %Y" }}</small>
       </li>
     {% endfor %}
   </ul>
