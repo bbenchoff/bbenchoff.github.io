@@ -1,12 +1,12 @@
 ---
 layout: default
-title: "GitRez"
-description: "Hardware engineering and PCB design documentation by Brian Benchoff"
-keywords: ["hardware engineering", "PCB design", "electronics", "reverse engineering"]
+title: "GitRez: A GitHub Client for Classic Mac OS"
+description: "A native GitHub Desktop client for Classic Mac OS (System 7-9) with resource fork preservation for vintage Mac development"
+keywords: ["Classic Mac OS", "GitHub client", "resource fork", "version control", "System 7", "vintage computing", "Mac development", "Git"]
 author: "Brian Benchoff"
 date: 2025-06-04
 last_modified_at: 2025-06-04
-image: "/images/default.jpg"
+image: "/images/GitHubBoxArt.png"
 ---
 ![Github box art](/images/GitHubBoxArt.png){: loading="lazy" alt="Github box art"}
 

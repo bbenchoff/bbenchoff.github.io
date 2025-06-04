@@ -1,12 +1,12 @@
 ---
 layout: default
-title: "HHLinux"
-description: "Hardware engineering and PCB design documentation by Brian Benchoff"
-keywords: ["hardware engineering", "PCB design", "electronics", "reverse engineering"]
+title: "Handheld Linux Device with NiMH Power"
+description: "A compact Linux handheld powered by Allwinner F1C200s, featuring NiMH batteries for easier shipping and lower cost"
+keywords: ["handheld Linux", "Allwinner F1C200s", "NiMH battery", "embedded Linux", "ARM9", "portable computing", "DIY electronics", "SPI LCD"]
 author: "Brian Benchoff"
 date: 2025-06-04
 last_modified_at: 2025-06-04
-image: "/images/default.jpg"
+image: "/images/SAB.png"
 ---
 ---
 layout: default

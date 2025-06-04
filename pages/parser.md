@@ -1,12 +1,12 @@
 ---
 layout: default
-title: "parser"
-description: "Hardware engineering and PCB design documentation by Brian Benchoff"
-keywords: ["hardware engineering", "PCB design", "electronics", "reverse engineering"]
+title: "ANSI Terminal Parser Implementation"
+description: "A VT100-compatible ANSI terminal parser implementation for embedded systems, capable of running on 8MHz microcontrollers"
+keywords: ["ANSI terminal", "VT100", "embedded systems", "terminal emulation", "escape codes", "microcontroller", "C programming"]
 author: "Brian Benchoff"
 date: 2025-06-04
 last_modified_at: 2025-06-04
-image: "/images/default.jpg"
+image: "/images/ParserState.png"
 ---
 ## ANSI Terminal Parser
 

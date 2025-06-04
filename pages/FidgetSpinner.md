@@ -1,12 +1,12 @@
 ---
 layout: default
-title: "FidgetSpinner"
-description: "Hardware engineering and PCB design documentation by Brian Benchoff"
-keywords: ["hardware engineering", "PCB design", "electronics", "reverse engineering"]
+title: "Serial Fidget Spinner: A RS-232 Y-Cable"
+description: "A unique approach to RS-232 signal testing using a 3D-printed fidget spinner with skateboard bearings"
+keywords: ["RS-232", "serial cable", "Y-cable", "3D printing", "terminal testing", "fidget spinner", "hardware testing", "electronics project"]
 author: "Brian Benchoff"
 date: 2025-06-04
 last_modified_at: 2025-06-04
-image: "/images/default.jpg"
+image: "/images/FidgetSpinner.png"
 ---
 ## Serial Fidget Spinner
 

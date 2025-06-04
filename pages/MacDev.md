@@ -1,12 +1,12 @@
 ---
 layout: default
-title: "MacDev"
-description: "Hardware engineering and PCB design documentation by Brian Benchoff"
-keywords: ["hardware engineering", "PCB design", "electronics", "reverse engineering"]
+title: "Classic Mac OS Development Guide"
+description: "A comprehensive guide to developing applications for Classic Mac OS, from 68k to PowerPC systems"
+keywords: ["Classic Mac OS", "68k", "PowerPC", "vintage computing", "Mac development", "System 7", "Mac OS 9", "retro programming"]
 author: "Brian Benchoff"
 date: 2025-06-04
 last_modified_at: 2025-06-04
-image: "/images/default.jpg"
+image: "/images/Mac IDE.jpg"
 ---
 ---
 layout: default

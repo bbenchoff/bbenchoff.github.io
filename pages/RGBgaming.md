@@ -1,12 +1,12 @@
 ---
 layout: default
-title: "RGBgaming"
-description: "Hardware engineering and PCB design documentation by Brian Benchoff"
-keywords: ["hardware engineering", "PCB design", "electronics", "reverse engineering"]
+title: "RGB Gaming Coaster"
+description: "A high-density PCB design featuring 214 RGB LEDs in a 72mm coaster form factor, powered by IS31FL3741 LED drivers and ATSamD21"
+keywords: ["RGB LEDs", "PCB design", "IS31FL3741", "ATSamD21", "electronics", "LED matrix", "gaming accessories", "embedded systems"]
 author: "Brian Benchoff"
 date: 2025-06-04
 last_modified_at: 2025-06-04
-image: "/images/default.jpg"
+image: "/images/RGBGaming.jpg"
 ---
 ## RGB Gaming Coaster
 

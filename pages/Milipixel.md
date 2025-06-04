@@ -1,12 +1,12 @@
 ---
 layout: default
-title: "Milipixel"
-description: "Hardware engineering and PCB design documentation by Brian Benchoff"
-keywords: ["hardware engineering", "PCB design", "electronics", "reverse engineering"]
+title: "Milipixel: Classic Mac Photo Sharing for Vintage Digital Cameras"
+description: "A retro photo sharing platform for classic Macintosh computers, designed for vintage digital cameras like Apple QuickTake and Kodak DCS"
+keywords: ["classic Macintosh", "vintage photography", "Apple QuickTake", "Kodak DCS", "retro computing", "photo sharing", "vintage software", "CCD cameras"]
 author: "Brian Benchoff"
 date: 2025-06-04
 last_modified_at: 2025-06-04
-image: "/images/default.jpg"
+image: "/images/MilipixelBoxArt.png"
 ---
 ---
 layout: default

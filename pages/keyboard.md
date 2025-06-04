@@ -1,12 +1,12 @@
 ---
 layout: default
-title: "keyboard"
-description: "Hardware engineering and PCB design documentation by Brian Benchoff"
-keywords: ["hardware engineering", "PCB design", "electronics", "reverse engineering"]
+title: "Custom Silicone Membrane Keyboard"
+description: "Design and manufacturing process of a custom silicone membrane keyboard with 69 keys, including PCB design and printing process"
+keywords: ["silicone keyboard", "membrane keyboard", "PCB design", "keyboard manufacturing", "pad printing", "keyboard scanning", "hardware design", "Eagle library"]
 author: "Brian Benchoff"
 date: 2025-06-04
 last_modified_at: 2025-06-04
-image: "/images/default.jpg"
+image: "/images/KeyboardArial.png"
 ---
 ## Silicone Membrane Keyboard
 

@@ -1,12 +1,12 @@
 ---
 layout: default
-title: "QuicktakeLens"
-description: "Hardware engineering and PCB design documentation by Brian Benchoff"
-keywords: ["hardware engineering", "PCB design", "electronics", "reverse engineering"]
+title: "Nikon Lens Adapter for Apple Quicktake 150"
+description: "Building a custom Nikon lens adapter for the Apple Quicktake 150, one of the first consumer digital cameras from 1994"
+keywords: ["Apple Quicktake", "digital camera", "Nikon lens", "lens adapter", "vintage technology", "photography", "hardware mod", "Apple history"]
 author: "Brian Benchoff"
 date: 2025-06-04
 last_modified_at: 2025-06-04
-image: "/images/default.jpg"
+image: "/images/Quicktakes.jpg"
 ---
 ---
 layout: default
