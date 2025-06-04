@@ -1,5 +1,15 @@
 ---
 layout: default
+title: "EdgingAI"
+description: "Hardware engineering and PCB design documentation by Brian Benchoff"
+keywords: ["hardware engineering", "PCB design", "electronics", "reverse engineering"]
+author: "Brian Benchoff"
+date: 2025-06-04
+last_modified_at: 2025-06-04
+image: "/images/default.jpg"
+---
+---
+layout: default
 
 
 ---
@@ -42,7 +52,7 @@ The ClearFog has a single x16 PCIe slot (electrically x8 but they chopped the en
 
 I needed a way to validate my concept with a real datacenter GPU, but I didn't want to spend tens of thousands on a new A100 right away. Fortunately, the secondary market for previous-generation datacenter GPUs is thriving, with many data centers upgrading and selling their older hardware. I managed to find a Tesla V100 SXM2 module on eBay for around $300. This was mounted to an SXM2 to PCIe bridge card, also obtained through some online retailers.
 
-![NVIDIA V100 SXM2 module](/images/V100_SXM2.jpg)
+![NVIDIA V100 SXM2 module](/images/V100_SXM2.jpg){: loading="lazy" alt="NVIDIA V100 SXM2 module"}
 
 Running `lspci`, I saw exactly what I'd hoped for:
 ```
@@ -86,7 +96,7 @@ This was the first time I had a complete, local LLM stack running on recycled da
 
 Solebox was alive.
 
-![Screenshots of it running LLama](/images/llama.jpg)
+![Screenshots of it running LLama](/images/llama.jpg){: loading="lazy" alt="Screenshots of it running LLama"}
 
 ## Custom carrier board and SXM4
 
@@ -94,7 +104,7 @@ With the CPU validated, I had to turn this into a product. Ideally this would me
 
 I started by forking Solid-Run's open mechanical STEP files for the ClearFog board, as well as NXP reference implementations for the LX2160A to produce a shoebox-sized board with everything I needed. 
 
-![CAD rendering of custom board design](/images/Solebox_PCB_CAD.jpg)
+![CAD rendering of custom board design](/images/Solebox_PCB_CAD.jpg){: loading="lazy" alt="CAD rendering of custom board design"}
 
 I started by forking Solid-Run's open mechanical STEP files for the ClearFog board, as well as NXP reference implementations for the LX2160A, to produce a shoebox-sized board with everything I needed.
 
@@ -176,7 +186,7 @@ Features:
 * Side intake vents with removable filters
 * Four rubber feet for desktop use, optional rackmount tabs
 
-![Solebox enclosure CAD rendering](/images/Solebox_Enclosure_CAD.jpg)
+![Solebox enclosure CAD rendering](/images/Solebox_Enclosure_CAD.jpg){: loading="lazy" alt="Solebox enclosure CAD rendering"}
 
 I had the enclosure fabricated by a local sheet metal shop and powder-coated in matte black. Logos and labels are laser-etched. Assembly was straightforward — the mainboard mounts on standoffs, the PSU bolts to the base, and the rest is plug-and-play.
 
@@ -218,4 +228,4 @@ This isn’t just a curiosity. It’s the seed of a real product — one that ru
 
 ---
 
-![Final Solebox system running LLaMA](/images/Solebox_Final.jpg)
+![Final Solebox system running LLaMA](/images/Solebox_Final.jpg){: loading="lazy" alt="Final Solebox system running LLaMA"}

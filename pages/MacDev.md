@@ -1,12 +1,22 @@
 ---
 layout: default
+title: "MacDev"
+description: "Hardware engineering and PCB design documentation by Brian Benchoff"
+keywords: ["hardware engineering", "PCB design", "electronics", "reverse engineering"]
+author: "Brian Benchoff"
+date: 2025-06-04
+last_modified_at: 2025-06-04
+image: "/images/default.jpg"
+---
+---
+layout: default
 
 
 ---
 
 ## Classic Mac OS Development
 
-![Render of tiny computers](/images/Mac IDE.jpg)
+![Render of tiny computers](/images/Mac IDE.jpg){: loading="lazy" alt="Render of tiny computers"}
 
 For reasons ranging from [my Instagram clone for vintage digital cameras](https://www.640by480.com/), and my [Apple Quicktake photography](https://bbenchoff.github.io/pages/QuicktakeLens.html), I'm in need of a few tools for the classic Mac OS. This includes a small app to drop pictures from a Quicktake to quickly save as JPEGs. I would also like to build a 'desktop client' for my Instagram clone. Either way, in 2023 I dove into developing for Classic Mac OS. One thing that caused a lot of headaches starting out was the lack of documentation available on the Internet -- the Classic Mac OS was discontinued in 2001, and two decades of bitrot has taken a toll on any documentation relating to development on this platform. My hope is that this page will be a condenced manual on how to get started developing for this platform.
 

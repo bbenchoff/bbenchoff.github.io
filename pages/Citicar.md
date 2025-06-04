@@ -1,5 +1,15 @@
 ---
 layout: default
+title: "1980 Citicar/Comuta-Car EV Restoration"
+description: "Complete restoration and modernization of a 1980 Citicar electric vehicle, including modern battery system, CAN bus conversion, and full documentation of the restoration process"
+keywords: ["Citicar restoration", "electric vehicle restoration", "vintage EV", "Comuta-Car", "EV conversion", "classic car restoration", "automotive electronics", "CAN bus conversion"]
+author: "Brian Benchoff"
+date: 2023-06-04
+last_modified_at: 2023-06-04
+image: "/images/Car/OceanBeach/Hero.jpg"
+---
+---
+layout: default
 
 
 ---
@@ -8,7 +18,7 @@ layout: default
 
 # 1980 Citicar / Comuta-Car, Restoration
 
-![Hero image](/images/Car//OceanBeach/Hero.jpg)
+![Hero image](/images/Car//OceanBeach/Hero.jpg){: loading="lazy" alt="Hero image"}
 
 In the late 90s or early 2000s, right after I got my drivers license, I needed a car. I went to a convenience store, picked up an AutoTrader, and started leafing through the thinly printed pages. One ad caught my eye: a rare, weird, angular electric car from the 1970s. This was my introduction to the Citicar, a street-legal golf cart with ABS plastic body panels. It was glorious, and by far the coolest car in a magazine that also featured old Chargers sitting on blocks, one or two Mk4 Supras, first gen Miatas, and everything else that could be found in a 25-year-old AutoTrader. I'd like to repeat this for clarity: as a 17-year-old, a shitty plastic 70s wedge was cooler than the cars in _Fast and the Furious_. Now you know who I am.
 
@@ -26,7 +36,7 @@ Tips and tricks for acquiring a Comutacar: [It *barely* fits in the back of a 10
 
 The plan, at the time, was to fix the wiring in the car, put some batteries in, and see if the car can go around the block. Maybe to the grocery store. After that, I would assess putting some bigger lithium batteries in, and the possibility of upgrading the motor. An easy job, right? Should only take a few months.
 
-![Pics from acquiring the car](/images/Car/AcquiringCar.png)
+![Pics from acquiring the car](/images/Car/AcquiringCar.png){: loading="lazy" alt="Pics from acquiring the car"}
 
 ## Part 1, Teardown and I found a motor controller
 
@@ -36,7 +46,7 @@ During the teardown, I was looking at this weird box right next to the motor. Th
 
 Given the serial number on the unused motor controller, a few parts on the wiring harness, and the oral history of the car from the seller, I think I can put together a reasonably correct history of this car. Sometime after 1993 and before 2000, the car was in Palm Springs where the owner decided a refurbishment was in order. This person had the knowledge to walk into NAPA auto, but not the skills to put those parts together. The last time it was registered was in 2000, after which it was moved to Coarsegold, half an hour north of Fresno. In 2022, I brought it to San Francisco where it was restored.
 
-![Part 1 Compilation](/images/Car/Part1/Part1.png)
+![Part 1 Compilation](/images/Car/Part1/Part1.png){: loading="lazy" alt="Part 1 Compilation"}
 
 After a few days of reverse-engineering the wiring, we determined the best course of action would be to [tear out all the wires](/images/Car/Part1/8.png) and rebuild the entire electrical system from the ground up. This gave me an opportunity to clean out twenty years of detritus in the under-seat compartment. This was a weird, sticky goo that cleaned up with soap and water. I also found a mouse nest inside the ventilation/cooling manifold; this manifold was removed, cleaned in the dishwasher, and reinstalled.
 
@@ -58,13 +68,13 @@ With the fuse panel, a new turn signal stalk, a bunch of 14ga wire, and a boatlo
 
 ### A comparison between the original service manual schematic, and a schematic done by someone who can draw:
 
-![Compairson between old and my schematic](/images/Car/Part2/SchComp.png)
+![Compairson between old and my schematic](/images/Car/Part2/SchComp.png){: loading="lazy" alt="Compairson between old and my schematic"}
 
 The difference is stark. The old schematic was unreadable not only because some wires were cut off from many generations of photocopying, but also because of a mysterious 'turn signal relay board' that is completely undocumented.
 
 After [a false start](https://twitter.com/ViolenceWorks/status/1493440131448991749) and a few [obviously crossed wires](https://twitter.com/ViolenceWorks/status/1494008660707606529) I was able to get the majority of the dash wiring done. There are a few bits of weirdness to the Citicar schematic, though; the headlamps are switched through two switches, the dash switch and the turn stalk. Because of this, only the top position of the dash switch turns on the headlamps, which are then switched through high and low beams with the turn stalk. The 'lower' setting of the dash light switch only activates the running lights, without the headlights. This is _weird_, but I suppose it's DOT compliant, it should be close to what the original wiring should be, and it'll work.
 
-![Part 2 Compilation](/images/Car/Part2/TailLightComp.gif)
+![Part 2 Compilation](/images/Car/Part2/TailLightComp.gif){: loading="lazy" alt="Part 2 Compilation"}
 
 [With the dash wiring completed](https://twitter.com/ViolenceWorks/status/1494036625461956609), I turn my attention to the power electronics and getting the motor turning.
 
@@ -78,25 +88,25 @@ With the 12V electronics done, the goal was to wire in the motor controller that
 
 After [wiring everything up according to the controller manual](/images/Car/Part3/CurtisControllerDiagram.PNG), I turned everything on, and.... nothing. The motor didn't spin, and following the troubleshooting steps in the controller manual discovered the controller was faulty. I could have the controller rebuilt for $450, but [another used controller is available on eBay for $200](/images/Car/Part3/ebaycontroller.png). This "new" controller is a slight upgrade over the controller that came with the car -- the eBay controller goes up to 72V. Judging from a few Citicar message board threads and the fact I live in the hilliest city in America, this should be a welcome upgrade.
 
-![The remanufactured controller](/images/Car/Part3/RefurbController.png)
+![The remanufactured controller](/images/Car/Part3/RefurbController.png){: loading="lazy" alt="The remanufactured controller"}
 
 The problem is, when I got the new 72V controller, it didn't work either. I now had two broken motor controllers, and a great lesson on how expensive thrift is. After sending the new controller out for a rebuild for $450, but after that, I had [a working controller](https://twitter.com/ViolenceWorks/status/1511137439137492992).
 
 With the new controller tested and confirmed working, I still couldn't get the motor to turn. I tested _everything_, including the forward/reverse contactor, and everything checked out. The problem had to be the motor itself, and opening the little rubber doors on the motor confirmed this assumption. The brushes for the motor were chooched. Two out of the four brushes were disconnected from their lead wires:
 
-![A broken brush](/images/Car/Part5/ChoochedBrushes.png)
+![A broken brush](/images/Car/Part5/ChoochedBrushes.png){: loading="lazy" alt="A broken brush"}
 
 I had two options: replace the brushes ($40) and hope everything else is okay, or replace the entire motor (~$2000). I, of course, chose the less expensive option, which seems to be a recurring theme in this build. This did not come back to bite me in the ass at all.
 
 After pulling the motor out, I had some idea of what the [motor mount and spline looked like](/images/Car/Part5/MotorMountPlate.png). At least now the motor is easy to work on and I can assess my replacement options.
 
-![Motor Teardown](/images/Car/Part5/MotorTeardown.png)
+![Motor Teardown](/images/Car/Part5/MotorTeardown.png){: loading="lazy" alt="Motor Teardown"}
 
 The [new brushes](/images/Car/Part5/MotorBrushes.png) were installed (0.5" x 0.625" x 1.437" carbon brushes, part number 10-506221), and I bolted the motor back onto the diff. Wired everything up again, and..... nothing. Not a damn thing. The controller was confirmed working with the 'motor tester menorah', and the motor was confirmed working by wiring it up [directly to the battery](https://twitter.com/ViolenceWorks/status/1514020800919379969). Hey, at least the new brushes worked. This only meant the forward/reverse contactor as being the problem, which is odd because I can hear it clicking when changing directions on the dash. [Turns out this wasn't sufficient](https://twitter.com/ViolenceWorks/status/1514068438141964290), and I needed a 12V F/R contactor.
 
 A hundred bucks later, and I had a forward/reverse contactor with a 12V coil voltage. The wheels spun, I dropped it down off the jacks, and the car barely inched along. There simply wasn't enough current going to the motor. The car _moved_ and I was able to pull it out of my garage and into the driveway, but there was simply no power. Zero torque. The motor was just _bad_.
 
-![The car out of the garage](/images/Car/Part5/ActuallyDrove.jpg)
+![The car out of the garage](/images/Car/Part5/ActuallyDrove.jpg){: loading="lazy" alt="The car out of the garage"}
 
 I would like to reiterate the process of getting the wheels to turn, in bullet point format:
 
@@ -118,7 +128,7 @@ From here, I had a few things to consider. The motor could be faulty, but fixabl
 
 This was the lowest point of the project. There was nothing I could do except replace the motor. And if I'm going to do that, I might as well go big. The car will now have an [HPEVs AC-12 motor](https://www.thunderstruck-ev.com/ac-12-w-1234-5371-clone.html) from Thunderstruck Motors. The AC-12 motor -- [HPEVs link](https://www.hpevs.com/ac--electric-motor-for-club-car-golf-cars-ac-12-07-51.htm) -- is a motor made for the golf cart industry, but on a scale that's a bit crazy. The stock motor in my comutacar was 6HP; the HPEVs motor will max out at about 36HP. This gives me a lot more torque for the San Francisco hills, and a few videos on Facebook lead me to believe the car will eventually do wheelies. The motor kit cost about $3k, but that also gets me a new motor controller.
 
-![the motor mount](/images/Car/Part5/MotorMount.gif)
+![the motor mount](/images/Car/Part5/MotorMount.gif){: loading="lazy" alt="the motor mount"}
 
 The new motor also required a new motor mount. This was designed in Fusion360 and sent to PCBway for manufacturing. I highly recommend this way of manufacturing -- it was less than 10 days and $250 to get a brand new motor mount.
 
@@ -160,7 +170,7 @@ These connectors will be used instead of the [EV West Pacifica Battery Harness](
 
 But with everything together, I _finally_ had a car that could make it up the slight grade of my driveway:
 
-![First drive](/images/Car/Part3/FirstDrive.gif)
+![First drive](/images/Car/Part3/FirstDrive.gif){: loading="lazy" alt="First drive"}
 
 Of course this doesn't mention that in between troubleshooting the motor and buying a new one, I had given my car a CAN bus with a new gauge cluster. Thus:
 
@@ -179,14 +189,14 @@ My second attempt at a 'digital dash' is effectively an LED display pulled out o
 
 ## A picture of the final Dashboard
 
-![Finished Dashboard pic 1](/images/Car/GaugeCluster/DashFinal1.jpg)
-![Finished Dashboard pic 2](/images/Car/GaugeCluster/DashFinal2.jpg)
+![Finished Dashboard pic 1](/images/Car/GaugeCluster/DashFinal1.jpg){: loading="lazy" alt="Finished Dashboard pic 1"}
+![Finished Dashboard pic 2](/images/Car/GaugeCluster/DashFinal2.jpg){: loading="lazy" alt="Finished Dashboard pic 2"}
 
 ## A Comparison of Approaches
 
 To describe what goes into converting a car to CAN, I must go over what the original schematic looked like. Here it is, on the left:
 
-![A comparison between two schematics](/images/Car/Schematics.png)
+![A comparison between two schematics](/images/Car/Schematics.png){: loading="lazy" alt="A comparison between two schematics"}
 
 While this schematic neglects the high power electronics like the motor, contactor, and charger, the complete 12 Volt system is there. The brains of the operation is four relays. This, along with a 'flasher' unit -- basically a bi-metallic strip that turns off when enough current is applied -- is all you need to run a car. This schematic will handle hazard lights, turn signals, brake lights, and everything else a car is legally required to have. Throw some switches in there for the wiper and defrost and that's all you really need in a car. Not shown is the speedometer, but you get the point.
 
@@ -194,7 +204,7 @@ The CAN version of this schematic is significantly different. Instead of relays,
 
 ### The CAN-MOSFET Board
 
-![The CAN MOSFET Board](/images/Car/GaugeCluster/CANMOSFET.jpg)
+![The CAN MOSFET Board](/images/Car/GaugeCluster/CANMOSFET.jpg){: loading="lazy" alt="The CAN MOSFET Board"}
 
 The design of the MOSFET board has several requirements, including:
 
@@ -211,14 +221,14 @@ Also on this board is a 'shield' of sorts. The CAN MOSFET board has several diff
 - With a 8-port opto input, giving 8 MOSFET outputs and 8 opto inputs
 - With a 4/4 opto/mosfet shield, giving 12 MOSFET outputs and 4 opto inputs
 
-![Render of the complete CAN MOSFET device, with shield](/images/Car/GaugeCluster/CANGPIO.png)
+![Render of the complete CAN MOSFET device, with shield](/images/Car/GaugeCluster/CANGPIO.png){: loading="lazy" alt="Render of the complete CAN MOSFET device, with shield"}
 
 The circuit for the MOSFETs and optos are simple enough. For the 'microcontroller and CAN' part of the circuit, I settled on an ATMega328p, Microchip MCP2515 CAN controller, and Microchip MCP2551 CAN Transceiver. Yes, this is effectively an Arduino running my car, but with the proper application of watchdog timers, most concerns can be oblivated. See Jack Ganssle's [article on watchdogs](http://www.ganssle.com/watchdogs.htm) for some introduction to this.
 
 ### The Display
 
 #### Click to play video
-[![Click to play video](/images/Car/GaugeCluster/Video1.png)](https://www.youtube.com/watch?v=ojj_RZFQOnw)
+[![Click to play video](/images/Car/GaugeCluster/Video1.png){: loading="lazy" alt="Click to play video"}](https://www.youtube.com/watch?v=ojj_RZFQOnw)
 
 The only way for me to measure the speed of the car is by reading the motor RPM, dividing by whatever the gear ratio of the differential is, and multiplying by the wheel diameter of the wheels. I think pi is in there somewhere. I need a display, and the most basic LCD display simply will not do for this. To this end, I created an 18*39 LED display -- that's 702 LEDs -- by [writing a driver for the IS31FL3741 LED driver chip](https://bbenchoff.github.io/pages/IS31FL3741.html). This is the third time I have written a driver for this chip.
 
@@ -226,20 +236,20 @@ The CAD and PCB design for this display is just a column and row arrangement for
 
 The main function of the display is that of a speedometer and odometer. This is done by reading RPM from the motor controller through the CAN bus and a bit of math. In addition to these two main functions, battery state and potentially range can be calculated from the CAN bus on the BMS controller. Of course, as the CAN bus is wired into the BMS, motor controller, and charge controller, I have access to any data I could ever want, accessing it is just a matter of coding it up.
 
-![The Display](/images/Car/GaugeCluster/ExplodedBezel.png)
+![The Display](/images/Car/GaugeCluster/ExplodedBezel.png){: loading="lazy" alt="The Display"}
 
 ### The Shift Knob
 
 #### Click to play video
-[![Click to play video](/images/Car/GaugeCluster/Video2.png)](https://www.youtube.com/watch?v=zooh03eB9oE)
+[![Click to play video](/images/Car/GaugeCluster/Video2.png){: loading="lazy" alt="Click to play video"}](https://www.youtube.com/watch?v=zooh03eB9oE)
 
 The motor controller has inputs for Drive, Neutral, and Reverse that need +12 Volts to turn the motor in that direction. Because all my lights are CAN-enabled, I will also need to somehow present the state of the 'shift knob' on the CAN bus. The most obvious solution to this problem is to simply read this state with an additional optoisolator circuit. I did not do this. I created something much cooler
 
-![The rotary shift knob](/images/Car/GaugeCluster/RotaryTransmission1.png)
+![The rotary shift knob](/images/Car/GaugeCluster/RotaryTransmission1.png){: loading="lazy" alt="The rotary shift knob"}
 
 Above is the exploded view of my shift knob. It is a three-position rotary switch. Underneath the face of this knob is a 16-segment LED that shows 'D', 'N', or 'R', depending on the position of the switch. This rotary switch has four different center poles (it is effectively four separate 3-position switches), one pole of which is used by the motor controller, and a second read by an on-board microcontroller. This microcontroller sends the state of the switch over the CAN bus and also drives the 16-segment display.
 
-![The rotary shift knob](/images/Car/GaugeCluster/RotaryTransmission3.png)
+![The rotary shift knob](/images/Car/GaugeCluster/RotaryTransmission3.png){: loading="lazy" alt="The rotary shift knob"}
 
 The really cool trick with this knob is the fact that the center indicator remains stationary as the knob turns. Turning the knob does not move the center indicator. It's an effect that puts the 'b' in subtle, but is simply amazing when you notice it. It's probably what I'm most proud of in this entire CAN conversion project.
 
@@ -251,7 +261,7 @@ The stock Comutacar includes a 'sub panel' below the dashboard for what can gene
 
 I will not be using the forced-air motor cooling and defrost system. The motor runs cool enough to not require cooling, and I am adapting a 12V / 150W Portable Car Heater to use as a defroster. This gives me space to add additional switches, or at least space for extra switches. I do not know what these switches will eventually do. One idea is to have a mode that changes the acceleration profile on the motor controller. Or a switch blinks the exterior lights randomly. Here's a pic of the five-switch extension panel, along with the stock heater/manifold controls:
 
-![The extension panel](/images/Car/GaugeCluster/ExtensionPanel.png)
+![The extension panel](/images/Car/GaugeCluster/ExtensionPanel.png){: loading="lazy" alt="The extension panel"}
 
 The additional round display is the Curtis 3140, a display for the motor controller itself. While this display is not technically necessary, it is hugely helpful for debugging and programming the motor controller. The rightmost switch position in the heater controls is taken up by two switches needed to program the motor controller -- a 'Menu' button and a 'Mode' switch. 
 
@@ -275,19 +285,19 @@ To this 1/4" aluminum 'backer plate', I attach a 1/8" aluminum 'front piece' to 
 
 To give the front piece a little more class, I bought a long piece of maple burl veneer and attached that with contact cement. It looks amazing. Here's the render of the final product, and a crude assembly diagram:
 
-![Render of completed dashboard](/images/Car/GaugeCluster/DashboardRender.png)
+![Render of completed dashboard](/images/Car/GaugeCluster/DashboardRender.png){: loading="lazy" alt="Render of completed dashboard"}
 
-![Dashboard Assembly diagram](/images/Car/GaugeCluster/AssemblyDiagram.png)
+![Dashboard Assembly diagram](/images/Car/GaugeCluster/AssemblyDiagram.png){: loading="lazy" alt="Dashboard Assembly diagram"}
 
 ## Part 4, Body repair, bumpers and cosmetic issues
 
 When I acquired the car, the body was by no means perfect. No Citicar is; the entire chassis is an aluminum tube frame clad with exactly six ABS plastic panels: four quarter panels, a back panel, and a huge plastic panel for the front and top of the car. All Citicars have at least one large crack next to the windshield, caused by decades of expansion and contraction. Mine has several more cracks, the most notable on the back top corners, with several other major gashes around the car. There are also missing pieces of panels -- on the driver's rear quarter panel, most of the bottom is missing, and the 'vent' was completely cracked off. The remaining pieces were saved by the previous owner, and I think I've figured out the best way to repair them.
 
-![repaired body panel](/images/Car/Part4/BodyPanelRepair.png)
+![repaired body panel](/images/Car/Part4/BodyPanelRepair.png){: loading="lazy" alt="repaired body panel"}
 
 Since the body panels are ABS plastic, conventional wisdom says acetone is the best solvent to join panels back together. Chemistry says something else, and the ingredients of most ABS 'glue' are 10 parts MEK with one part acetone. The thinking, I think, is the acetone bonds the parts quickly, while the much stronger MEK takes a few days to fully cure. I'm looking for strength, so that's what I went with. To fill any holes in the body, I've come up with a technique that uses plastic welding (a soldering iron and ABS 3D printer filament) with this MEK/acetone solvent. After slightly melting some filament to the body panel, I apply the solvent and let it cure. Sand a few days later and repeat. It is not fast, but there really are no other solutions for fixing a huge plastic panel like this. While the [repaired driver's quarterpanel](/images/Car/Part4/DriverQuarter.png) isn't much to look at now, the entire car will eventually be sanded and painted.
 
-![J1772 Port](/images/Car/Part4/J1772Port.png)
+![J1772 Port](/images/Car/Part4/J1772Port.png){: loading="lazy" alt="J1772 Port"}
 
 Essentially, I created a plastic 'bucket' in Fusion360 in which a J1772 port can be mounted. This bucket has a large flange on its rim, which allowed me to attach it to the body panel with [Devcon Plastic Welder](https://itwperformancepolymers.com/products/devcon/adhesives-sealants/plastic-welder-white). With the bucket glued to the body panel I then routed the body panel with a bottom bearing edge trim router bit and sanded a fillet between the body panel and the bucket. The result is a J1772 port flush-mounted to the car's body. A 3D printed cover on the back includes threaded inserts and holds the J1772 port in place. This cover also hides and redirects the power cables to a location under the passenger seat, where the charger will reside. With paint, this will look stock, or at least what the car would have looked like, had J1772 ports been invented thirty years earlier.
 
@@ -313,11 +323,11 @@ Brakes are another matter. While the car nominally came with tires that hold air
 
 After draining and bleeding the brake lines, 'squishy' brakes persisted. This problem was eventually identified as a leaky seals on the brake cylinders. The brake cylinder / spider assembly is a Bendix 3203010, and the [torque spider repair kit](https://www.vintagegolfcartparts.com/Item/CU_TrqSpdrReparKit) (BK33-190, EZ 13959-G1) runs about $80. That's for one wheel, and I might as well replace the seals and boots on the other rear wheel while I'm at it. The bleeder screws were replaced (NAPA UP 6446), along with one [torque spider assembly](https://www.vintagegolfcartparts.com/Item/CU_TrqSpiderAssy) (OEM Part number CU 824829, 886875) that had a stripped bleeder screw thread. I'd like to emphasize the brakes are almost entirely rebuilt, with the exception of the master cylinder. The master cylinder works, though, so I think we're good.
 
-![Cleaned rear brake drum](/images/Car/Part6/BrakeClean.png)
+![Cleaned rear brake drum](/images/Car/Part6/BrakeClean.png){: loading="lazy" alt="Cleaned rear brake drum"}
 
 The below pic is the disassembled parts of the rear brake drum. Note the pic of the seals -- one is very oblong, this was the seal that was leaking.
 
-![rear brake disassembly, inspection of seals](/images/Car/Part6/brakepartsseals.png)![a blown seal](/images/Car/Part6/blownseal.jpg)
+![rear brake disassembly, inspection of seals](/images/Car/Part6/brakepartsseals.png){: loading="lazy" alt="rear brake disassembly, inspection of seals"}![a blown seal](/images/Car/Part6/blownseal.jpg){: loading="lazy" alt="a blown seal"}
 
 With new seals on the rear wheels, squishy brakes persisted. On further inspection, the seal on the front passenger brake was leaking. Fixing this was a bit trickier; either through decades of decay or my misapplication of torque, the threads for the bleeder valve were partially stripped. I bought a new torque spider for the front passenger brake, and with that bolted on the brakes worked like new. While I'm not impressed with the 'one man' vacuum brake bleeder I have (the girlfriend had to stomp on the brakes while I went around bleeding everything), the brakes now work. In total, the brakes on the car took about a month, with most of that waiting for various tools and parts to arrive. That's not a problem -- now my garage has a few more tools, and I know how to build more brake lines. 
 
@@ -330,7 +340,7 @@ However, the car also had many cracks in the body panels. There are cracks along
 
 In preparation for this, I made replicas of the decals on the citicar. These will eventually be recreated with a vinyl cutter and transfer paper:
 
-![car graphics](/images/Car/Part7/CiticarBodyGraphics.png)
+![car graphics](/images/Car/Part7/CiticarBodyGraphics.png){: loading="lazy" alt="car graphics"}
 
 While the graphics may seem like a small part of the project, they are necessary. Without graphics, the car looks like an automotive stealth bomber dreamed up in a deranged Wonka-esque car factory. With graphics, everything __pops__. To illustrate this point, I've printed out [a 3d model of a comutacar](https://www.printables.com/model/730325-1970s-citicar-electric-car-toy), cut the graphics out of vinyl. The difference is stark:
 
@@ -361,7 +371,7 @@ The bodywork is made of six monolithic pieces of ABS plastic: the back, two fron
 
 The manufacturers' solution to this problem was a special type of pop rivet that is softer and expands more than a standard pop rivet. Original, new old stock Citicar rivets are available, but they cost about $0.50 USD each. That's too much. [McMaster-Carr sells these rivets](https://www.mcmaster.com/pop-rivets/blind-rivets-for-soft-materials-6/) for about $0.16 USD each. Here's McMaster's diagram of what they look like installed:
 
-![McMaster Carr Blind Rivet for Soft Material](/images/Car/Rivet.png)
+![McMaster Carr Blind Rivet for Soft Material](/images/Car/Rivet.png){: loading="lazy" alt="McMaster Carr Blind Rivet for Soft Material"}
 
 ### Door and Window Seals
 

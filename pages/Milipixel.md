@@ -1,5 +1,15 @@
 ---
 layout: default
+title: "Milipixel"
+description: "Hardware engineering and PCB design documentation by Brian Benchoff"
+keywords: ["hardware engineering", "PCB design", "electronics", "reverse engineering"]
+author: "Brian Benchoff"
+date: 2025-06-04
+last_modified_at: 2025-06-04
+image: "/images/default.jpg"
+---
+---
+layout: default
 
 
 ---
@@ -177,11 +187,11 @@ The initial idea was to capitalize on the server-side resizing of [640by480.com]
 
 I needed inspiration on how to lay these images out on a screen, so I turned to old Mac video games. Shufflepuck told me I could hide the menu bar to get a few extra pixels, and I was deeply influenced by Escape Velocity Nova with a main screen with a side bar for navigation. But none of these really worked until I remembered....
 
-![Sim City 2000, the inspiration for my UI layout](/images/SC2KUI.png)
+![Sim City 2000, the inspiration for my UI layout](/images/SC2KUI.png){: loading="lazy" alt="Sim City 2000, the inspiration for my UI layout"}
 
 SimCity 2000. As a UI this is brilliant. At the top, there's a menu bar, which gives me the File menu, a View menu, and even an Edit menu for copy and paste. The main screen is the map view, with scroll bars, and I can scroll around the entire screen. This window can be moved and resized. It's exactly what I need.
 
-![Quick and dirty prototype of the UI](/images/MilipixelUI.png)
+![Quick and dirty prototype of the UI](/images/MilipixelUI.png){: loading="lazy" alt="Quick and dirty prototype of the UI"}
 
 The above render shows a 1:1 prototype of what I'm going for. All thumbnails will be rendered on a large canvas with scroll bars enabled. On small displays, this canvas will be scaled to 50%. On large displays, the thumbnails will be rendered at full size. Clicking on a thumbnail opens up a new window with the 'detail' view -- the image at full resolution, along with the author, description, and whatever comments are attached to that image.
 

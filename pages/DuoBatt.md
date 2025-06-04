@@ -1,5 +1,15 @@
 ---
 layout: default
+title: "DuoBatt"
+description: "Hardware engineering and PCB design documentation by Brian Benchoff"
+keywords: ["hardware engineering", "PCB design", "electronics", "reverse engineering"]
+author: "Brian Benchoff"
+date: 2025-06-04
+last_modified_at: 2025-06-04
+image: "/images/default.jpg"
+---
+---
+layout: default
 
 
 ---
@@ -30,9 +40,9 @@ The Duo PRAM battery is just two 3V batteries, wired in series. The red is posti
 
 Solder everything up and wrap it in heat shrink tubing. Install it, and it'll be good for another 30 years.
 
-![The battery assembled](/images/Duo/prom.jpg)
+![The battery assembled](/images/Duo/prom.jpg){: loading="lazy" alt="The battery assembled"}
 
-![Diagram](/images/Duo/pramdiagram.png)
+![Diagram](/images/Duo/pramdiagram.png){: loading="lazy" alt="Diagram"}
 
 
 

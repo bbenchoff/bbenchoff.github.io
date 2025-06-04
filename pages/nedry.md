@@ -1,6 +1,16 @@
+---
+layout: default
+title: "nedry"
+description: "Hardware engineering and PCB design documentation by Brian Benchoff"
+keywords: ["hardware engineering", "PCB design", "electronics", "reverse engineering"]
+author: "Brian Benchoff"
+date: 2025-06-04
+last_modified_at: 2025-06-04
+image: "/images/default.jpg"
+---
 # **Access Main Security Grid**
 
-![Ah Ah Ah! You didn't say the magic word!](/images/run.jpg)
+![Ah Ah Ah! You didn't say the magic word!](/images/run.jpg){: loading="lazy" alt="Ah Ah Ah! You didn't say the magic word!"}
 
 If you’ve ever seen *Jurassic Park*, you know the scene. Samuel L. Jackson’s character sits down to undo Dennis Nedry’s sabotage, only to be met with the ultimate trolling animation: a looping clip of Nedry wagging his finger, smugly reminding you that you "didn't say the magic word."
 
@@ -20,11 +30,11 @@ If you want to see it in action, grab the **NedryInstaller.sit** file from the r
 ## **Screenshots**
 The application running:
 
-![Ah Ah Ah! You didn't say the magic word!](/images/run.jpg)
+![Ah Ah Ah! You didn't say the magic word!](/images/run.jpg){: loading="lazy" alt="Ah Ah Ah! You didn't say the magic word!"}
 
 And of course, it comes with a classic "About" dialog in the Apple menu:
 
-![About image graphic](/images/about.jpg)
+![About image graphic](/images/about.jpg){: loading="lazy" alt="About image graphic"}
 
 ## **Where to Get It**
 This blog has it installed. Go over to the <a href="https://bbenchoff.github.io/system7/">System 7 version</a> of this site and find it in the Macintosh HD.

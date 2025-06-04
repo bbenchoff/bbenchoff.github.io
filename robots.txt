@@ -1,0 +1,8 @@
+User-agent: *
+Allow: /
+Sitemap: https://bbenchoff.github.io/sitemap.xml
+
+# Prevent indexing of certain files
+Disallow: /files/Resume.pdf
+Disallow: /assets/js/
+Disallow: /assets/css/

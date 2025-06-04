@@ -1,5 +1,15 @@
 ---
 layout: default
+title: "colorPCB"
+description: "Hardware engineering and PCB design documentation by Brian Benchoff"
+keywords: ["hardware engineering", "PCB design", "electronics", "reverse engineering"]
+author: "Brian Benchoff"
+date: 2025-06-04
+last_modified_at: 2025-06-04
+image: "/images/default.jpg"
+---
+---
+layout: default
 
 
 ---
@@ -14,9 +24,9 @@ The UV inkjet method has a problem: inkjet inks are not stable in high temperatu
 
 The solution to this problem is to use a temperature-stable ink. This can be done through pad printing or silk screening. I have done several full-color PCBs using this process. A 'Tide Pod', and a panel of KISS blinky boards:
 
-![Tide Pod](/images/tidepod.jpg)
+![Tide Pod](/images/tidepod.jpg){: loading="lazy" alt="Tide Pod"}
 
-![KISS Tindies](/images/KISSTindie.png)
+![KISS Tindies](/images/KISSTindie.png){: loading="lazy" alt="KISS Tindies"}
 
 This process can be extended to CMYK colors, or even multiple spot colors for 'artistic' PCBs. It's also cheap, and every screen printing shop is already set up for this process and likely has the required inks in stock.
 

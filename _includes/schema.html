@@ -1,0 +1,34 @@
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "TechArticle",
+  "headline": "{{ page.title }}",
+  "author": {
+    "@type": "Person",
+    "name": "Brian Benchoff",
+    "sameAs": [
+      "https://github.com/bbenchoff",
+      "{{ site.github.owner_url }}"
+    ]
+  },
+  "datePublished": "{{ page.date | date_to_xmlschema }}",
+  "dateModified": "{{ page.last_modified_at | date_to_xmlschema }}",
+  "description": "{{ page.description }}",
+  "image": "{{ site.url }}{{ page.image }}",
+  "publisher": {
+    "@type": "Person",
+    "name": "Brian Benchoff"
+  },
+  "keywords": "{{ page.keywords | join: ', ' }}",
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "{{ site.url }}{{ page.url }}"
+  },
+  "proficiencyLevel": "{{ page.difficulty | default: 'Beginner' }}",
+  "dependencies": "{{ page.dependencies | join: ', ' }}",
+  "technicalAudience": "Hardware Engineers, Makers, Electronics Enthusiasts",
+  "wordCount": "{{ content | number_of_words }}",
+  "articleSection": "{{ page.category | default: 'Hardware' }}",
+  "thumbnailUrl": "{{ site.url }}{{ page.thumbnail | default: page.image }}"
+}
+</script>

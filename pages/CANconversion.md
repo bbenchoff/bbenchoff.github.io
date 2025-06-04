@@ -1,5 +1,15 @@
 ---
 layout: default
+title: "CANconversion"
+description: "Hardware engineering and PCB design documentation by Brian Benchoff"
+keywords: ["hardware engineering", "PCB design", "electronics", "reverse engineering"]
+author: "Brian Benchoff"
+date: 2025-06-04
+last_modified_at: 2025-06-04
+image: "/images/default.jpg"
+---
+---
+layout: default
 
 
 ---
@@ -12,14 +22,14 @@ My restoration of a <a href="https://bbenchoff.github.io/pages/Citicar.html">a v
 
 In short, to upgrade this car to modern electronics, the easiest path forward is to replace *all* of the electronics. But first, the pics of the finished dashboard:
 
-![Finished Dashboard pic 1](/images/Car/GaugeCluster/DashFinal1.jpg)
-![Finished Dashboard pic 2](/images/Car/GaugeCluster/DashFinal2.jpg)
+![Finished Dashboard pic 1](/images/Car/GaugeCluster/DashFinal1.jpg){: loading="lazy" alt="Finished Dashboard pic 1"}
+![Finished Dashboard pic 2](/images/Car/GaugeCluster/DashFinal2.jpg){: loading="lazy" alt="Finished Dashboard pic 2"}
 
 ## A Comparison of Approaches
 
 To describe what goes into converting a car to CAN, I must go over what the original schematic looked like. Here it is, on the left:
 
-![A comparison between two schematics](/images/Car/Schematics.png)
+![A comparison between two schematics](/images/Car/Schematics.png){: loading="lazy" alt="A comparison between two schematics"}
 
 While this schematic neglects the high power electronics like the motor, contactor, and charger, the complete 12 Volt system is there. The brains of the operation is four relays. This, along with a 'flasher' unit -- basically a bi-metallic strip that turns off when enough current is applied -- is all you need to run a car. This schematic will handle hazard lights, turn signals, brake lights, and everything else a car is legally required to have. Throw some switches in there for the wiper and defrost and that's all you really need in a car. Not shown is the speedometer, but you get the point.
 
@@ -27,7 +37,7 @@ The CAN version of this schematic is significantly different. Instead of relays,
 
 ### The CAN-MOSFET Board
 
-![The CAN MOSFET Board](/images/Car/GaugeCluster/CANMOSFET.jpg)
+![The CAN MOSFET Board](/images/Car/GaugeCluster/CANMOSFET.jpg){: loading="lazy" alt="The CAN MOSFET Board"}
 
 The design of the MOSFET board has several requirements, including:
 
@@ -44,16 +54,16 @@ Also on this board is a 'shield' of sorts. The CAN MOSFET board has several diff
 - With a 8-port opto input, giving 8 MOSFET outputs and 8 opto inputs
 - With a 4/4 opto/mosfet shield, giving 12 MOSFET outputs and 4 opto inputs
 
-![Render of the complete CAN MOSFET device, with shield](/images/Car/GaugeCluster/CANGPIO.png)
+![Render of the complete CAN MOSFET device, with shield](/images/Car/GaugeCluster/CANGPIO.png){: loading="lazy" alt="Render of the complete CAN MOSFET device, with shield"}
 
 The circuit for the MOSFETs and optos are simple enough. For the 'microcontroller and CAN' part of the circuit, I settled on an ATMega328p, Microchip MCP2515 CAN controller, and Microchip MCP2551 CAN Transceiver. Yes, this is effectively an Arduino running my car, but with the proper application of watchdog timers, most concerns can be oblivated. See Jack Ganssle's [article on watchdogs](http://www.ganssle.com/watchdogs.htm) for some introduction to this.
 
-![The CAN MOSFET Board](/images/Car/GaugeCluster/sch.png)
+![The CAN MOSFET Board](/images/Car/GaugeCluster/sch.png){: loading="lazy" alt="The CAN MOSFET Board"}
 
 ### The Display
 
 #### Click to play video
-[![Click to play video](/images/Car/GaugeCluster/Video1.png)](https://www.youtube.com/watch?v=ojj_RZFQOnw)
+[![Click to play video](/images/Car/GaugeCluster/Video1.png){: loading="lazy" alt="Click to play video"}](https://www.youtube.com/watch?v=ojj_RZFQOnw)
 
 The only way for me to measure the speed of the car is by reading the motor RPM, dividing by whatever the gear ratio of the differential is, and multiplying by the wheel diameter of the wheels. I think pi is in there somewhere. I need a display, and the most basic LCD display simply will not do for this. To this end, I created an 18*39 LED display -- that's 702 LEDs -- by [writing a driver for the IS31FL3741 LED driver chip](https://bbenchoff.github.io/pages/IS31FL3741.html). This is the third time I have written a driver for this chip.
 
@@ -61,20 +71,20 @@ The CAD and PCB design for this display is just a column and row arrangement for
 
 The main function of the display is that of a speedometer and odometer. This is done by reading RPM from the motor controller through the CAN bus and a bit of math. In addition to these two main functions, battery state and potentially range can be calculated from the CAN bus on the BMS controller. Of course, as the CAN bus is wired into the BMS, motor controller, and charge controller, I have access to any data I could ever want, accessing it is just a matter of coding it up.
 
-![The Display](/images/Car/GaugeCluster/ExplodedBezel.png)
+![The Display](/images/Car/GaugeCluster/ExplodedBezel.png){: loading="lazy" alt="The Display"}
 
 ### The Shift Knob
 
 #### Click to play video
-[![Click to play video](/images/Car/GaugeCluster/Video2.png)](https://www.youtube.com/watch?v=zooh03eB9oE)
+[![Click to play video](/images/Car/GaugeCluster/Video2.png){: loading="lazy" alt="Click to play video"}](https://www.youtube.com/watch?v=zooh03eB9oE)
 
 The motor controller has inputs for Drive, Neutral, and Reverse that need +12 Volts to turn the motor in that direction. Because all my lights are CAN-enabled, I will also need to somehow present the state of the 'shift knob' on the CAN bus. The most obvious solution to this problem is to simply read this state with an additional optoisolator circuit. I did not do this. I created something much cooler
 
-![The rotary shift knob](/images/Car/GaugeCluster/RotaryTransmission1.png)
+![The rotary shift knob](/images/Car/GaugeCluster/RotaryTransmission1.png){: loading="lazy" alt="The rotary shift knob"}
 
 Above is the exploded view of my shift knob. It is a three-position rotary switch. Underneath the face of this knob is a 16-segment LED that shows 'D', 'N', or 'R', depending on the position of the switch. This rotary switch has four different center poles (it is effectively four separate 3-position switches), one pole of which is used by the motor controller, and a second read by an on-board microcontroller. This microcontroller sends the state of the switch over the CAN bus and also drives the 16-segment display.
 
-![The rotary shift knob](/images/Car/GaugeCluster/RotaryTransmission3.png)
+![The rotary shift knob](/images/Car/GaugeCluster/RotaryTransmission3.png){: loading="lazy" alt="The rotary shift knob"}
 
 The really cool trick with this knob is the fact that the center indicator remains stationary as the knob turns. Turning the knob does not move the center indicator. It's an effect that puts the 'b' in subtle, but is simply amazing when you notice it. It's probably what I'm most proud of in this entire CAN conversion project.
 
@@ -86,7 +96,7 @@ The stock Comutacar includes a 'sub panel' below the dashboard for what can gene
 
 I will not be using the forced-air motor cooling and defrost system. The motor runs cool enough to not require cooling, and I am adapting a 12V / 150W Portable Car Heater to use as a defroster. This gives me space to add additional switches, or at least space for extra switches. I do not know what these switches will eventually do. One idea is to have a mode that changes the acceleration profile on the motor controller. Or a switch blinks the exterior lights randomly. Here's a pic of the five-switch extension panel, along with the stock heater/manifold controls:
 
-![The extension panel](/images/Car/GaugeCluster/ExtensionPanel.png)
+![The extension panel](/images/Car/GaugeCluster/ExtensionPanel.png){: loading="lazy" alt="The extension panel"}
 
 ### Integration with the rest of the car
 
@@ -108,9 +118,9 @@ To this 1/4" aluminum 'backer plate', I attach a 1/8" aluminum 'front piece' to 
 
 To give the front piece a little more class, I bought a long piece of maple burl veneer and attached that with contact cement. It looks amazing. Here's the render of the final product, and a crude assembly diagram:
 
-![Render of completed dashboard](/images/Car/GaugeCluster/DashboardRender.png)
+![Render of completed dashboard](/images/Car/GaugeCluster/DashboardRender.png){: loading="lazy" alt="Render of completed dashboard"}
 
-![Dashboard Assembly diagram](/images/Car/GaugeCluster/AssemblyDiagram.png)
+![Dashboard Assembly diagram](/images/Car/GaugeCluster/AssemblyDiagram.png){: loading="lazy" alt="Dashboard Assembly diagram"}
 
 
 

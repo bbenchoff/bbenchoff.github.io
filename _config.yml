@@ -1,7 +1,22 @@
-title: Benchoff Design Portfolio
-description: Design Portfolio
+title: "Brian Benchoff - Hardware Engineering & PCB Design Portfolio"
+description: "Hardware engineering projects, PCB design, and reverse engineering by Brian Benchoff. Specializing in embedded systems, electronics, and innovative hardware solutions."
+author: "Brian Benchoff"
 theme: jekyll-theme-minimal
 repository: bbenchoff/bbenchoff.github.io
+url: "https://bbenchoff.github.io"
+baseurl: ""
+
+# SEO Optimization
+twitter:
+  username: "@bbenchoff"
+  card: summary_large_image
+
+# Plugin Settings
+plugins:
+  - jekyll-sitemap
+  - jekyll-seo-tag
+
+# Site Settings
 github:
   is_project_page: true
   repository_url: https://github.com/bbenchoff/bbenchoff.github.io

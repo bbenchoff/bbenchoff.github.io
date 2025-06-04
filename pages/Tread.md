@@ -1,5 +1,15 @@
 ---
 layout: default
+title: "Tread"
+description: "Hardware engineering and PCB design documentation by Brian Benchoff"
+keywords: ["hardware engineering", "PCB design", "electronics", "reverse engineering"]
+author: "Brian Benchoff"
+date: 2025-06-04
+last_modified_at: 2025-06-04
+image: "/images/default.jpg"
+---
+---
+layout: default
 
 
 ---
@@ -14,8 +24,8 @@ I had a Tyco HalfTraxx when I was eight, and after finding one at a flea market 
 
 Consider this a proof-of-concept for 3D-printed tank treads. The treads were printed in TPU filament, slowly, at 240°C. It fits on the car, and the steering on the HalfTraxx is just as bad as I remember. This technique can easily be expanded to the vastly more popular Tyco car, the FastTraxx.
 
-![tank tread render](/images/Tread1.png)
-![tread on the car](/images/Tread2.png)
+![tank tread render](/images/Tread1.png){: loading="lazy" alt="tank tread render"}
+![tread on the car](/images/Tread2.png){: loading="lazy" alt="tread on the car"}
 
 If Google has pointed you here during your search for 3D printable tank treads, the [printable file is available on the git.](https://github.com/bbenchoff/HalfTraxx)
 

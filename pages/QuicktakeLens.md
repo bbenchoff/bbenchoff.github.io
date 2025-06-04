@@ -1,5 +1,15 @@
 ---
 layout: default
+title: "QuicktakeLens"
+description: "Hardware engineering and PCB design documentation by Brian Benchoff"
+keywords: ["hardware engineering", "PCB design", "electronics", "reverse engineering"]
+author: "Brian Benchoff"
+date: 2025-06-04
+last_modified_at: 2025-06-04
+image: "/images/default.jpg"
+---
+---
+layout: default
 
 
 ---
@@ -8,7 +18,7 @@ layout: default
 
 Wherin I write a few thousand words on photography without using the word 'boekh'.
 
-![A pile of Quicktake 150s, one with a lens adapter](/images/Quicktakes.jpg)
+![A pile of Quicktake 150s, one with a lens adapter](/images/Quicktakes.jpg){: loading="lazy" alt="A pile of Quicktake 150s, one with a lens adapter"}
 
 I'd like to start this by saying the Apple Quicktake was not the _first_ digital camera. People on the Internet would say that honor goes to a Kodak prototype from 1975. If you're looking for a commercial device, the "first digital camera" was a Fuji DS-1P, the Dycam Model 1, Logitech Fotoman, or MegaVision Tessera from 1987 to 1991, or thereabouts. Everyone who claiming one of these devices is the 'first digital camera' is wrong, because that honor actually goes to the [Cromeco Cyclops](https://hackaday.com/2016/04/17/building-the-first-digital-camera/), a digital camera from February, 1975 that could create an image with 32x32 resolution. It's actually a decapsulated DRAM chip and a C-mount lens adapter sold as a kit, but that's the first digital camera, beating the Kodak prototype by a few months.
 
@@ -26,7 +36,7 @@ The Quicktake 100 (and Quicktake 150) are digital cameras witha CCD sensor capab
 
 Despite the technical shortcomings, the Apple Quicktake does actually produce nice photos, despite itself. I would characterize the images as being like oil paintings, cloistered away in an attic for a century or so, until the varnish oxidizes. It's dull, it's matte, it's a bit desaturated, but it still somehow looks good. Here's an example, comparing a modern smartphone camera (Pixel 2) with the Quicktake 150:
 
-![example photo comparing Pixel 2 with Quicktake 150, photo of camera and powerbook in front of golden gate bridge in fogust](/images/Comparison.jpg)
+![example photo comparing Pixel 2 with Quicktake 150, photo of camera and powerbook in front of golden gate bridge in fogust](/images/Comparison.jpg){: loading="lazy" alt="example photo comparing Pixel 2 with Quicktake 150, photo of camera and powerbook in front of golden gate bridge in fogust"}
 
 Other good images can also be captured. Click to embiggen:
 
@@ -40,13 +50,13 @@ The guts of a Quicktake 100/150 camera is the most complicated electronic device
 
 The basic steps in creating a Nikon adapter for a Quicktake are simply opening up the camera, moving the sensor PCB forward though the use of standoffs, removing all optical elements (lenses) from the optical path, and mounting a 3D printed F-mount adapter exactly 46.5mm in front of the sensor. Do that, and you'll be able to take pictures.
 
-![Description of optical path changes](/images/OpticalPath.png)
+![Description of optical path changes](/images/OpticalPath.png){: loading="lazy" alt="Description of optical path changes"}
 
-![a look at the sensor](/images/Sensor.jpg) ![Quicktake disassembled, showing the sensor moved forward](/images/Standoffs.jpg) ![The assembled camera](/images/Assembled.jpg)
+![a look at the sensor](/images/Sensor.jpg){: loading="lazy" alt="a look at the sensor"} ![Quicktake disassembled, showing the sensor moved forward](/images/Standoffs.jpg){: loading="lazy" alt="Quicktake disassembled, showing the sensor moved forward"} ![The assembled camera](/images/Assembled.jpg){: loading="lazy" alt="The assembled camera"}
 
 While the process is simple, there are a few gotchas in adapting a Quicktake to take larger lenses. The stock power switch is activated by the lens cover, this was simply wired into a small DPDT switch and glued to the interior front of the camera. The lens adapter, like the camera, is fairly complicated, and requires a few cutouts to clear the apeture/shutter motor while still allowing access to the on/off switch:
 
-![3D render of the adapter](/images/adapter.png)
+![3D render of the adapter](/images/adapter.png){: loading="lazy" alt="3D render of the adapter"}
 
 While the adapter is 3D printed, the metal hardware to mount a Nikon lens is not; these parts were taken from an off-the-shelf C-mount to F-mount adapter. The springs and plate simply screw into the plastic (PLA) parts. Because the stock Quicktake optical path includes an IR blocking coating, I had to add a UV IR cut filter to whatever lens I use with this camera.
 
@@ -74,7 +84,7 @@ The site is reasonably successful, with a few dozen active users in the first we
 
 Oh, and because I'm creating a site for vintage digital cameras, it only makes sense that the page should be viewable on vintage computers. It works, but it's not good; IE 3.0 was the first browser to support CSS, and not all the attributes are there. It does, however, load:
 
-![640by480 as viewed on a Powerbook 2300c running Microsoft Internet Explorer 3.0](/images/640by480mac.gif)
+![640by480 as viewed on a Powerbook 2300c running Microsoft Internet Explorer 3.0](/images/640by480mac.gif){: loading="lazy" alt="640by480 as viewed on a Powerbook 2300c running Microsoft Internet Explorer 3.0"}
 
 
 

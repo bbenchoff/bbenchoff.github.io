@@ -1,10 +1,17 @@
 ---
 layout: default
+title: "Recreating Classic Macintosh System 7 in CSS"
+description: "A faithful recreation of the Macintosh System 7 interface using modern CSS and JavaScript, featuring working windows, menu system, and classic Mac aesthetics"
+keywords: ["System 7", "CSS recreation", "Macintosh interface", "retro computing", "web development", "JavaScript UI", "vintage Mac OS", "window manager"]
+author: "Brian Benchoff"
+date: 2023-06-04
+last_modified_at: 2023-06-04
+image: "/images/system7screenshot.png"
 ---
 
 ## Recreating System 7 in CSS
 
-![System 7 Screenshot](/images/system7screenshot.png)
+![System 7 Screenshot](/images/system7screenshot.png){: loading="lazy" alt="Screenshot of System 7 CSS recreation showing classic Mac interface"}
 
 After looking at various ways to present my portfolio of projects, I decided to recreate the classic Macintosh System 7 interface entirely in CSS and JavaScript. This isn't just a cosmetic recreation - it's a fully functional window manager with working menus, draggable windows, and even proper z-index management for window focus.
 
@@ -172,7 +179,7 @@ These are not perfect. They're not perfect because they're _hard to do_. Neverth
 
 ### A Calculator
 
-![The Calculator](/images/calculator.png)
+![The Calculator](/images/calculator.png){: loading="lazy" alt="The Calculator"}
 
 System 7 needs apps, not just web pages, so a simple calculator was added to the Apple menu. It's your basic RPN calculator written in Javascript.
 
@@ -190,7 +197,7 @@ The classic Mac OS is defined by its icons, and things are _boring_ if all the f
 
 I needed icons for my projects, so I edited the filesystem to support an icon per file. This is presented as a 32x32 .png file with transparency:
 
-![The icons I'm using](/images/icons.png)
+![The icons I'm using](/images/icons.png){: loading="lazy" alt="The icons I'm using"}
 
 Actually obtaining these icons as .png files was a challenge: the icon archives from the 90s were designed for classic Mac operating systems -- the icons themselves are actually empty files on a Mac volume, with the icon applied. There's no actual _file_ in the windows and linux sense. To get icons from an old Mac system onto the web, I had to:
 

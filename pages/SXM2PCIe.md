@@ -1,7 +1,12 @@
 ---
 layout: default
-
-description: Open-source pinout, schematic, and footprint for NVIDIA SXM2 to PCIe adapter.
+title: "Reverse Engineering the NVIDIA SXM2 Socket - Complete PCIe Adapter Guide"
+description: "Detailed guide on reverse engineering NVIDIA's SXM2 socket, including complete pinout, schematics, and PCB design for a PCIe adapter. Features electrical analysis and mechanical measurements."
+keywords: ["hardware engineering", "PCB design", "electronics", "reverse engineering"]
+author: "Brian Benchoff"
+date: 2025-06-04
+last_modified_at: 2025-06-04
+image: "/images/default.jpg"
 ---
 
 # Reverse Engineering the Nvidia SXM2 Socket
@@ -27,7 +32,7 @@ Because of the simplicity of this circuit, it really is __mostly__ only a matter
 
 This is, to the best of my ability, the pinout for an SXM2 module:
 
-![Graphic of the SXM2 pinout](/images/SXM2Pinout.png)
+![Complete pinout diagram of NVIDIA SXM2 socket showing all signal, power, and ground connections](/images/SXM2Pinout.png){: loading="lazy" alt="Complete pinout diagram of NVIDIA SXM2 socket showing all signal, power, and ground connections"}
 
 ### Also in table format:
 
@@ -103,8 +108,8 @@ This is, to the best of my ability, the pinout for an SXM2 module:
 
 Apart from the fan controller circuitry on the back of the card, there is one other small piece of active electronics on this card: a mysterious SOT-23-3 component positioned right behind the PCIe Meg-Array connector.
 
-![The Temperature Sensor Chip](/images/TempSensorChip.jpg)
-![Schematic of the Temperature Sensor](/images/TempSensorSch.png)
+![Close-up photo of the mysterious SOT-23-3 component on the PCIe adapter board](/images/TempSensorChip.jpg){: loading="lazy" alt="Close-up photo of the mysterious SOT-23-3 component on the PCIe adapter board"}
+![Initial schematic diagram showing the suspected temperature sensor configuration](/images/TempSensorSch.png){: loading="lazy" alt="Initial schematic diagram showing the suspected temperature sensor configuration"}
 
 At first glance, the circuit topology was deceiving. An SOT-23-3 package with a 10k pull-up resistor to 3.3V, connected to undocumented SXM2 pins K18 and K19? My initial assumption was a temperature sensor - perhaps an analog output thermistor or similar monitoring device. The pinout seemed to match: power, ground, and output.
 
@@ -152,7 +157,7 @@ For anyone repairing these adapters, a BAT54 Schottky diode in SOT-23-3 package 
 
 Even though I can characterize this part and infer its function -- as well as make a reasonable copy of it for my own board -- I still can not find a drop-in compatible replacement. The standard BAT54 from Vishay, in SOT-23-3 packaging, has Pin 2 as NC, Pin 1 as the Anode, and Pin 3 as the Cathode. My part has Pin 1 as NC, Pin 2 as the Anode, and Pin 3 as the Cathode. A complete search of Schottkys on LCSC returned no parts that match this configuration. As such, I opted to replace the mystery SOT-23 package with a two-pin SOD-123 package (LCSC Part C549277). The schematic I'm using is below:
 
-![The corrected, reversed engineered 'protection' schematic](/images/SXMProtectionCircuit.png)
+![The corrected, reversed engineered 'protection' schematic](/images/SXMProtectionCircuit.png){: loading="lazy" alt="The corrected, reversed engineered 'protection' schematic"}
 
 If you know this isn't correct or have a better idea, PRs are welcome [on this project's Github](https://github.com/bbenchoff/SXM2toPCIe).
 
@@ -166,7 +171,7 @@ Other than the connections from the SXM module to the PCIe card edge, there is a
 
 The following is the complete schematic, with files also [available on my Github](https://github.com/bbenchoff/SXM2toPCIe):
 
-![The complete schematic](/images/SXMSchematic.png)
+![Complete schematic diagram of the SXM2 to PCIe adapter showing all connections and components](/images/SXMSchematic.png){: loading="lazy" alt="Complete schematic diagram of the SXM2 to PCIe adapter showing all connections and components"}
 
 ## The Mechanical Footprint
 
@@ -174,13 +179,13 @@ Finally, the mechanical part of the build. The actual footprint.
 
 The footprint itself is just two Meg-Array connectors, but one is left unpopulated. Easy enough. The __hard__ part is the mechanical portion. The SXM2 module is fastened to the board with eight individual M3 screws. These are M3 SMD standoffs, soldered to the opposite side of the board. Other than that, it's a standard PCIe x16 card.
 
-![Render of the board, both sides](/images/SXM2Render.png)
+![3D render showing both sides of the SXM2 to PCIe adapter board](/images/SXM2Render.png){: loading="lazy" alt="3D render showing both sides of the SXM2 to PCIe adapter board"}
 
-Because I don't have a coordinate measuring machine or optical comparator in my pocket, I used a pair of digital calipers to measure the footprint of all the features of the board. By carefully referencing all of the measurements from the SMD M3 standoffs (and between the standoffs themselves), I eventually got the correct footprint. This, surprisingly, worked. All of the features of my SXM2 socket mate with the SXM2 module. You can do a lot with a pair of digital calipers.
+Because I don't have a coordinate measuring machineor optical comparator in my pocket, I used a pair of digital calipers to measure the footprint of all the features of the board. By carefully referencing all of the measurements from the SMD M3 standoffs (and between the standoffs themselves), I eventually got the correct footprint. This, surprisingly, worked. All of the features of my SXM2 socket mate with the SXM2 module. You can do a lot with a pair of digital calipers.
 
 ## Routing
 
-![board in KiCad](/images/SXM2Board.png)
+![board in KiCad](/images/SXM2Board.png){: loading="lazy" alt="board in KiCad"}
 
 All work for this project is [available on my Github](https://github.com/bbenchoff/SXM2toPCIe).
 

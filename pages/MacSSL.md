@@ -1,7 +1,12 @@
 ---
 layout: default
-
-
+title: "Mbed-TLS Port for Classic Mac OS"
+description: "Implementation of modern SSL/TLS security for Classic Macintosh OS 7/8/9 using Mbed-TLS"
+keywords: ["Classic Mac OS", "SSL/TLS", "Mbed-TLS", "vintage computing", "retro development", "encryption", "Mac System 7", "network security"]
+author: "Brian Benchoff"
+date: 2025-06-04
+last_modified_at: 2025-06-04
+image: "/images/MacSSL1.png"
 ---
 
 # MacSSL
@@ -11,7 +16,7 @@ _Note: this repository will never change. It's a proof of concept and template._
 
 This is a C89/C90 port of MbedTLS for Mac System 7/8/9. It works, and compiles under Metrowerks Codewarrior Pro 4. Here's the proof:
 
-![Proof of pulling an API request down](https://bbenchoff.github.io/images/640by480Client.png)
+![Proof of pulling an API request down](https://bbenchoff.github.io/images/640by480Client.png){: loading="lazy" alt="Proof of pulling an API request down"}
 
 And here's the repository: [https://github.com/bbenchoff/MacSSL](https://github.com/bbenchoff/MacSSL).
 
@@ -878,7 +883,7 @@ SSL DBG [2] in_left: %zu, nb_want: %zu
 SSL DBG [2] ssl->f_recv(_timeout)() returned 5 (-0xfffffffb)
 SSL DBG [2] <= fetch input
 SSL DBG [4] dumping 'input record header' (5 bytes)
-SSL DBG [4] 0000:  14 03 02 00 01                                   .....
+SSL DBG [4] 0000:  14 03 02 00 01                                   ....`
 SSL DBG [3] input record: msgtype = 20, version = [3:2], msglen = %zu
 SSL DBG [2] => fetch input
 SSL DBG [2] in_left: %zu, nb_want: %zu

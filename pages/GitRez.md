@@ -1,8 +1,14 @@
 ---
 layout: default
+title: "GitRez"
+description: "Hardware engineering and PCB design documentation by Brian Benchoff"
+keywords: ["hardware engineering", "PCB design", "electronics", "reverse engineering"]
+author: "Brian Benchoff"
+date: 2025-06-04
+last_modified_at: 2025-06-04
+image: "/images/default.jpg"
 ---
-
-![Github box art](/images/GitHubBoxArt.png)
+![Github box art](/images/GitHubBoxArt.png){: loading="lazy" alt="Github box art"}
 
 ## GitRez, A Classic Mac GitHub Client
 
@@ -99,6 +105,6 @@ This is a work in progress. I've implemented the fork splitting/recombination sy
 
 This project demonstrates that vintage computing doesn't have to mean isolation from modern development practices. Classic Mac developers can participate in contemporary collaborative coding while preserving the unique qualities of our favorite classic operating system.
 
-![Mac Octocat](/images/MacOctocat.png)
+![Mac Octocat](/images/MacOctocat.png){: loading="lazy" alt="Mac Octocat"}
 
 [back](../)

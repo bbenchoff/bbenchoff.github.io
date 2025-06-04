@@ -1,12 +1,33 @@
 {%- assign site_desc = site.description | default: "San Francisco hardware engineer building IoT, CAN-bus EV, and retro-tech projects." -%}
 
-{# -------- META DESCRIPTION -------- #}
+{# -------- META TAGS -------- #}
 {%- assign desc = page.description
                 | default: page.excerpt
                 | default: site_desc
                 | strip_html | strip_newlines
                 | truncate: 160 -%}
+{%- assign title = page.title | default: site.title -%}
+{%- assign image = page.image | default: site.image | default: site.url | append: '/assets/og-default.jpg' -%}
+
 <meta name="description" content="{{ desc }}">
+<meta name="author" content="{{ site.author.name }}">
+<meta name="robots" content="index, follow">
+
+<!-- OpenGraph Meta Tags -->
+<meta property="og:title" content="{{ title }}">
+<meta property="og:description" content="{{ desc }}">
+<meta property="og:image" content="{{ image }}">
+<meta property="og:url" content="{{ site.url }}{{ page.url }}">
+<meta property="og:type" content="{% if page.url == '/' %}website{% else %}article{% endif %}">
+<meta property="og:site_name" content="{{ site.title }}">
+
+<!-- Twitter Card Meta Tags -->
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:site" content="@{{ site.twitter.username }}">
+<meta name="twitter:creator" content="@{{ site.twitter.username }}">
+<meta name="twitter:title" content="{{ title }}">
+<meta name="twitter:description" content="{{ desc }}">
+<meta name="twitter:image" content="{{ image }}">
 
 {# -------- JSON-LD -------- #}
 <script type="application/ld+json">

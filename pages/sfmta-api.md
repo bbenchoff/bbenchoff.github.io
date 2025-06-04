@@ -1,8 +1,14 @@
 ---
 layout: default
-
-
+title: "SFMTA Transit Data Analysis"
+description: "Analysis and visualization of San Francisco MUNI transit data using the SFMTA API, including route optimization and performance metrics"
+keywords: ["SFMTA API", "MUNI transit", "public transportation", "data analysis", "San Francisco transit", "transit visualization", "route optimization", "transport data"]
+author: "Brian Benchoff"
+date: 2025-06-04
+last_modified_at: 2025-06-04
+image: "/images/SFMTA-API.png"
 ---
+
 ## SFMTA API Data Collection and Analysis
 
 _I would suggest not reading this page on a potato._

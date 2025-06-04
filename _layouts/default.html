@@ -9,16 +9,38 @@
     
       gtag('config', 'G-44463YCSDB');
     </script>
-    
-    <meta charset="utf-8">
+      <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    
+    <title>{% if page.title %}{{ page.title }} | {{ site.title }}{% else %}{{ site.title }}{% endif %}</title>
 
-    <title>{{ site.title | default: site.github.repository_name }}</title>
-
-    <!-- Add SEO meta description -->
-    <meta name="description" content="{{ page.description | default: site.description | default: 'San Francisco hardware and embedded engineer.' }}">
-
-    <!-- Add JSON-LD Person Schema -->
+    <!-- SEO Meta Tags -->
+    <meta name="description" content="{{ page.description | default: site.description }}">
+    <meta name="author" content="{{ site.author }}">
+    {% if page.keywords %}<meta name="keywords" content="{{ page.keywords | join: ', ' }}">{% endif %}
+    
+    <!-- Open Graph Meta Tags -->
+    <meta property="og:title" content="{% if page.title %}{{ page.title }}{% else %}{{ site.title }}{% endif %}">
+    <meta property="og:description" content="{{ page.description | default: site.description }}">
+    <meta property="og:image" content="{{ site.url }}{{ page.image | default: '/assets/images/profile.jpg' }}">
+    <meta property="og:url" content="{{ site.url }}{{ page.url }}">
+    <meta property="og:type" content="article">
+    
+    <!-- Twitter Card Meta Tags -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:site" content="{{ site.twitter.username }}">
+    <meta name="twitter:title" content="{% if page.title %}{{ page.title }}{% else %}{{ site.title }}{% endif %}">
+    <meta name="twitter:description" content="{{ page.description | default: site.description }}">
+    <meta name="twitter:image" content="{{ site.url }}{{ page.image | default: '/assets/images/profile.jpg' }}">
+    
+    <!-- Canonical URL -->
+    <link rel="canonical" href="{{ site.url }}{{ page.url }}">
+    
+    <!-- Schema.org Markup -->
+    {% include schema.html %}
+    
+    <!-- Jekyll SEO Tag -->
+    {% seo %}
     <script type="application/ld+json">
     {
         "@context": "https://schema.org",
