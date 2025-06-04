@@ -32,7 +32,7 @@ This is, to the best of my ability, the pinout for an SXM2 module:
 
 ![Graphic of the SXM2 pinout](/images/SXM2Pinout.png)
 
-Also in table format:
+### Also in table format:
 
 <!-- ▸▸ SXM2 pin map – drop-in block ▸▸ -->
 <style>
@@ -54,7 +54,7 @@ Also in table format:
 <div class="pinout-flex">
 <!-- Rows 1-20 -->
 <table class="pinout-table">
-  <caption>Rows 1 – 20</caption>
+  <caption>Rows 1 – 40</caption>
   <thead><tr><th>Row</th><th>A</th><th>B</th><th>C</th><th>D</th><th>E</th><th>F</th><th>G</th><th>H</th><th>J</th><th>K</th></tr></thead>
   <tbody>
     <tr><th>1</th><td>GND</td><td>PERp1</td><td>GND</td><td>PERp2</td><td>GND</td><td>GND</td><td>PETp0</td><td>GND</td><td>PETp2</td><td>GND</td></tr>
