@@ -1,17 +1,12 @@
 ---
 layout: default
-title: "ClassicDev"
-description: "Hardware engineering and PCB design documentation by Brian Benchoff"
-keywords: ["hardware engineering", "PCB design", "electronics", "reverse engineering"]
+title: "Classic Mac Development Environment"
+description: "Setting up a vintage Macintosh development environment with CodeWarrior Pro 4, ResEdit, and PowerMac G3 for cross-platform classic Mac development"
+keywords: ["Classic Mac OS", "Metrowerks CodeWarrior", "ResEdit", "PowerMac G3", "vintage computing", "Mac development", "68k", "PowerPC"]
 author: "Brian Benchoff"
 date: 2025-06-04
 last_modified_at: 2025-06-04
-image: "/images/default.jpg"
----
----
-layout: default
-
-
+image: "/images/MetrowerksCD.png"
 ---
 
 ## Classic Mac Development

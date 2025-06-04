@@ -1,18 +1,14 @@
 ---
 layout: default
-title: "Tread"
-description: "Hardware engineering and PCB design documentation by Brian Benchoff"
-keywords: ["hardware engineering", "PCB design", "electronics", "reverse engineering"]
+title: "3D Printed Tank Treads for Tyco HalfTraxx"
+description: "Designing and 3D printing replacement treads for vintage Tyco HalfTraxx RC vehicles using TPU filament"
+keywords: ["3D printing", "tank treads", "Tyco HalfTraxx", "RC cars", "TPU printing", "vintage toys", "restoration", "mechanical design"]
 author: "Brian Benchoff"
 date: 2025-06-04
 last_modified_at: 2025-06-04
-image: "/images/default.jpg"
+image: "/images/Tread2.png"
 ---
----
-layout: default
 
-
----
 
 ## 3D Printed Treads
 

@@ -1,17 +1,12 @@
 ---
 layout: default
-title: "atapi"
-description: "Hardware engineering and PCB design documentation by Brian Benchoff"
-keywords: ["hardware engineering", "PCB design", "electronics", "reverse engineering"]
+title: "15-Drive Zip Tower with Custom USB Adapters"
+description: "Building a tower of 15 ATAPI Zip drives with custom GL811E-based USB adapters, including PCB design and case creation"
+keywords: ["Zip drive", "ATAPI", "USB adapter", "GL811E", "PCB design", "hardware mod", "RAID", "vintage storage"]
 author: "Brian Benchoff"
 date: 2025-06-04
 last_modified_at: 2025-06-04
-image: "/images/default.jpg"
----
----
-layout: default
-
-
+image: "/images/Atapi-tower.jpg"
 ---
 
 ## Zip Drive Tower

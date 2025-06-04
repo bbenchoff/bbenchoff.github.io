@@ -1,17 +1,12 @@
 ---
 layout: default
-title: "DuoBatt"
-description: "Hardware engineering and PCB design documentation by Brian Benchoff"
-keywords: ["hardware engineering", "PCB design", "electronics", "reverse engineering"]
+title: "PowerBook Duo Battery Rebuild Guide"
+description: "Comprehensive guide for rebuilding both main and PRAM batteries for Apple PowerBook Duo laptops"
+keywords: ["PowerBook Duo", "battery rebuild", "PRAM battery", "vintage Apple", "laptop repair", "VL2320", "retro computing", "hardware restoration"]
 author: "Brian Benchoff"
 date: 2025-06-04
 last_modified_at: 2025-06-04
-image: "/images/default.jpg"
----
----
-layout: default
-
-
+image: "/images/Duo/pramdiagram.png"
 ---
 
 # Powerbook Duo Battery Rebuild

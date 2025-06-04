@@ -1,17 +1,12 @@
 ---
 layout: default
-title: "colorPCB"
-description: "Hardware engineering and PCB design documentation by Brian Benchoff"
-keywords: ["hardware engineering", "PCB design", "electronics", "reverse engineering"]
+title: "Full-Color PCBs: Beyond UV Inkjet"
+description: "Creating multi-color PCBs using temperature-stable pad printing and silk screening techniques for reflow-safe designs"
+keywords: ["PCB design", "multi-color PCB", "pad printing", "silk screening", "PCB manufacturing", "electronics art", "PCB decoration", "CMYK PCB"]
 author: "Brian Benchoff"
 date: 2025-06-04
 last_modified_at: 2025-06-04
-image: "/images/default.jpg"
----
----
-layout: default
-
-
+image: "/images/KISSTindie.png"
 ---
 
 ## Full Color Circuit Boards

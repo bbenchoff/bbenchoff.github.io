@@ -8,11 +8,6 @@ date: 2025-06-04
 last_modified_at: 2025-06-04
 image: "/images/MilipixelBoxArt.png"
 ---
----
-layout: default
-
-
----
 
 # Milipixel: A Classic Mac Client for Vintage Digital Photography
 

@@ -1,13 +1,14 @@
 ---
 layout: default
-title: "clamshell"
-description: "Hardware engineering and PCB design documentation by Brian Benchoff"
-keywords: ["hardware engineering", "PCB design", "electronics", "reverse engineering"]
+title: "Rugged Clamshell Cyberdeck"
+description: "Building a military-style portable computer with Raspberry Pi, custom keyboard, and 18650 power system in a 3D printed enclosure"
+keywords: ["cyberdeck", "Raspberry Pi", "portable computer", "3D printing", "rugged computing", "DIY laptop", "18650 battery", "custom keyboard"]
 author: "Brian Benchoff"
 date: 2025-06-04
 last_modified_at: 2025-06-04
-image: "/images/default.jpg"
+image: "/images/CyberdeckFull.jpg"
 ---
+
 ## Clamshell hardened computer
 
 ...or a cyberdeck.

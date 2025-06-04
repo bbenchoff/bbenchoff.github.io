@@ -1,12 +1,12 @@
 ---
 layout: default
-title: "Porygon"
-description: "Hardware engineering and PCB design documentation by Brian Benchoff"
-keywords: ["hardware engineering", "PCB design", "electronics", "reverse engineering"]
+title: "Porygon: A Programmatically Generated 3D Model"
+description: "Creating a 3D model of Pokemon Porygon entirely through OpenSCAD code, staying true to its programming-based nature"
+keywords: ["OpenSCAD", "3D modeling", "Pokemon", "Porygon", "programmatic design", "3D printing", "computational design", "code art"]
 author: "Brian Benchoff"
 date: 2025-06-04
 last_modified_at: 2025-06-04
-image: "/images/default.jpg"
+image: "https://raw.githubusercontent.com/bbenchoff/Porygon/master/Porygon.stl"
 ---
 ## Porygon
 

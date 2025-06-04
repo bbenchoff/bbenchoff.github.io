@@ -8,11 +8,6 @@ date: 2025-06-04
 last_modified_at: 2025-06-04
 image: "/images/Mac IDE.jpg"
 ---
----
-layout: default
-
-
----
 
 ## Classic Mac OS Development
 

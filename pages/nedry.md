@@ -1,12 +1,12 @@
 ---
 layout: default
-title: "nedry"
-description: "Hardware engineering and PCB design documentation by Brian Benchoff"
-keywords: ["hardware engineering", "PCB design", "electronics", "reverse engineering"]
+title: "Nedry: The Jurassic Park Animation for Classic Mac OS"
+description: "A Classic Mac OS application that recreates Dennis Nedry's infamous 'magic word' animation from Jurassic Park, built with Metrowerks CodeWarrior"
+keywords: ["Jurassic Park", "Classic Mac OS", "System 7", "Metrowerks CodeWarrior", "QuickTime", "retro computing", "Dennis Nedry", "vintage software"]
 author: "Brian Benchoff"
 date: 2025-06-04
 last_modified_at: 2025-06-04
-image: "/images/default.jpg"
+image: "/images/run.jpg"
 ---
 # **Access Main Security Grid**
 

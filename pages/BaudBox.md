@@ -1,13 +1,14 @@
 ---
 layout: default
-title: "BaudBox"
-description: "Hardware engineering and PCB design documentation by Brian Benchoff"
-keywords: ["hardware engineering", "PCB design", "electronics", "reverse engineering"]
+title: "BaudBox: A 256-Character Serial Test Keyboard"
+description: "Custom 18-key keyboard design for testing serial communications, capable of sending all 256 ASCII characters with configurable baud rate and parity"
+keywords: ["serial testing", "ASCII keyboard", "embedded systems", "PCB design", "3D printing", "Arduino", "hardware testing", "serial communication"]
 author: "Brian Benchoff"
 date: 2025-06-04
 last_modified_at: 2025-06-04
-image: "/images/default.jpg"
+image: "/images/BaudBox.jpg"
 ---
+
 ## Baud Box, a 256-key keyboard
 
 During the development of the [terminal parser library](/pages/parser.html), I needed a way to print *all* characters over a serial port manually. This includes characters not normally typed on a keyboard (ASCII range 0x80-0xFF), as well as characters not usually used in the 21st century (Shift In/Out, 0x0E-0x0F, Bell, 0x07). The simplest solution would be a 256-key keyboard, so I built a keyboard with 18 keys.

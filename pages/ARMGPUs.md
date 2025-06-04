@@ -1,18 +1,14 @@
 ---
 layout: default
-title: "ARMGPUs"
-description: "Hardware engineering and PCB design documentation by Brian Benchoff"
-keywords: ["hardware engineering", "PCB design", "electronics", "reverse engineering"]
+title: "Running Datacenter GPUs on ARM SBCs"
+description: "A technical deep-dive into running Nvidia datacenter GPUs on ARM single-board computers, focusing on PCIe compatibility and system requirements"
+keywords: ["ARM SBC", "Nvidia GPU", "PCIe", "LX2160A", "embedded systems", "IOMMU", "BAR sizing", "datacenter computing"]
 author: "Brian Benchoff"
 date: 2025-06-04
 last_modified_at: 2025-06-04
-image: "/images/default.jpg"
+image: "/images/V100_SXM2.jpg"
 ---
----
-layout: default
 
-
----
 
 # Nvidia GPUs and ARM Single Board Computers
 

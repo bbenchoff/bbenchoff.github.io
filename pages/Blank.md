@@ -8,11 +8,7 @@ date: 2025-06-04
 last_modified_at: 2025-06-04
 image: "/images/default.jpg"
 ---
----
-layout: default
 
-
----
 
 ## A Blank Page
 

@@ -8,11 +8,6 @@ date: 2023-06-04
 last_modified_at: 2023-06-04
 image: "/images/Car/OceanBeach/Hero.jpg"
 ---
----
-layout: default
-
-
----
 
 <a href="https://bbenchoff.github.io/pages/CarPics.html">You can find an image gallery of all the pics here</a>
 

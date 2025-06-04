@@ -1,12 +1,12 @@
 ---
 layout: default
-title: "MiniITX"
-description: "Hardware engineering and PCB design documentation by Brian Benchoff"
-keywords: ["hardware engineering", "PCB design", "electronics", "reverse engineering"]
+title: "Retro-Inspired Computer Case Designs"
+description: "Collection of custom computer cases including a rackmount Mac, Frog Design-inspired Mini-ITX case, and SGI-style drive tower"
+keywords: ["retro computing", "case design", "rackmount Mac", "Mini-ITX", "Frog Design", "industrial design", "Quadra 605", "custom cases"]
 author: "Brian Benchoff"
 date: 2025-06-04
 last_modified_at: 2025-06-04
-image: "/images/default.jpg"
+image: "/images/Mac2.PNG"
 ---
 ## Rackintosh
 

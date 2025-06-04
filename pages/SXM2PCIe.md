@@ -1,12 +1,12 @@
 ---
 layout: default
 title: "Reverse Engineering the NVIDIA SXM2 Socket - Complete PCIe Adapter Guide"
-description: "Detailed guide on reverse engineering NVIDIA's SXM2 socket, including complete pinout, schematics, and PCB design for a PCIe adapter. Features electrical analysis and mechanical measurements."
-keywords: ["hardware engineering", "PCB design", "electronics", "reverse engineering"]
+description: "Detailed guide on reverse engineering NVIDIA's SXM2 socket, including complete pinout, schematics, and PCB design for a PCIe adapter"
+keywords: ["NVIDIA SXM2", "PCIe adapter", "reverse engineering", "datacenter GPU", "hardware documentation", "pinout diagram", "PCB design", "electrical engineering"]
 author: "Brian Benchoff"
 date: 2025-06-04
 last_modified_at: 2025-06-04
-image: "/images/default.jpg"
+image: "/images/SXM2Pinout.png"
 ---
 
 # Reverse Engineering the Nvidia SXM2 Socket

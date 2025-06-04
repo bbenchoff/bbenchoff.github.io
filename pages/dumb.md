@@ -1,13 +1,14 @@
 ---
 layout: default
-title: "dumb"
-description: "Hardware engineering and PCB design documentation by Brian Benchoff"
-keywords: ["hardware engineering", "PCB design", "electronics", "reverse engineering"]
+title: "Portable VT100-Style Dumb Terminal"
+description: "A modern handheld VT100-compatible terminal with custom SAMD51-based hardware, featuring 80x24 character display and custom silicone keyboard"
+keywords: ["dumb terminal", "VT100", "SAMD51", "embedded systems", "serial terminal", "portable computing", "NT35510", "hardware design"]
 author: "Brian Benchoff"
 date: 2025-06-04
 last_modified_at: 2025-06-04
-image: "/images/default.jpg"
+image: "/images/VTPlastic.png"
 ---
+
 ## Portable Dumb Terminal
 
 A product design for a palmtop computer. Effectively, it's a dumb terminal like a [VT100](https://en.wikipedia.org/wiki/VT100).

@@ -1,17 +1,12 @@
 ---
 layout: default
-title: "CANconversion"
-description: "Hardware engineering and PCB design documentation by Brian Benchoff"
-keywords: ["hardware engineering", "PCB design", "electronics", "reverse engineering"]
+title: "Converting a Classic Car to CAN Bus"
+description: "Modernizing a vintage electric car with CAN bus controls, replacing mechanical relays with MOSFETs and digital systems"
+keywords: ["CAN bus", "automotive electronics", "electric vehicle", "MOSFET", "vehicle retrofit", "dashboard electronics", "automotive conversion", "digital controls"]
 author: "Brian Benchoff"
 date: 2025-06-04
 last_modified_at: 2025-06-04
-image: "/images/default.jpg"
----
----
-layout: default
-
-
+image: "/images/Car/GaugeCluster/DashFinal1.jpg"
 ---
 
 ## Converting a car to CAN

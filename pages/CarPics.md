@@ -1,17 +1,12 @@
 ---
 layout: default
-title: "CarPics"
-description: "Hardware engineering and PCB design documentation by Brian Benchoff"
-keywords: ["hardware engineering", "PCB design", "electronics", "reverse engineering"]
+title: "Citicar Restoration Photo Gallery"
+description: "Comprehensive photo documentation of a vintage Citicar electric vehicle restoration, from Craigslist find to complete teardown"
+keywords: ["Citicar", "electric vehicle", "EV restoration", "vintage cars", "car restoration", "electric car history", "automotive repair", "DIY restoration"]
 author: "Brian Benchoff"
 date: 2025-06-04
 last_modified_at: 2025-06-04
-image: "/images/default.jpg"
----
----
-layout: default
-
-
+image: "/images/Car/Part1/Part1.png"
 ---
 
 # Pics of Citicar Restoration

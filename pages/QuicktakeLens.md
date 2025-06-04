@@ -8,11 +8,7 @@ date: 2025-06-04
 last_modified_at: 2025-06-04
 image: "/images/Quicktakes.jpg"
 ---
----
-layout: default
 
-
----
 
 ## A Nikon Lens Adapter for the Apple Quicktake 150, the First Digital Camera*
 

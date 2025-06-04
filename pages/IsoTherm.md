@@ -1,17 +1,12 @@
 ---
 layout: default
-title: "IsoTherm"
-description: "Hardware engineering and PCB design documentation by Brian Benchoff"
-keywords: ["hardware engineering", "PCB design", "electronics", "reverse engineering"]
+title: "IsoTherm: Low-Cost Isolated Thermocouple Reader"
+description: "Building a cost-effective, electrically isolated thermocouple measurement system using the TI AMC3336 and RP2040"
+keywords: ["thermocouple", "electrical isolation", "RP2040", "AMC3336", "delta-sigma DAC", "temperature measurement", "instrumentation", "PIO programming"]
 author: "Brian Benchoff"
 date: 2025-06-04
 last_modified_at: 2025-06-04
-image: "/images/default.jpg"
----
----
-layout: default
-
-
+image: "/images/IsoThermHero.png"
 ---
 
 ## An Isolated Thermocouple Reader
