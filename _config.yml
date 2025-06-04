@@ -9,7 +9,7 @@ baseurl: ""
 
 # SEO Optimization
 twitter:
-  username: "@bbenchoff"
+  username: "bbenchoff"  # Remove the @ symbol
   card: summary_large_image
 
 # Plugin Settings
@@ -22,26 +22,16 @@ github:
   is_project_page: true
   repository_url: https://github.com/bbenchoff/bbenchoff.github.io
 
-baseurl: ""
-url: ""
+# Collections and includes
+includes: ['system7']
 
-# Define default layouts
+# Define default layouts (consolidated)
 defaults:
-  -
-    scope:
+  - scope:
       path: ""
     values:
       layout: "default"
-  -
-    scope:
-      path: "system7"
-    values:
-      layout: "system7"
-
-includes: ['system7']
-defaults:
-  -
-    scope:
+  - scope:
       path: "system7"
     values:
       layout: "system7"
