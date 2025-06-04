@@ -6,15 +6,12 @@ description: Open-source pinout, schematic, and footprint for NVIDIA SXM2 to PCI
 
 # Reverse Engineering the Nvidia SXM2 Socket
 
-*Want to drop a surplus V100 into a consumer PC?* The missing puzzle piece is a public SXM2 pinout.  Below I document the **full 100 Gb/s-capable pin map, schematic, and KiCad footprint**, all open-source.
-
 **Note: all the files are hosted [in a Github repo](https://github.com/bbenchoff/SXM2toPCIe)**
 
 <p class="callout-sidebar">
 <strong>LEGAL NOTICE:</strong><br>
 Nvidia’s SXM documentation is only released under mutual NDA. The pinout shown here was derived <strong>solely</strong> from publicly purchased hardware, non-destructive continuity probing, and electrical measurement, which is lawful reverse-engineering under U.S. and many other jurisdictions’ fair use and interoperability exemptions e.g. 17 U.S.C. § 107, 17 U.S.C. § 1201(f), and Directive 2009/24/EC Art. 6. No confidential documents were accessed or breached, and no trademark or trade-secret rights are waived or implied. For concerns regarding copyright or trade secrets, please contact benchoff@gmail.com.
 </p>
-
 
 For another project, it was necessary for me to acquire the pinout for Nvidia's [SXM2 socket](https://en.wikipedia.org/wiki/SXM_(socket)). This is a high-bandwidth mezzanine connector used in Nvidia datacenter GPUs. The SXM2 "standard" is quite old at the time of this writing (mid-2025), but details of this connector, including a pinout or even mechanical drawings, are still locked under NDAs at Nvidia's behest.
 
@@ -163,7 +160,7 @@ If you know this isn't correct or have a better idea, PRs are welcome [on this p
 
 After mapping GND, 12V, the PCIe lanes, and the mysterious circuit, there were 32 unconnected pins in the Meg-Array connector, in rows 15 through 20, with the entirety of row 20 being disconnected. This required much more thorough investigations and continuity tracing. The `PERST#` signal was found on E18, but no JTAG or other connections were found.
 
-Interesting things of note: The SMBUS/I2C signals on the PCIe connector are unconnected, as is the JTAG signals. I don't know what to tell you about this, except I know this card works, therefore my reverse engineering attempt should. There is no 3.3V rail from the PCIe card going to the SXM2 socket. Again, your guess is as good as mine. That leaves 31 individual pins in the SXM connector unmapped, or probably unconnected. I do not know where these pins lead, although they probably connect to the __other__ Meg-Array for the NVLink signals.
+Interesting things of note: The SMBUS/I2C signals on the PCIe connector are unconnected, as are the JTAG signals. I don't know what to tell you about this, except I know this card works, therefore my reverse engineering attempt should. There is no 3.3V rail from the PCIe card going to the SXM2 socket. Again, your guess is as good as mine. That leaves 31 individual pins in the SXM connector unmapped, or probably unconnected. I do not know where these pins lead, although they probably connect to the __other__ Meg-Array for the NVLink signals.
 
 Other than the connections from the SXM module to the PCIe card edge, there is another, single connection in between PCIe card pins: The `PRSNT1#` must connect to the farthest `PRSNT2#` pin. Since this is an x16 card, this means pin A1 is connected to pin B81.
 
@@ -171,7 +168,7 @@ The following is the complete schematic, with files also [available on my Github
 
 ![The complete schematic](/images/SXMSchematic.png)
 
-## The Mechanical Footprint & Routing
+## The Mechanical Footprint
 
 Finally, the mechanical part of the build. The actual footprint.
 
@@ -180,6 +177,8 @@ The footprint itself is just two Meg-Array connectors, but one is left unpopulat
 ![Render of the board, both sides](/images/SXM2Render.png)
 
 Because I don't have a coordinate measuring machine or optical comparator in my pocket, I used a pair of digital calipers to measure the footprint of all the features of the board. By carefully referencing all of the measurements from the SMD M3 standoffs (and between the standoffs themselves), I eventually got the correct footprint. This, surprisingly, worked. All of the features of my SXM2 socket mate with the SXM2 module. You can do a lot with a pair of digital calipers.
+
+## Routing
 
 ![board in KiCad](/images/SXM2Board.png)
 
