@@ -77,14 +77,6 @@ Also in table format:
     <tr><th>18</th><td>NC</td><td>GND</td><td>NC</td><td>GND</td><td>/PERST</td><td>NC</td><td>GND</td><td>NC</td><td>GND</td><td>Prot/Cathode</td></tr>
     <tr><th>19</th><td>GND</td><td>GND</td><td>GND</td><td>GND</td><td>GND</td><td>GND</td><td>GND</td><td>NC</td><td>GND</td><td>Prot/GND</td></tr>
     <tr><th>20</th><td>NC</td><td>NC</td><td>NC</td><td>NC</td><td>NC</td><td>NC</td><td>NC</td><td>NC</td><td>NC</td><td>NC</td></tr>
-  </tbody>
-</table>
-
-<!-- Rows 21-40 -->
-<table class="pinout-table">
-  <caption>Rows 21 – 40</caption>
-  <thead><tr><th>Row</th><th>A</th><th>B</th><th>C</th><th>D</th><th>E</th><th>F</th><th>G</th><th>H</th><th>J</th><th>K</th></tr></thead>
-  <tbody>
     <tr><th>21</th><td>GND</td><td>GND</td><td>GND</td><td>GND</td><td>GND</td><td>GND</td><td>GND</td><td>GND</td><td>GND</td><td>GND</td></tr>
     <tr><th>22</th><td>12V</td><td>12V</td><td>12V</td><td>12V</td><td>12V</td><td>12V</td><td>12V</td><td>12V</td><td>12V</td><td>12V</td></tr>
     <tr><th>23</th><td>12V</td><td>12V</td><td>12V</td><td>12V</td><td>12V</td><td>12V</td><td>12V</td><td>12V</td><td>12V</td><td>12V</td></tr>
@@ -193,5 +185,10 @@ Because I don't have a coordinate measuring machine or optical comparator in my 
 ![board in KiCad](/images/SXM2Board.png)
 
 All work for this project is [available on my Github](https://github.com/bbenchoff/SXM2toPCIe).
+
+## License
+
+Text © 2025 Brian Benchoff, released under CC-BY-SA-4.0.  
+Hardware design files: WTFPL 3.0, MODIFIED FOR NERDS (see LICENSE in the repo).
 
 [back](../)
