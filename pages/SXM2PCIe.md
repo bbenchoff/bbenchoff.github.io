@@ -157,13 +157,13 @@ Even though I can characterize this part and infer its function -- as well as ma
 
 ![The corrected, reversed engineered 'protection' schematic](/images/SXMProtectionCircuit.png)
 
-If you know this isn't correct or have a better idea, PRs are welcome [on this projet's Github](https://github.com/bbenchoff/SXM2toPCIe).
+If you know this isn't correct or have a better idea, PRs are welcome [on this project's Github](https://github.com/bbenchoff/SXM2toPCIe).
 
 ## The Actual Schematic
 
 After mapping GND, 12V, the PCIe lanes, and the mysterious circuit, there were 32 unconnected pins in the Meg-Array connector, in rows 15 through 20, with the entirety of row 20 being disconnected. This required much more thorough investigations and continuity tracing. The `PERST#` signal was found on E18, but no JTAG or other connections were found.
 
-Interesting things of note: The SMBUS/I2C signals on the PCIe connector are unconnected, as is the JTAG signals. I don't know what to tell you about this, except I know this card works, therefore my reverse engineering attempt should. There is no 3.3V rail from the PCIe card going to the SXM2 socket. Again, your guess is as good as mine. That leaves 31 individual pins in the SXM connector unmapped, or probably unconnected. I do not know where these pins lead, although they probably connect to the __other__ Meg-Array for the NVlLink signals.
+Interesting things of note: The SMBUS/I2C signals on the PCIe connector are unconnected, as is the JTAG signals. I don't know what to tell you about this, except I know this card works, therefore my reverse engineering attempt should. There is no 3.3V rail from the PCIe card going to the SXM2 socket. Again, your guess is as good as mine. That leaves 31 individual pins in the SXM connector unmapped, or probably unconnected. I do not know where these pins lead, although they probably connect to the __other__ Meg-Array for the NVLink signals.
 
 Other than the connections from the SXM module to the PCIe card edge, there is another, single connection in between PCIe card pins: The `PRSNT1#` must connect to the farthest `PRSNT2#` pin. Since this is an x16 card, this means pin A1 is connected to pin B81.
 
@@ -171,8 +171,7 @@ The following is the complete schematic, with files also [available on my Github
 
 ![The complete schematic](/images/SXMSchematic.png)
 
-
-## The Mechanical Footprint
+## The Mechanical Footprint & Routing
 
 Finally, the mechanical part of the build. The actual footprint.
 

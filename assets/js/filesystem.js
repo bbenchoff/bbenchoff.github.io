@@ -64,6 +64,11 @@ const fileSystem = {
                 type: 'folder',
                 icon: 'folder-icon.png',
                 contents: {
+                    'SXM2 Sockets': {
+                        type: 'document',
+                        icon: 'nvidia.png',
+                        file: 'SXM2PCIe'
+                    },
                     'Isolated Thermocouple Reader': {
                         type: 'document',
                         icon: 'deltasig.png',
