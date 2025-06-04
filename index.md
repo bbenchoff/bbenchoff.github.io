@@ -15,11 +15,12 @@ I design, build, and reverse-engineer **hardware, embedded systems, and unconven
 <section id="latest-work">
   <h2>🆕 Latest Work</h2>
   <ul>
-    {% for post in site.posts limit:3 %}
+    {% assign sorted_posts = site.pages | where_exp: "page", "page.last_modified_at" | sort: "last_modified_at" | reverse %}
+    {% for post in sorted_posts limit:3 %}
       <li>
-        <h3><a href="{{ post.url }}">{{ post.title }}</a></h3>
-        <p>{{ post.excerpt | strip_html | truncate: 150 }}</p>
-        <p><small>Published on {{ post.date | date: "%B %d, %Y" }}</small></p>
+        <h3><a href="{{ post.url | relative_url }}">{{ post.title }}</a></h3>
+        <p>{{ post.description }}</p>
+        <p><small>Last updated on {{ post.last_modified_at | date: "%B %d, %Y" }}</small></p>
       </li>
     {% endfor %}
   </ul>
