@@ -11,6 +11,22 @@ I design, build, and reverse-engineer **hardware, embedded systems, and unconven
 
 ---
 
+<!-- 🆕 Latest Work Section -->
+<section id="latest-work">
+  <h2>🆕 Latest Work</h2>
+  <ul>
+    {% for post in site.posts limit:3 %}
+      <li>
+        <h3><a href="{{ post.url }}">{{ post.title }}</a></h3>
+        <p>{{ post.excerpt | strip_html | truncate: 150 }}</p>
+        <p><small>Published on {{ post.date | date: "%B %d, %Y" }}</small></p>
+      </li>
+    {% endfor %}
+  </ul>
+</section>
+
+---
+
 ## **📌 Featured Projects**
 ### 🕵️ **Reverse Engineering**
 🔹**[Reverse Engineering Nvidia's SXM2 Socket](https://bbenchoff.github.io/pages/SXM2PCIe.html)** -- Because **I had to do it for another project**
