@@ -9,8 +9,6 @@ I design, build, and reverse-engineer **hardware, embedded systems, and unconven
 ✔ Industrial Design & Manufacturing (3D Printing, CNC, Injection Molding)  
 ✔ Reverse Engineering & Hacking (Legacy Hardware, Retrocomputing, UI/UX)  
 
----
-
 <!-- 🆕 Latest Work Section -->
 <section id="latest-work">
   <h2>🆕 Latest Work</h2>
@@ -19,14 +17,12 @@ I design, build, and reverse-engineer **hardware, embedded systems, and unconven
     {% for post in sorted_posts limit:3 %}
       <li class="latest-work-item">
         <h3><a href="{{ post.url | relative_url }}">{{ post.title }}</a></h3>
-        <br>{{ post.description }}
-        <br><small>Last updated on {{ post.last_modified_at | date: "%B %d, %Y" }}</small>
+        <p>{{ post.description }}</p>
+        <p><small>Last updated on {{ post.last_modified_at | date: "%B %d, %Y" }}</small></p>
       </li>
     {% endfor %}
   </ul>
 </section>
-
----
 
 ## **📌 Featured Projects**
 ### 🕵️ **Reverse Engineering**
