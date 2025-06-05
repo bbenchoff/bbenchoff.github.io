@@ -27,7 +27,7 @@ I design, build, and reverse-engineer **hardware, embedded systems, and unconven
 </section>
 
 ---
-
+<br>
 ## **📌 Featured Projects**
 ### 🕵️ **Reverse Engineering**
 🔹**[Reverse Engineering Nvidia's SXM2 Socket](https://bbenchoff.github.io/pages/SXM2PCIe.html)** -- Because **I had to do it for another project**
