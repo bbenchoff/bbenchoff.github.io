@@ -81,9 +81,22 @@
         }
 
         .latest-work-item {
-        margin-bottom: .5rem;
+            /* existing styles... */
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            min-height: 180px; /* Ensures consistent card height */
+        }
+        .latest-work-content {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
         }
 
+        .latest-work-description {
+            flex-grow: 1;
+            /* other styles... */
+        }
         .latest-work-item h3 {
         font-size: 1.25rem;
         margin-bottom: 0rem;
@@ -99,7 +112,12 @@
         font-size: 0.7em;
         color: var(--secondary);
         }
-
+        .latest-work-date {
+            margin-top: auto; /* This pushes the date to the bottom */
+            padding-top: 0.5rem;
+            border-top: 1px solid #eee;
+            /* other styles... */
+        }
        
         #latest-work .latest-work-list{
             margin-left: 0;     

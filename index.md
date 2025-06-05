@@ -17,11 +17,13 @@ I design, build, and reverse-engineer **hardware, embedded systems, and unconven
          | sort: "last_modified_at"
          | reverse %}
     {% for post in sorted_posts limit:3 %}
-      <li class="latest-work-item">
+    <li class="latest-work-item">
+      <div class="latest-work-content">
         <h3><a href="{{ post.url | relative_url }}">{{ post.title }}</a></h3>
-        <p>{{ post.description }}</p><br>
-        <p><small>Last updated on {{ post.last_modified_at | date: "%B %d, %Y" }}</small></p>
-      </li>
+        <p class="latest-work-description">{{ post.description }}</p>
+      </div>
+      <p class="latest-work-date">Last updated on {{ post.last_modified_at | date: "%B %d, %Y" }}</p>
+    </li>
     {% endfor %}
   </ul>
 </section>
