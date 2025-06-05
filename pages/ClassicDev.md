@@ -5,7 +5,7 @@ description: "Setting up a vintage Macintosh development environment with CodeWa
 keywords: ["Classic Mac OS", "Metrowerks CodeWarrior", "ResEdit", "PowerMac G3", "vintage computing", "Mac development", "68k", "PowerPC"]
 author: "Brian Benchoff"
 date: 2025-06-04
-last_modified_at: 2025-03-08
+last_modified_at: 2021-03-08
 image: "/images/MetrowerksCD.png"
 ---
 
