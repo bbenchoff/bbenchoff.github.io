@@ -100,13 +100,13 @@
         color: var(--secondary);
         }
 
-        :root {
-            --background: #ffffff;
-            --text: #0a0a0a;
-            --accent: #0af;
-            --secondary: #888888;
-            --hover: #a2a2a2;
-            --code-bg: #f5f5f5;
+        :root{
+        --bg:#ffffff;
+        --text:#111827;
+        --link:#2563eb;
+        --card-bg:#f9fafb;
+        --card-shadow:rgba(0,0,0,0.05);
+        font-size:17px;
         }
 
         * {
@@ -115,16 +115,18 @@
             box-sizing: border-box;
         }
 
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: var(--background);
-            color: var(--text);
-            line-height: 1.6;
+        body{
+        margin:0;
+        background:var(--bg);
+        color:var(--text);
+        font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;
+        line-height:1.6;
         }
 
-        /* Add paragraph spacing */
-        .main-content p {
-            margin: 1.5em 0;
+        .main-content{
+        max-width:900px;
+        margin:0 auto;
+        padding:2.5rem 1rem 3rem;
         }
 
         /* Ensure first paragraph doesn't have top margin if it follows a heading */
@@ -150,6 +152,24 @@
             font-size: 0.95em;
             color: #333;
             box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+
+        h1{
+        font-size:2rem;
+        font-weight:600;
+        color:var(--link);
+        margin:0 0 1rem;
+        }
+        h2{
+        font-size:1.5rem;
+        color:var(--link);
+        margin-top:2rem;
+        margin-bottom:.75rem;
+        }
+        h3{
+        font-size:1.2rem;
+        margin-top:1.5rem;
+        margin-bottom:.4rem;
         }
 
         /* Proper list indentation */
@@ -201,6 +221,52 @@
             width: 100%;
             border-bottom: 1px solid rgba(0, 0, 0, 0.1);
             justify-content: flex-start; /* Align buttons to the left */
+        }
+        p{margin:.75rem 0;}
+        a{color:var(--link);text-decoration:none;}
+        a:hover{text-decoration:underline;}
+        /* “Latest Work” cards */
+        .latest-work-list{
+        list-style:none;
+        padding:0;
+        display:grid;
+        grid-template-columns:repeat(auto-fit,minmax(250px,1fr));
+        gap:1rem;
+        }
+        .latest-work-item{
+        background:var(--card-bg);
+        border-radius:.5rem;
+        padding:1rem 1.2rem;
+        box-shadow:0 2px 6px var(--card-shadow);
+        transition:transform .2s ease, box-shadow .2s ease;
+        }
+        .latest-work-item:hover{
+        transform:translateY(-4px);
+        box-shadow:0 6px 14px var(--card-shadow);
+        }
+        .latest-work-item h3{
+        margin:0 0 .4rem;
+        font-size:1.05rem;
+        color:var(--text);
+        }
+        .latest-work-item p{
+        margin:0;
+        opacity:.85;
+        font-size:.9rem;
+        }
+        /* code blocks */
+        pre{
+        background:#0d1117;
+        color:#e5e7eb;
+        border-radius:.4rem;
+        padding:1rem;
+        overflow-x:auto;
+        font-size:.85rem;
+        }
+        code{
+        background:rgba(0,0,0,0.06);
+        padding:.15em .35em;
+        border-radius:.25em;
         }
 
         .nav-button {
@@ -366,7 +432,7 @@
         }
 
         @media (max-width: 768px) {
-            .main-content {
+            .main-content 
                 padding: 5rem 1rem 1rem;
             }
         }
@@ -451,9 +517,9 @@
         </div>
     </aside>
 
-    <main class="main-content">
+    <div class="main-content">
         {{ content }}
-    </main>
+    </div>
 
     <!-- Prism JS for code highlighting -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-core.min.js"></script>

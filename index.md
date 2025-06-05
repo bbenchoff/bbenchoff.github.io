@@ -9,18 +9,17 @@ I design, build, and reverse-engineer **hardware, embedded systems, and unconven
 ✔ Industrial Design & Manufacturing (3D Printing, CNC, Injection Molding)  
 ✔ Reverse Engineering & Hacking (Legacy Hardware, Retrocomputing, UI/UX)  
 
-<!-- 🆕 Latest Work Section -->
 <section id="latest-work">
   <h2>🆕 Latest Work</h2>
   <ul class="latest-work-list">
-    {% assign sorted_posts = site.pages | where_exp: "page", "page.last_modified_at" | sort: "last_modified_at" | reverse %}
+    {% assign sorted_posts = site.pages
+         | where_exp: "page", "page.last_modified_at"
+         | sort: "last_modified_at"
+         | reverse %}
     {% for post in sorted_posts limit:3 %}
       <li class="latest-work-item">
         <h3><a href="{{ post.url | relative_url }}">{{ post.title }}</a></h3>
-        <p>
-          {{ post.description }}
-          <small> — Last updated on {{ post.last_modified_at | date: "%B %d, %Y" }}</small>
-        </p>
+        <p>{{ post.description }}</p>
       </li>
     {% endfor %}
   </ul>
