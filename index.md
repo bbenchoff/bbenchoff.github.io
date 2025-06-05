@@ -19,7 +19,7 @@ I design, build, and reverse-engineer **hardware, embedded systems, and unconven
     {% for post in sorted_posts limit:3 %}
       <li class="latest-work-item">
         <h3><a href="{{ post.url | relative_url }}">{{ post.title }}</a></h3>
-        <p>{{ post.description }}</p>
+        <p>{{ post.description }}</p><br>
         <p><small>Last updated on {{ post.last_modified_at | date: "%B %d, %Y" }}</small></p>
       </li>
     {% endfor %}
