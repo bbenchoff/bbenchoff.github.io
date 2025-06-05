@@ -26,6 +26,7 @@ I design, build, and reverse-engineer **hardware, embedded systems, and unconven
   </ul>
 </section>
 
+---
 
 ## **📌 Featured Projects**
 ### 🕵️ **Reverse Engineering**
