@@ -5,7 +5,7 @@ description: "A retro photo sharing platform for classic Macintosh computers, de
 keywords: ["classic Macintosh", "vintage photography", "Apple QuickTake", "Kodak DCS", "retro computing", "photo sharing", "vintage software", "CCD cameras"]
 author: "Brian Benchoff"
 date: 2025-06-04
-last_modified_at: 2025-06-04
+last_modified_at: 2025-04-20
 image: "/images/MilipixelBoxArt.png"
 ---
 

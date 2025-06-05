@@ -5,7 +5,7 @@ description: "Design and manufacturing process of an injection molded enclosure 
 keywords: ["injection molding", "product design", "DFM", "enclosure design", "portable terminal", "Fusion360", "manufacturing", "industrial design"]
 author: "Brian Benchoff"
 date: 2025-06-04
-last_modified_at: 2025-06-04
+last_modified_at: 2021-06-21
 image: "/images/PlasticRender.png"
 ---
 ## Injection Molded Palmtop

@@ -5,7 +5,7 @@ description: "Creating a quarter-scale replica of the iconic BeBox computer, com
 keywords: ["BeBox", "retrocomputing", "3D printing", "scale model", "Be Inc", "custom case", "vintage computers", "hardware replica"]
 author: "Brian Benchoff"
 date: 2025-06-04
-last_modified_at: 2025-06-04
+last_modified_at: 2021-12-01
 image: "/images/BeBox-Small.png"
 ---
 

@@ -5,7 +5,7 @@ description: "Building a tower of 15 ATAPI Zip drives with custom GL811E-based U
 keywords: ["Zip drive", "ATAPI", "USB adapter", "GL811E", "PCB design", "hardware mod", "RAID", "vintage storage"]
 author: "Brian Benchoff"
 date: 2025-06-04
-last_modified_at: 2025-06-04
+last_modified_at: 2022-11-30
 image: "/images/Atapi-tower.jpg"
 ---
 

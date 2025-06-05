@@ -5,7 +5,7 @@ description: "Creating multi-color PCBs using temperature-stable pad printing an
 keywords: ["PCB design", "multi-color PCB", "pad printing", "silk screening", "PCB manufacturing", "electronics art", "PCB decoration", "CMYK PCB"]
 author: "Brian Benchoff"
 date: 2025-06-04
-last_modified_at: 2025-06-04
+last_modified_at: 2021-08-20
 image: "/images/KISSTindie.png"
 ---
 

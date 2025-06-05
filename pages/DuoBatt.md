@@ -5,7 +5,7 @@ description: "Comprehensive guide for rebuilding both main and PRAM batteries fo
 keywords: ["PowerBook Duo", "battery rebuild", "PRAM battery", "vintage Apple", "laptop repair", "VL2320", "retro computing", "hardware restoration"]
 author: "Brian Benchoff"
 date: 2025-06-04
-last_modified_at: 2025-06-04
+last_modified_at: 2023-04-15
 image: "/images/Duo/pramdiagram.png"
 ---
 

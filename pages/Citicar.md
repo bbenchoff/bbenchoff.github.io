@@ -5,7 +5,7 @@ description: "Complete restoration and modernization of a 1980 Citicar electric 
 keywords: ["Citicar restoration", "electric vehicle restoration", "vintage EV", "Comuta-Car", "EV conversion", "classic car restoration", "automotive electronics", "CAN bus conversion"]
 author: "Brian Benchoff"
 date: 2023-06-04
-last_modified_at: 2023-06-04
+last_modified_at: 2024-09-16
 image: "/images/Car/OceanBeach/Hero.jpg"
 ---
 

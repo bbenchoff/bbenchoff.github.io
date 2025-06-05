@@ -5,7 +5,7 @@ description: "Building a fully functional Linux handheld computer for under $15,
 keywords: ["Linux handheld", "budget computing", "embedded Linux", "DIY computer", "low-cost computing", "PCB design", "open hardware", "embedded systems"]
 author: "Brian Benchoff"
 date: 2025-06-04
-last_modified_at: 2025-06-04
+last_modified_at: 2022-02-09
 image: "/images/SAB-4.png"
 ---
 

@@ -5,7 +5,7 @@ description: "Analysis and visualization of San Francisco MUNI transit data usin
 keywords: ["SFMTA API", "MUNI transit", "public transportation", "data analysis", "San Francisco transit", "transit visualization", "route optimization", "transport data"]
 author: "Brian Benchoff"
 date: 2025-06-04
-last_modified_at: 2025-06-04
+last_modified_at: 2025-02-07
 image: "/images/SFMTA-API.png"
 ---
 

@@ -5,7 +5,7 @@ description: "Designing and 3D printing replacement treads for vintage Tyco Half
 keywords: ["3D printing", "tank treads", "Tyco HalfTraxx", "RC cars", "TPU printing", "vintage toys", "restoration", "mechanical design"]
 author: "Brian Benchoff"
 date: 2025-06-04
-last_modified_at: 2025-06-04
+last_modified_at: 2022-02-10
 image: "/images/Tread2.png"
 ---
 

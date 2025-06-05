@@ -5,7 +5,7 @@ description: "Hardware engineering and PCB design documentation by Brian Benchof
 keywords: ["hardware engineering", "PCB design", "electronics", "reverse engineering"]
 author: "Brian Benchoff"
 date: 2025-06-04
-last_modified_at: 2025-06-04
+last_modified_at: 2025-03-04
 image: "/images/default.jpg"
 ---
 

@@ -5,7 +5,7 @@ description: "Creating a 3D model of Pokemon Porygon entirely through OpenSCAD c
 keywords: ["OpenSCAD", "3D modeling", "Pokemon", "Porygon", "programmatic design", "3D printing", "computational design", "code art"]
 author: "Brian Benchoff"
 date: 2025-06-04
-last_modified_at: 2025-06-04
+last_modified_at: 2021-08-21
 image: "https://raw.githubusercontent.com/bbenchoff/Porygon/master/Porygon.stl"
 ---
 ## Porygon

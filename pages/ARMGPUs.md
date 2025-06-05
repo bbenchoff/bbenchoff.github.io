@@ -5,7 +5,7 @@ description: "A technical deep-dive into running Nvidia datacenter GPUs on ARM s
 keywords: ["ARM SBC", "Nvidia GPU", "PCIe", "LX2160A", "embedded systems", "IOMMU", "BAR sizing", "datacenter computing"]
 author: "Brian Benchoff"
 date: 2025-06-04
-last_modified_at: 2025-06-04
+last_modified_at: 2025-03-14
 image: "/images/V100_SXM2.jpg"
 ---
 

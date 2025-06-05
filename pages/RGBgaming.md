@@ -5,7 +5,7 @@ description: "A high-density PCB design featuring 214 RGB LEDs in a 72mm coaster
 keywords: ["RGB LEDs", "PCB design", "IS31FL3741", "ATSamD21", "electronics", "LED matrix", "gaming accessories", "embedded systems"]
 author: "Brian Benchoff"
 date: 2025-06-04
-last_modified_at: 2025-06-04
+last_modified_at: 2021-06-21
 image: "/images/RGBGaming.jpg"
 ---
 ## RGB Gaming Coaster

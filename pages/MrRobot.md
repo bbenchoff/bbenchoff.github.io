@@ -5,7 +5,7 @@ description: "A custom electronic conference badge inspired by Mr. Robot, featur
 keywords: ["electronic badge", "Mr Robot", "conference badge", "hardware hacking", "LED design", "badge electronics", "maker project", "hacker culture"]
 author: "Brian Benchoff"
 date: 2025-06-04
-last_modified_at: 2025-06-04
+last_modified_at: 2021-06-21
 image: "/images/RobotEngadget.jpg"
 ---
 ## Mr Robot Badge

@@ -5,7 +5,7 @@ description: "Collection of custom computer cases including a rackmount Mac, Fro
 keywords: ["retro computing", "case design", "rackmount Mac", "Mini-ITX", "Frog Design", "industrial design", "Quadra 605", "custom cases"]
 author: "Brian Benchoff"
 date: 2025-06-04
-last_modified_at: 2025-06-04
+last_modified_at: 2021-11-07
 image: "/images/Mac2.PNG"
 ---
 ## Rackintosh

@@ -5,7 +5,7 @@ description: "A large-scale art installation made from interconnected circuit bo
 keywords: ["circuit board art", "LED installation", "electronic art", "modular design", "PCB art", "interactive installation", "maker art", "hardware art"]
 author: "Brian Benchoff"
 date: 2025-06-04
-last_modified_at: 2025-06-04
+last_modified_at: 2021-08-20
 image: "/images/SAOwall.jpg"
 ---
 

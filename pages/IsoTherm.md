@@ -5,7 +5,7 @@ description: "Building a cost-effective, electrically isolated thermocouple meas
 keywords: ["thermocouple", "electrical isolation", "RP2040", "AMC3336", "delta-sigma DAC", "temperature measurement", "instrumentation", "PIO programming"]
 author: "Brian Benchoff"
 date: 2025-06-04
-last_modified_at: 2025-06-04
+last_modified_at: 2025-01-05
 image: "/images/IsoThermHero.png"
 ---
 

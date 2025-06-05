@@ -5,7 +5,7 @@ description: "A unique approach to RS-232 signal testing using a 3D-printed fidg
 keywords: ["RS-232", "serial cable", "Y-cable", "3D printing", "terminal testing", "fidget spinner", "hardware testing", "electronics project"]
 author: "Brian Benchoff"
 date: 2025-06-04
-last_modified_at: 2025-06-04
+last_modified_at: 2021-06-21
 image: "/images/FidgetSpinner.png"
 ---
 ## Serial Fidget Spinner

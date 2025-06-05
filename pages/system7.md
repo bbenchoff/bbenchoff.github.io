@@ -5,7 +5,7 @@ description: "A faithful recreation of the Macintosh System 7 interface using mo
 keywords: ["System 7", "CSS recreation", "Macintosh interface", "retro computing", "web development", "JavaScript UI", "vintage Mac OS", "window manager"]
 author: "Brian Benchoff"
 date: 2023-06-04
-last_modified_at: 2023-06-04
+last_modified_at: 2025-02-10
 image: "/images/system7screenshot.png"
 ---
 

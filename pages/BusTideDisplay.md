@@ -5,7 +5,7 @@ description: "A custom Raspberry Pi Pico project that tracks multiple San Franci
 keywords: ["MUNI bus tracker", "e-paper display", "Raspberry Pi Pico", "511.org API", "embedded systems", "San Francisco transit", "real-time bus arrivals", "IoT project"]
 author: "Brian Benchoff"
 date: 2025-06-04
-last_modified_at: 2025-06-04
+last_modified_at: 2025-02-26
 image: "/images/BusDisplayReal.png"
 ---
 

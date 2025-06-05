@@ -5,7 +5,7 @@ description: "Building a custom Nikon lens adapter for the Apple Quicktake 150, 
 keywords: ["Apple Quicktake", "digital camera", "Nikon lens", "lens adapter", "vintage technology", "photography", "hardware mod", "Apple history"]
 author: "Brian Benchoff"
 date: 2025-06-04
-last_modified_at: 2025-06-04
+last_modified_at: 2022-10-09
 image: "/images/Quicktakes.jpg"
 ---
 

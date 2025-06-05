@@ -5,7 +5,7 @@ description: "A compact Linux handheld powered by Allwinner F1C200s, featuring N
 keywords: ["handheld Linux", "Allwinner F1C200s", "NiMH battery", "embedded Linux", "ARM9", "portable computing", "DIY electronics", "SPI LCD"]
 author: "Brian Benchoff"
 date: 2025-06-04
-last_modified_at: 2025-06-04
+last_modified_at: 2021-08-28
 image: "/images/SAB.png"
 ---
 

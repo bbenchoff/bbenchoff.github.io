@@ -5,7 +5,7 @@ description: "Comprehensive photo documentation of a vintage Citicar electric ve
 keywords: ["Citicar", "electric vehicle", "EV restoration", "vintage cars", "car restoration", "electric car history", "automotive repair", "DIY restoration"]
 author: "Brian Benchoff"
 date: 2025-06-04
-last_modified_at: 2025-06-04
+last_modified_at: 2023-01-25
 image: "/images/Car/Part1/Part1.png"
 ---
 

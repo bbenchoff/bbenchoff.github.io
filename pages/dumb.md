@@ -5,7 +5,7 @@ description: "A modern handheld VT100-compatible terminal with custom SAMD51-bas
 keywords: ["dumb terminal", "VT100", "SAMD51", "embedded systems", "serial terminal", "portable computing", "NT35510", "hardware design"]
 author: "Brian Benchoff"
 date: 2025-06-04
-last_modified_at: 2025-06-04
+last_modified_at: 2021-09-08
 image: "/images/VTPlastic.png"
 ---
 

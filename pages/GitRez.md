@@ -5,7 +5,7 @@ description: "A native GitHub Desktop client for Classic Mac OS (System 7-9) wit
 keywords: ["Classic Mac OS", "GitHub client", "resource fork", "version control", "System 7", "vintage computing", "Mac development", "Git"]
 author: "Brian Benchoff"
 date: 2025-06-04
-last_modified_at: 2025-06-04
+last_modified_at: 2025-003-15
 image: "/images/GitHubBoxArt.png"
 ---
 ![Github box art](/images/GitHubBoxArt.png){: loading="lazy" alt="Github box art"}

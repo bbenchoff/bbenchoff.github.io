@@ -5,7 +5,7 @@ description: "A Classic Mac OS application that recreates Dennis Nedry's infamou
 keywords: ["Jurassic Park", "Classic Mac OS", "System 7", "Metrowerks CodeWarrior", "QuickTime", "retro computing", "Dennis Nedry", "vintage software"]
 author: "Brian Benchoff"
 date: 2025-06-04
-last_modified_at: 2025-06-04
+last_modified_at: 2025-02-03
 image: "/images/run.jpg"
 ---
 # **Access Main Security Grid**

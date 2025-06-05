@@ -5,7 +5,7 @@ description: "Implementation of modern SSL/TLS security for Classic Macintosh OS
 keywords: ["Classic Mac OS", "SSL/TLS", "Mbed-TLS", "vintage computing", "retro development", "encryption", "Mac System 7", "network security"]
 author: "Brian Benchoff"
 date: 2025-06-04
-last_modified_at: 2025-06-04
+last_modified_at: 2025-04-15
 image: "/images/MacSSL1.png"
 ---
 

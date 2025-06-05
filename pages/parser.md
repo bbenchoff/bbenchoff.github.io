@@ -5,7 +5,7 @@ description: "A VT100-compatible ANSI terminal parser implementation for embedde
 keywords: ["ANSI terminal", "VT100", "embedded systems", "terminal emulation", "escape codes", "microcontroller", "C programming"]
 author: "Brian Benchoff"
 date: 2025-06-04
-last_modified_at: 2025-06-04
+last_modified_at: 2021-06-21
 image: "/images/ParserState.png"
 ---
 ## ANSI Terminal Parser

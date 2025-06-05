@@ -5,7 +5,7 @@ description: "Custom 18-key keyboard design for testing serial communications, c
 keywords: ["serial testing", "ASCII keyboard", "embedded systems", "PCB design", "3D printing", "Arduino", "hardware testing", "serial communication"]
 author: "Brian Benchoff"
 date: 2025-06-04
-last_modified_at: 2025-06-04
+last_modified_at: 2022-12-01
 image: "/images/BaudBox.jpg"
 ---
 

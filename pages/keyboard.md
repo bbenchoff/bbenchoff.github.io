@@ -5,7 +5,7 @@ description: "Design and manufacturing process of a custom silicone membrane key
 keywords: ["silicone keyboard", "membrane keyboard", "PCB design", "keyboard manufacturing", "pad printing", "keyboard scanning", "hardware design", "Eagle library"]
 author: "Brian Benchoff"
 date: 2025-06-04
-last_modified_at: 2025-06-04
+last_modified_at: 2021-06-21
 image: "/images/KeyboardArial.png"
 ---
 ## Silicone Membrane Keyboard

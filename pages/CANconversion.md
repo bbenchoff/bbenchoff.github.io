@@ -5,7 +5,7 @@ description: "Modernizing a vintage electric car with CAN bus controls, replacin
 keywords: ["CAN bus", "automotive electronics", "electric vehicle", "MOSFET", "vehicle retrofit", "dashboard electronics", "automotive conversion", "digital controls"]
 author: "Brian Benchoff"
 date: 2025-06-04
-last_modified_at: 2025-06-04
+last_modified_at: 2024-06-08
 image: "/images/Car/GaugeCluster/DashFinal1.jpg"
 ---
 
