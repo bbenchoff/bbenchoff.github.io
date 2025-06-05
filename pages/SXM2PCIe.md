@@ -5,7 +5,7 @@ description: "Detailed guide on reverse engineering NVIDIA's SXM2 socket, includ
 keywords: ["NVIDIA SXM2", "PCIe adapter", "reverse engineering", "datacenter GPU", "hardware documentation", "pinout diagram", "PCB design", "electrical engineering"]
 author: "Brian Benchoff"
 date: 2025-06-04
-last_modified_at: 2025-06-04
+last_modified_at: 2025-06-03
 image: "/images/SXM2Pinout.png"
 ---
 

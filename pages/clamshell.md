@@ -5,7 +5,7 @@ description: "Building a military-style portable computer with Raspberry Pi, cus
 keywords: ["cyberdeck", "Raspberry Pi", "portable computer", "3D printing", "rugged computing", "DIY laptop", "18650 battery", "custom keyboard"]
 author: "Brian Benchoff"
 date: 2025-06-04
-last_modified_at: 2025-06-04
+last_modified_at: 2022-06-04
 image: "/images/CyberdeckFull.jpg"
 ---
 
