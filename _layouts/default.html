@@ -67,52 +67,66 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/line-numbers/prism-line-numbers.min.css" rel="stylesheet" />
     
     <style>
-        /* Styles for Latest Work Section */
         #latest-work {
-        margin-top: 0rem;
-        padding: 0;
-        border-top: 1px solid #e0e0e0;
+            margin-top: 0rem;
+            padding: 0;
+            border-top: 1px solid #e0e0e0;
         }
 
         .latest-work-list {
-        list-style: none;
-        padding: 1rem .2rem 1rem -1rem; 
-        margin: 0;
+            list-style: none;
+            padding: 1rem 0.2rem 1rem 0; 
+            margin: 0;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1rem;
         }
 
         .latest-work-item {
-            /* existing styles... */
+            background: var(--card-bg);
+            border-radius: 0.5rem;
+            padding: 1rem 1.2rem;
+            box-shadow: 0 2px 6px var(--card-shadow);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
             display: flex;
             flex-direction: column;
             justify-content: space-between;
-            min-height: 180px; /* Ensures consistent card height */
+            min-height: 180px;
         }
+
+        .latest-work-item:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 6px 14px var(--card-shadow);
+        }
+
         .latest-work-content {
             flex-grow: 1;
             display: flex;
             flex-direction: column;
         }
 
+        .latest-work-item h3 {
+            font-size: 1.25rem;
+            margin: 0 0 0.5rem 0;
+            color: var(--text);
+        }
+
+        .latest-work-item h3 a {
+            color: var(--link);
+            text-decoration: none;
+        }
+
+        .latest-work-item h3 a:hover {
+            text-decoration: underline;
+        }
+
         .latest-work-description {
             flex-grow: 1;
-            /* other styles... */
-        }
-        .latest-work-item h3 {
-        font-size: 1.25rem;
-        margin-bottom: 0rem;
+            margin: 0 0 1rem 0;
+            color: var(--text);
+            line-height: 1.4;
         }
 
-        .latest-work-item p {
-        margin: 0;
-        color: var(--text);
-        line-height: 1.4;
-        }
-
-        .latest-work-item p small {
-        font-size: 0.7em;
-        color: var(--secondary);
-        }
-        
         .latest-work-date {
             margin: 0;
             font-size: 0.75em;
@@ -120,17 +134,6 @@
             margin-top: auto;
             padding-top: 0.5rem;
             border-top: 1px solid #eee;
-        }
-       
-        #latest-work .latest-work-list{
-            margin-left: 0;     
-            padding-left: 0;    
-        }
-
-        /* 2 . trim the card’s own left padding so its text lines up with the
-            bullets above (tweak the .75rem until it looks right to you) */
-        #latest-work .latest-work-item{
-            padding: 1rem 1.2rem 1rem .75rem;   /* top | right | bottom | left  */
         }
 
         :root{
