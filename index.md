@@ -27,8 +27,8 @@ I design, build, and reverse-engineer **hardware, embedded systems, and unconven
 
 ## **📌 Featured Projects**
 ### 🕵️ **Reverse Engineering**
-🔹**[Reverse Engineering Nvidia's SXM2 Socket](https://bbenchoff.github.io/pages/SXM2PCIe.html)** -- Because **I had to do it for another project**
-🔹**[Copying 20 year old USB devices](https://bbenchoff.github.io/pages/atapi.html)** -- When you can only find **one on eBay**
+🔹**[Reverse Engineering Nvidia's SXM2 Socket](…)** -- Because **I had to do it for another project**␠␠
+🔹**[Copying 20 year old USB devices](…)** -- When you can only find **one on eBay**␠␠
 
 ### 💻 **Coding Projects**
 🔹**[A port of Mbed-TLS for the Classic Macintosh OS 7/8/9](https://bbenchoff.github.io/pages/MacSSL.html)** -- SSL/TLS **for something that was never meant to have it**
