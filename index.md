@@ -27,29 +27,29 @@ I design, build, and reverse-engineer **hardware, embedded systems, and unconven
 
 ## **📌 Featured Projects**
 ### 🕵️ **Reverse Engineering**
-🔹**[Reverse Engineering Nvidia's SXM2 Socket](…)** -- Because **I had to do it for another project**␠␠
-🔹**[Copying 20 year old USB devices](…)** -- When you can only find **one on eBay**␠␠
+🔹**[Reverse Engineering Nvidia's SXM2 Socket](…)** -- Because **I had to do it for another project**<br>
+🔹**[Copying 20 year old USB devices](…)** -- When you can only find **one on eBay**<br>
 
 ### 💻 **Coding Projects**
-🔹**[A port of Mbed-TLS for the Classic Macintosh OS 7/8/9](https://bbenchoff.github.io/pages/MacSSL.html)** -- SSL/TLS **for something that was never meant to have it**␠␠
-🔹**[Embedded SSL and GZIP](https://bbenchoff.github.io/pages/BusTideDisplay.html)** -- Because **you don't need to run everything in Linux**␠␠
+🔹**[A port of Mbed-TLS for the Classic Macintosh OS 7/8/9](https://bbenchoff.github.io/pages/MacSSL.html)** -- SSL/TLS **for something that was never meant to have it**<br>
+🔹**[Embedded SSL and GZIP](https://bbenchoff.github.io/pages/BusTideDisplay.html)** -- Because **you don't need to run everything in Linux**<br>
 
 ### 🚗 **Restoring & Modernizing a 1970s EV**
-🔹 **[The Citicar Restoration](https://bbenchoff.github.io/pages/Citicar.html)** -- Bringing a **vintage electric car back to life**␠␠
-🔹 **[Car CAN Bus Conversion](https://bbenchoff.github.io/pages/CANconversion.html)** -- Replacing **all relays & analog systems with a CAN-based network**␠␠
+🔹 **[The Citicar Restoration](https://bbenchoff.github.io/pages/Citicar.html)** -- Bringing a **vintage electric car back to life**<br>
+🔹 **[Car CAN Bus Conversion](https://bbenchoff.github.io/pages/CANconversion.html)** -- Replacing **all relays & analog systems with a CAN-based network**<br>
 
 ### 💻 **Embedded & Open Hardware**
-🔹 **[The $15 Linux Machine](https://bbenchoff.github.io/pages/LinuxDevice.html)** -- A fully functional **Linux handheld** for under $15␠␠
-🔹 **[Isolated Thermocouple Reader](https://bbenchoff.github.io/pages/IsoTherm.html)** -- A **low-cost alternative** to a $2,000 industrial module  
+🔹 **[The $15 Linux Machine](https://bbenchoff.github.io/pages/LinuxDevice.html)** -- A fully functional **Linux handheld** for under $15<br>
+🔹 **[Isolated Thermocouple Reader](https://bbenchoff.github.io/pages/IsoTherm.html)** -- A **low-cost alternative** to a $2,000 industrial module<br>
 
 ### 🔬 **Reverse Engineering & Retro Tech**
-🔹 **[BaudBox: A 256-Key ASCII Keyboard](https://bbenchoff.github.io/pages/BaudBox.html)** -- A serial input device for **manual debugging & obscure ASCII characters**␠␠
-🔹 **[Rebuilding a Zip Drive Tower](https://bbenchoff.github.io/pages/atapi.html)** -- Stacking **fifteen ATAPI Zip-100 drives into a USB RAID array**␠␠
+🔹 **[BaudBox: A 256-Key ASCII Keyboard](https://bbenchoff.github.io/pages/BaudBox.html)** -- A serial input device for **manual debugging & obscure ASCII characters**<br>
+🔹 **[Rebuilding a Zip Drive Tower](https://bbenchoff.github.io/pages/atapi.html)** -- Stacking **fifteen ATAPI Zip-100 drives into a USB RAID array**<br>
 
 ### 🎨 **Industrial & UI/UX Design**
-🔹 **[Custom Silicone Keyboards](https://bbenchoff.github.io/pages/keyboard.html)** -- Designing **low-cost, high-durability keyboards**␠␠
-🔹 **[Full-Color Circuit Boards](https://bbenchoff.github.io/pages/colorPCB.html)** -- Experimental **multi-color PCBs beyond standard manufacturing**␠␠
-🔹 **[Portable Dumb Terminal](https://bbenchoff.github.io/pages/dumb.html)** -- A **VT100-style ANSI terminal** in a pocket-sized form factor␠␠
+🔹 **[Custom Silicone Keyboards](https://bbenchoff.github.io/pages/keyboard.html)** -- Designing **low-cost, high-durability keyboards**<br>
+🔹 **[Full-Color Circuit Boards](https://bbenchoff.github.io/pages/colorPCB.html)** -- Experimental **multi-color PCBs beyond standard manufacturing**<br>
+🔹 **[Portable Dumb Terminal](https://bbenchoff.github.io/pages/dumb.html)** -- A **VT100-style ANSI terminal** in a pocket-sized form factor<br>
 
 ## **📄 About Me & Work**
 I specialize in **building functional, practical, and sometimes ridiculous hardware**. My goal is to **design great products**, solve difficult engineering challenges, and push the boundaries of **low-cost, hackable, and open-source hardware**.
