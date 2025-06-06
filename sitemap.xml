@@ -1,44 +1,17 @@
+---
+layout: none
+permalink: /sitemap.xml
+---
 <?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
-        xmlns:image="http://www.google.com/schemas/sitemap-image/1.1"
-        xsi:schemaLocation="http://www.sitemaps.org/schemas/sitemap/0.9 http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd"
-        xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-  <!-- Pages -->
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   {% for page in site.pages %}
-  {% unless page.url contains '.xml' or page.url contains 'assets' or page.url contains '404' %}
+  {% if page.sitemap != false %}
   <url>
-    <loc>{{ site.url }}{{ page.url | remove: 'index.html' }}</loc>
-    {% if page.last_modified_at %}
+    <loc>{{ site.url }}{{ page.url }}</loc>
     <lastmod>{{ page.last_modified_at | date_to_xmlschema }}</lastmod>
-    {% else %}
-    <lastmod>{{ site.time | date_to_xmlschema }}</lastmod>
-    {% endif %}
     <changefreq>monthly</changefreq>
-    <priority>{% if page.url == '/' %}1.0{% else %}0.8{% endif %}</priority>
-    {% if page.image %}
-    <image:image>
-      <image:loc>{{ site.url }}{{ page.image }}</image:loc>
-      <image:title>{{ page.title | xml_escape }}</image:title>
-    </image:image>
-    {% endif %}
+    <priority>0.5</priority>
   </url>
-  {% endunless %}
-  {% endfor %}
-  
-  <!-- Posts -->
-  {% for post in site.posts %}
-  <url>
-    <loc>{{ site.url }}{{ post.url }}</loc>
-    <lastmod>{{ post.last_modified_at | default: post.date | date_to_xmlschema }}</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.6</priority>
-    {% if post.image %}
-    <image:image>
-      <image:loc>{{ site.url }}{{ post.image }}</image:loc>
-      <image:title>{{ post.title | xml_escape }}</image:title>
-      <image:caption>{{ post.description | xml_escape }}</image:caption>
-    </image:image>
-    {% endif %}
-  </url>
+  {% endif %}
   {% endfor %}
 </urlset>
