@@ -52,13 +52,13 @@ I'm not going to emulate every possible ROM. I'm trying to find the *interesting
     0xBE, 0xC0, 0xC1, 0xC4, 0xC5, 0xC6, 0xC8, 0xC9, 0xCA, 0xCC, 0xCD, 0xCE, 0xD0, 0xD1,
     0xD5, 0xD6, 0xD8, 0xD9, 0xDD, 0xDE, 0xE0, 0xE1, 0xE4, 0xE5, 0xE6, 0xE8, 0xE9, 0xEA,
     0xEC, 0xED, 0xEE, 0xF0, 0xF1, 0xF5, 0xF6, 0xF8, 0xF9, 0xFD, 0xFE
-<code>
+</code>
 
 Random data has about a 59% chance of being a valid opcode (151 out of 256 possible bytes). Real games should do much better than that. The bulk of the first kilobyte or so of data should be made up of these opcodes.
 
 **Reset Vector Tomfoolery** Atari ROMs need a valid reset vector to the code's entry point. In other words, the last two bytes of the code should be between `0xF000` and `0xFFFF`. I can cheat on this by generating a 4k ROM minus two bytes, and try every possible reset vector.
 
-**Input __and__ Output?!** I can look for access to the TIA (Television Interface Adapter) to see if it will output to the screen and the RIOT (RAM-I/O-Timer) to see if it will use any input or output. These are heuristics all Atari games have; I might as well use them to determine if I have a valid ROM.
+**Input _and_ Output?!** I can look for access to the TIA (Television Interface Adapter) to see if it will output to the screen and the RIOT (RAM-I/O-Timer) to see if it will use any input or output. These are heuristics all Atari games have; I might as well use them to determine if I have a valid ROM.
 
 The TIA handles all graphics and sound, so any game needs to write to these registers:
 
@@ -67,13 +67,13 @@ The TIA handles all graphics and sound, so any game needs to write to these regi
     0x0C, 0x0D, 0x0E, 0x0F, 0x10, 0x11, 0x12, 0x13, 0x14, 0x15, 0x16, 0x17,
     0x18, 0x19, 0x1A, 0x1B, 0x1C, 0x1D, 0x1E, 0x1F, 0x20, 0x21, 0x22, 0x23,
     0x24, 0x25, 0x26, 0x27, 0x28, 0x29, 0x2A, 0x2B, 0x2C, 0x2D, 0x2E, 0x2F
-<code>
+</code>
 
 And the RIOT registers are:
 <code>
     0x280, 0x281, 0x282, 0x283, 0x284, 0x285, 0x286, 0x287, 0x294, 0x295, 
     0x296, 0x297
-<code>
+</code>
 
 Every valid ROM will have at least one access to the RIOT registers for input handling, and many accesses to the TIA registers for graphics.
 
@@ -104,7 +104,7 @@ Real games are far more sophisticated than I expected:
 
 The Overall Score combines all heuristics into a single metric using weighted averages:
 
-`
+<code>
 Score = (Opcode Ratio × 0.25) + 
         (TIA Accesses/20 × 0.20) + 
         (RIOT Accesses/10 × 0.15) + 
@@ -112,8 +112,7 @@ Score = (Opcode Ratio × 0.25) +
         (Jumps/8 × 0.10) + 
         (Unique Opcodes/30 × 0.10) + 
         (Loop Patterns × 0.05)
-
-`
+</code>
 
 Real games scored between 0.393 and 1.004, with an average of 0.853. This composite score helps rank how "game-like" any ROM appears based on multiple characteristics rather than relying on a single metric. The weights prioritize opcodes and graphics capability (TIA) as the most important indicators, with control flow and I/O capability as secondary factors.
 
