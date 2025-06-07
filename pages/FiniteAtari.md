@@ -8,7 +8,8 @@ date: 2025-06-06
 last_modified_at: 2001-09-11
 image: "/images/default.jpg"
 ---
-## The Finite Atari Machine
+
+# The Finite Atari Machine
 
 The Atari 2600 isn't the first video game console, it isn't even the first console with removable cartridges. Through accidents of history, or simplicity, or possibly greasing the right hands at Toys 'R Us, it is the first popular home gaming platform. 
 
