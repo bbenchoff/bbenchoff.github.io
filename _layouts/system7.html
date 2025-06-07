@@ -26,6 +26,19 @@
     <script src="{{ '/assets/js/state-manager.js' | relative_url }}"></script>
     <script src="{{ '/assets/js/system7.js' | relative_url }}"></script>
     <script src="{{ '/assets/js/calculator.js' | relative_url }}"></script>
+
+    <!-- MathJax for LaTeX rendering -->
+    <script>
+    window.MathJax = {
+        tex: {
+        inlineMath: [['$', '$'], ['\\(', '\\)']],
+        displayMath: [['$$', '$$'], ['\\[', '\\]']]
+        }
+    };
+    </script>
+    <script async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+
 </head>
 <body>
     <div id="system7" class="system7">
