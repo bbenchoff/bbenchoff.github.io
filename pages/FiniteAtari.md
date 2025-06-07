@@ -10,11 +10,11 @@ image: "/images/default.jpg"
 ---
 ## The Finite Atari Machine
 
-The Atari 2600 isn't the first video game console, it isn't even the first console with removable cartridges. Through accidents of history, or simplicity, or possibly greasing the right hands at Toys 'R Us , it is the first popular home gaming platform. 
+The Atari 2600 isn't the first video game console, it isn't even the first console with removable cartridges. Through accidents of history, or simplicity, or possibly greasing the right hands at Toys 'R Us, it is the first popular home gaming platform. 
 
 This project explores a question no one asked, no one wanted, and is a massive waste of resources. **What if we tried to find every possible Atari 2600 game?**
 
-Thanks to recent advances in AI, we can now write a Python script that brute-forces the 4KB ROM space and asks, "does this look like a game?" This isn't nostalgia, mostly because my first console was an NES, This is about searching something so unfathomably large and seeing if there is _anything_ interesting out there.
+Thanks to recent advances in AI, we can now write a Python script that brute-forces the 4KB ROM space and asks, "does this look like a game?" This isn't nostalgia, mostly because my first console was an NES. This is about searching something so unfathomably large and seeing if there is _anything_ interesting out there.
 
 ## Problem Scope
 
@@ -40,7 +40,7 @@ I'm not going to emulate every possible ROM. I'm trying to find the *interesting
 
 **Opcode Sanity** The 6507 CPU (from here on out I'm calling it a 6502, to make you, specifically, angry) has 151 valid opcodes, and these opcodes are going to be all over the first half of the ROM. First I should check if there are a lot of opcodes in the data. These opcodes are:
 
-`
+<code>
     0x00, 0x01, 0x05, 0x06, 0x08, 0x09, 0x0A, 0x0D, 0x0E, 0x10, 0x11, 0x15, 0x16, 0x18,
     0x19, 0x1D, 0x1E, 0x20, 0x21, 0x24, 0x25, 0x26, 0x28, 0x29, 0x2A, 0x2C, 0x2D, 0x2E,
     0x30, 0x31, 0x35, 0x36, 0x38, 0x39, 0x3D, 0x3E, 0x40, 0x41, 0x45, 0x46, 0x48, 0x49,
@@ -52,7 +52,7 @@ I'm not going to emulate every possible ROM. I'm trying to find the *interesting
     0xBE, 0xC0, 0xC1, 0xC4, 0xC5, 0xC6, 0xC8, 0xC9, 0xCA, 0xCC, 0xCD, 0xCE, 0xD0, 0xD1,
     0xD5, 0xD6, 0xD8, 0xD9, 0xDD, 0xDE, 0xE0, 0xE1, 0xE4, 0xE5, 0xE6, 0xE8, 0xE9, 0xEA,
     0xEC, 0xED, 0xEE, 0xF0, 0xF1, 0xF5, 0xF6, 0xF8, 0xF9, 0xFD, 0xFE
-`
+<code>
 
 Random data has about a 59% chance of being a valid opcode (151 out of 256 possible bytes). Real games should do much better than that. The bulk of the first kilobyte or so of data should be made up of these opcodes.
 
@@ -62,18 +62,18 @@ Random data has about a 59% chance of being a valid opcode (151 out of 256 possi
 
 The TIA handles all graphics and sound, so any game needs to write to these registers:
 
-`
+<code>
     0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0A, 0x0B,
     0x0C, 0x0D, 0x0E, 0x0F, 0x10, 0x11, 0x12, 0x13, 0x14, 0x15, 0x16, 0x17,
     0x18, 0x19, 0x1A, 0x1B, 0x1C, 0x1D, 0x1E, 0x1F, 0x20, 0x21, 0x22, 0x23,
     0x24, 0x25, 0x26, 0x27, 0x28, 0x29, 0x2A, 0x2B, 0x2C, 0x2D, 0x2E, 0x2F
-`
+<code>
 
 And the RIOT registers are:
-`
+<code>
     0x280, 0x281, 0x282, 0x283, 0x284, 0x285, 0x286, 0x287, 0x294, 0x295, 
     0x296, 0x297
-`
+<code>
 
 Every valid ROM will have at least one access to the RIOT registers for input handling, and many accesses to the TIA registers for graphics.
 
@@ -115,7 +115,7 @@ Score = (Opcode Ratio × 0.25) +
 
 `
 
-Real games scored between 0.393 and 1.004, with an average of 0.853. This composite score helps rank how "game-like" any ROM appears based on multiple characteristics rather than relying on a single metric.
+Real games scored between 0.393 and 1.004, with an average of 0.853. This composite score helps rank how "game-like" any ROM appears based on multiple characteristics rather than relying on a single metric. The weights prioritize opcodes and graphics capability (TIA) as the most important indicators, with control flow and I/O capability as secondary factors.
 
 This analysis revealed that my initial "gut feeling" thresholds were laughably wrong. I was looking for ROMs with 5+ TIA accesses when real games average 190. I was looking for 3+ branches when real games average 457.
 
@@ -131,6 +131,13 @@ Based on this analysis, here are three threshold sets targeting different select
 | **Medium** | 70% | 66 | 1 | 200 | 54 | 129 | 0.81 | Bottom 10% |
 | **Hard** | 74% | 103 | 2 | 296 | 76 | 137 | 0.82 | Bottom 25% |
 
+Since even the 'Easy' thresholds still require finding ROMs in the bottom 5% of real games, I needed to search millions of candidates to find anything promising. Fortunately, analyzing 4KB ROM images is exactly the kind of embarrassingly parallel problem GPUs excel at.
+
+## CUDA Search
+
+My GTX 1070 has 1,920 CUDA cores compared to my CPU's 8 cores - that's a 240x difference in parallel processing units. More importantly, each CUDA core can independently generate and analyze a ROM simultaneously. Instead of generating ROMs sequentially and passing them through a pipeline, I can generate a million ROMs in parallel, analyze them all at once, and only transfer the promising candidates back to the CPU.
+
+The CUDA implementation moves all the heuristics directly onto the GPU. Each thread generates one 4KB ROM using CUDA's random number generator, then immediately applies the same analysis pipeline: counting valid opcodes, detecting TIA/RIOT register accesses, finding branch patterns, and calculating the composite score. The beauty of this approach is that a million ROM analyses happen in parallel rather than sequence.
 
 
 [back](../)
