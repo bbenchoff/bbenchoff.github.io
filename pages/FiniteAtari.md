@@ -11,9 +11,15 @@ image: "/images/default.jpg"
 
 # The Finite Atari Machine
 
-This project explores a question no one asked, no one wanted, and is a massive waste of resources. I'm asking, "what if I put a billion monkeys in a GPU and asked them to write a game for the Atari 2600?".
+This project generated around 400 Billion individual 4kB files containing random data. These files were winnowed down to about 10,000 through some heuristics gleaned from the complete collection of Atari ROM files. Finally, a classifier system scanned the result using Stella, the Atari 2600 emulator, to see if any of these random files were actually an Atari game. This project answers a question no one asked, no one wanted, and is a massive waste of resources: What if I shove a billion monkeys in a GPU and asked them to write a game for the Atari 2600?
 
 Thanks to advances in GPUs, AI, and Machine Learning, we can now (quickly) write a Python script that writes random garbage to the 4KB ROM space and asks, "does this look like a game?" This isn't nostalgia, mostly because my first console was an NES. This is about searching something so unfathomably large and seeing if there is _anything_ interesting out there.
+
+## Results First
+
+Because no one reads below the fold, here's an interactive emulator with the strange and weird Atari ROMs that were found. There is no genetic algorithm here; it's just random data, run in an Atari emulator. These are just the best results, out of billions and billions:
+
+/////iframe something something showing the emulator and the found roms
 
 ## Problem Scope
 
@@ -466,7 +472,7 @@ if __name__ == "__main__":
 
 ...Which gave me a whopping 50,000 'random' ROMs checked per second. With the heuristics, I was finding one 'promising' ROM for every 2.59 million ROMs generated. It's one ROM per minute. And the best part is all of these ROMs could be assumed to do _something_ if I ran them in an emulator.
 
-## First Results, from 10,000 ROMs
+## First Results from 10,000 ROMs
 
 After checking _billions and billions_ of potential ROMs, I had a collection of about 10,000 that passed the heuristics laid out above. I could move onto the next step: checking them all in an emulator. 
 
