@@ -11,11 +11,9 @@ image: "/images/default.jpg"
 
 # The Finite Atari Machine
 
-The Atari 2600 isn't the first video game console, it isn't even the first console with removable cartridges. Through accidents of history, or simplicity, or possibly greasing the right hands at Toys 'R Us, it is the first popular home gaming platform. 
+This project explores a question no one asked, no one wanted, and is a massive waste of resources. I'm asking, "what if I put a billion monkeys in a GPU and asked them to write a game for the Atari 2600?".
 
-This project explores a question no one asked, no one wanted, and is a massive waste of resources. **What if we tried to find every possible Atari 2600 game?** I'm effectively asking, "what if we put a billion monkeys in a GPU and asked them to write a game for the Atari 2600?".
-
-Thanks to advances in GPUs and AI, we can now write a Python script that brute-forces the 4KB ROM space and asks, "does this look like a game?" This isn't nostalgia, mostly because my first console was an NES. This is about searching something so unfathomably large and seeing if there is _anything_ interesting out there.
+Thanks to advances in GPUs, AI, and Machine Learning, we can now (quickly) write a Python script that writes random garbage to the 4KB ROM space and asks, "does this look like a game?" This isn't nostalgia, mostly because my first console was an NES. This is about searching something so unfathomably large and seeing if there is _anything_ interesting out there.
 
 ## Problem Scope
 
@@ -57,7 +55,7 @@ I'm not going to emulate every possible ROM. I'm trying to find the *interesting
 
 Random data has about a 59% chance of being a valid opcode (151 out of 256 possible bytes). Real games should do much better than that. The bulk of the first kilobyte or so of data should be made up of these opcodes.
 
-**Reset Vector Tomfoolery** Atari ROMs need a valid reset vector to the code's entry point. In other words, the last two bytes of the code should be between `0xF000` and `0xFFFF`, or reversed because of MSB/LSB. I can cheat on this by generating a 4k ROM minus two bytes, and then try every possible reset vector during emulation.
+**Reset Vector Tomfoolery** Atari ROMs need a valid reset vector to the code's entry point. In other words, the last two bytes of the code should be between `0xF000` and `0xFFFF`. I can cheat on this by generating a 4k ROM minus two bytes, and then try every possible reset vector during emulation. _That's only 4096 times as much work_.
 
 **Input _and_ Output?!** I can look for access to the TIA (Television Interface Adapter) to see if it will output to the screen and the RIOT (RAM-I/O-Timer) to see if it will use any input or output. The TIA handles all graphics and sound, and does so with extremely specific patterns, discovered by looking at the patterns in all real Atari games. The pattern analysis revealed:
 
@@ -97,18 +95,19 @@ To validate these heuristics, I analyzed the [Atari 2600 Full ROM Collection](ht
 
 ### ROM Characteristics by Metric
 
-After fixing the memory mapping analysis, here's what real Atari games actually look like:
+Here's what real Atari games actually look like:
 
-| Metric | Min | 5th % | 10th % | 25th % | Median | 75th % | 90th % | 95th % | Max | Mean |
-|--------|-----|-------|--------|--------|--------|--------|--------|--------|-----|------|
-| **Valid Opcodes (%)** | 42.1% | 65.6% | 70.0% | 74.0% | 76.0% | 77.9% | 79.6% | 81.4% | 90.7% | 74.8% |
-| **TIA Accesses** | 12 | **93** | 118 | 186 | 282 | 398 | 567 | 743 | 2,847 | **341** |
-| **RIOT Accesses** | 3 | **34** | 47 | 72 | 111 | 158 | 219 | 287 | 891 | **134** |
-| **RIOT Timer Access** | 1 | 22 | 31 | 51 | 78 | 115 | 161 | 211 | 723 | **95** |
-| **RIOT I/O Access** | 0 | 8 | 12 | 18 | 28 | 41 | 58 | 74 | 201 | **33** |
-| **Branch Instructions** | 28 | 177 | 200 | 296 | 364 | 528 | 789 | 1,066 | 5,928 | 457 |
-| **Jump Instructions** | 3 | 37 | 54 | 76 | 111 | 172 | 260 | 351 | 1,495 | 142 |
-| **Unique Opcodes** | 29 | 125 | 129 | 137 | 143 | 148 | 151 | 151 | 151 | 141 |
+| Metric                 | Min   | 5th % | 10th % | 25th % | Median | 75th % | 90th % | 95th % | Max   | Mean  |
+|------------------------|-------|-------|--------|--------|--------|--------|--------|--------|-------|-------|
+| **Valid Opcodes (%)**  | 42.1% | 65.6% | 70.0%  | 74.0%  | 76.0%  | 77.9%  | 79.6%  | 81.4%  | 90.7% | 74.8% |
+| **TIA Accesses**       | 12    | **93**| 118    | 186    | 282    | 398    | 567    | 743    | 2,847 | **341**|
+| **RIOT Accesses**      | 3     | **34**| 47     | 72     | 111    | 158    | 219    | 287    | 891   | **134**|
+| **RIOT Timer Access**  | 1     | 22    | 31     | 51     | 78     | 115    | 161    | 211    | 723   | **95** |
+| **RIOT I/O Access**    | 0     | 8     | 12     | 18     | 28     | 41     | 58     | 74     | 201   | **33** |
+| **Branch Instructions**| 28    | 177   | 200    | 296    | 364    | 528    | 789    | 1,066  | 5,928 | 457   |
+| **Jump Instructions**  | 3     | 37    | 54     | 76     | 111    | 172    | 260    | 351    | 1,495 | 142   |
+| **Unique Opcodes**     | 29    | 125   | 129    | 137    | 143    | 148    | 151    | 151    | 151   | 141   |
+
 
 ### Instruction Distribution
 - **STA (Store A)**: 71.8% - Writing graphics data, colors, positions
@@ -132,22 +131,22 @@ $0E (PF1)   - 4.1%  - Playfield graphics register 1
 $0F (PF2)   - 3.7%  - Playfield graphics register 2
 ```
 
-## RIOT Pattern Analysis
+### RIOT Pattern Analysis
 
 RIOT usage splits into two clear categories:
 
-### Timer Operations (78% of RIOT usage)
+**Timer Operations (78% of RIOT usage)**
 - **Registers**: `$80-$87` (1T, 8T, 64T, 1024T intervals plus timer read)
 - **Purpose**: Timing loops, delays, frame counting
 - **Pattern**: Write to set timer, read `$84` to check status
 
-### I/O Operations (22% of RIOT usage)  
+**I/O Operations (22% of RIOT usage)**
 - **Registers**: `$94-$97` (joystick/paddle inputs, console switches)
 - **Purpose**: Reading player input, detecting game reset
 - **Pattern**: Mostly reads (`LDA $94`), occasional writes for configuration
 
 
-## Composite Scoring (Updated)
+### Composite Scoring (Updated)
 
 The corrected composite score uses realistic weights based on actual game analysis:
 
@@ -465,9 +464,11 @@ if __name__ == "__main__":
 
 ```
 
-...Which gave me a whopping 50,000 checked per second. With the heuristics, I was finding one 'promising' ROM for every 2.59 million ROMs generated. It's one ROM per minute. And the best part is all of these ROMs could be assumed to do _something_ if I ran them in an emulator.
+...Which gave me a whopping 50,000 'random' ROMs checked per second. With the heuristics, I was finding one 'promising' ROM for every 2.59 million ROMs generated. It's one ROM per minute. And the best part is all of these ROMs could be assumed to do _something_ if I ran them in an emulator.
 
-## First Results
+## First Results, from 10,000 ROMs
+
+After checking _billions and billions_ of potential ROMs, I had a collection of about 10,000 that passed the heuristics laid out above. I could move onto the next step: checking them all in an emulator. 
 
 
 
