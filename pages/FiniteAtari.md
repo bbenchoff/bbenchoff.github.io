@@ -11,13 +11,13 @@ image: "/images/default.jpg"
 
 # The Finite Atari Machine
 
-This project generated around 400 Billion individual 4kB files containing random data. These files were winnowed down to about 10,000 through some heuristics gleaned from the complete collection of Atari ROM files. Finally, a classifier system scanned the result using Stella, the Atari 2600 emulator, to see if any of these random files were actually an Atari game. This project answers a question no one asked, no one wanted, and is a massive waste of resources: What if I shove a billion monkeys in a GPU and asked them to write a game for the Atari 2600?
+This project generated around 400 Billion individual 4kB files of pure random data. These files were winnowed down to about 10,000 through some heuristics gleaned from the complete collection of Atari ROM files. Finally, a classifier system scanned them using an Atari 2600 emulator to see if any of these random files were actually an Atari game. This project answers a question no one asked, no one wanted, and is a massive waste of resources: What if I shove a billion monkeys in a GPU and asked them to write a game for the Atari 2600?
 
-Thanks to advances in GPUs, AI, and Machine Learning, we can now (quickly) write a Python script that writes random garbage to the 4KB ROM space and asks, "does this look like a game?" This isn't nostalgia, mostly because my first console was an NES. This is about searching something so unfathomably large and seeing if there is _anything_ interesting out there.
+Thanks to advances in GPUs, AI, and machine learning, we can now (very quickly) write a Python script that dumps garbage into 4KB ROMs and asks, *"does this look like a game?"*  This isn’t nostalgia, because my first console was an NES. This is about exploring something unimaginably vast and seeing if anything weird falls out.
 
 ## Results First
 
-Because no one reads below the fold, here's an interactive emulator with the strange and weird Atari ROMs that were found. There is no genetic algorithm here; it's just random data, run in an Atari emulator. These are just the best results, out of billions and billions:
+Because no one reads below the fold, here’s an interactive emulator showcasing the most interesting Atari ROMs discovered. There’s no genetic algorithm here; just billions of random files run through an emulator. These are the best of the weird:
 
 /////iframe something something showing the emulator and the found roms
 
@@ -26,8 +26,8 @@ Because no one reads below the fold, here's an interactive emulator with the str
 Assume each Atari 2600 cartridge is a 4 kilobyte chunk of data. It's a maximum of 4096 bytes, or 32,768 bits. That means there are $2^{32768}$ possible ROMs. For perspective:
 
 * That’s $10^{10159}$ potential Atari games.
-* There are roughly $10^{80}$ protons in the visible universe.
-* And about $10^{20}$ grains of sand on Earth.
+* There are about $10^{20}$ grains of sand on Earth.
+* And roughly $10^{80}$ protons in the visible universe.
 
 If you turned an entire datacenter of AI compute boxes onto this problem, it would likely take years before anything interesting was found. But with a little bit of smarts and actually reading a datasheet, the problem set is massively reduced. The basic search path to finding a 'random' Atari game would be to:
 
