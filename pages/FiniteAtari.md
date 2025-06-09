@@ -847,12 +847,9 @@ Out of 1.8 Billion ROMs generated, only 456 passed the heuristics test. Of those
 
 ## What I found
 
-![A rom, running](/images/FiniteAtari/FiniteAtari1.gif)
-![A rom, running](/images/FiniteAtari/FiniteAtari2.gif)
+These are some of the most visually interesting results from this experiment. All of these ROMs were generated entirely from random data, filtered with heuristics, and run through an Atari emulator. All of these produce valid video output and show dynamic or structured data.
 
-Blah blah blah
-
-![A rom, running](/images/FiniteAtari/FiniteAtari3.gif)
+<div class="fam-gallery"> <figure> <img src="/images/FiniteAtari/FiniteAtari1.gif" alt="Random ROM output 1" loading="lazy"> <figcaption>Bars scrolling across a grey field. Looks like rain? Static background, dynamic sprite layer.</figcaption> </figure> <figure> <img src="/images/FiniteAtari/FiniteAtari2.gif" alt="Random ROM output 2" loading="lazy"> <figcaption>Columnar glitch art. Patterned movement, almost architectural.</figcaption> </figure> <figure> <img src="/images/FiniteAtari/FiniteAtari3.gif" alt="Random ROM output 3" loading="lazy"> <figcaption>Scrolling yellow and brown blocks, with sync artifacts. There's horizontal motion!</figcaption> </figure> <figure> <img src="/images/FiniteAtari/FiniteAtari4.gif" alt="Random ROM output 4" loading="lazy"> <figcaption>Corrupt scanline heaven. Constant flicker with a hint of structure.</figcaption> </figure> <figure> <img src="/images/FiniteAtari/FiniteAtari5.gif" alt="Random ROM output 5" loading="lazy"> <figcaption>Weirdly ordered ladders? This one actually feels... designed?</figcaption> </figure> </div> <style> .fam-gallery { display: flex; flex-wrap: wrap; justify-content: center; gap: 1.5rem; margin: 2rem 0; } .fam-gallery figure { max-width: 320px; margin: 0; text-align: center; } .fam-gallery img { width: 100%; height: auto; border-radius: 0.25rem; box-shadow: 0 0 10px rgba(0,0,0,0.15); } .fam-gallery figcaption { margin-top: 0.5rem; font-size: 0.9rem; color: #555; } </style>
 
 ## A Real, Actual, Protogame
 
