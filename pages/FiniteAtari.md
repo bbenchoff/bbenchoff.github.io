@@ -66,7 +66,9 @@ Thanks to advances in GPUs, AI, and machine learning, we can now (very quickly) 
 
 Because no one reads below the fold, here’s an interactive emulator showcasing the most interesting Atari ROMs discovered. There’s no genetic algorithm here; just billions of random files run through an emulator. These are the best of the weird:
 
-/////iframe something something showing the emulator and the found roms
+<div style="width: 100%; height: 300px;">
+<iframe src="/assets/pages/stops_routes_map.html" width="100%" height="100%" frameborder="0"></iframe>
+</div>
 
 ## Problem Scope
 
@@ -106,7 +108,7 @@ I'm not going to emulate every possible ROM. I'm trying to find the *interesting
     0xEC, 0xED, 0xEE, 0xF0, 0xF1, 0xF5, 0xF6, 0xF8, 0xF9, 0xFD, 0xFE
 </code>
 
-Random data has about a 59% chance of being a valid opcode (151 out of 256 possible bytes). Real games should do much better than that. The bulk of the first kilobyte or so of data should be made up of these opcodes.
+Random data has about a 59% chance of being a valid opcode (151 out of 256 possible bytes). Real games should do much better than that. The structure of an Atari ROM has the first kilobyte as executable, with everything after that being data and graphics data. Analysing the full set commercial Atari ROMs reveals $>$ 75% of the first kilobyte should be opcodes.
 
 **Reset Vector Tomfoolery** Atari ROMs need a valid reset vector to the code's entry point. In other words, the last two bytes of the code should be between `0xF000` and `0xFFFF`. I can cheat on this by generating a 4k ROM minus two bytes, and then try every possible reset vector during emulation. _That's only 4096 times as much work_.
 

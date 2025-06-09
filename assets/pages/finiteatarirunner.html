@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Finite Atari – ROM Browser &amp; Emulator</title>
+  <style>
+    :root { --gap: 0.75rem; }
+    html,body { height: 100%; margin: 0; font-family: ui-sans-serif, system-ui, sans-serif; }
+
+    /* 2 : 1 split */
+    body { display: grid; grid-template-columns: 1fr 2fr; gap: var(--gap); }
+    @media (max-width: 800px) {
+      body { grid-template-columns: 1fr; grid-template-rows: auto 1fr; }
+    }
+
+    /* Left column – ROM list */
+    #romList { overflow-y: auto; border-right: 1px solid #ccc; padding: var(--gap); }
+    #romList h2 { margin-top: 0; font-size: 1rem; letter-spacing: 0.06em; text-transform: uppercase; }
+    #romList a { display: block; padding: 0.25rem 0; color: #0366d6; text-decoration: none; font-size: 0.9rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    #romList a:hover { background: #f6f8fa; }
+    #romList a.active { font-weight: 600; }
+
+    /* Right column – emulator */
+    #emuWrap { position: relative; width: 100%; height: 100%; }
+    #emu { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
+  </style>
+</head>
+<body>
+  <!-- Left‑hand column: ROM list populated at runtime -->
+  <nav id="romList">
+    <h2>ROMs</h2>
+    <!-- Links will appear here -->
+  </nav>
+
+  <!-- Right‑hand column: emulator iframe -->
+  <div id="emuWrap">
+    <iframe id="emu" allowfullscreen></iframe>
+  </div>
+
+  <script>
+    // ===== Helper: derive the GitHub owner/repo for this page =====
+    function getGhOwnerRepo() {
+      const host = window.location.host; // e.g. bbenchoff.github.io
+      const m = host.match(/^([^\.]+)\.github\.io$/i);
+      if (m) {
+        const owner = m[1];
+        return `${owner}/${owner}.github.io`;
+      }
+      return null; // fall back later
+    }
+
+    const romList = document.getElementById('romList');
+    const emu     = document.getElementById('emu');
+
+    // Build absolute URL to a ROM that lives in ./roms/
+    function romUrl(filename) {
+      // Ensures trailing slash before filename
+      return new URL(`roms/${filename}`, window.location.href).href;
+    }
+
+    // Load selected ROM into external emulator (Javatari)
+    function loadROM(url) {
+      emu.src = `https://javatari.org/?rom=${encodeURIComponent(url)}&sound=on&keyboard=on`;
+    }
+
+    // Insert a link element into sidebar
+    function addRomLink(name) {
+      const a = document.createElement('a');
+      a.href = '#';
+      a.textContent = name;
+      a.dataset.rom = romUrl(name);
+      a.addEventListener('click', e => {
+        e.preventDefault();
+        // Update active state
+        document.querySelectorAll('#romList a').forEach(l => l.classList.remove('active'));
+        a.classList.add('active');
+        loadROM(a.dataset.rom);
+      });
+      romList.appendChild(a);
+    }
+
+    // Fetch directory listing via GitHub REST API and populate ROM list
+    async function populateRomList() {
+      const ownerRepo = getGhOwnerRepo() || 'bbenchoff/bbenchoff.github.io'; // fallback
+      // Path to roms directory relative to repo root
+      const apiURL = `https://api.github.com/repos/${ownerRepo}/contents/assets/pages/roms`;
+      try {
+        const res = await fetch(apiURL);
+        if (!res.ok) throw new Error(`GitHub API responded ${res.status}`);
+        const files = await res.json();
+        // Filter for files (skip subdirs)
+        const romFiles = files.filter(f => f.type === 'file');
+        if (!romFiles.length) throw new Error('No ROMs found');
+        romFiles.forEach(f => addRomLink(f.name));
+        // Auto‑load the first ROM
+        const first = romList.querySelector('a');
+        if (first) {
+          first.classList.add('active');
+          loadROM(first.dataset.rom);
+        }
+      } catch (err) {
+        console.error(err);
+        romList.insertAdjacentHTML('beforeend', `<p style="color:#d73a49">Could not load ROM list.</p>`);
+      }
+    }
+
+    // Go!
+    populateRomList();
+  </script>
+</body>
+</html>
