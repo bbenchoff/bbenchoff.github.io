@@ -41,8 +41,7 @@ image: "/images/FiniteAtari/FiniteAtariCard.png"
     left: 50%;
     transform: translate(-50%, -50%);
     margin: 0;
-    padding: 0.35em 0.75em;
-    /* No custom font family—falls back to site default */
+    padding: 0;
     font-size: clamp(1.4rem, 5vw, 3rem);
     letter-spacing: 0.08em;
     color: #fff;
@@ -50,15 +49,14 @@ image: "/images/FiniteAtari/FiniteAtariCard.png"
       0 0 6px rgba(0,0,0,.9),
       0 0 12px rgba(255,64,255,.8),
       0 0 24px rgba(0,255,255,.6);
-    background: rgba(0,0,0,.25);
-    border: 2px solid rgba(255,255,255,.25);
-    border-radius: 0.25rem;
+    /* background & border removed */
   }
 
   @media (prefers-color-scheme: dark) {
     .fam-banner__img { filter: brightness(55%); }
   }
 </style>
+
 
 This project generated around 400 Billion individual 4kB files of random data. These files were winnowed down to about 10,000 through some heuristics gleaned from the complete collection of Atari ROM files. Finally, a classifier system scanned them using an Atari 2600 emulator to see if any of these random files were actually an Atari game. This project answers a question no one asked, no one wanted, and is a massive waste of resources: What if I shove a billion monkeys in a GPU and asked them to write a game for the Atari 2600?
 
