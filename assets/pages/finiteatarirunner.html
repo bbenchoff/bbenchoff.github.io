@@ -4,9 +4,9 @@ layout: null
 <!--
   Finite Atari – ROM Browser & Emulator
   ------------------------------------
-  * Pure‑static HTML, built by Jekyll/GitHub Pages.
-  * Left: auto‑generated ROM list ⇢ Right: bezel‑free Stella2014 core (via EmulatorJS).
-  * No cross‑origin requests: ROMs load from the same origin so CORS / CORB issues disappear.
+  * Pure‑static HTML page built by Jekyll/GitHub Pages.
+  * Left: auto‑generated ROM list  ⇢ Right: bezel‑free Stella2014 core (via EmulatorJS).
+  * Same‑origin ROM URLs eliminate CORS / CORB issues.
 -->
 <!DOCTYPE html>
 <html lang="en">
@@ -14,17 +14,75 @@ layout: null
 <meta charset="utf-8">
 <title>Finite Atari – ROM Browser &amp; Emulator</title>
 <style>
-  :root { --gap:.75rem; --left:240px; }
-  html,body{height:100%;margin:0;font-family:ui-sans-serif,system-ui,sans-serif;background:#000}
-  body{display:grid;grid-template-columns:var(--left) 1fr}
-  @media(max-width:650px){body{grid-template-columns:1fr;grid-template-rows:auto 1fr}}
-  #romList{overflow-y:auto;border-right:1px solid #222;background:#111;padding:var(--gap)}
-  #romList h2{margin:0 0 .5rem;font-size:.75rem;letter-spacing:.08em;text-transform:uppercase;color:#777}
-  #romList a{display:block;padding:.25rem .5rem;color:#58a6ff;text-decoration:none;font-size:.9rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;border-radius:4px}
-  #romList a:hover{background:#222}
-  #romList a.active{background:#1e1e1e;color:#fff;font-weight:600}
-  #emuWrap{display:flex;align-items:center;justify-content:center;min-width:0;min-height:0}
-  #game{width:100%;height:100%;max-height:100%;max-width:100%;outline:none}
+  :root {
+    --gap: .75rem;
+  }
+  html,body {
+    height: 100%;
+    margin: 0;
+    font-family: ui-sans-serif, system-ui, sans-serif;
+    background: #000;
+  }
+  /* 40 : 60 split */
+  body {
+    display: grid;
+    grid-template-columns: 40% 60%;
+    gap: 0; /* no gap so the canvas hugs the border */
+  }
+  @media (max-width: 650px) {
+    body {
+      grid-template-columns: 1fr;
+      grid-template-rows: auto 1fr;
+    }
+  }
+  /* Sidebar */
+  #romList {
+    overflow-y: auto;
+    border-right: 1px solid #222;
+    background: #111;
+    padding: var(--gap);
+  }
+  #romList h2 {
+    margin: 0 0 .5rem;
+    font-size: .75rem;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    color: #777;
+  }
+  #romList a {
+    display: block;
+    padding: .25rem .5rem;
+    color: #58a6ff;
+    text-decoration: none;
+    font-size: .9rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    border-radius: 4px;
+  }
+  #romList a:hover {
+    background: #222;
+  }
+  #romList a.active {
+    background: #1e1e1e;
+    color: #fff;
+    font-weight: 600;
+  }
+  /* Emulator viewport */
+  #emuWrap {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 0;
+    min-height: 0;
+  }
+  #game {
+    width: 100%;
+    height: 100%;
+    max-height: 100%;
+    max-width: 100%;
+    outline: none;
+  }
 </style>
 </head>
 <body>
@@ -45,36 +103,42 @@ layout: null
 const links = document.querySelectorAll('#romList a');
 let loaderScript;
 
-function select(link){
-  links.forEach(l=>l.classList.toggle('active', l===link));
+function select(link) {
+  links.forEach(l => l.classList.toggle('active', l === link));
 }
-function loadROM(relPath){
+
+function loadROM(relPath) {
   const absUrl = new URL(relPath, window.location.origin).href; // same‑origin full url
-  if(window.EJS_emulator){try{window.EJS_emulator.stop();}catch{}}
-  document.getElementById('game').innerHTML='';
+  if (window.EJS_emulator) {
+    try { window.EJS_emulator.stop(); } catch {}
+  }
+  document.getElementById('game').innerHTML = '';
 
   window.EJS_player = '#game';
-  window.EJS_core  = 'atari2600';
+  window.EJS_core = 'atari2600';
   window.EJS_gameUrl = encodeURI(absUrl);
   window.EJS_pathtodata = 'https://cdn.emulatorjs.org/stable/data/';
   window.EJS_Buttons = {};          // hide all chrome
+  window.EJS_volume = 0;            // start muted
   window.EJS_startOnLoaded = true;
 
-  if(loaderScript){ loaderScript.remove(); }
+  if (loaderScript) {
+    loaderScript.remove();
+  }
   loaderScript = document.createElement('script');
   loaderScript.src = 'https://cdn.emulatorjs.org/stable/data/loader.js';
   loaderScript.async = true;
   document.body.appendChild(loaderScript);
 }
 
-links.forEach(link=>{
-  link.addEventListener('click', e=>{
+links.forEach(link => {
+  link.addEventListener('click', e => {
     e.preventDefault();
     select(link);
     loadROM(link.dataset.src);
   });
 });
-if(links.length){
+if (links.length) {
   select(links[0]);
   loadROM(links[0].dataset.src);
 }
