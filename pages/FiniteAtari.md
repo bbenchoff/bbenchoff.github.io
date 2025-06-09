@@ -67,7 +67,7 @@ Thanks to advances in GPUs, AI, and machine learning, we can now (very quickly) 
 Because no one reads below the fold, here’s an interactive emulator showcasing the most interesting Atari ROMs discovered. There’s no genetic algorithm here; just billions of random files run through an emulator. These are the best of the weird:
 
 <div style="width: 100%; height: 300px;">
-<iframe src="/assets/pages/stops_routes_map.html" width="100%" height="100%" frameborder="0"></iframe>
+<iframe src="/assets/pages/finiteatarirunner.html" width="100%" height="100%" frameborder="0"></iframe>
 </div>
 
 ## Problem Scope
