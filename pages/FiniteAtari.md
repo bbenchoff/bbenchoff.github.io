@@ -236,9 +236,9 @@ Real games scored between 0.393 and 1.004, with an average of 0.853. This compos
 
 The first implementation of this project was extremely simple -- a single thread Python script that generated 4kB minus two bytes of random data, counted the number of branches, jumps, the number of valid opcodes, backwards branches (or a loop), and the number of vectors pointing to the ROM. This was very slow, around 300-400 ROMs checked per second.
 
-This is a massively parallel search, though. My GTX 1070 (I know, except I exclusively play TF2, Rocket League, and Kerbal Space Program) has 1,920 CUDA cores compared to my CPU's 20 cores - that's almost 100x difference in parallel processing units. More importantly, each CUDA core can independently generate and analyze a ROM simultaneously. Instead of generating ROMs sequentially and passing them through a pipeline, I can generate a million ROMs in parallel, analyze them all at once, and only transfer the promising candidates back to the CPU.
+This is a massively parallel search, though. My GTX 1070 (I know, except I exclusively play TF2, Rocket League, and Kerbal Space Program, nvidia plz gib H200 + SXM5 carrier board) has 1,920 CUDA cores compared to my CPU's 20 cores - that's almost 100x difference in parallel processing units. More importantly, each CUDA core can independently generate and analyze a ROM simultaneously. Instead of generating ROMs sequentially and passing them through a pipeline, I can generate a million ROMs in parallel, analyze them all at once, and only transfer the promising candidates back to the CPU.
 
-The CUDA implementation moves all the heuristics directly onto the GPU. Each thread generates one 4KB ROM using CUDA's random number generator, then immediately applies the same analysis pipeline: counting valid opcodes, detecting TIA/RIOT register accesses, finding branch patterns, and calculating the composite score. The beauty of this approach is that a million ROM analyses happen in parallel rather than sequence. This was written with the the CuPy library:
+The CUDA implementation moves all the heuristics directly onto the GPU. Each thread generates one 4KB ROM using CUDA's random number generator, then immediately applies the same analysis pipeline: counting valid opcodes, detecting TIA/RIOT register accesses, finding branch patterns, and calculating the composite score. This was written with the the CuPy library:
 
 ```python
 """
@@ -536,7 +536,7 @@ if __name__ == "__main__":
 
 ```
 
-...Which gave me a whopping 50,000 'random' ROMs checked per second. With the heuristics, I was finding one 'promising' ROM for every 2.59 million ROMs generated. It's one ROM per minute. And the best part is all of these ROMs could be assumed to do _something_ if I ran them in an emulator.
+...Which gave me a whopping 60,000 'random' ROMs checked per second. With the heuristics, I was finding one 'promising' ROM for every 2.59 million ROMs generated. It's one ROM per minute. And the best part is all of these ROMs could be assumed to do _something_ if I ran them in an emulator.
 
 ## First Results from 10,000 ROMs
 
@@ -545,8 +545,6 @@ After checking _billions and billions_ of potential ROMs, I had a collection of 
 
 ## A Conclusion
 
-The idea that I could pull random video games out of the ether is absurd at first, but I knew this would work before I began. I can describe this in both as a philosophical / thought experiment, and as a technical inevitability.
-
 <figure style="float: right; margin: 0 0 1em 1em; max-width: 300px;">
   <img src="/images/blurst.png" alt="It was the best of times, it was the blurst of times?" style="width: 100%;">
   <figcaption style="font-size: 0.9em; text-align: center; color: #666;">
@@ -554,15 +552,22 @@ The idea that I could pull random video games out of the ether is absurd at firs
   </figcaption>
 </figure>
 
+The idea that I could pull random video games out of the ether is absurd at first, but I knew this would work before I began. I can describe this in both as a philosophical / thought experiment, and as a technical inevitability.
+
+
 What I'm doing is not Infinite Monkey Theorem. A million monkeys will eventually produces the works of Shakespeare, that's true, but it would take longer than any time the Universe has left. I'm not asking monkeys to produce the works of Shakespeare, I'm asking them to produce _any_ work. Producing the word 'banana' in the standard ASCII character set is just $\frac{1}{256} \times \frac{1}{256} \times \frac{1}{256} \times \frac{1}{256} \times \frac{1}{256} \times \frac{1}{256} = \frac{1}{281{,}474{,}976{,}710{,}656}$ or once about every 300 trillion monkeys. I'm not looking for the word 'banana', I'm just looking for _a word_. Just any word in the dictionary. I don't care if I'm not generating _Yar's Revenge_, I just want something that runs on an Atari. That's significantly easier. 
 
 The _technical_ reason why I knew this would work is the simplicity of the Atari. The simplest thing you could ever create on an Atari looks something like this:
 
 <code>
 ; Program starts at $F000
+
 F000: A9 84    ; LDA #$84        - Load a color value (red/orange)
+
 F002: 85 09    ; STA $09         - Store to COLUBK (background color register)
+
 F004: 85 02    ; STA $02         - Store to WSYNC (wait for horizontal sync)
+
 F006: 4C 04 F0 ; JMP $F004       - Jump back to the WSYNC line (infinite loop)
 </code>
 
