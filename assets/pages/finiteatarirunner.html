@@ -4,9 +4,10 @@ layout: null
 <!--
   Finite Atari – ROM Browser & Emulator
   ------------------------------------
-  * Left: auto‑generated ROM list  ⇢ Right: bezel‑free Stella2014 core via EmulatorJS.
-  * Same‑origin ROM URLs → zero CORS issues.
-  * Sidebar now *minimum 45 %* of the viewport so the list is always roomy.
+  * Left / Top: auto‑generated ROM list  ⇢ Right / Bottom: bezel‑free Stella2014 core via EmulatorJS.
+  * ROMs served same‑origin → zero CORS issues.
+  * Mobile layout: selector row stays 40 vh; emulator fills the rest.
+  * Audio: hard‑muted via stable API + safety patches; loader upgraded to nightly which fixed volume bug in cores ≤4.2.1.
 -->
 <!DOCTYPE html>
 <html lang="en">
@@ -14,75 +15,27 @@ layout: null
 <meta charset="utf-8">
 <title>Finite Atari – ROM Browser &amp; Emulator</title>
 <style>
-  :root {
-    --gap: .75rem;
+  :root { --gap:.75rem; }
+  html,body{height:100%;margin:0;font-family:ui-sans-serif,system-ui,sans-serif;background:#000}
+
+  /* Desktop 45 : 55 split */
+  body{display:grid;grid-template-columns:45% minmax(0,1fr)}
+  @media(max-width:650px){
+    /* Mobile: 40 vh selector row, rest emulator */
+    body{grid-template-columns:1fr;grid-template-rows:40vh 1fr}
   }
-  html,body {
-    height: 100%;
-    margin: 0;
-    font-family: ui-sans-serif, system-ui, sans-serif;
-    background: #000;
-  }
-  /* 45 : 55 split – sidebar never shrinks below 45 % */
-  body {
-    display: grid;
-    grid-template-columns: 45% minmax(0, 1fr);
-    gap: 0; /* flush split */
-  }
-  @media (max-width: 650px) {
-    body {
-      grid-template-columns: 1fr;
-      grid-template-rows: auto 1fr;
-    }
-  }
-  /* Sidebar */
-  #romList {
-    overflow-y: auto;
-    border-right: 1px solid #222;
-    background: #111;
-    padding: var(--gap);
-  }
-  #romList h2 {
-    margin: 0 0 .5rem;
-    font-size: .75rem;
-    letter-spacing: .08em;
-    text-transform: uppercase;
-    color: #777;
-  }
-  #romList a {
-    display: block;
-    padding: .25rem .5rem;
-    color: #58a6ff;
-    text-decoration: none;
-    font-size: .9rem;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    border-radius: 4px;
-  }
-  #romList a:hover {
-    background: #222;
-  }
-  #romList a.active {
-    background: #1e1e1e;
-    color: #fff;
-    font-weight: 600;
-  }
+
+  /* Sidebar / top‑bar */
+  #romList{overflow-y:auto;border-right:1px solid #222;background:#111;padding:var(--gap)}
+  @media(max-width:650px){#romList{border-right:none;border-bottom:1px solid #222}}
+  #romList h2{margin:0 0 .5rem;font-size:.75rem;letter-spacing:.08em;text-transform:uppercase;color:#777}
+  #romList a{display:block;padding:.25rem .5rem;color:#58a6ff;text-decoration:none;font-size:.9rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;border-radius:4px}
+  #romList a:hover{background:#222}
+  #romList a.active{background:#1e1e1e;color:#fff;font-weight:600}
+
   /* Emulator viewport */
-  #emuWrap {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    min-width: 0;
-    min-height: 0;
-    overflow: hidden;            /* prevent oversized canvas from growing column */
-  }
-  #game, #game canvas {
-    width: 100% !important;
-    max-width: 100% !important;
-    height: auto !important;
-    outline: none;
-  }
+  #emuWrap{display:flex;align-items:center;justify-content:center;min-width:0;min-height:0;overflow:hidden}
+  #game,#game canvas{width:100%!important;max-width:100%!important;height:auto!important;outline:none}
 </style>
 </head>
 <body>
@@ -100,61 +53,53 @@ layout: null
   <div id="emuWrap"><div id="game" tabindex="0"></div></div>
 
 <script>
-const links = document.querySelectorAll('#romList a');
+const links=document.querySelectorAll('#romList a');
 let loaderScript;
 
-function select(link) {
-  links.forEach(l => l.classList.toggle('active', l === link));
-}
+function select(link){links.forEach(l=>l.classList.toggle('active',l===link));}
 
-function loadROM(relPath) {
-  const absUrl = new URL(relPath, window.location.origin).href; // same‑origin full url
-  if (window.EJS_emulator) {
-    try { window.EJS_emulator.stop(); } catch {}
-  }
-  document.getElementById('game').innerHTML = '';
-
-  window.EJS_player = '#game';
-  window.EJS_core = 'atari2600';
-  window.EJS_gameUrl = encodeURI(absUrl);
-  window.EJS_pathtodata = 'https://cdn.emulatorjs.org/stable/data/';
-  window.EJS_Buttons = {};          // hide all chrome
-  window.EJS_volume = 0;            // start muted (initial flag)
-  window.EJS_Mute = true;          // force‑mute some cores that ignore volume‑0
-  window.localStorage.setItem('EJS_volume','0'); // persist mute across reloads
-  window.EJS_startOnLoaded = true;
-
-  if (loaderScript) {
-    loaderScript.remove();
-  }
-  loaderScript = document.createElement('script');
-  loaderScript.src = 'https://cdn.emulatorjs.org/stable/data/loader.js';
-  loaderScript.async = true;
-  loaderScript.onload = () => {
-    // Once the core is ready, double‑check volume & mute state.
-    const iv = setInterval(() => {
-      if (window.EJS_emulator && typeof window.EJS_emulator.setVolume === 'function') {
-        try {
-          window.EJS_emulator.setVolume(0);
-        } catch {}
-        clearInterval(iv);
-      }
-    }, 100);
-  };
+function injectLoader(){
+  if(loaderScript){loaderScript.remove();}
+  loaderScript=document.createElement('script');
+  // use *nightly* – fixes audio‑mute bug in 4.2.1 cores
+  loaderScript.src='https://cdn.emulatorjs.org/nightly/data/loader.js';
+  loaderScript.async=true;
   document.body.appendChild(loaderScript);
 }
 
-links.forEach(link => {
-  link.addEventListener('click', e => {
-    e.preventDefault();
-    select(link);
-    loadROM(link.dataset.src);
-  });
-});
-if (links.length) {
-  select(links[0]);
-  loadROM(links[0].dataset.src);
+function postMutePatch(){
+  const iv=setInterval(()=>{
+    if(window.EJS_emulator&&typeof window.EJS_emulator.setVolume==='function'){
+      try{window.EJS_emulator.setVolume(0);}catch(e){}
+      // Some cores ignore setVolume; also stop audioContext
+      if(window.EJS_emulator.audioctx?.state==='running'){
+        try{window.EJS_emulator.audioctx.suspend();}catch(e){}
+      }
+      clearInterval(iv);
+    }
+  },200);
 }
+
+function loadROM(rel){
+  const url=new URL(rel,location.origin).href;
+  if(window.EJS_emulator){try{window.EJS_emulator.stop();}catch{}}
+  document.getElementById('game').innerHTML='';
+
+  window.EJS_player='#game';
+  window.EJS_core='atari2600';
+  window.EJS_gameUrl=encodeURI(url);
+  window.EJS_pathtodata='https://cdn.emulatorjs.org/nightly/data/';
+  window.EJS_Buttons={mute:false,volume:false,settings:false,fullscreen:true};
+  window.EJS_volume=0;          // documented mute flag (0–1)
+  window.localStorage.setItem('EJS_volume','0');
+  window.EJS_startOnLoaded=true;
+  window.EJS_ready=postMutePatch; // hook runs as soon as RA boots
+
+  injectLoader();
+}
+
+links.forEach(a=>a.addEventListener('click',e=>{e.preventDefault();select(a);loadROM(a.dataset.src);}));
+if(links.length){select(links[0]);loadROM(links[0].dataset.src);} 
 </script>
 </body>
 </html>
