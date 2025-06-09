@@ -551,6 +551,64 @@ Blah blah blah
 
 ![A rom, running](/images/FiniteAtari/FiniteAtari3.gif)
 
+## A Real, Actual, Protogame
+
+Despite my entire pipeline being focused on generating visual output, I discovered something that is more than just weird visual ouput. The ROM I'm calling `51014` ([here's a link](/assets/pages/roms/5101496f45e8b74244cc8134e590bfb3464eb669.bin) to the actual ROM file) displays some game-like behavior. It's an infinite loop of visual output that responds to human input. Take a look at the .gifs below:
+
+<style>
+  /* Responsive side-by-side figures */
+  .fam-images {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    justify-content: center;
+    margin: 2rem 0;
+  }
+
+  .fam-images figure {
+    flex: 1 1 300px;
+    max-width: 300px;
+    margin: 0;
+    text-align: center;
+  }
+
+  .fam-images img {
+    display: block;
+    width: 100%;
+    height: auto;
+  }
+
+  .fam-images figcaption {
+    margin-top: 0.5em;
+    font-size: 0.9em;
+    color: #666;
+  }
+</style>
+
+<div class="fam-images">
+  <figure>
+    <img
+      src="/images/FiniteAtari/ActualGame1.gif"
+      alt="51014 without using the controller"
+      loading="lazy"
+    >
+    <figcaption>51014 without using the controller</figcaption>
+  </figure>
+
+  <figure>
+    <img
+      src="/images/FiniteAtari/ActualGame2.gif"
+      alt="5104, pressing Up on the joystick a few times"
+      loading="lazy"
+    >
+    <figcaption>5104, pressing Up on the joystick a few times</figcaption>
+  </figure>
+</div>
+
+Rom `51014` consists of a yellow background with two static vertical red stripes on the screen. There is also a third stripe -- actually a pair of red stripes -- that is not static; it looks like it's tearing every few scanlines. By pressing Up on the joystick, that torn pair of stripes stays still. It's input being translated into visual output.
+
+It's certainly not impressive from a programming point of view, but considering the fact it was generated _only out of properly filtering random data_ is crazy. Combine a few more of these into a single rom and you have a game!
+
 ## A Conclusion
 
 <figure style="float: right; margin: 0 0 1em 1em; max-width: 300px;">
