@@ -236,7 +236,7 @@ Real games scored between 0.393 and 1.004, with an average of 0.853. This compos
 
 The first implementation of this project was extremely simple -- a single thread Python script that generated 4kB minus two bytes of random data, counted the number of branches, jumps, the number of valid opcodes, backwards branches (or a loop), and the number of vectors pointing to the ROM. This was very slow, around 300-400 ROMs checked per second.
 
-This is a massively parallel search, though. My GTX 1070 (I know, except I exclusively play TF2, Rocket League, and Kerbal Space Program, nvidia plz gib H200 + SXM5 carrier board) has 1,920 CUDA cores compared to my CPU's 20 cores - that's almost 100x difference in parallel processing units. More importantly, each CUDA core can independently generate and analyze a ROM simultaneously. Instead of generating ROMs sequentially and passing them through a pipeline, I can generate a million ROMs in parallel, analyze them all at once, and only transfer the promising candidates back to the CPU.
+This is a massively parallel search, though. My GTX 1070 (I know, except I exclusively play TF2, Rocket League, and Kerbal Space Program, [nvidia plz gib H200 + SXM5 PCIe carrier board](https://bbenchoff.github.io/pages/SXM2PCIe.html)) has 1,920 CUDA cores compared to my CPU's 20 cores - that's almost 100x difference in parallel processing units. More importantly, each CUDA core can independently generate and analyze a ROM simultaneously. Instead of generating ROMs sequentially and passing them through a pipeline, I can generate a million ROMs in parallel, analyze them all at once, and only transfer the promising candidates back to the CPU.
 
 The CUDA implementation moves all the heuristics directly onto the GPU. Each thread generates one 4KB ROM using CUDA's random number generator, then immediately applies the same analysis pipeline: counting valid opcodes, detecting TIA/RIOT register accesses, finding branch patterns, and calculating the composite score. This was written with the the CuPy library:
 
@@ -540,8 +540,16 @@ if __name__ == "__main__":
 
 ## First Results from 10,000 ROMs
 
-After checking _billions and billions_ of potential ROMs, I had a collection of about 10,000 that passed the heuristics laid out above. I could move onto the next step: checking them all in an emulator. There are two options, [Stella](https://stella-emu.github.io/), and [MAME](https://www.mamedev.org/). 
+After checking _billions and billions_ of potential ROMs, I had a collection of about 10,000 that passed the heuristics laid out above. I could move onto the next step: checking them all in an emulator. There are two options, [Stella](https://stella-emu.github.io/), and [MAME](https://www.mamedev.org/).
 
+## What I found
+
+![A rom, running](/images/FiniteAtari/FiniteAtari1.gif)
+![A rom, running](/images/FiniteAtari/FiniteAtari2.gif)
+
+Blah blah blah
+
+![A rom, running](/images/FiniteAtari/FiniteAtari3.gif)
 
 ## A Conclusion
 
