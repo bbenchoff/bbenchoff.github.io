@@ -18,6 +18,10 @@ image: "/images/FiniteAtari/FiniteAtariCard.png"
   <h1 class="fam-banner__title">Finite&nbsp;Atari&nbsp;Machine</h1>
 </div>
 
+<p style="text-align: center; font-weight: bold;">
+  Finding Atari Games in Randomly Generated Data
+</p>
+
 <style>
   .fam-banner {
     position: relative;
@@ -49,16 +53,15 @@ image: "/images/FiniteAtari/FiniteAtariCard.png"
       0 0 6px rgba(0,0,0,.9),
       0 0 12px rgba(255,64,255,.8),
       0 0 24px rgba(0,255,255,.6);
-    /* background & border removed */
   }
 
   @media (prefers-color-scheme: dark) {
     .fam-banner__img { filter: brightness(55%); }
   }
 </style>
-<center>**Finding Atari Games in Randomly Generated Data**</center>
+<!-- ── Finite Atari Machine banner ── -->
 
-This project generated around 300 Billion individual 4kB files of random data. These files were winnowed down to about 10,000 through some heuristics gleaned from the complete collection of Atari ROM files. Finally, a classifier system scanned them using an Atari 2600 emulator to see if any of these random files were actually an Atari game. This project answers a question no one asked, no one wanted, and is a massive waste of resources: What if I shove a billion monkeys in a GPU and asked them to write a game for the Atari 2600?
+This project generated around 30 Billion individual 4kB files of random data. These files were winnowed down to about 10,000 through some heuristics gleaned from the complete collection of Atari ROM files. Finally, a classifier system scanned them using an Atari 2600 emulator to see if any of these random files were actually an Atari game. This project answers a question no one asked, no one wanted, and is a massive waste of resources: What if I shove a billion monkeys in a GPU and asked them to write a game for the Atari 2600?
 
 Thanks to advances in GPUs, AI, and machine learning, we can now (very quickly) write a Python script that dumps garbage into 4KB ROMs and asks, *"does this look like a game?"*  This isn’t nostalgia, because my first console was an NES. This is about exploring something unimaginably vast and seeing if anything weird falls out.
 
@@ -236,7 +239,7 @@ Real games scored between 0.393 and 1.004, with an average of 0.853. This compos
 
 The first implementation of this project was extremely simple -- a single thread Python script that generated 4kB minus two bytes of random data, counted the number of branches, jumps, the number of valid opcodes, backwards branches (or a loop), and the number of vectors pointing to the ROM. This was very slow, around 300-400 ROMs checked per second.
 
-This is a massively parallel search, though. My GTX 1070 (I know, except I exclusively play TF2, Rocket League, and Kerbal Space Program, [nvidia plz gib H200 + SXM5 PCIe carrier board](https://bbenchoff.github.io/pages/SXM2PCIe.html)) has 1,920 CUDA cores compared to my CPU's 20 cores - that's almost 100x difference in parallel processing units. More importantly, each CUDA core can independently generate and analyze a ROM simultaneously. Instead of generating ROMs sequentially and passing them through a pipeline, I can generate a million ROMs in parallel, analyze them all at once, and only transfer the promising candidates back to the CPU.
+This is a massively parallel search, though. My GTX 1070 (I know, except I exclusively play TF2, Rocket League, and Kerbal Space Program, [nvidia plz gib H200 + SXM5 PCIe carrier board](https://bbenchoff.github.io/pages/SXM2PCIe.html)) has 1,920 CUDA cores compared to my CPU's 20 cores. More importantly, each CUDA core can independently generate and analyze a ROM simultaneously. Instead of generating ROMs sequentially and passing them through a pipeline, I can generate a million ROMs in parallel, analyze them all at once, and only transfer the promising candidates back to the CPU.
 
 The CUDA implementation moves all the heuristics directly onto the GPU. Each thread generates one 4KB ROM using CUDA's random number generator, then immediately applies the same analysis pipeline: counting valid opcodes, detecting TIA/RIOT register accesses, finding branch patterns, and calculating the composite score. This was written with the the CuPy library:
 
@@ -536,7 +539,7 @@ if __name__ == "__main__":
 
 ```
 
-...Which gave me a whopping 60,000 'random' ROMs checked per second. With the heuristics, I was finding one 'promising' ROM for every 2.59 million ROMs generated. It's one ROM per minute. And the best part is all of these ROMs could be assumed to do _something_ if I ran them in an emulator.
+...Which gave me a whopping 60,000 'random' ROMs checked per second. With the heuristics, I was finding one 'promising' ROM for every 2.59 million ROMs generated. It's one ROM every few minutes.
 
 ## First Results, Why Machine Learning Didn't Work
 
