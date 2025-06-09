@@ -6,10 +6,59 @@ keywords: ["Atari 2600", "ROM generation", "6502 emulator", "procedural generati
 author: "Brian Benchoff"
 date: 2025-06-06
 last_modified_at: 2001-09-11
-image: "/images/default.jpg"
+image: "/images/FiniteAtari/FiniteAtariCard.png"
 ---
+<!-- ── Finite Atari Machine banner ── -->
+<div class="fam-banner">
+  <img
+    src="/images/FiniteAtari/FiniteAtariBanner.png"
+    alt="Finite Atari Machine banner"
+    class="fam-banner__img"
+  >
+  <h1 class="fam-banner__title">Finite&nbsp;Atari&nbsp;Machine</h1>
+</div>
 
-# The Finite Atari Machine
+<style>
+  .fam-banner {
+    position: relative;
+    width: 100%;
+    margin: 0 0 1.5rem;
+    overflow: hidden;
+    line-height: 0;
+    border-radius: 0.5rem;
+  }
+
+  .fam-banner__img {
+    width: 100%;
+    height: auto;
+    display: block;
+    filter: brightness(65%);
+  }
+
+  .fam-banner__title {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    margin: 0;
+    padding: 0.35em 0.75em;
+    /* No custom font family—falls back to site default */
+    font-size: clamp(1.4rem, 5vw, 3rem);
+    letter-spacing: 0.08em;
+    color: #fff;
+    text-shadow:
+      0 0 6px rgba(0,0,0,.9),
+      0 0 12px rgba(255,64,255,.8),
+      0 0 24px rgba(0,255,255,.6);
+    background: rgba(0,0,0,.25);
+    border: 2px solid rgba(255,255,255,.25);
+    border-radius: 0.25rem;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    .fam-banner__img { filter: brightness(55%); }
+  }
+</style>
 
 This project generated around 400 Billion individual 4kB files of random data. These files were winnowed down to about 10,000 through some heuristics gleaned from the complete collection of Atari ROM files. Finally, a classifier system scanned them using an Atari 2600 emulator to see if any of these random files were actually an Atari game. This project answers a question no one asked, no one wanted, and is a massive waste of resources: What if I shove a billion monkeys in a GPU and asked them to write a game for the Atari 2600?
 
@@ -474,7 +523,7 @@ if __name__ == "__main__":
 
 ## First Results from 10,000 ROMs
 
-After checking _billions and billions_ of potential ROMs, I had a collection of about 10,000 that passed the heuristics laid out above. I could move onto the next step: checking them all in an emulator. 
+After checking _billions and billions_ of potential ROMs, I had a collection of about 10,000 that passed the heuristics laid out above. I could move onto the next step: checking them all in an emulator. There are two options, [Stella](https://stella-emu.github.io/), and [MAME](https://www.mamedev.org/). 
 
 
 
