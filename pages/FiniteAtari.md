@@ -566,7 +566,7 @@ F004: 85 02    ; STA $02         - Store to WSYNC (wait for horizontal sync)
 F006: 4C 04 F0 ; JMP $F004       - Jump back to the WSYNC line (infinite loop)
 </code>
 
-That's nine instruction. In fact, we can do the math on that, too. It would have to start with `A9`, and then it could be any one of 128 total colors. Then it's `85 09` to store the background color, `85 02` to wait for `WSYNC`, and `4C 04 F0` for the jump back to the previous instruction. It's $\frac{1}{256} \times \frac{128}{256} \times \frac{1}{256} \times \frac{1}{256} \times \frac{1}{256} \times \frac{1}{256} \times \frac{1}{256} \times \frac{1}{256} \times \frac{1}{256}= \frac{1}{36(,)893(,)488(,)147(,)419(,)103(,)232}$, or about 36 Pentillion. There are nearly infinite variations on this, so after a few Billion ROMs tested, I'm bound to get _something_ for my efforts.
+That's nine instructions. In fact, we can do the math on that, too. It would have to start with `A9`, and then it could be any one of 128 total colors. Then it's `85 09` to store the background color, `85 02` to wait for `WSYNC`, and `4C 04 F0` for the jump back to the previous instruction. It's $\frac{1}{256} \times \frac{128}{256} \times \frac{1}{256} \times \frac{1}{256} \times \frac{1}{256} \times \frac{1}{256} \times \frac{1}{256} \times \frac{1}{256} \times \frac{1}{256} = \frac{1}{36{,}893{,}488{,}147{,}419{,}103{,}232}$, or about 36 Pentillion. There are nearly infinite variations on this code though, so after a few Billion ROMs tested, I'm bound to get _something_ for my efforts.
 
 You can find all the code for this in the [Finite Atari Machine repo](https://github.com/bbenchoff/FiniteAtariMachine)
 
