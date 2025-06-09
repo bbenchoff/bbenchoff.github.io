@@ -58,7 +58,7 @@ image: "/images/FiniteAtari/FiniteAtariCard.png"
 </style>
 
 
-This project generated around 900 Billion individual 4kB files of random data. These files were winnowed down to about 30,000 through some heuristics gleaned from the complete collection of Atari ROM files. Finally, a classifier system scanned them using an Atari 2600 emulator to see if any of these random files were actually an Atari game. This project answers a question no one asked, no one wanted, and is a massive waste of resources: What if I shove a billion monkeys in a GPU and asked them to write a game for the Atari 2600?
+This project generated around 300 Billion individual 4kB files of random data. These files were winnowed down to about 10,000 through some heuristics gleaned from the complete collection of Atari ROM files. Finally, a classifier system scanned them using an Atari 2600 emulator to see if any of these random files were actually an Atari game. This project answers a question no one asked, no one wanted, and is a massive waste of resources: What if I shove a billion monkeys in a GPU and asked them to write a game for the Atari 2600?
 
 Thanks to advances in GPUs, AI, and machine learning, we can now (very quickly) write a Python script that dumps garbage into 4KB ROMs and asks, *"does this look like a game?"*  This isn’t nostalgia, because my first console was an NES. This is about exploring something unimaginably vast and seeing if anything weird falls out.
 
@@ -540,7 +540,34 @@ if __name__ == "__main__":
 
 ## First Results from 10,000 ROMs
 
-After checking _billions and billions_ of potential ROMs, I had a collection of about 10,000 that passed the heuristics laid out above. I could move onto the next step: checking them all in an emulator. There are two options, [Stella](https://stella-emu.github.io/), and [MAME](https://www.mamedev.org/).
+After checking _billions and billions_ of potential ROMs, I had a collection of about 10,000 that passed the heuristics laid out above. I could move onto the next step: checking them all in an emulator. 
+
+I tried two methods of running these 10,000 ROMs in an emulator to see if there was anything 'game-like'. The first was a classifier, trained on ~1,500 real commercial Atari ROMs (positives) and ~1,500 GPU-generated random ROMs (negatives). These trained a model (Random Forest) with features ranging from "Would the emulator execute the ROM", to more pertinate features such as, "how many times did the registers of the TIA change during 2 seconds of execution time."
+
+This is, academically, the correct way to do this. By scripting in output from [Stella](https://stella-emu.github.io/), and [MAME](https://www.mamedev.org/), I was able to build a classifier that would tell me if a random ROM _could_ run on an Atari. Unfortunately, it didn't work. The top-scoring results were mostly all black screens when run on an emulator. This made sense when I looked at the model. The most important features were:
+
+| Feature             | Value    |
+|---------------------|----------|
+| execution_time      | 0.9847   |
+| output_lines        | 0.0086   |
+| stdout_length       | 0.0067   |
+| crashed             | 0.0000   |
+| stderr_length       | 0.0000   |
+| video_indicators    | 0.0000   |
+| audio_indicators    | 0.0000   |
+| tia_activity        | 0.0000   |
+| game_indicators     | 0.0000   |
+| error_indicators    | 0.0000   |
+
+It was obvious what was happening: I was only selecting for ROMs that _ran_, not ROMs that _did anything interesting_. A quick check showed they were just booting into an infinite loop; After booting, there would be a few instructions that did nothing until eventually jumping back to somewhere around the reset vector.
+
+In short, a classifier on the actual machine code was worthless. Or my training data was. But then again, there’s no training set for Atari games that almost work — just masterpieces and garbage.
+
+## Second Results, Finding Anything Interesting
+
+
+## GPU to Emulator Pipeline
+
 
 ## What I found
 
@@ -615,7 +642,7 @@ I targeted the Atari 2600 for a reason. It's dead simple, there are no memory ma
 
 But others have suggested other platforms to target, like the NES or Game Boy. These will not work as well as the 2600 for a few reasons.
 
-**The NES** is much more complex, with memory mappers required for nearly any game. You can't just drop random bytes into the ROM and expect anything. Rather, you _could_ but it would take much longer than waiting for an Atari game. The NES uses split character and program ROMs for code and graphics. These are stored separately. You could dump random data into a character ROM and keep the program ROM of Tetris, but it wouldn't look like anything. You could dump random data into the program ROM and keep the character ROM of Super Mario 3, but the best you could hope for is a quarter of a Mario sprite on screen.
+**The NES** is much more complex, with memory mappers required for nearly any game. You can't just drop random bytes into the ROM and expect anything. Rather, you _could_ but it would take much longer than waiting for an Atari game. The NES uses split character and program ROMs for code and graphics. These are stored separately. You could dump garbage into a CHR ROM while keeping the PRG of Tetris, but you'd just get static. Reverse it with the PRG of Mario 3 and maybe you'll see a quarter of a Mario sprite flicker once.
 
 **The Game Boy** requires a 48-byte Nintendo logo at a hardcoded location in the ROM. Sure, you could brute-force this by just slapping it in after being generated, but there's a whole boot ROM that must complete successfully before anything happens. And there's bank switching chips to consider.
 
