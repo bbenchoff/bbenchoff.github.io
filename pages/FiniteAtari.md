@@ -550,7 +550,7 @@ if __name__ == "__main__":
 
 ...Which gave me a whopping 60,000 'random' ROMs checked per second. With the heuristics, I was finding one 'promising' ROM for every 2.59 million ROMs generated. It's one ROM every few minutes.
 
-## First Results, Why Machine Learning Didn't Work
+## First Results And Why Machine Learning Didn't Work
 
 After checking _billions and billions_ of potential ROMs, I had a collection of about 10,000 that passed the heuristics laid out above. I could move onto the next step: checking them all in an emulator. 
 
@@ -579,7 +579,7 @@ It was obvious what was happening: I was only selecting for ROMs that _ran_, not
 F000: 4C 00 F0   ; JMP $F000 — forever doing nothing
 </code></pre>
 
-This code starts running at F000, and jumps immediately to that same address. The odds of generating this code are $\frac{1}{256} \times \frac{1}{256} \times \frac{1}{256} = \frac{1}{16,777,216}$. In other words, for every 16 Million ROMs I generate, I will have one that is a valid ROM that does absolutely nothing.
+This code starts running at F000, and jumps immediately to that same address. The odds of generating this code are $\frac{1}{256} \times \frac{1}{256} \times \frac{1}{256} = \frac{1}{16,777,216}$. In other words, for every 16 Million ROMs I generate, I will have one that is a valid ROM that does absolutely nothing. I probably generated this ROM several times while generating 30 Billion ROMs. I just don't care about a program that does nothing.
 
 In short, a classifier on the actual machine code was worthless. Or my training data was. But then again, there’s no training set for Atari games that almost work — just masterpieces and garbage.
 
@@ -930,19 +930,68 @@ But others have suggested other platforms to target, like the NES or Game Boy. T
 
 In contrast, the Atari 2600 is astonishingly stupid. It boots straight into ROM with zero safeguards. It will send video after nine instructions. _Something_ is going to fall out if you shake it enough.
 
+There's also the possibility of using more advanced machine learning models or even an LLM to generate Atari games. This, I think, misses the point. Training an LLM on the thousand or so commercial Atari games would would only produce something like a commercial Atari game, if anything at all. My method of generating random data, then filtering with some basic heuristics, then actually running the thing to see if there's any output is the best way to produce something out of randomness. My goal isn't just to make a playable game, it's to make a playable game out of randomness.
+
 ## A Conclusion
 
-<figure style="float: right; margin: 0 0 1em 1em; max-width: 300px;">
-  <img src="/images/blurst.png" alt="It was the best of times, it was the blurst of times?" style="width: 100%;">
-  <figcaption style="font-size: 0.9em; text-align: center; color: #666;">
-    It was the best of times, it was the blurst of times?
-  </figcaption>
-</figure>
+<style>
+  .conclusion-wrapper {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    align-items: flex-start;
+    margin: 2rem 0;
+  }
 
-The idea that I could pull random video games out of the ether is absurd at first, but I knew this would work before I began. I can describe this in both as a philosophical / thought experiment, and as a technical inevitability.
+  .conclusion-wrapper figure {
+    flex: 0 0 300px;
+    margin: 0;
+  }
 
+  .conclusion-wrapper figure img {
+    width: 100%;
+    height: auto;
+    display: block;
+  }
 
-What I'm doing is not Infinite Monkey Theorem. A million monkeys will eventually produces the works of Shakespeare, that's true, but it would take longer than any time the Universe has left. I'm not asking monkeys to produce the works of Shakespeare, I'm asking them to produce _any_ work. Producing the word 'banana' in the standard ASCII character set is just $\frac{1}{256} \times \frac{1}{256} \times \frac{1}{256} \times \frac{1}{256} \times \frac{1}{256} \times \frac{1}{256} = \frac{1}{281{,}474{,}976{,}710{,}656}$ or once about every 300 trillion monkeys. I'm not looking for the word 'banana', I'm just looking for _a word_. Just any word in the dictionary. I don't care if I'm not generating _Yar's Revenge_, I just want something that runs on an Atari. That's significantly easier. 
+  .conclusion-wrapper figcaption {
+    font-size: 0.9em;
+    text-align: center;
+    color: #666;
+    margin-top: 0.5em;
+  }
+
+  .conclusion-text {
+    flex: 1;
+    min-width: 250px;
+  }
+
+  @media (max-width: 600px) {
+    .conclusion-wrapper {
+      flex-direction: column;
+    }
+
+    .conclusion-wrapper figure,
+    .conclusion-text {
+      width: 100%;
+    }
+  }
+</style>
+
+<div class="conclusion-wrapper">
+  <figure>
+    <img src="/images/blurst.png" alt="It was the best of times, it was the blurst of times?">
+    <figcaption>It was the best of times, it was the blurst of times?</figcaption>
+  </figure>
+
+  <div class="conclusion-text">
+    <p>The idea that I could pull random video games out of the ether is absurd at first, but I knew this would work before I began. I can describe this in both as a philosophical / thought experiment, and as a technical inevitability.</p>
+
+    <p>What I'm doing is not Infinite Monkey Theorem. A million monkeys will eventually produce the works of Shakespeare, that's true, but it would take longer than any time the Universe has left. I'm not asking monkeys to produce the works of Shakespeare, I'm asking them to produce <em>any</em> work.</p>
+
+    <p>Producing the word ‘banana’ in ASCII is just $\frac{1}{256}^6 = \frac{1}{281{,}474{,}976{,}710{,}656}$ — or once every 300 trillion monkeys. But I’m not looking for ‘banana’, I’m just looking for <em>a word</em>. Any word in the dictionary. I don’t care if I’m not generating <em>Yar’s Revenge</em>. I just want something that runs on an Atari. That’s significantly easier.</p>
+  </div>
+</div>
 
 The _technical_ reason why I knew this would work is the simplicity of the Atari. The simplest thing you could ever create on an Atari looks something like this:
 
