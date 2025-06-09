@@ -609,6 +609,18 @@ Rom `51014` consists of a yellow background with two static vertical red stripes
 
 It's certainly not impressive from a programming point of view, but considering the fact it was generated _only out of properly filtering random data_ is crazy. Combine a few more of these into a single rom and you have a game!
 
+## Future Work?
+
+I targeted the Atari 2600 for a reason. It's dead simple, there are no memory mappers or program and character ROMs, and it doesn't have the 'Nintendo Logo copy protection' the original Game Boy has. Basically, if you throw random bytes at an Atari, _something_ is going to fall out, which I have proven here.
+
+But others have suggested other platforms to target, like the NES or Game Boy. These will not work as well as the 2600 for a few reasons.
+
+**The NES** is much more complex, with memory mappers required for nearly any game. You can't just drop random bytes into the ROM and expect anything. Rather, you _could_ but it would take much longer than waiting for an Atari game. The NES uses split character and program ROMs for code and graphics. These are stored separately. You could dump random data into a character ROM and keep the program ROM of Tetris, but it wouldn't look like anything. You could dump random data into the program ROM and keep the character ROM of Super Mario 3, but the best you could hope for is a quarter of a Mario sprite on screen.
+
+**The Game Boy** requires a 48-byte Nintendo logo at a hardcoded location in the ROM. Sure, you could brute-force this by just slapping it in after being generated, but there's a whole boot ROM that must complete successfully before anything happens. And there's bank switching chips to consider.
+
+In contrast, the Atari 2600 is astonishingly stupid. It boots straight into ROM with zero safeguards. It will send video after nine instructions. _Something_ is going to fall out if you shake it enough.
+
 ## A Conclusion
 
 <figure style="float: right; margin: 0 0 1em 1em; max-width: 300px;">
