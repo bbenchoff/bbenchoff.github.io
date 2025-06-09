@@ -8,6 +8,11 @@ const fileSystem = {
                 type: 'folder',
                 icon: 'folder-icon.png',
                 contents: {
+                    'Finite Atari Machine': {
+                        type: 'document',
+                        icon: 'Stella.png',
+                        file: 'FiniteAtari'
+                    },
                     'SSL for OS 7': {
                         type: 'document',
                         icon: 'Metrowerks.png',
