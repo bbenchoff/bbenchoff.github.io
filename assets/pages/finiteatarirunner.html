@@ -119,7 +119,9 @@ function loadROM(relPath) {
   window.EJS_gameUrl = encodeURI(absUrl);
   window.EJS_pathtodata = 'https://cdn.emulatorjs.org/stable/data/';
   window.EJS_Buttons = {};          // hide all chrome
-  window.EJS_volume = 0;            // start muted
+  window.EJS_volume = 0;            // start muted (initial flag)
+  window.EJS_Mute = true;          // force‑mute some cores that ignore volume‑0
+  window.localStorage.setItem('EJS_volume','0'); // persist mute across reloads
   window.EJS_startOnLoaded = true;
 
   if (loaderScript) {
@@ -128,6 +130,17 @@ function loadROM(relPath) {
   loaderScript = document.createElement('script');
   loaderScript.src = 'https://cdn.emulatorjs.org/stable/data/loader.js';
   loaderScript.async = true;
+  loaderScript.onload = () => {
+    // Once the core is ready, double‑check volume & mute state.
+    const iv = setInterval(() => {
+      if (window.EJS_emulator && typeof window.EJS_emulator.setVolume === 'function') {
+        try {
+          window.EJS_emulator.setVolume(0);
+        } catch {}
+        clearInterval(iv);
+      }
+    }, 100);
+  };
   document.body.appendChild(loaderScript);
 }
 
