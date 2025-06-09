@@ -559,17 +559,7 @@ What I'm doing is not Infinite Monkey Theorem. A million monkeys will eventually
 
 The _technical_ reason why I knew this would work is the simplicity of the Atari. The simplest thing you could ever create on an Atari looks something like this:
 
-<code>
-; Program starts at $F000
-
-F000: A9 84    ; LDA #$84        - Load a color value (red/orange)
-
-F002: 85 09    ; STA $09         - Store to COLUBK (background color register)
-
-F004: 85 02    ; STA $02         - Store to WSYNC (wait for horizontal sync)
-
-F006: 4C 04 F0 ; JMP $F004       - Jump back to the WSYNC line (infinite loop)
-</code>
+<pre><code class="language-asm6502"> ; Program starts at $F000 F000: A9 84 ; LDA #$84 - Load a color value (red/orange) F002: 85 09 ; STA $09 - Store to COLUBK (background color register) F004: 85 02 ; STA $02 - Store to WSYNC (wait for horizontal sync) F006: 4C 04 F0 ; JMP $F004 - Jump back to the WSYNC line (infinite loop) </code></pre>
 
 That's nine instructions. In fact, we can do the math on that, too. It would have to start with `A9`, and then it could be any one of 128 total colors. Then it's `85 09` to store the background color, `85 02` to wait for `WSYNC`, and `4C 04 F0` for the jump back to the previous instruction. It's $\frac{1}{256} \times \frac{128}{256} \times \frac{1}{256} \times \frac{1}{256} \times \frac{1}{256} \times \frac{1}{256} \times \frac{1}{256} \times \frac{1}{256} \times \frac{1}{256} = \frac{1}{36{,}893{,}488{,}147{,}419{,}103{,}232}$, or about 36 Pentillion. There are nearly infinite variations on this code though, so after a few Billion ROMs tested, I'm bound to get _something_ for my efforts.
 
