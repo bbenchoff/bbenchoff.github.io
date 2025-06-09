@@ -5,7 +5,7 @@ description: "Discovering Atari Games in Randomly Generated Data"
 keywords: ["Atari 2600", "ROM generation", "6502 emulator", "procedural generation", "Brian Benchoff"]
 author: "Brian Benchoff"
 date: 2025-06-06
-last_modified_at: 2001-09-11
+last_modified_at: 2025-06-09
 image: "/images/FiniteAtari/FiniteAtariCard.png"
 ---
 <!-- ── Finite Atari Machine banner ── -->
@@ -949,6 +949,8 @@ But others have suggested other platforms to target, like the NES or Game Boy. T
 In contrast, the Atari 2600 is astonishingly stupid. It boots straight into ROM with zero safeguards. It will send video after nine instructions. _Something_ is going to fall out if you shake it enough.
 
 There's also the possibility of using more advanced machine learning models or even an LLM to generate Atari games. This, I think, misses the point. Training an LLM on the thousand or so commercial Atari games would would only produce something like a commercial Atari game, if anything at all. My method of generating random data, then filtering with some basic heuristics, then actually running the thing to see if there's any output is the best way to produce something out of randomness. My goal isn't just to make a playable game, it's to make a playable game out of randomness.
+
+If I take this further, it would be as a distributed computing project, something like SETI@Home, where millions of machines search for signals in cosmic noise. Imagine GPUs across the world mining entropy for Atari games, then sending the promising ones to a central system to evaluate their ‘game-ness’. It’s an absurd idea. I'll see how popular this project gets. It's better than mining fartcoin, at least.
 
 ## A Conclusion
 
