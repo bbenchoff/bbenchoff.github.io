@@ -1,7 +1,7 @@
 ---
 layout: default
 title: "Finite Atari Machine"
-description: "A project to generate and evaluate every possible Atari 2600 ROM"
+description: "Discovering Atari Games in Randomly Generated Data"
 keywords: ["Atari 2600", "ROM generation", "6502 emulator", "procedural generation", "Brian Benchoff"]
 author: "Brian Benchoff"
 date: 2025-06-06
@@ -22,6 +22,10 @@ image: "/images/FiniteAtari/FiniteAtariCard.png"
   Finding Atari Games in Randomly Generated Data
 </p>
 
+<p class="fam-github-link">
+  TL;DR, <a href="https://github.com/bbenchoff/FiniteAtariMachine">here’s the GitHub repo</a>
+</p>
+
 <style>
   .fam-banner {
     position: relative;
@@ -30,6 +34,18 @@ image: "/images/FiniteAtari/FiniteAtariCard.png"
     overflow: hidden;
     line-height: 0;
     border-radius: 0.5rem;
+  }
+
+  .fam-github-link {
+    text-align: center;
+    font-size: 0.85rem;
+    margin: -1rem 0 2.5rem;
+    color: #444;
+  }
+  
+  .fam-github-link a {
+    color: #555;
+    text-decoration: underline;
   }
 
   .fam-banner__img {
@@ -66,6 +82,8 @@ image: "/images/FiniteAtari/FiniteAtariCard.png"
   @media (prefers-color-scheme: dark) {
     .fam-banner__img { filter: brightness(55%); }
     .fam-tagline { color: #ddd; }
+    .fam-github-link { color: #bbb; }
+    .fam-github-link a { color: #ccc; }
   }
 </style>
 <!-- ── Finite Atari Machine banner ── -->
@@ -989,7 +1007,7 @@ There's also the possibility of using more advanced machine learning models or e
 
     <p>What I'm doing is not Infinite Monkey Theorem. A million monkeys will eventually produce the works of Shakespeare, that's true, but it would take longer than any time the Universe has left. I'm not asking monkeys to produce the works of Shakespeare, I'm asking them to produce <em>any</em> work.</p>
 
-    <p>Producing the word ‘banana’ in ASCII is just $\frac{1}{256}^6 = \frac{1}{281{,}474{,}976{,}710{,}656}$ — or once every 300 trillion monkeys. But I’m not looking for ‘banana’, I’m just looking for <em>a word</em>. Any word in the dictionary. I don’t care if I’m not generating <em>Yar’s Revenge</em>. I just want something that runs on an Atari. That’s significantly easier.</p>
+    <p>Producing the word ‘banana’ in ASCII is just $\frac{1}{256}^6 = \frac{1}{281{,}474{,}976{,}710{,}656}$ or once every 300 trillion monkeys. But I’m not looking for ‘banana’, I’m just looking for <em>a word</em>. Any word in the dictionary. I don’t care if I’m not generating <em>Yar’s Revenge</em>. I just want something that runs on an Atari. That’s significantly easier.</p>
   </div>
 </div>
 
