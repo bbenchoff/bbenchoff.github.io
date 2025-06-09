@@ -103,7 +103,7 @@ If you turned an entire datacenter of AI compute boxes onto this problem, it wou
 4. Filter or score them with AI
 5. Save the best results for further investigation.
 
-This would work, if we had enough time to wait for black holes to devour the Universe. A better idea would be to front-load the pipeline with some simple checks to discard the absolute garbage before spinning up an emulator.
+This would work, if we had enough time to wait for black holes to devour the Universe. A better idea would be to front-load the pipeline with some simple checks to discard the absolute garbage before spinning up an emulator. It would help to know what a real Atari ROM would look like, simply to build some heuristics.
 
 ## Heuristics
 
@@ -538,7 +538,7 @@ if __name__ == "__main__":
 
 ...Which gave me a whopping 60,000 'random' ROMs checked per second. With the heuristics, I was finding one 'promising' ROM for every 2.59 million ROMs generated. It's one ROM per minute. And the best part is all of these ROMs could be assumed to do _something_ if I ran them in an emulator.
 
-## First Results from 10,000 ROMs
+## First Results, Why Machine Learning Didn't Work
 
 After checking _billions and billions_ of potential ROMs, I had a collection of about 10,000 that passed the heuristics laid out above. I could move onto the next step: checking them all in an emulator. 
 
@@ -559,13 +559,21 @@ This is, academically, the correct way to do this. By scripting in output from [
 | game_indicators     | 0.0000   |
 | error_indicators    | 0.0000   |
 
-It was obvious what was happening: I was only selecting for ROMs that _ran_, not ROMs that _did anything interesting_. A quick check showed they were just booting into an infinite loop; After booting, there would be a few instructions that did nothing until eventually jumping back to somewhere around the reset vector.
+It was obvious what was happening: I was only selecting for ROMs that _ran_, not ROMs that _did anything interesting_. A quick check showed they were just booting into an infinite loop; After booting, there would be a few instructions that did nothing until eventually jumping back to somewhere around the reset vector. In fact, this _should_ be frequently found. Consider the simplest possible Atari program:
+
+<pre class="no-collapse"><code>
+; Program starts at $F000
+
+F000: 4C 00 F0   ; JMP $F000 — forever doing nothing
+</code></pre>
+
+This code starts running at F000, and jumps immediately to that same address. The odds of generating this code are $\frac{1}{256} \times \frac{1}{256} \times \frac{1}{256} = \frac{1}{16,777,216}$. In other words, for every 16 Million ROMs I generate, I will have one that is a valid ROM that does absolutely nothing.
 
 In short, a classifier on the actual machine code was worthless. Or my training data was. But then again, there’s no training set for Atari games that almost work — just masterpieces and garbage.
 
 ## Second Results, Finding Anything Interesting
 
-Realizing I only want one thing - interesting visual output - I rewrote the 
+Realizing I only want one thing - interesting visual output - I rewrote the generation pipeline to find interesting ROMs and immediately send them to an emulator to find interesting candidates.
 
 ```python
 # ==========================================================================
