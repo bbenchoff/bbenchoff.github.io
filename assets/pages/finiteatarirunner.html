@@ -34,25 +34,38 @@
 const romListEl = document.getElementById('romList');
 let loaderScript; // keep reference so we can reload for each ROM
 
+/**
+ * Raw GitHub URLs have no CORS header, so the emulator can’t fetch the ROM.
+ * Convert
+ *   https://raw.githubusercontent.com/user/repo/sha/path
+ * → https://cdn.jsdelivr.net/gh/user/repo@sha/path   (CORS‑enabled)
+ */
+function toJsDelivr(rawUrl){
+  return rawUrl.replace(
+    /^https:\/\/raw\.githubusercontent\.com\/([^\/]+)\/([^\/]+)\/([^\/]+)\/(.*)$/,
+    'https://cdn.jsdelivr.net/gh/$1/$2@$3/$4'
+  );
+}
+
 function addRomLink(name, rawURL){
   const a=document.createElement('a');a.href='#';a.textContent=name;
-  a.addEventListener('click',e=>{e.preventDefault();selectLink(a);loadROM(rawURL);});
+  a.addEventListener('click',e=>{e.preventDefault();selectLink(a);loadROM(toJsDelivr(rawURL));});
   romListEl.appendChild(a);
 }
 function selectLink(link){
   document.querySelectorAll('#romList a').forEach(l=>l.classList.remove('active'));
   link.classList.add('active');
 }
-function loadROM(rawURL){
+function loadROM(cdnURL){
   // Clean previous instance
-  if(window.EJS_emulator){try{window.EJS_emulator.stop();}catch{}};
+  if(window.EJS_emulator){try{window.EJS_emulator.stop();}catch{}}
   document.getElementById('game').innerHTML='';
   // EmulatorJS global config
   window.EJS_player = '#game';
   window.EJS_core   = 'atari2600'; // uses stella2014 libretro core
-  window.EJS_gameUrl = rawURL;
+  window.EJS_gameUrl = cdnURL;
   window.EJS_pathtodata = 'https://cdn.emulatorjs.org/stable/data/';
-  // Hide all built‑in controls except optional fullscreen (mobile still shows touch overlay)
+  // Hide all built‑in controls except fullscreen
   window.EJS_Buttons = { fullscreen:true };
   window.EJS_startOnLoaded = true;
   // (Re)load loader.js. Remove old script if present.
@@ -78,7 +91,7 @@ async function populateRomList(){
     roms.forEach(f=>addRomLink(f.name,f.download_url));
     // Auto‑load first ROM
     const first = romListEl.querySelector('a');
-    if(first){ selectLink(first); loadROM(roms[0].download_url); }
+    if(first){ selectLink(first); loadROM(toJsDelivr(roms[0].download_url)); }
   }catch(err){
     console.error(err);
     romListEl.insertAdjacentHTML('beforeend','<p style="color:#d73a49">Unable to load ROMs</p>');
