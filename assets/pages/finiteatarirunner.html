@@ -8,12 +8,12 @@
     html,body{height:100%;margin:0;font-family:ui-sans-serif,system-ui,sans-serif;background:#000}
     /* Layout: fixed‑width ROM list (left) + flexible game screen (right) */
     body{display:grid;grid-template-columns:var(--left) 1fr}
-    @media(max-width:650px){body{grid-template-columns:1fr;grid-template-rows:auto 1fr}:root{--left:100%}}
+    @media(max-width:650px){body{grid-template-columns:1fr;grid-template-rows:auto 1fr}}
 
     /* ROM list */
     #romList{overflow-y:auto;border-right:1px solid #222;background:#111;padding:var(--gap)}
     #romList h2{margin:0 0 .5rem;font-size:.75rem;letter-spacing:.08em;text-transform:uppercase;color:#777}
-    #romList a{display:block;padding:.25rem .25rem;color:#58a6ff;text-decoration:none;font-size:.9rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;border-radius:4px}
+    #romList a{display:block;padding:.25rem;color:#58a6ff;text-decoration:none;font-size:.9rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;border-radius:4px}
     #romList a:hover{background:#222}
     #romList a.active{background:#1e1e1e;color:#fff;font-weight:600}
 
@@ -34,22 +34,23 @@
 const romListEl = document.getElementById('romList');
 let loaderScript; // keep reference so we can reload for each ROM
 
-/**
- * Raw GitHub URLs have no CORS header, so the emulator can’t fetch the ROM.
- * Convert
- *   https://raw.githubusercontent.com/user/repo/sha/path
- * → https://cdn.jsdelivr.net/gh/user/repo@sha/path   (CORS‑enabled)
- */
+// raw.githubusercontent.com → jsDelivr (adds CORS headers)
 function toJsDelivr(rawUrl){
   return rawUrl.replace(
-    /^https:\/\/raw\.githubusercontent\.com\/([^\/]+)\/([^\/]+)\/([^\/]+)\/(.*)$/,
+    /^https:\/\/raw\.githubusercontent\.com\/([^\/]+)\/([^\/]+)\/([^\/]+)\/(.*)$/, 
     'https://cdn.jsdelivr.net/gh/$1/$2@$3/$4'
   );
 }
 
 function addRomLink(name, rawURL){
-  const a=document.createElement('a');a.href='#';a.textContent=name;
-  a.addEventListener('click',e=>{e.preventDefault();selectLink(a);loadROM(toJsDelivr(rawURL));});
+  const a=document.createElement('a');
+  a.href='#';
+  a.textContent=name;
+  a.addEventListener('click',e=>{
+    e.preventDefault();
+    selectLink(a);
+    loadROM(toJsDelivr(rawURL));
+  });
   romListEl.appendChild(a);
 }
 function selectLink(link){
@@ -57,25 +58,23 @@ function selectLink(link){
   link.classList.add('active');
 }
 function loadROM(cdnURL){
-  // Clean previous instance
   if(window.EJS_emulator){try{window.EJS_emulator.stop();}catch{}}
   document.getElementById('game').innerHTML='';
-  // EmulatorJS global config
-  window.EJS_player = '#game';
-  window.EJS_core   = 'atari2600'; // uses stella2014 libretro core
-  window.EJS_gameUrl = cdnURL;
-  window.EJS_pathtodata = 'https://cdn.emulatorjs.org/stable/data/';
-  // Hide all built‑in controls except fullscreen
-  window.EJS_Buttons = { fullscreen:true };
+
+  window.EJS_player       = '#game';
+  window.EJS_core         = 'atari2600';             // Stella2014 core
+  window.EJS_gameUrl      = encodeURI(cdnURL);       // ensure spaces encoded
+  window.EJS_pathtodata   = 'https://cdn.emulatorjs.org/stable/data/';
+  window.EJS_Buttons      = {};                      // hide all chrome
   window.EJS_startOnLoaded = true;
-  // (Re)load loader.js. Remove old script if present.
+
   if(loaderScript){ loaderScript.remove(); }
   loaderScript = document.createElement('script');
-  loaderScript.src = 'https://cdn.emulatorjs.org/stable/loader.js';
+  loaderScript.src = 'https://cdn.emulatorjs.org/stable/data/loader.js'; // must match pathtodata
   loaderScript.async = true;
   document.body.appendChild(loaderScript);
 }
-// Determine owner/repo for GitHub Pages (e.g. user.github.io → user/user.github.io)
+
 function getOwnerRepo(){
   const m = location.hostname.match(/^([^\.]+)\.github\.io$/);
   return m ? `${m[1]}/${m[1]}.github.io` : 'bbenchoff/bbenchoff.github.io';
@@ -89,7 +88,6 @@ async function populateRomList(){
     const roms = files.filter(f=>f.type==='file');
     if(!roms.length) throw new Error('No ROMs');
     roms.forEach(f=>addRomLink(f.name,f.download_url));
-    // Auto‑load first ROM
     const first = romListEl.querySelector('a');
     if(first){ selectLink(first); loadROM(toJsDelivr(roms[0].download_url)); }
   }catch(err){
