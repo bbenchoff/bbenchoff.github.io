@@ -1,101 +1,83 @@
+---
+layout: null
+---
+<!--
+  Finite Atari – ROM Browser & Emulator
+  ------------------------------------
+  * Pure‑static HTML, built by Jekyll/GitHub Pages.
+  * Left: auto‑generated ROM list ⇢ Right: bezel‑free Stella2014 core (via EmulatorJS).
+  * No cross‑origin requests: ROMs load from the same origin so CORS / CORB issues disappear.
+-->
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <title>Finite Atari – ROM Browser & Emulator (Stella core)</title>
-  <style>
-    :root { --gap: .75rem; --left: 240px; }
-    html,body{height:100%;margin:0;font-family:ui-sans-serif,system-ui,sans-serif;background:#000}
-    /* Layout: fixed‑width ROM list (left) + flexible game screen (right) */
-    body{display:grid;grid-template-columns:var(--left) 1fr}
-    @media(max-width:650px){body{grid-template-columns:1fr;grid-template-rows:auto 1fr}}
-
-    /* ROM list */
-    #romList{overflow-y:auto;border-right:1px solid #222;background:#111;padding:var(--gap)}
-    #romList h2{margin:0 0 .5rem;font-size:.75rem;letter-spacing:.08em;text-transform:uppercase;color:#777}
-    #romList a{display:block;padding:.25rem;color:#58a6ff;text-decoration:none;font-size:.9rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;border-radius:4px}
-    #romList a:hover{background:#222}
-    #romList a.active{background:#1e1e1e;color:#fff;font-weight:600}
-
-    /* Game canvas holder */
-    #emuWrap{display:flex;align-items:center;justify-content:center;min-width:0;min-height:0}
-    #game{width:100%;height:100%;max-height:100%;max-width:100%;outline:none}
-  </style>
+<meta charset="utf-8">
+<title>Finite Atari – ROM Browser &amp; Emulator</title>
+<style>
+  :root { --gap:.75rem; --left:240px; }
+  html,body{height:100%;margin:0;font-family:ui-sans-serif,system-ui,sans-serif;background:#000}
+  body{display:grid;grid-template-columns:var(--left) 1fr}
+  @media(max-width:650px){body{grid-template-columns:1fr;grid-template-rows:auto 1fr}}
+  #romList{overflow-y:auto;border-right:1px solid #222;background:#111;padding:var(--gap)}
+  #romList h2{margin:0 0 .5rem;font-size:.75rem;letter-spacing:.08em;text-transform:uppercase;color:#777}
+  #romList a{display:block;padding:.25rem .5rem;color:#58a6ff;text-decoration:none;font-size:.9rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;border-radius:4px}
+  #romList a:hover{background:#222}
+  #romList a.active{background:#1e1e1e;color:#fff;font-weight:600}
+  #emuWrap{display:flex;align-items:center;justify-content:center;min-width:0;min-height:0}
+  #game{width:100%;height:100%;max-height:100%;max-width:100%;outline:none}
+</style>
 </head>
 <body>
   <nav id="romList">
     <h2>ROMs</h2>
-    <!-- links injected here -->
+    {% assign roms = site.static_files | where_exp: 'f', 'f.path contains "/assets/pages/roms/"' %}
+    {% if roms.size > 0 %}
+      {% for rom in roms %}
+        <a href="#" data-src="{{ rom.path | relative_url }}">{{ rom.name }}</a>
+      {% endfor %}
+    {% else %}
+      <p style="color:#d73a49">No ROMs found in /assets/pages/roms/</p>
+    {% endif %}
   </nav>
-
   <div id="emuWrap"><div id="game" tabindex="0"></div></div>
 
 <script>
-const romListEl = document.getElementById('romList');
-let loaderScript; // keep reference so we can reload for each ROM
+const links = document.querySelectorAll('#romList a');
+let loaderScript;
 
-// raw.githubusercontent.com → jsDelivr (adds CORS headers)
-function toJsDelivr(rawUrl){
-  return rawUrl.replace(
-    /^https:\/\/raw\.githubusercontent\.com\/([^\/]+)\/([^\/]+)\/([^\/]+)\/(.*)$/, 
-    'https://cdn.jsdelivr.net/gh/$1/$2@$3/$4'
-  );
+function select(link){
+  links.forEach(l=>l.classList.toggle('active', l===link));
 }
-
-function addRomLink(name, rawURL){
-  const a=document.createElement('a');
-  a.href='#';
-  a.textContent=name;
-  a.addEventListener('click',e=>{
-    e.preventDefault();
-    selectLink(a);
-    loadROM(toJsDelivr(rawURL));
-  });
-  romListEl.appendChild(a);
-}
-function selectLink(link){
-  document.querySelectorAll('#romList a').forEach(l=>l.classList.remove('active'));
-  link.classList.add('active');
-}
-function loadROM(cdnURL){
+function loadROM(relPath){
+  const absUrl = new URL(relPath, window.location.origin).href; // same‑origin full url
   if(window.EJS_emulator){try{window.EJS_emulator.stop();}catch{}}
   document.getElementById('game').innerHTML='';
 
-  window.EJS_player       = '#game';
-  window.EJS_core         = 'atari2600';             // Stella2014 core
-  window.EJS_gameUrl      = encodeURI(cdnURL);       // ensure spaces encoded
-  window.EJS_pathtodata   = 'https://cdn.emulatorjs.org/stable/data/';
-  window.EJS_Buttons      = {};                      // hide all chrome
+  window.EJS_player = '#game';
+  window.EJS_core  = 'atari2600';
+  window.EJS_gameUrl = encodeURI(absUrl);
+  window.EJS_pathtodata = 'https://cdn.emulatorjs.org/stable/data/';
+  window.EJS_Buttons = {};          // hide all chrome
   window.EJS_startOnLoaded = true;
 
   if(loaderScript){ loaderScript.remove(); }
   loaderScript = document.createElement('script');
-  loaderScript.src = 'https://cdn.emulatorjs.org/stable/data/loader.js'; // must match pathtodata
+  loaderScript.src = 'https://cdn.emulatorjs.org/stable/data/loader.js';
   loaderScript.async = true;
   document.body.appendChild(loaderScript);
 }
 
-function getOwnerRepo(){
-  const m = location.hostname.match(/^([^\.]+)\.github\.io$/);
-  return m ? `${m[1]}/${m[1]}.github.io` : 'bbenchoff/bbenchoff.github.io';
+links.forEach(link=>{
+  link.addEventListener('click', e=>{
+    e.preventDefault();
+    select(link);
+    loadROM(link.dataset.src);
+  });
+});
+if(links.length){
+  select(links[0]);
+  loadROM(links[0].dataset.src);
 }
-async function populateRomList(){
-  try{
-    const api=`https://api.github.com/repos/${getOwnerRepo()}/contents/assets/pages/roms`;
-    const res = await fetch(api);
-    if(!res.ok) throw new Error('GitHub API error '+res.status);
-    const files = await res.json();
-    const roms = files.filter(f=>f.type==='file');
-    if(!roms.length) throw new Error('No ROMs');
-    roms.forEach(f=>addRomLink(f.name,f.download_url));
-    const first = romListEl.querySelector('a');
-    if(first){ selectLink(first); loadROM(toJsDelivr(roms[0].download_url)); }
-  }catch(err){
-    console.error(err);
-    romListEl.insertAdjacentHTML('beforeend','<p style="color:#d73a49">Unable to load ROMs</p>');
-  }
-}
-populateRomList();
 </script>
 </body>
 </html>
