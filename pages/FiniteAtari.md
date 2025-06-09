@@ -66,10 +66,18 @@ Thanks to advances in GPUs, AI, and machine learning, we can now (very quickly) 
 
 Because no one reads below the fold, here’s an interactive emulator showcasing the most interesting Atari ROMs discovered. There’s no genetic algorithm here; just billions of random files run through an emulator. These are the best of the weird:
 
-<div style="width: 100%; height: 300px;">
-<iframe src="/assets/pages/finiteatarirunner.html" width="100%" height="100%" frameborder="0"></iframe>
+<div style="
+     width:100%;
+     height:80vh;
+     max-height:calc(100dvh - 4rem); /* leaves room for nav bars */
+">
+  <iframe
+    src="/assets/pages/finiteatarirunner.html"
+    width="100%" height="100%"
+    frameborder="0" loading="lazy"
+    allowfullscreen
+    style="display:block"></iframe>
 </div>
-
 ## Problem Scope
 
 Assume each Atari 2600 cartridge is a 4 kilobyte chunk of data. It's a maximum of 4096 bytes, or 32,768 bits. That means there are $2^{32768}$ possible ROMs. For perspective:

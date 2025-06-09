@@ -62,7 +62,7 @@ function injectLoader(){
   if(loaderScript){loaderScript.remove();}
   loaderScript=document.createElement('script');
   // use *nightly* – fixes audio‑mute bug in 4.2.1 cores
-  loaderScript.src='https://cdn.emulatorjs.org/nightly/data/loader.js';
+  loaderScript.src = 'https://cdn.emulatorjs.org/stable/data/loader.js';
   loaderScript.async=true;
   document.body.appendChild(loaderScript);
 }
@@ -88,7 +88,7 @@ function loadROM(rel){
   window.EJS_player='#game';
   window.EJS_core='atari2600';
   window.EJS_gameUrl=encodeURI(url);
-  window.EJS_pathtodata='https://cdn.emulatorjs.org/nightly/data/';
+  window.EJS_pathtodata = 'https://cdn.emulatorjs.org/stable/data/';
   window.EJS_Buttons={mute:false,volume:false,settings:false,fullscreen:true};
   window.EJS_volume=0;          // documented mute flag (0–1)
   window.localStorage.setItem('EJS_volume','0');
