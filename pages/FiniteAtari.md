@@ -543,5 +543,32 @@ if __name__ == "__main__":
 After checking _billions and billions_ of potential ROMs, I had a collection of about 10,000 that passed the heuristics laid out above. I could move onto the next step: checking them all in an emulator. There are two options, [Stella](https://stella-emu.github.io/), and [MAME](https://www.mamedev.org/). 
 
 
+## A Conclusion
+
+The idea that I could pull random video games out of the ether is absurd at first, but I knew this would work before I began. I can describe this in both as a philosophical / thought experiment, and as a technical inevitability.
+
+<figure style="float: right; margin: 0 0 1em 1em; max-width: 300px;">
+  <img src="/images/blurst.png" alt="It was the best of times, it was the blurst of times?" style="width: 100%;">
+  <figcaption style="font-size: 0.9em; text-align: center; color: #666;">
+    It was the best of times, it was the blurst of times?
+  </figcaption>
+</figure>
+
+What I'm doing is not Infinite Monkey Theorem. A million monkeys will eventually produces the works of Shakespeare, that's true, but it would take longer than any time the Universe has left. I'm not asking monkeys to produce the works of Shakespeare, I'm asking them to produce _any_ work. Producing the word 'banana' in the standard ASCII character set is just $\frac{1}{256} \times \frac{1}{256} \times \frac{1}{256} \times \frac{1}{256} \times \frac{1}{256} \times \frac{1}{256} = \frac{1}{281{,}474{,}976{,}710{,}656}$ or once about every 300 trillion monkeys. I'm not looking for the word 'banana', I'm just looking for _a word_. Just any word in the dictionary. I don't care if I'm not generating _Yar's Revenge_, I just want something that runs on an Atari. That's significantly easier. 
+
+The _technical_ reason why I knew this would work is the simplicity of the Atari. The simplest thing you could ever create on an Atari looks something like this:
+
+<code>
+; Program starts at $F000
+F000: A9 84    ; LDA #$84        - Load a color value (red/orange)
+F002: 85 09    ; STA $09         - Store to COLUBK (background color register)
+F004: 85 02    ; STA $02         - Store to WSYNC (wait for horizontal sync)
+F006: 4C 04 F0 ; JMP $F004       - Jump back to the WSYNC line (infinite loop)
+</code>
+
+That's nine instruction. In fact, we can do the math on that, too. It would have to start with `A9`, and then it could be any one of 128 total colors. Then it's `85 09` to store the background color, `85 02` to wait for `WSYNC`, and `4C 04 F0` for the jump back to the previous instruction. It's $\frac{1}{256} \times \frac{128}{256} \times \frac{1}{256} \times \frac{1}{256} \times \frac{1}{256} \times \frac{1}{256} \times \frac{1}{256} \times \frac{1}{256} \times \frac{1}{256}= \frac{1}{36(,)893(,)488(,)147(,)419(,)103(,)232}$, or about 36 Pentillion. There are nearly infinite variations on this, so after a few Billion ROMs tested, I'm bound to get _something_ for my efforts.
+
+You can find all the code for this in the [Finite Atari Machine repo](https://github.com/bbenchoff/FiniteAtariMachine)
+
 
 [back](../)
