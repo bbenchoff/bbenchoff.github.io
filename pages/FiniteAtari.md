@@ -880,7 +880,7 @@ These are some of the most visually interesting results from this experiment. Al
 
 ## A Real, Actual, Protogame
 
-Despite my entire pipeline being focused on generating visual output, I discovered something that is more than just weird visual ouput. The ROM I'm calling `51014` ([here's a link](/assets/pages/roms/5101496f45e8b74244cc8134e590bfb3464eb669.bin) to the actual ROM file) displays some game-like behavior. It's an infinite loop of visual output that responds to human input. Take a look at the .gifs below:
+Despite my entire pipeline being focused on generating visual output, I discovered something that is more than just weird visual ouput. The ROM I'm calling `51014` ([here's a link](/assets/pages/roms/5101496f45e8b.bin) to the actual ROM file) displays some game-like behavior. It's an infinite loop of visual output that responds to human input. Take a look at the .gifs below:
 
 <style>
   /* Responsive side-by-side figures */
