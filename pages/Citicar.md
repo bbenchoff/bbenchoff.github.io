@@ -91,7 +91,7 @@ With the new controller tested and confirmed working, I still couldn't get the m
 
 ![A broken brush](/images/Car/Part5/ChoochedBrushes.png){: loading="lazy" alt="A broken brush"}
 
-I had two options: replace the brushes ($40) and hope everything else is okay, or replace the entire motor (~$2000). I, of course, chose the less expensive option, which seems to be a recurring theme in this build. This did not come back to bite me in the ass at all.
+I had two options: replace the brushes ( forty bucks ) and hope everything else is okay, or replace the entire motor ( two grand ). I, of course, chose the less expensive option, which seems to be a recurring theme in this build. This did not come back to bite me in the ass at all.
 
 After pulling the motor out, I had some idea of what the [motor mount and spline looked like](/images/Car/Part5/MotorMountPlate.png). At least now the motor is easy to work on and I can assess my replacement options.
 
