@@ -28,7 +28,7 @@ You know the movie _Contact_? You know the book? In the last chapter of the book
       The purpose of this exercise wasn’t to find ROMs that could have been Atari games released in 1980. It wasn’t to find <em>Adventure II</em>, <em>Pitfall III</em>, or the Atari 2600 version of <em>Koyaanisqatsi</em>, with chiptunes by Philip Glass.
     </p>
   </div>
-  <div style="flex: 1 1 300px; max-width: 300px;">
+  <div style="flex: 1 1 400px; max-width: 400px;">
     <img src="/images/Koyaanisqatsi.jpg" alt="koyaanisqatsi, the video game" style="width: 100%; height: auto; border-radius: 4px; box-shadow: 0 0 8px rgba(0,0,0,0.2);">
   </div>
 </div>
