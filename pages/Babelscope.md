@@ -47,15 +47,57 @@ This project is built off of [CuLE](https://github.com/NVlabs/cule), but CuLE is
 
 ## Conclusion
 
-<div style="display: flex; flex-wrap: wrap; align-items: flex-start; gap: 1rem; margin-bottom: 1.5rem;">
-  <div style="flex: 2 1 400px; min-width: 250px; font-size: 1rem; line-height: 1.6;">
+<div class="conclusion-flex">
+  <div class="conclusion-text">
     <p>
-      The purpose of this exercise wasn’t to find ROMs that could have been Atari games released in 1980. It wasn’t to find <em>Adventure II</em>, <em>Pitfall III</em>, or the Atari 2600 version of <em>Koyaanisqatsi</em>, with chiptunes by Philip Glass.
+      The purpose of this exercise wasn't to find ROMs that could have been Atari games released in 1980. It wasn't to find <em>Adventure II</em>, <em>Pitfall III</em>, or the Atari 2600 version of <em>Koyaanisqatsi</em>, with chiptunes by Philip Glass.
     </p>
   </div>
-  <div style="flex: 1 1 400px; max-width: 400px;">
-    <img src="/images/Koyaanisqatsi.jpg" alt="koyaanisqatsi, the video game" style="width: 100%; height: auto; border-radius: 4px; box-shadow: 0 0 8px rgba(0,0,0,0.2);">
+  <div class="conclusion-image">
+    <img src="/images/Koyaanisqatsi.jpg" alt="koyaanisqatsi, the video game">
   </div>
 </div>
+
+<style>
+.conclusion-flex {
+  display: flex;
+  flex-direction: column-reverse;
+  align-items: flex-start;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.conclusion-text {
+  font-size: 1rem;
+  line-height: 1.6;
+}
+
+.conclusion-image {
+  width: 100%;
+}
+
+.conclusion-image img {
+  width: 100%;
+  height: auto;
+  border-radius: 4px;
+  box-shadow: 0 0 8px rgba(0,0,0,0.2);
+}
+
+@media (min-width: 768px) {
+  .conclusion-flex {
+    flex-direction: row;
+  }
+  
+  .conclusion-text {
+    flex: 2 1 400px;
+    min-width: 250px;
+  }
+  
+  .conclusion-image {
+    flex: 1 1 400px;
+    max-width: 400px;
+  }
+}
+</style>
 
 [back](../)
