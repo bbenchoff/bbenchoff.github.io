@@ -31,8 +31,7 @@ This is the solution to the problem of the [Finite Atari Machine](https://bbench
 
 This approach is insufficient. A very minimal program can be constructed that would output interesting video -- it can be done in just 32 bytes, even -- but this program would not pass the heuristics test. For example, this program creates an animated color pattern on the screen but would fail all heuristic tests:
 
-<pre class="no-collapse"><code>
-; Program starts at $F000
+<pre class="no-collapse"><code>; Program starts at $F000
 LDA #$00   ; Start with color 0 / black 
 STA $2C    ; Set background color
 INC        ; Increment accumulator
@@ -54,7 +53,7 @@ This project is built off of [CuLE](https://github.com/NVlabs/cule), but CuLE is
     </p>
   </div>
   <div class="conclusion-image">
-    <img src="/images/Koyaanisqatsi.jpg" alt="koyaanisqatsi, the video game">
+    <img src="/images/Koyaanisqatsi.jpg" alt="Koyaanisqatsi, the video game">
   </div>
 </div>
 
