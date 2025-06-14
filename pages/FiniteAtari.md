@@ -6,7 +6,7 @@ keywords: ["Atari 2600", "ROM generation", "6502 emulator", "procedural generati
 author: "Brian Benchoff"
 date: 2025-06-06
 last_modified_at: 2025-06-09
-image: "/images/FiniteAtari/FiniteAtariCard.png"
+image: "/images/Koyaanisqatsi.jpg"
 ---
 <!-- ── Finite Atari Machine banner ── -->
 <div class="fam-banner">
