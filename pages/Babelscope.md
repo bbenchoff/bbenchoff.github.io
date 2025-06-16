@@ -13,23 +13,15 @@ image: "/images/default.jpg"
 
 This is the followup to my previous project, the [Finite Atari Machine](https://bbenchoff.github.io/pages/FiniteAtari.html). With the Finite Atari Machine, I used a GPU to generate billions and billions of Atari 2600 ROMs filled with random data that conformed to some heuristics gleaned from commercially released Atari games. I found some interesting stuff, including a 'protogame' that produced changing visual output dependent on player input.
 
-This project is the next step. Instead of merely generating random ROMs in a GPU and checking results in an emulator, we build a massively parallel framework to generate billions of ROMs and test them all with emulation. [Thanks to a CUDA Atari emulator](https://github.com/NVlabs/cule), we can run billions of random ROMs and see what drops out. 
+This project is the next step. Instead of merely generating random ROMs in a GPU and checking results in an emulator, we build a massively parallel framework to generate billions of ROMs and test them all with emulation. 
 
-This is not a fuzzer, because instead of generating random input, I'm seeing if a random _program_ runs. It's not genetic programming, because there's no fitness function. It's not the [Superoptimizer](https://dl.acm.org/doi/pdf/10.1145/36177.36194), because I'm looking for _all_ programs that do _something_. There are CS papers going back to the 60s that touch on this, but until now we haven't had the compute to actually do this. This isn't computer science, because there's no real condition of success. This isn't machine learning, because I'm not training anything to get better. This isn't art, because it's random data without intent. It's more like astronomy. I'm pointing a telescope at $10^{10159}$ random Atari games and cataloging whatever strange objects I happen to find.
+This is not a fuzzer, because instead of generating random input, I'm seeing if a random _program_ runs. It's not genetic programming, because there's no fitness function. It's not the [Superoptimizer](https://dl.acm.org/doi/pdf/10.1145/36177.36194), because I'm looking for _all_ programs that do _something_. There are CS papers going back to the 60s that touch on this, but until now we haven't had the compute to actually do this. This isn't computer science, because there's no real condition of success. This isn't machine learning, because I'm not training anything to get better. This isn't art, because it's random data without intent. It's more like astronomy. I'm pointing a telescope at $10^{10159}$ random 4 kilobyte binaries and cataloging whatever strange objects I happen to find.
 
 You know the movie _Contact_? You know the book? In the last chapter of the book, the main character looks a trillion digits into pi, in base 11, and finds a perfect circle, rendered in ones and zeros. In the book, that’s a sign of something greater. That's not what I'm doing here. I just built the telescope, and I'm looking for anything interesting.
 
 ## Technical Reasoning
 
-The idea behind this project is to create a _massively parallel_ collection of Atari 2600 emulators. On a regular desktop computer, you could run a dozen, or maybe a few dozen Atari emulators at the same time. GPUs, on the other hand, have thousands of processing cores designed for parallel execution. Where your desktop might have 32 cores, an Nvidia 3090 has 10,496 CUDA cores, allowing me to run thousands of emulators simultaneously.
-
-The key bit of code is an emulator designed to run in a CUDA core. This is [CuLE, a CUDA port of the Atari Learning Environment](https://github.com/NVlabs/cule). Originally designed for running Atari ROMs in parallel for reinforcement learning, I'm stripping out all of the ML stuff to simply see if a ROM will run in an emulator. This allows for independent execution of thousands of different ROMs, no performance penalty for different instruction paths, and scalable to millions of emulators at a time. With a single RTX4090, I can test half a million ROMs in under a minute, something that would take months on a CPU.
-
-This massively parallel solution is necessary because there is no way to tell if a ROM will run without running it. This is the [halting problem](https://en.wikipedia.org/wiki/Halting_problem) in action. There is no way to determine if a program will access the video output or will stop dead after a few clock cycles without actually running the entire program.
-
-This is the solution to the problem of the [Finite Atari Machine](https://bbenchoff.github.io/pages/FiniteAtari.html). In my previous work, I was using heuristics to determine if a ROM was promising. By counting the number of different opcodes used, counting the number of jumps in the code, and counting how often the video chip was accessed, I could generate ROMs that could be games but the only way to be sure is to check them in an emulator.
-
-This approach is insufficient. A very minimal program can be constructed that would output interesting video -- it can be done in just 32 bytes, even -- but this program would not pass the heuristics test. For example, this program creates an animated color pattern on the screen but would fail all heuristic tests:
+While the Finite Atari Machine showed it was possible to find interesting objects in the enormous space of random programs, this technique had drawbacks. I was limited by heuristics, and there are trivial counterexamples for an 'interesting' program that would not pass these heuristics. A very minimal program can be constructed that outputs interesting video -- it can be done in just 32 bytes, even -- but this program would not pass the heuristics test. For example, this program creates an animated color pattern on the Atari, but would fail all heuristic tests:
 
 <pre class="no-collapse"><code>; Program starts at $F000
 LDA #$00   ; Start with color 0 / black 
@@ -38,11 +30,21 @@ INC        ; Increment accumulator
 JMP $F002  ; Jump to set background color
 </code></pre>
 
-To find the population of interesting ROMs, you need to run them all. By running millions of random ROMs through this parallel emulation system, I can finally map the complete behavior space of the Atari 2600 and answer the question: what fraction of all possible programs produce interesting output?
+To find the population of interesting ROMs, you need to run them all. This is the [halting problem](https://en.wikipedia.org/wiki/Halting_problem) in action. There is no way to determine if a program will access the video output or will stop dead after a few clock cycles without actually running the entire program.
+
+The key to finding interesting bits of machine code in random data is simply to emulate everything, and there's no way around it. The solution to finding interesting bits of computation in random data would require a massively parallel emulation framework addressing two key limitations of the Atari 2600. The Atari is far too complex [even with a parallel emulation framework](https://github.com/NVlabs/cule), and the limited RAM of 128 bytes is much too small for memory pattern analysis. This led me to look for a better platform for this project.
+
+The solution to this problem is the [CHIP-8](https://en.wikipedia.org/wiki/CHIP-8), a cross between a programming language and a virtual machine. The CHIP-8 provides a stable video interface instead of the Atari's complex TIA timing requirements, and also provides 4kB of directly addressable RAM compared to the Atari's 128 bytes. Most important for this project, the CHIP-8 is ideal for GPU parallelization and the architecture of the system makes it straightforward to instrument the internal state of the system during emulation.
+
+The goal of this project is to run billions of ROMs in parallel, just to see if something interesting happens. Because of my success with the Finite Atari Machine this is somewhat of a foregone conclusion, even if it might take a while. But the change to the CHIP-8 platform also allows me to ask a deeper question: If I pre-seed memory with structured data, will a random program ever sort it? Could something like quicksort be found in the program space? If I define a graph in memory -- a set of nodes and weighted edges -- will Dijkstra stumble out?
+
+Here's the cool thing: Since I'm effectively doing an exhaustive search (limited by the heat death of the Universe), bubblesort and A* can be found in the program space if they can be expressed on the system at all. This raises the question: _what else is there waiting to be found?_
+
+If this sounds somewhat familiar, you're right: it's effectively [A New Kind of Science](https://en.wikipedia.org/wiki/A_New_Kind_of_Science), but slightly modified. Stephen Wolfram's research involves studying how complex behaviors emerge from cellular automata and Turing machines using a systematic exploration of simple rule sets. The Babelscope inverts this approach entirely. Instead of starting with simple rules and seeing what emerges, I'm taking a complex system and looking at what random instances do. It's the difference between breeding finches and setting up a webcam next to a bird feeder. _Why_ this research has never been done is anyone's guess, but if I had to, I'd say Wolfram is more interested in getting a second element named after himself than doing anything cool.
 
 ## Technical Implementation
 
-This project is built off of [CuLE](https://github.com/NVlabs/cule), but CuLE is at least half a decade old at this point and encumbered with with a lot of PyTorch calls. I do not need machine learning for this -- I don't even need video output for this -- but I would like to instrument this emulator for some statistics of what happened in each emulator during runtime. This means major modifications to CuLE are needed.
+<<SOMETHING SOMETHING>>
 
 ## Conclusion
 
