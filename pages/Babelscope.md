@@ -11,6 +11,10 @@ image: "/images/default.jpg"
 
 # Babelscope
 
+<div class="abstract" style="margin: 2rem 3rem; padding: 1.5rem 2rem; font-style: italic; color: #666; background-color: #fafafa; font-size: 0.95rem; line-height: 1.7; border-radius: 4px;">
+   The Babelscope is a massively parallel emulation framework designed to explore the computational space of random programs. Building on the <a href="https://bbenchoff.github.io/pages/FiniteAtari.html">Finite Atari Machine</a>, this project generates billions of random CHIP-8 ROMs and executes them simultaneously on GPU hardware to catalog emergent behaviors. Rather than training models or optimizing for specific outcomes, we conduct an exhaustive survey of the program space looking for anything that produces interesting visual output, responds to input, or exhibits complex computational patterns. The framework addresses fundamental questions about what algorithms might spontaneously emerge from randomness, from simple graphics routines to potentially sophisticated sorting or path finding behaviors.
+</div>
+
 This is the followup to my previous project, the [Finite Atari Machine](https://bbenchoff.github.io/pages/FiniteAtari.html). With the Finite Atari Machine, I used a GPU to generate billions and billions of Atari 2600 ROMs filled with random data that conformed to some heuristics gleaned from commercially released Atari games. I found some interesting stuff, including a 'protogame' that produced changing visual output dependent on player input.
 
 This project is the next step. Instead of merely generating random ROMs in a GPU and checking results in an emulator, we build a massively parallel framework to generate billions of ROMs and test them all with emulation. 
@@ -50,7 +54,7 @@ The first goal of this project is to build an emulator or interpreter that can b
 * The CHIP-8 is a virtual machine. This is getting into the weeds a bit, but the Atari is hell for parallelization. Yes, it's been done with [CuLE](https://github.com/NVlabs/cule), but the Atari has instructions that run in two clock cycles, or four, or seven cycles, or something else. This is hell for running multiple instances on a GPU. The CHIP-8, on the other hand, can just... run. One instruction per tick. It's easy.
 * The Atari races the beam. It is a device that generates NTSC (or PAL, or SEACAM) video. I _could_ do this, but I really don't want to. The CHIP-8, on the other hand, is just a 64x32 pixel array that is much simpler to write to and decode.
 
-So I had to write a CHIP-8 emulator following [Cowgod's Technical Reference](http://devernay.free.fr/hacks/chip8/C8TECH10.HTM). Easy enough:
+So I had to write a CHIP-8 emulator following [Cowgod's Technical Reference](http://devernay.free.fr/hacks/chip8/C8TECH10.HTM). I want this to be portable so anyone can run it, on Nvidia or AMD hardware. That's [CuPy](https://cupy.dev/). Easy enough:
 
 <<Python Code goes here>>
 
