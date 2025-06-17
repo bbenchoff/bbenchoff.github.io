@@ -13,7 +13,88 @@ image: "/images/default.jpg"
 
 <div class="abstract" style="margin: 2rem 3rem; padding: 1.5rem 2rem; font-style: italic; color: #666; background-color: #fafafa; font-size: 0.95rem; line-height: 1.7; border-radius: 4px;">
    The Babelscope is a massively parallel emulation framework designed to explore the computational space of random programs. Building on the <a href="https://bbenchoff.github.io/pages/FiniteAtari.html">Finite Atari Machine</a>, this project generates billions of random CHIP-8 ROMs and executes them simultaneously on GPU hardware to catalog emergent behaviors. Rather than training models or optimizing for specific outcomes, we conduct an exhaustive survey of the program space looking for anything that produces interesting visual output, responds to input, or exhibits complex computational patterns. The framework addresses fundamental questions about what algorithms might spontaneously emerge from randomness, from simple graphics routines to potentially sophisticated sorting or path finding behaviors.
-</div> 
+</div>
+
+<div class="table-of-contents" style="margin: 2rem 3rem; padding: 1.5rem 2rem; background-color: #fafafa; font-size: 0.95rem; line-height: 1.6; border-radius: 4px;">
+    <h3 style="margin: 0 0 1rem 0; font-size: 1rem; color: #444; font-weight: 600;">Table of Contents</h3>
+    <ul style="margin: 0; padding-left: 1.5rem; list-style-type: none;">
+        <li style="margin-bottom: -0.5rem;">
+            <a href="#introduction" style="color: #666; text-decoration: none; display: block; padding: 0.25rem 0;">Introduction</a>
+        </li>
+        <li style="margin-bottom: -0.5rem;">
+            <a href="#technical-reasoning" style="color: #666; text-decoration: none; display: block; padding: 0.25rem 0;">Technical Reasoning</a>
+        </li>
+        <li style="margin-bottom: -0.5rem;">
+            <a href="#technical-implementation" style="color: #666; text-decoration: none; display: block; padding: 0.25rem 0;">Technical Implementation</a>
+            <ul style="margin: 0.25rem 0 -0.5rem 0; padding-left: 1.5rem; list-style-type: none;">
+                <li style="margin-bottom: -0.25rem;">
+                    <a href="#platform-choice" style="color: #888; font-size: 0.9rem; text-decoration: none; display: block; padding: 0.15rem 0;">Platform Choice</a>
+                </li>
+                <li style="margin-bottom: -0.25rem;">
+                    <a href="#cupy-implementation" style="color: #888; font-size: 0.9rem; text-decoration: none; display: block; padding: 0.15rem 0;">CuPy Implementation</a>
+                </li>
+            </ul>
+        </li>
+        <li style="margin-bottom: 0rem;">
+            <a href="#emulator-design" style="color: #666; text-decoration: none; display: block; padding: 0.25rem 0;">Emulator Design</a>
+            <ul style="margin: 0.25rem 0 0 0; padding-left: 1.5rem; list-style-type: none;">
+                <li style="margin-bottom: -0.25rem;">
+                    <a href="#core-architecture" style="color: #888; font-size: 0.9rem; text-decoration: none; display: block; padding: 0.15rem 0;">Core Architecture</a>
+                </li>
+                <li style="margin-bottom: -0.25rem;">
+                    <a href="#instruction-set" style="color: #888; font-size: 0.9rem; text-decoration: none; display: block; padding: 0.15rem 0;">Instruction Set Implementation</a>
+                </li>
+                <li style="margin-bottom: -0.25rem;">
+                    <a href="#batch-processing" style="color: #888; font-size: 0.9rem; text-decoration: none; display: block; padding: 0.15rem 0;">Batch Processing</a>
+                </li>
+            </ul>
+        </li>
+        <li style="margin-bottom: 0rem;">
+            <a href="#rom-generation" style="color: #666; text-decoration: none; display: block; padding: 0.25rem 0;">ROM Generation and Filtering</a>
+        </li>
+        <li style="margin-bottom: 0rem;">
+            <a href="#instrumentation" style="color: #666; text-decoration: none; display: block; padding: 0.25rem 0;">Instrumentation and Analysis</a>
+            <ul style="margin: 0.25rem 0 0 0; padding-left: 1.5rem; list-style-type: none;">
+                <li style="margin-bottom: -0.25rem;">
+                    <a href="#metrics" style="color: #888; font-size: 0.9rem; text-decoration: none; display: block; padding: 0.15rem 0;">Performance Metrics</a>
+                </li>
+                <li style="margin-bottom: -0.25rem;">
+                    <a href="#behavior-detection" style="color: #888; font-size: 0.9rem; text-decoration: none; display: block; padding: 0.15rem 0;">Behavior Detection</a>
+                </li>
+            </ul>
+        </li>
+        <li style="margin-bottom: 0rem;">
+            <a href="#results" style="color: #666; text-decoration: none; display: block; padding: 0.25rem 0;">Results and Discoveries</a>
+        </li>
+        <li style="margin-bottom: 0rem;">
+            <a href="#future-work" style="color: #666; text-decoration: none; display: block; padding: 0.25rem 0;">Future Work</a>
+        </li>
+        <li style="margin-bottom: 0;">
+            <a href="#conclusion" style="color: #666; text-decoration: none; display: block; padding: 0.25rem 0;">Conclusion</a>
+        </li>
+    </ul>
+    
+    <style>
+        .table-of-contents a:hover {
+            color: #333 !important;
+            text-decoration: underline !important;
+        }
+        
+        .table-of-contents ul ul a:hover {
+            color: #555 !important;
+        }
+        
+        @media (max-width: 768px) {
+            .table-of-contents {
+                margin: 1.5rem 1rem !important;
+                padding: 1rem 1.5rem !important;
+                font-size: 0.9rem !important;
+            }
+        }
+    </style>
+</div>
+
+<h2 id="introduction">Introduction</h2>
 
 This is the followup to my previous project, the [Finite Atari Machine](https://bbenchoff.github.io/pages/FiniteAtari.html). With the Finite Atari Machine, I used a GPU to generate billions and billions of Atari 2600 ROMs filled with random data that conformed to some heuristics gleaned from commercially released Atari games. I found some interesting stuff, including a 'protogame' that produced changing visual output dependent on player input.
 
@@ -23,7 +104,7 @@ This is not a fuzzer, because instead of generating random input, I'm seeing if 
 
 You know the movie _Contact_? You know the book? In the last chapter of the book, the main character looks a trillion digits into pi, in base 11, and finds a perfect circle, rendered in ones and zeros. In the book, that’s a sign of something greater. That's not what I'm doing here. I just built the telescope, and I'm looking for anything interesting.
 
-## Technical Reasoning
+<h2 id="technical-reasoning">Technical Reasoning</h2>
 
 While the Finite Atari Machine showed it was possible to find interesting objects in the enormous space of random programs, this technique had drawbacks. I was limited by heuristics, and there are trivial counterexamples for an 'interesting' program that would not pass these heuristics. A very minimal program can be constructed that outputs interesting video -- it can be done in just 32 bytes, even -- but this program would not pass the heuristics test. For example, this program creates an animated color pattern on the Atari, but would fail all heuristic tests:
 
@@ -46,7 +127,8 @@ Here's the cool thing: Since I'm effectively doing an exhaustive search (limited
 
 If this sounds somewhat familiar, you're right: it's effectively [A New Kind of Science](https://en.wikipedia.org/wiki/A_New_Kind_of_Science), but slightly modified. Stephen Wolfram's research involves studying how complex behaviors emerge from cellular automata and Turing machines using a systematic exploration of simple rule sets. The Babelscope inverts this approach entirely. Instead of starting with simple rules and seeing what emerges, I'm taking a complex system and looking at what random instances do. It's the difference between breeding finches and setting up a webcam next to a bird feeder. _Why_ this research has never been done is anyone's guess, but if I had to, I'd say Wolfram is more interested in getting a second element named after himself than doing anything cool.
 
-## Technical Implementation
+<h2 id="technical-implementation">Technical Implementation</h2>
+<h3 id="platform-choice">Platform Choice</h3>
 
 The first goal of this project is to build an emulator or interpreter that can be run at a massively parallel scale. For this, the choice of the CHIP-8 architecture becomes obvious in retrospect. The CHIP-8 has a number of advantages for this project over the Atari 2600. Of those:
 
@@ -56,9 +138,11 @@ The first goal of this project is to build an emulator or interpreter that can b
 
 So I had to write a CHIP-8 emulator following [Cowgod's Technical Reference](http://devernay.free.fr/hacks/chip8/C8TECH10.HTM). I want this to be portable so anyone can run it, on Nvidia or AMD hardware. That's [CuPy](https://cupy.dev/). Easy enough:
 
+<h3 id="cupy-implementation">CuPy Implementation</h3>
+
 <<Python Code goes here>>
 
-## Conclusion
+<h2 id="conclusion">Conclusion</h2>
 
 <div class="conclusion-flex">
   <div class="conclusion-text">
