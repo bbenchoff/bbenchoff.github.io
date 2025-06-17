@@ -44,7 +44,15 @@ If this sounds somewhat familiar, you're right: it's effectively [A New Kind of 
 
 ## Technical Implementation
 
-<<SOMETHING SOMETHING>>
+The first goal of this project is to build an emulator or interpreter that can be run at a massively parallel scale. For this, the choice of the CHIP-8 architecture becomes obvious in retrospect. The CHIP-8 has a number of advantages for this project over the Atari 2600. Of those:
+
+* The CHIP-8 has a uniform instruction width. Every instruction is exactly two bytes. The Atari uses variable-length instructions, where each line of assembly can be one, two, or three bytes long. This simplifies decoding and when to increase the Program Counter.
+* The CHIP-8 is a virtual machine. This is getting into the weeds a bit, but the Atari is hell for parallelization. Yes, it's been done with [CuLE](https://github.com/NVlabs/cule), but the Atari has instructions that run in two clock cycles, or four, or seven cycles, or something else. This is hell for running multiple instances on a GPU. The CHIP-8, on the other hand, can just... run. One instruction per tick. It's easy.
+* The Atari races the beam. It is a device that generates NTSC (or PAL, or SEACAM) video. I _could_ do this, but I really don't want to. The CHIP-8, on the other hand, is just a 64x32 pixel array that is much simpler to write to and decode.
+
+So I had to write a CHIP-8 emulator following [Cowgod's Technical Reference](http://devernay.free.fr/hacks/chip8/C8TECH10.HTM). Easy enough:
+
+<<Python Code goes here>>
 
 ## Conclusion
 
