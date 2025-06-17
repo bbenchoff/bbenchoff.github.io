@@ -8,90 +8,146 @@ date: 2025-06-04
 last_modified_at: 2022-06-04
 image: "/images/default.jpg"
 ---
+<style>
+.page-container {
+    display: flex;
+    max-width: 1200px;
+    margin: 0 auto;
+    gap: 2rem;
+    padding: 0 1rem;
+}
+
+.main-content {
+    flex: 1;
+    max-width: 800px;
+}
+
+.toc-sidebar {
+    width: 250px;
+    flex-shrink: 0;
+}
+
+.toc-sticky {
+    position: sticky;
+    top: 2rem;
+    background: #fafafa;
+    border-radius: 4px;
+    padding: 1.5rem;
+    max-height: calc(100vh - 4rem);
+    overflow-y: auto;
+    font-size: 0.85rem;
+}
+
+.toc-sticky h3 {
+    margin: 0 0 1rem 0;
+    font-size: 0.9rem;
+    color: #444;
+}
+
+.toc-sticky ul {
+    margin: 0;
+    padding-left: 1.5rem;
+    list-style: none;
+}
+
+.toc-sticky li {
+    margin-bottom: 0.1rem;
+}
+
+.toc-sticky a {
+    display: block;
+    padding: 0.1rem 0;
+    color: #666;
+    text-decoration: none;
+}
+
+.toc-sticky a:hover {
+    color: #333;
+}
+
+@media (max-width: 1024px) {
+    .page-container {
+        flex-direction: column;
+    }
+    .toc-sidebar {
+        width: 100%;
+        order: -1;
+    }
+    .toc-sticky {
+        position: static;
+    }
+}
+</style>
+
+<div class="page-container">
+    <aside class="toc-sidebar">
+        <nav class="toc-sticky">
+          <div class="table-of-contents" style="margin: 2rem 3rem; padding: 1.5rem 2rem; background-color: #fafafa; font-size: 0.95rem; line-height: 1.6; border-radius: 4px;">
+              <h3 style="margin: 0 0 1rem 0; font-size: 1rem; color: #444; font-weight: 600;">Table of Contents</h3>
+              <ul style="margin: 0; padding-left: 1.5rem; list-style-type: none;">
+                  <li style="margin-bottom: -0.5rem;">
+                      <a href="#introduction" style="color: #666; text-decoration: none; display: block; padding: 0.25rem 0;">Introduction</a>
+                  </li>
+                  <li style="margin-bottom: -0.5rem;">
+                      <a href="#technical-reasoning" style="color: #666; text-decoration: none; display: block; padding: 0.25rem 0;">Technical Reasoning</a>
+                  </li>
+                  <li style="margin-bottom: -0.5rem;">
+                      <a href="#technical-implementation" style="color: #666; text-decoration: none; display: block; padding: 0.25rem 0;">Technical Implementation</a>
+                      <ul style="margin: 0.25rem 0 -0.5rem 0; padding-left: 1.5rem; list-style-type: none;">
+                          <li style="margin-bottom: -0.25rem;">
+                              <a href="#platform-choice" style="color: #888; font-size: 0.9rem; text-decoration: none; display: block; padding: 0.15rem 0;">Platform Choice</a>
+                          </li>
+                          <li style="margin-bottom: -0.25rem;">
+                              <a href="#cupy-implementation" style="color: #888; font-size: 0.9rem; text-decoration: none; display: block; padding: 0.15rem 0;">CuPy Implementation</a>
+                          </li>
+                      </ul>
+                  </li>
+                  <li style="margin-bottom: 0rem;">
+                      <a href="#emulator-design" style="color: #666; text-decoration: none; display: block; padding: 0.25rem 0;">Emulator Design</a>
+                      <ul style="margin: 0.25rem 0 0 0; padding-left: 1.5rem; list-style-type: none;">
+                          <li style="margin-bottom: -0.25rem;">
+                              <a href="#core-architecture" style="color: #888; font-size: 0.9rem; text-decoration: none; display: block; padding: 0.15rem 0;">Core Architecture</a>
+                          </li>
+                          <li style="margin-bottom: -0.25rem;">
+                              <a href="#instruction-set" style="color: #888; font-size: 0.9rem; text-decoration: none; display: block; padding: 0.15rem 0;">Instruction Set Implementation</a>
+                          </li>
+                          <li style="margin-bottom: -0.25rem;">
+                              <a href="#batch-processing" style="color: #888; font-size: 0.9rem; text-decoration: none; display: block; padding: 0.15rem 0;">Batch Processing</a>
+                          </li>
+                          <li style="margin-bottom: -0.25rem;">
+                              <a href="#ROM-generation" style="color: #888; font-size: 0.9rem; text-decoration: none; display: block; padding: 0.15rem 0;">ROM Generation</a>
+                          </li>
+                      </ul>
+                  </li>
+                  <li style="margin-bottom: 0rem;">
+                      <a href="#instrumentation" style="color: #666; text-decoration: none; display: block; padding: 0.25rem 0;">Instrumentation and Analysis</a>
+                      <ul style="margin: 0.25rem 0 0 0; padding-left: 1.5rem; list-style-type: none;">
+                          <li style="margin-bottom: -0.25rem;">
+                              <a href="#metrics" style="color: #888; font-size: 0.9rem; text-decoration: none; display: block; padding: 0.15rem 0;">Performance Metrics</a>
+                          </li>
+                          <li style="margin-bottom: -0.25rem;">
+                              <a href="#behavior-detection" style="color: #888; font-size: 0.9rem; text-decoration: none; display: block; padding: 0.15rem 0;">Behavior Detection</a>
+                          </li>
+                      </ul>
+                  </li>
+                  <li style="margin-bottom: 0rem;">
+                      <a href="#results" style="color: #666; text-decoration: none; display: block; padding: 0.25rem 0;">Results and Discoveries</a>
+                  </li>
+                  <li style="margin-bottom: 0rem;">
+                      <a href="#future-work" style="color: #666; text-decoration: none; display: block; padding: 0.25rem 0;">Future Work</a>
+                  </li>
+                  <li style="margin-bottom: 0;">
+                      <a href="#conclusion" style="color: #666; text-decoration: none; display: block; padding: 0.25rem 0;">Conclusion</a>
+                  </li>
+              </ul>
+        </nav>
+    </aside>
+    <main class="main-content">
 
 # Babelscope
 
 <div class="abstract" style="margin: 2rem 3rem; padding: 1.5rem 2rem; font-style: italic; color: #666; background-color: #fafafa; font-size: 0.95rem; line-height: 1.7; border-radius: 4px;">
    The Babelscope is a massively parallel emulation framework designed to explore the computational space of random programs. Building on the <a href="https://bbenchoff.github.io/pages/FiniteAtari.html">Finite Atari Machine</a>, this project generates billions of random CHIP-8 ROMs and executes them simultaneously on GPU hardware to catalog emergent behaviors. Rather than training models or optimizing for specific outcomes, we conduct an exhaustive survey of the program space looking for anything that produces interesting visual output, responds to input, or exhibits complex computational patterns. The framework addresses fundamental questions about what algorithms might spontaneously emerge from randomness, from simple graphics routines to potentially sophisticated sorting or path finding behaviors.
-</div>
-
-<div class="table-of-contents" style="margin: 2rem 3rem; padding: 1.5rem 2rem; background-color: #fafafa; font-size: 0.95rem; line-height: 1.6; border-radius: 4px;">
-    <h3 style="margin: 0 0 1rem 0; font-size: 1rem; color: #444; font-weight: 600;">Table of Contents</h3>
-    <ul style="margin: 0; padding-left: 1.5rem; list-style-type: none;">
-        <li style="margin-bottom: -0.5rem;">
-            <a href="#introduction" style="color: #666; text-decoration: none; display: block; padding: 0.25rem 0;">Introduction</a>
-        </li>
-        <li style="margin-bottom: -0.5rem;">
-            <a href="#technical-reasoning" style="color: #666; text-decoration: none; display: block; padding: 0.25rem 0;">Technical Reasoning</a>
-        </li>
-        <li style="margin-bottom: -0.5rem;">
-            <a href="#technical-implementation" style="color: #666; text-decoration: none; display: block; padding: 0.25rem 0;">Technical Implementation</a>
-            <ul style="margin: 0.25rem 0 -0.5rem 0; padding-left: 1.5rem; list-style-type: none;">
-                <li style="margin-bottom: -0.25rem;">
-                    <a href="#platform-choice" style="color: #888; font-size: 0.9rem; text-decoration: none; display: block; padding: 0.15rem 0;">Platform Choice</a>
-                </li>
-                <li style="margin-bottom: -0.25rem;">
-                    <a href="#cupy-implementation" style="color: #888; font-size: 0.9rem; text-decoration: none; display: block; padding: 0.15rem 0;">CuPy Implementation</a>
-                </li>
-            </ul>
-        </li>
-        <li style="margin-bottom: 0rem;">
-            <a href="#emulator-design" style="color: #666; text-decoration: none; display: block; padding: 0.25rem 0;">Emulator Design</a>
-            <ul style="margin: 0.25rem 0 0 0; padding-left: 1.5rem; list-style-type: none;">
-                <li style="margin-bottom: -0.25rem;">
-                    <a href="#core-architecture" style="color: #888; font-size: 0.9rem; text-decoration: none; display: block; padding: 0.15rem 0;">Core Architecture</a>
-                </li>
-                <li style="margin-bottom: -0.25rem;">
-                    <a href="#instruction-set" style="color: #888; font-size: 0.9rem; text-decoration: none; display: block; padding: 0.15rem 0;">Instruction Set Implementation</a>
-                </li>
-                <li style="margin-bottom: -0.25rem;">
-                    <a href="#batch-processing" style="color: #888; font-size: 0.9rem; text-decoration: none; display: block; padding: 0.15rem 0;">Batch Processing</a>
-                </li>
-            </ul>
-        </li>
-        <li style="margin-bottom: 0rem;">
-            <a href="#rom-generation" style="color: #666; text-decoration: none; display: block; padding: 0.25rem 0;">ROM Generation and Filtering</a>
-        </li>
-        <li style="margin-bottom: 0rem;">
-            <a href="#instrumentation" style="color: #666; text-decoration: none; display: block; padding: 0.25rem 0;">Instrumentation and Analysis</a>
-            <ul style="margin: 0.25rem 0 0 0; padding-left: 1.5rem; list-style-type: none;">
-                <li style="margin-bottom: -0.25rem;">
-                    <a href="#metrics" style="color: #888; font-size: 0.9rem; text-decoration: none; display: block; padding: 0.15rem 0;">Performance Metrics</a>
-                </li>
-                <li style="margin-bottom: -0.25rem;">
-                    <a href="#behavior-detection" style="color: #888; font-size: 0.9rem; text-decoration: none; display: block; padding: 0.15rem 0;">Behavior Detection</a>
-                </li>
-            </ul>
-        </li>
-        <li style="margin-bottom: 0rem;">
-            <a href="#results" style="color: #666; text-decoration: none; display: block; padding: 0.25rem 0;">Results and Discoveries</a>
-        </li>
-        <li style="margin-bottom: 0rem;">
-            <a href="#future-work" style="color: #666; text-decoration: none; display: block; padding: 0.25rem 0;">Future Work</a>
-        </li>
-        <li style="margin-bottom: 0;">
-            <a href="#conclusion" style="color: #666; text-decoration: none; display: block; padding: 0.25rem 0;">Conclusion</a>
-        </li>
-    </ul>
-    
-    <style>
-        .table-of-contents a:hover {
-            color: #333 !important;
-            text-decoration: underline !important;
-        }
-        
-        .table-of-contents ul ul a:hover {
-            color: #555 !important;
-        }
-        
-        @media (max-width: 768px) {
-            .table-of-contents {
-                margin: 1.5rem 1rem !important;
-                padding: 1rem 1.5rem !important;
-                font-size: 0.9rem !important;
-            }
-        }
-    </style>
 </div>
 
 <h2 id="introduction">Introduction</h2>
@@ -141,6 +197,20 @@ So I had to write a CHIP-8 emulator following [Cowgod's Technical Reference](htt
 <h3 id="cupy-implementation">CuPy Implementation</h3>
 
 <<Python Code goes here>>
+
+<h2 id="emulator-design">Emulator Design</h2>
+<h3 id="core-architecture">Core Architecture</h3>
+
+Something something
+
+<h3 id="batch-processing">Batch Processing</h3>
+
+Something something
+
+<h3 id="ROM-generation">ROM Generation</h3>
+
+
+
 
 <h2 id="conclusion">Conclusion</h2>
 
@@ -198,3 +268,6 @@ So I had to write a CHIP-8 emulator following [Cowgod's Technical Reference](htt
 </style>
 
 [back](../)
+
+    </main>
+</div>
