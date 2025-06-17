@@ -2,7 +2,7 @@
 layout: default
 title: "Babelscope"
 description: "Massively parallel emulator framework for computational space exploration"
-keywords: ["GPU", "Emulation", "Atari 2600", "ROM generation", "6502 emulator", "procedural generation", "computational phenomenology", "Brian Benchoff"]
+keywords: ["GPU", "Emulation", "CHIP-8", "ROM generation", "procedural generation", "computational phenomenology", "Brian Benchoff"]
 author: "Brian Benchoff"
 date: 2025-06-04
 last_modified_at: 2022-06-04
@@ -34,9 +34,9 @@ To find the population of interesting ROMs, you need to run them all. This is th
 
 The key to finding interesting bits of machine code in random data is simply to emulate everything, and there's no way around it. The solution to finding interesting bits of computation in random data would require a massively parallel emulation framework addressing two key limitations of the Atari 2600. The Atari is far too complex [even with a parallel emulation framework](https://github.com/NVlabs/cule), and the limited RAM of 128 bytes is much too small for memory pattern analysis. This led me to look for a better platform for this project.
 
-The solution to this problem is the [CHIP-8](https://en.wikipedia.org/wiki/CHIP-8), a cross between a programming language and a virtual machine. The CHIP-8 provides a stable video interface instead of the Atari's complex TIA timing requirements, and also provides 4kB of directly addressable RAM compared to the Atari's 128 bytes. Most important for this project, the CHIP-8 is ideal for GPU parallelization and the architecture of the system makes it straightforward to instrument the internal state of the system during emulation.
+The solution to this problem is the [CHIP-8](https://en.wikipedia.org/wiki/CHIP-8). The CHIP-8 provides a stable video interface instead of the Atari's complex TIA timing requirements, and also provides 4kB of directly addressable RAM compared to the Atari's 128 bytes. Most important for this project, the CHIP-8 is ideal for GPU parallelization and the architecture makes it straightforward to instrument the internal state of the system during emulation.
 
-The goal of this project is to run billions of ROMs in parallel, just to see if something interesting happens. Because of my success with the Finite Atari Machine this is somewhat of a foregone conclusion, even if it might take a while. But the change to the CHIP-8 platform also allows me to ask a deeper question: If I pre-seed memory with structured data, will a random program ever sort it? Could something like quicksort be found in the program space? If I define a graph in memory -- a set of nodes and weighted edges -- will Dijkstra stumble out?
+The goal of this project is to run billions of ROMs in parallel, just to see if something interesting happens. Because of my success with the Finite Atari Machine, this is somewhat of a foregone conclusion even if it might take a while. But the change to the CHIP-8 platform also allows me to ask a deeper question: If I pre-seed memory with structured data, will a random program ever sort it? Could something like quicksort be found in the program space? If I define a graph in memory -- a set of nodes and weighted edges -- will Dijkstra stumble out?
 
 Here's the cool thing: Since I'm effectively doing an exhaustive search (limited by the heat death of the Universe), bubblesort and A* can be found in the program space if they can be expressed on the system at all. This raises the question: _what else is there waiting to be found?_
 
