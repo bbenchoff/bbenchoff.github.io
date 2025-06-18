@@ -85,13 +85,15 @@ This single-instance emulator is insufficient for running in a massive parallel 
   </div>
   <div class="side-image-container">
     <figure>
-      <img src="/images/Bablescope/ThinkinMachineSuperComputer.jpg" alt="The Connection Maching CM-2">
+      <img src="/images/Bablescope/ThinkinMachineSuperComputer.jpg" alt="The Connection Machine CM-2">
       <figcaption>It just occurred to me that I'm building one of these. For finding video games.</figcaption>
     </figure>
   </div>
 </div>
 
-With the Python implementation complete, I could begin work on the version for CuPy. 
+Let's say I'm running 10,000 instances of a CHIP-8 emulator, all running different programs. At any given cycle, each instance looks at the Program Counter to fetch the next instruction. 300 instances might have `0x8132` at this memory location -- a bitwise AND on the V1 and V3 registers, storing the result in V1. 290 instances have the instruction `0x8410` -- storing the value of register V1 in register V4. The GPU executes all unique instructions on all 10,000 instances, but only changes the state of the 300 instances with the AND instruction, and only increments the Program Counter of the store instruction. After all instructions are complete, each instance advances the Program Counter, and the cycle repeats.
+
+Here we're getting into the brilliance of using the CHIP-8 architecture. There are only 35 instructions, much less than the 150+ instructions of the Atari 2600. This means less time spent on each cycle, and better overall performance of the parallel emulator system. 
 
 ## Emulator Design
 ### Core Architecture
