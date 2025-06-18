@@ -75,9 +75,22 @@ This single-instance emulator is insufficient for running in a massive parallel 
   </div>
 </div>
 
-This is some other words that go in this section
+### GPU / Parallel Implementation
 
-<<Python Code goes here>>
+<div class="side-image">
+  <div class="side-text">
+    <p>With the Python implementation complete, I could begin work on the version for CuPy.</p>
+    <p>Blah another paragraph or something</p>
+  </div>
+  <div class="side-image-container">
+    <figure>
+      <img src="/images/Bablescope/ThinkinMachineSuperComputer.jpg" alt="The Connection Maching CM-2">
+      <figcaption>It just occurred to me that I'm building one of these. For finding video games.</figcaption>
+    </figure>
+  </div>
+</div>
+
+With the Python implementation complete, I could begin work on the version for CuPy. 
 
 ## Emulator Design
 ### Core Architecture
