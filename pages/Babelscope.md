@@ -65,7 +65,10 @@ So I had to write a CHIP-8 emulator following [Cowgod's Technical Reference](htt
     <p>Before something something this is some text that introduces this paragraph</p>
   </div>
   <div class="side-image-container">
-    <img src="/images/Bablescope/PythonTestSuite.png" alt="CHIP-8 emulator running Timendus' Chip-8 Test Suite">
+    <figure>
+      <img src="/images/Bablescope/PythonTestSuite.png" alt="CHIP-8 emulator running Timendus' Chip-8 Test Suite">
+      <figcaption>CHIP-8 emulator running Timendus' Chip-8 Test Suite</figcaption>
+    </figure>
   </div>
 </div>
 
