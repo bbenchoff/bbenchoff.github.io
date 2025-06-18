@@ -58,7 +58,18 @@ The first goal of this project is to build an emulator or interpreter that can b
 
 So I had to write a CHIP-8 emulator following [Cowgod's Technical Reference](http://devernay.free.fr/hacks/chip8/C8TECH10.HTM). I want this to be portable so anyone can run it, on Nvidia or AMD hardware. That's [CuPy](https://cupy.dev/). Easy enough:
 
-### CuPy Implementation
+### Python Implementation
+
+<div class="side-image">
+  <div class="side-text">
+    <p>Before something something this is some text that introduces this paragraph</p>
+  </div>
+  <div class="side-image-container">
+    <img src="/images/Bablescope/PythonTestSuite.png" alt="CHIP-8 emulator running Timendus' Chip-8 Test Suite">
+  </div>
+</div>
+
+This is some other words that go in this section
 
 <<Python Code goes here>>
 
@@ -78,19 +89,24 @@ Something something
 
 ## Conclusion
 
-<div class="conclusion-flex">
-  <div class="conclusion-text">
+## Conclusion
+
+<div class="side-image">
+  <div class="side-text">
     <p>
       The purpose of this exercise wasn't to find ROMs that could have been Atari games released in 1980. It wasn't to find <em>Adventure II</em>, <em>Pitfall III</em>, or the Atari 2600 version of <em>Koyaanisqatsi</em>, with chiptunes by Philip Glass.
     </p>
   </div>
-  <div class="conclusion-image">
+  <div class="side-image-container">
     <img src="/images/Koyaanisqatsi.jpg" alt="Koyaanisqatsi, the video game">
   </div>
 </div>
 
+
+
+
 <style>
-.conclusion-flex {
+.side-image {
   display: flex;
   flex-direction: column-reverse;
   align-items: flex-start;
@@ -98,16 +114,16 @@ Something something
   margin-bottom: 1.5rem;
 }
 
-.conclusion-text {
+.side-text {
   font-size: 1rem;
   line-height: 1.6;
 }
 
-.conclusion-image {
+.side-image-container {
   width: 100%;
 }
 
-.conclusion-image img {
+.side-image-container img {
   width: 100%;
   height: auto;
   border-radius: 4px;
@@ -115,20 +131,21 @@ Something something
 }
 
 @media (min-width: 768px) {
-  .conclusion-flex {
+  .side-image {
     flex-direction: row;
   }
-  
-  .conclusion-text {
+
+  .side-text {
     flex: 2 1 400px;
     min-width: 250px;
   }
-  
-  .conclusion-image {
+
+  .side-image-container {
     flex: 1 1 400px;
     max-width: 400px;
   }
 }
 </style>
+
 
 [back](../)
