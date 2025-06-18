@@ -52,17 +52,20 @@ If this sounds somewhat familiar, you're right: it's effectively [A New Kind of 
 
 The first goal of this project is to build an emulator or interpreter that can be run at a massively parallel scale. For this, the choice of the CHIP-8 architecture becomes obvious in retrospect. The CHIP-8 has a number of advantages for this project over the Atari 2600. Of those:
 
-* The CHIP-8 has a uniform instruction width. Every instruction is exactly two bytes. The Atari uses variable-length instructions, where each line of assembly can be one, two, or three bytes long. This simplifies decoding and when to increase the Program Counter.
+* The CHIP-8 has a uniform instruction width. Every instruction is exactly two bytes. The Atari uses variable-length instructions, where each line of assembly can be one, two, or three bytes long. This simplifies decoding, and knowing when and by how much to increase the Program Counter.
 * The CHIP-8 is a virtual machine. This is getting into the weeds a bit, but the Atari is hell for parallelization. Yes, it's been done with [CuLE](https://github.com/NVlabs/cule), but the Atari has instructions that run in two clock cycles, or four, or seven cycles, or something else. This is hell for running multiple instances on a GPU. The CHIP-8, on the other hand, can just... run. One instruction per tick. It's easy.
-* The Atari races the beam. It is a device that generates NTSC (or PAL, or SEACAM) video. I _could_ do this, but I really don't want to. The CHIP-8, on the other hand, is just a 64x32 pixel array that is much simpler to write to and decode.
+* The Atari races the beam. It is a device that generates NTSC (or PAL, or SEACAM) video. Even a 'headless' emulator would need to know where the back porch is, where the VBLANK is, count sixty eight clock cycles for each scanline, then another eight for the HBLANK. It's not a nightmare to emulate, but _man, I really don't want to do this_. The CHIP-8, on the other hand, is just a 64x32 pixel framebuffer that is much simpler to write to and decode.
 
-So I had to write a CHIP-8 emulator following [Cowgod's Technical Reference](http://devernay.free.fr/hacks/chip8/C8TECH10.HTM). I want this to be portable so anyone can run it, on Nvidia or AMD hardware. That's [CuPy](https://cupy.dev/). Easy enough:
+So I had to write a CHIP-8 emulator following [Cowgod's Technical Reference](http://devernay.free.fr/hacks/chip8/C8TECH10.HTM). I want this to be portable so anyone can run it, and a 'ground truth' as a reference standard. For this, I'm using Python with tkinter. Think of this version as the 'development' branch. It's a single instance, it will never run on the GPU, but it will be helpful to debug generated ROMs.
+
+This single-instance emulator is insufficient for running in a massive parallel emulation engine. I'll need another version that runs on a GPU, hopefully on both Nvidia or AMD hardware. That's [CuPy](https://cupy.dev/). Unlike the single-instance Python version, this version will not have a GUI, although it will keep that framebuffer in memory. There's no interactive debugging, and _everything_ will be vectorized; I will be able to record everything that happens across ten thousand instances of emulators running in parallel.
 
 ### Python Implementation
 
 <div class="side-image">
   <div class="side-text">
-    <p>Before something something this is some text that introduces this paragraph</p>
+    <p>The single-instance development is a thousand or so lines of Python. Other than a 64x32 display, there's not much to it. There are counters in the window showing the Program Counter and Index register -- not that useful but fun to look at -- and a few other status labels showing how many instructions have been executed and whether or not the emulator has crashed or not.</p>
+    <p>Getting this emulator _right_ was paramount. For this, I used a [CHIP-8 Test Suite](https://github.com/Timendus/chip8-test-suite). These are CHIP-8 programs that test the display, opcodes, flags, keypad, and all the quirks of the CHIP-8 platform. There are a few things I didn't implement. The CHIP-8 has a 'beep' instruction. I'm not implementing that because it's annoying and it really doesn't matter for this. Additionally, there are "SUPER-CHIP" and "XO-CHIP" interpreters that add more capabilities such as scrolling the display, a 16-bit addressing mode, and loading the Index register with a 16-bit address. These are not original CHIP-8 instructions, and their inclusion, especially loading the Index with a 16-bit address, would break the uniform instruction width feature I already have. These extensions to the CHIP-8 instruction set were ignored for this project.</p>
   </div>
   <div class="side-image-container">
     <figure>
