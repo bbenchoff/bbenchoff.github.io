@@ -76,16 +76,26 @@ This single-instance emulator is insufficient for running in a massive parallel 
 </div>
 
 The current Python implementation is available below, or [on Github](https://github.com/bbenchoff/Babelscope/blob/main/emulators/chip8.py)
-
 <pre id="code-block"><code class="language-python"></code></pre>
 <script>
-fetch('https://raw.githubusercontent.com/bbenchoff/Babelscope/main/emulators/chip8.py')
-  .then(response => response.text())
+fetch('https://raw.githubusercontent.com/bbenchoff/Babelscope/main/emulators/chip8.py', {
+  headers: {
+    'User-Agent': 'Mozilla/5.0'  // Spoof browser user agent
+  }
+})
+  .then(response => {
+    if (!response.ok) throw new Error(`HTTP error! ${response.status}`);
+    return response.text();
+  })
   .then(code => {
     document.querySelector('#code-block code').textContent = code;
     Prism.highlightAll();
+  })
+  .catch(error => {
+    document.querySelector('#code-block code').textContent = 'Failed to load code: ' + error;
   });
-</script> 
+</script>
+
 
 ### GPU / Parallel Implementation 
 
