@@ -97,19 +97,28 @@ Here we're getting into the brilliance of using the CHIP-8 architecture. There a
 
 ## Emulator Design
 ### Core Architecture
+### Memory State Instrumentation
+### Warp Divergence Solutions
 
-Something something
+## ROM Generation Strategy
+### Random Program Generation
+### Memory Pre-seeding for Algorithm Detection
 
-### Batch Processing
+## Algorithm Discovery Framework
+### Pattern Recognition Pipeline
+### Sorting Algorithm Detection
 
-Something something
+## Results and Discoveries
+### Emergent Algorithm Catalog
+### Comparison with Finite Atari Machine
 
-### ROM Generation
+## Future Directions
+### Distributed Computing Possibilities
+### Other Virtual Machine Targets
 
+No, I'm not doing Brainfuck.
 
-
-
-## Conclusion
+### Theoretical Implications
 
 ## Conclusion
 
