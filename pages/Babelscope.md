@@ -75,6 +75,19 @@ This single-instance emulator is insufficient for running in a massive parallel 
   </div>
 </div>
 
+The current Python implementation is available below, or [on Github](https://github.com/bbenchoff/Babelscope/blob/main/emulators/chip8.py)
+
+<pre id="code-block"><code class="language-python"></code></pre>
+<script>
+fetch('https://raw.githubusercontent.com/bbenchoff/Babelscope/refs/heads/main/emulators/chip8.py')
+  .then(response => response.text())
+  .then(code => {
+    document.querySelector('#code-block code').textContent = code;
+    Prism.highlightAll();  // if using Prism.js
+  });
+</script>
+
+
 ### GPU / Parallel Implementation
 
 <div class="side-image">
@@ -121,6 +134,14 @@ No, I'm not doing Brainfuck.
 ### Theoretical Implications
 
 ## Conclusion
+
+### Comparison to Related Works
+
+In literature, there are a few analogs to what I'm doing here. [Borges' _The Library of Babel_](https://en.wikipedia.org/wiki/The_Library_of_Babel) is the most obvious and where this project steals its name. It's a short story, just go read it now, but the basic premise is that the universe is a library filled with random books. There's a cult searching for the library index, and another cult destroying books that don't make sense. Just go read it.
+
+There's also Victor Pelevin's _iPhuck 10_, Russian fiction that [cannot be easily translated into English](https://rustrans.exeter.ac.uk/2020/10/23/translating-the-uncanny-valley-victor-pelevins-iphuck-10/) because the main character is an LLM trained on the entire corpus of Russian literature. [The summaries and commentatry](https://r0l.livejournal.com/921339.html) around this work talk about "Random Code Programming", which is exactly what I'm doing here. _iPhuck 10_ uses quantum computers, but the idea is the same -- look at the space of random programs and see what pops out. I'd like to mention that I have not read _iPhuck 10_ because I can't; I don't speak Russian and I'm certainly not well-versed in Russian literature. But I watch _Star Trek VI_ because I like Shakespeare so I'd be interested in a translation.
+
+### Finally...
 
 <div class="side-image">
   <div class="side-text">
