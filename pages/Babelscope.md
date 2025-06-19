@@ -79,11 +79,11 @@ The current Python implementation is available below, or [on Github](https://git
 
 <pre id="code-block"><code class="language-python"></code></pre>
 <script>
-fetch('https://raw.githubusercontent.com/bbenchoff/Babelscope/refs/heads/main/emulators/chip8.py')
+fetch('https://raw.githubusercontent.com/bbenchoff/Babelscope/main/emulators/chip8.py')
   .then(response => response.text())
   .then(code => {
     document.querySelector('#code-block code').textContent = code;
-    Prism.highlightAll();  // if using Prism.js
+    Prism.highlightAll();
   });
 </script>
 
