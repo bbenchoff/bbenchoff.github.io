@@ -75,27 +75,7 @@ This single-instance emulator is insufficient for running in a massive parallel 
   </div>
 </div>
 
-The current Python implementation is available below, or [on Github](https://github.com/bbenchoff/Babelscope/blob/main/emulators/chip8.py)
-<pre id="code-block"><code class="language-python"></code></pre>
-<script>
-fetch('https://raw.githubusercontent.com/bbenchoff/Babelscope/main/emulators/chip8.py', {
-  headers: {
-    'User-Agent': 'Mozilla/5.0'  // Spoof browser user agent
-  }
-})
-  .then(response => {
-    if (!response.ok) throw new Error(`HTTP error! ${response.status}`);
-    return response.text();
-  })
-  .then(code => {
-    document.querySelector('#code-block code').textContent = code;
-    Prism.highlightAll();
-  })
-  .catch(error => {
-    document.querySelector('#code-block code').textContent = 'Failed to load code: ' + error;
-  });
-</script>
-
+The current Python implementation is available [on Github](https://github.com/bbenchoff/Babelscope/blob/main/emulators/chip8.py)
 
 ### GPU / Parallel Implementation 
 
@@ -117,26 +97,7 @@ Let's say I'm running 10,000 instances of a CHIP-8 emulator, all running differe
 
 Here we're getting into the brilliance of using the CHIP-8 architecture. There are only 35 instructions, much less than the 150+ instructions of the Atari 2600. This means less time spent on each cycle, and better overall performance of the parallel emulator system.
 
-The core of the parallel implementation is available below, or [on Github](https://github.com/bbenchoff/Babelscope/blob/main/emulators/parallel_chip8.py)
-<pre id="code-block"><code class="language-python"></code></pre>
-<script>
-fetch('https://raw.githubusercontent.com/bbenchoff/Babelscope/main/emulators/parallel_chip8.py', {
-  headers: {
-    'User-Agent': 'Mozilla/5.0'  // Spoof browser user agent
-  }
-})
-  .then(response => {
-    if (!response.ok) throw new Error(`HTTP error! ${response.status}`);
-    return response.text();
-  })
-  .then(code => {
-    document.querySelector('#code-block code').textContent = code;
-    Prism.highlightAll();
-  })
-  .catch(error => {
-    document.querySelector('#code-block code').textContent = 'Failed to load code: ' + error;
-  });
-</script>
+The core of the parallel implementation is available [on Github](https://github.com/bbenchoff/Babelscope/blob/main/emulators/parallel_chip8.py)
 
 ## Emulator Design
 ### Core Architecture
@@ -159,7 +120,11 @@ fetch('https://raw.githubusercontent.com/bbenchoff/Babelscope/main/emulators/par
 ### Distributed Computing Possibilities
 ### Other Virtual Machine Targets
 
-No, I'm not doing Brainfuck.
+As discussed in the [Finite Atari Project](https://bbenchoff.github.io/pages/FiniteAtari.html), there are reasons I went with CHIP-8 over more interesting and social media-friendly architectures. The NES and Game Boy have memory mappers, bank switching, and memory protection. Rehashing the Atari involves complex emulation for video output, and 128 bytes of RAM doesn't allow for very much algorithmic complexity. The CHIP-8 is nearly ideal for this project with a flat memory model, programs that write to their own code area, and a limited number of instructions.
+
+x86 and ARM are too complex and have variable instruction lengths. RISC-V is nearly perfect with a fixed instruction width and simple addressing. In fact, this project could have been written for RISC-V and would have been much more 'legitimate' in the eyes of CS researchers. If anyone is going to replicate this project, I would suggest RISC-V, with the caveat that it wouldn't necessarily have a display output. I needed that, so I went with CHIP-8.
+
+No, I'm not doing Brainfuck, but not for the reason you might imagine. The Babelscope operates on a fixed window of a ~4kB program. "Random Brainfuck" is completely unbounded. You can write anything a computer can do in Brainfuck, but I have no idea how long the program would be. I'm not searching for CHIP-8 programs larger than 4kB simply because of GPU limitations. Not wanting to search the Brainfuck space is a limit of the GPU; there's no effective way to search an unbounded Brainfuck space.
 
 ### Theoretical Implications
 
@@ -167,9 +132,13 @@ No, I'm not doing Brainfuck.
 
 ### Comparison to Related Works
 
+The Babelscope is not without historical precedent. <<<blah something someting>>>
+
+The closest thing to Babelscope is [stoke](https://github.com/StanfordPL/stoke) from the Stanford Programming Languages Group. This uses random search to explore program transformations, but not a program _space_. It's a bounded search, looking for novel or interesting permutations of interesting algorithms, but it's not really for discovering algorithms _in_ random data. Although, I'm using Bablescope to find sorting algorithms, so the comparison between it an Stoke is really six of one, half a dozen of the other.
+
 In literature, there are a few analogs to what I'm doing here. [Borges' _The Library of Babel_](https://en.wikipedia.org/wiki/The_Library_of_Babel) is the most obvious and where this project steals its name. It's a short story, just go read it now, but the basic premise is that the universe is a library filled with random books. There's a cult searching for the library index, and another cult destroying books that don't make sense. Just go read it.
 
-There's also Victor Pelevin's _iPhuck 10_, Russian fiction that [cannot be easily translated into English](https://rustrans.exeter.ac.uk/2020/10/23/translating-the-uncanny-valley-victor-pelevins-iphuck-10/) because the main character is an LLM trained on the entire corpus of Russian literature. [The summaries and commentatry](https://r0l.livejournal.com/921339.html) around this work talk about "Random Code Programming", which is exactly what I'm doing here. _iPhuck 10_ uses quantum computers, but the idea is the same -- look at the space of random programs and see what pops out. I'd like to mention that I have not read _iPhuck 10_ because I can't; I don't speak Russian and I'm certainly not well-versed in Russian literature. But I watch _Star Trek VI_ because I like Shakespeare so I'd be interested in a translation.
+There's also Victor Pelevin's _iPhuck 10_, Russian fiction that [cannot be easily translated into English](https://rustrans.exeter.ac.uk/2020/10/23/translating-the-uncanny-valley-victor-pelevins-iphuck-10/) because the main character is an LLM trained on the entire corpus of Russian literature. [The summaries and commentatry](https://r0l.livejournal.com/921339.html) around this work talk about "Random Code Programming", which is exactly what I'm doing here. _iPhuck 10_ uses quantum computers, but the idea is the same -- look at the space of random programs and see what pops out. I'd like to mention that I have not read _iPhuck 10_ because I can't; I don't speak Russian and I'm certainly not well-versed in Russian literature. But I like _Star Trek VI_ because it's a Shakespearean space opera, so I'd be interested in a translation.
 
 ### Finally...
 
