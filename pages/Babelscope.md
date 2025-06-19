@@ -85,10 +85,9 @@ fetch('https://raw.githubusercontent.com/bbenchoff/Babelscope/main/emulators/chi
     document.querySelector('#code-block code').textContent = code;
     Prism.highlightAll();
   });
-</script>
+</script> 
 
-
-### GPU / Parallel Implementation
+### GPU / Parallel Implementation 
 
 <div class="side-image">
   <div class="side-text">
