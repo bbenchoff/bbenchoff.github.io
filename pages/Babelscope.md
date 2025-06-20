@@ -122,9 +122,10 @@ The core of the parallel implementation is available [on Github](https://github.
 
 As discussed in the [Finite Atari Project](https://bbenchoff.github.io/pages/FiniteAtari.html), there are reasons I went with CHIP-8 over more interesting and social media-friendly architectures. The NES and Game Boy have memory mappers, bank switching, and memory protection. Rehashing the Atari involves complex emulation for video output, and 128 bytes of RAM doesn't allow for very much algorithmic complexity. The CHIP-8 is nearly ideal for this project with a flat memory model, programs that write to their own code area, and a limited number of instructions.
 
+No, I'm not doing Brainfuck, but not for the reason you might imagine. The Babelscope operates on a fixed window of a ~4kB program. "Random Brainfuck" is completely unbounded. You can write anything a computer can do in Brainfuck, but I have no idea how long the program would be. I'm not searching for CHIP-8 programs larger than 4kB simply because of GPU limitations. Not wanting to search the Brainfuck space is a limit of the GPU; there's no effective way to search an unbounded Brainfuck space.
+
 x86 and ARM are too complex and have variable instruction lengths. RISC-V is nearly perfect with a fixed instruction width and simple addressing. In fact, this project could have been written for RISC-V and would have been much more 'legitimate' in the eyes of CS researchers. If anyone is going to replicate this project, I would suggest RISC-V, with the caveat that it wouldn't necessarily have a display output. I needed that, so I went with CHIP-8.
 
-No, I'm not doing Brainfuck, but not for the reason you might imagine. The Babelscope operates on a fixed window of a ~4kB program. "Random Brainfuck" is completely unbounded. You can write anything a computer can do in Brainfuck, but I have no idea how long the program would be. I'm not searching for CHIP-8 programs larger than 4kB simply because of GPU limitations. Not wanting to search the Brainfuck space is a limit of the GPU; there's no effective way to search an unbounded Brainfuck space.
 
 ### Theoretical Implications
 
@@ -132,7 +133,7 @@ No, I'm not doing Brainfuck, but not for the reason you might imagine. The Babel
 
 ### Comparison to Related Works
 
-The Babelscope is not without historical precedent. <<<blah something someting>>>
+The Babelscope is not without historical precedent. 
 
 The closest thing to Babelscope is [stoke](https://github.com/StanfordPL/stoke) from the Stanford Programming Languages Group. This uses random search to explore program transformations, but not a program _space_. It's a bounded search, looking for novel or interesting permutations of interesting algorithms, but it's not really for discovering algorithms _in_ random data. Although, I'm using Bablescope to find sorting algorithms, so the comparison between it an Stoke is really six of one, half a dozen of the other.
 
