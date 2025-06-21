@@ -58,7 +58,7 @@ The first goal of this project is to build an emulator or interpreter that can b
 
 So I had to write a CHIP-8 emulator following [Cowgod's Technical Reference](http://devernay.free.fr/hacks/chip8/C8TECH10.HTM). I want this to be portable so anyone can run it, and a 'ground truth' as a reference standard. For this, I'm using Python with tkinter. Think of this version as the 'development' branch. It's a single instance, it will never run on the GPU, but it will be helpful to debug generated ROMs.
 
-This single-instance emulator is insufficient for running in a massive parallel emulation engine. I'll need another version that runs on a GPU, hopefully on both Nvidia or AMD hardware. That's [CuPy](https://cupy.dev/). Unlike the single-instance Python version, this version will not have a GUI, although it will keep that framebuffer in memory. There's no interactive debugging, and _everything_ will be vectorized; I will be able to record everything that happens across ten thousand instances of emulators running in parallel.
+This single-instance emulator is insufficient for running in a massive parallel emulation engine. I'll need another version that runs on a GPU. That's [CuPy](https://cupy.dev/). Unlike the single-instance Python version, this version will not have a GUI, although it will keep that framebuffer in memory. There's no interactive debugging, and _everything_ will be vectorized; I will be able to record everything that happens across ten thousand instances of emulators running in parallel.
 
 ### Python Implementation
 
@@ -113,6 +113,18 @@ The core of the parallel implementation is available [on Github](https://github.
 ### Sorting Algorithm Detection
 
 ## Results and Discoveries
+
+### Program a9c127
+<div style="width: 100%; max-width: 600px; margin: 2rem auto;">
+  <iframe src="/assets/pages/babelscope/chip8-emulator.html?rom=a9c127f68bd9850538dc8801aa8e58dcb7058246.ch8" 
+          width="100%" 
+          height="250" 
+          frameborder="0" 
+          style="border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
+  </iframe>
+</div>
+
+
 ### Emergent Algorithm Catalog
 ### Comparison with Finite Atari Machine
 

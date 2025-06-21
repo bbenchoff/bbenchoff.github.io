@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CHIP-8 Display</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background-color: #ffffff;
+            color: #111827;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: calc(100vh - 40px);
+        }
+
+        .container {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            max-width: 800px;
+        }
+
+        .display-container {
+            border: 3px solid #333;
+            border-radius: 8px;
+            background-color: #000000;
+            padding: 10px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        #chip8-canvas {
+            image-rendering: pixelated;
+            image-rendering: -moz-crisp-edges;
+            image-rendering: crisp-edges;
+            width: 320px;
+            height: 160px;
+            display: block;
+        }
+
+        .controls {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        button {
+            background: #2563eb;
+            border: none;
+            color: white;
+            padding: 12px 24px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-family: inherit;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.2s ease;
+            min-width: 100px;
+        }
+
+        button:hover {
+            background: #1d4ed8;
+        }
+
+        button:active {
+            transform: translateY(1px);
+        }
+
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            background: #9ca3af;
+        }
+
+        @media (max-width: 600px) {
+            .container {
+                flex-direction: column;
+                gap: 15px;
+            }
+            
+            .controls {
+                flex-direction: row;
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+            
+            #chip8-canvas {
+                width: 256px;
+                height: 128px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="display-container">
+            <canvas id="chip8-canvas" width="64" height="32"></canvas>
+        </div>
+
+        <div class="controls">
+            <button id="run-btn">Run</button>
+            <button id="stop-btn" disabled>Stop</button>
+            <button id="step-btn">Step</button>
+            <button id="reset-btn">Reset</button>
+        </div>
+    </div>
+
+    <script>
+        class CHIP8Renderer {
+            constructor() {
+                this.canvas = document.getElementById('chip8-canvas');
+                this.ctx = this.canvas.getContext('2d');
+                this.running = false;
+                this.rom = null;
+                this.animationId = null;
+                
+                // CHIP-8 system state
+                this.memory = new Uint8Array(4096);
+                this.display = new Uint8Array(64 * 32);
+                this.registers = new Uint8Array(16);
+                this.indexRegister = 0;
+                this.programCounter = 0x200;
+                this.stack = new Uint16Array(16);
+                this.stackPointer = 0;
+                this.delayTimer = 0;
+                this.soundTimer = 0;
+                
+                this.setupCanvas();
+                this.setupControls();
+                this.loadFont();
+                this.loadDemo();
+                this.updateDisplay();
+            }
+
+            setupCanvas() {
+                this.ctx.imageSmoothingEnabled = false;
+                this.ctx.fillStyle = '#ffffff';
+                this.clearDisplay();
+            }
+
+            setupControls() {
+                document.getElementById('run-btn').addEventListener('click', () => this.run());
+                document.getElementById('stop-btn').addEventListener('click', () => this.stop());
+                document.getElementById('step-btn').addEventListener('click', () => this.step());
+                document.getElementById('reset-btn').addEventListener('click', () => this.reset());
+            }
+
+            loadFont() {
+                const font = [
+                    0xF0, 0x90, 0x90, 0x90, 0xF0, // 0
+                    0x20, 0x60, 0x20, 0x20, 0x70, // 1
+                    0xF0, 0x10, 0xF0, 0x80, 0xF0, // 2
+                    0xF0, 0x10, 0xF0, 0x10, 0xF0, // 3
+                    0x90, 0x90, 0xF0, 0x10, 0x10, // 4
+                    0xF0, 0x80, 0xF0, 0x10, 0xF0, // 5
+                    0xF0, 0x80, 0xF0, 0x90, 0xF0, // 6
+                    0xF0, 0x10, 0x20, 0x40, 0x40, // 7
+                    0xF0, 0x90, 0xF0, 0x90, 0xF0, // 8
+                    0xF0, 0x90, 0xF0, 0x10, 0xF0, // 9
+                    0xF0, 0x90, 0xF0, 0x90, 0x90, // A
+                    0xE0, 0x90, 0xE0, 0x90, 0xE0, // B
+                    0xF0, 0x80, 0x80, 0x80, 0xF0, // C
+                    0xE0, 0x90, 0x90, 0x90, 0xE0, // D
+                    0xF0, 0x80, 0xF0, 0x80, 0xF0, // E
+                    0xF0, 0x80, 0xF0, 0x80, 0x80  // F
+                ];
+                
+                for (let i = 0; i < font.length; i++) {
+                    this.memory[0x50 + i] = font[i];
+                }
+            }
+
+            async loadDemo() {
+                // Check URL parameters for ROM file
+                const urlParams = new URLSearchParams(window.location.search);
+                const romFile = urlParams.get('rom');
+                
+                if (romFile) {
+                    try {
+                        const response = await fetch(romFile);
+                        if (response.ok) {
+                            const romData = await response.arrayBuffer();
+                            this.loadRom(new Uint8Array(romData));
+                            return;
+                        }
+                    } catch (error) {
+                        console.error('Failed to load ROM:', error);
+                    }
+                }
+                
+                // Fallback to demo program
+                const demo = [
+                    0x00, 0xE0, // CLS
+                    0xA2, 0x2A, // LD I, 0x22A (sprite location)
+                    0x60, 0x0C, // LD V0, 12
+                    0x61, 0x08, // LD V1, 8
+                    0xD0, 0x15, // DRW V0, V1, 5
+                    0x70, 0x09, // ADD V0, 9
+                    0x60, 0x30, // LD V0, 48 (wrap around check)
+                    0x12, 0x06, // JP 0x206 (loop)
+                    // Sprite data
+                    0xF0, 0x90, 0x90, 0x90, 0xF0
+                ];
+                
+                this.loadRom(new Uint8Array(demo));
+            }
+
+            loadRom(romData) {
+                this.reset();
+                this.rom = romData;
+                
+                // Load ROM into memory starting at 0x200
+                for (let i = 0; i < romData.length && i < (4096 - 0x200); i++) {
+                    this.memory[0x200 + i] = romData[i];
+                }
+            }
+
+            reset() {
+                this.stop();
+                
+                // Reset system state
+                this.memory.fill(0);
+                this.display.fill(0);
+                this.registers.fill(0);
+                this.indexRegister = 0;
+                this.programCounter = 0x200;
+                this.stack.fill(0);
+                this.stackPointer = 0;
+                this.delayTimer = 0;
+                this.soundTimer = 0;
+                
+                this.loadFont();
+                
+                if (this.rom) {
+                    for (let i = 0; i < this.rom.length; i++) {
+                        this.memory[0x200 + i] = this.rom[i];
+                    }
+                }
+                
+                this.clearDisplay();
+                this.updateDisplay();
+            }
+
+            run() {
+                if (this.running) return;
+                
+                this.running = true;
+                document.getElementById('run-btn').disabled = true;
+                document.getElementById('stop-btn').disabled = false;
+                
+                this.executeLoop();
+            }
+
+            stop() {
+                this.running = false;
+                document.getElementById('run-btn').disabled = false;
+                document.getElementById('stop-btn').disabled = true;
+                
+                if (this.animationId) {
+                    cancelAnimationFrame(this.animationId);
+                    this.animationId = null;
+                }
+            }
+
+            step() {
+                if (!this.running) {
+                    this.executeInstruction();
+                    this.updateDisplay();
+                }
+            }
+
+            executeLoop() {
+                if (!this.running) return;
+                
+                // Execute several instructions per frame for better performance
+                for (let i = 0; i < 10; i++) {
+                    if (!this.executeInstruction()) {
+                        this.stop();
+                        return;
+                    }
+                }
+                
+                this.updateDisplay();
+                
+                // Continue loop
+                this.animationId = requestAnimationFrame(() => this.executeLoop());
+            }
+
+            executeInstruction() {
+                if (this.programCounter >= 4094) return false;
+                
+                // Fetch instruction
+                const high = this.memory[this.programCounter];
+                const low = this.memory[this.programCounter + 1];
+                const instruction = (high << 8) | low;
+                
+                this.programCounter += 2;
+                
+                // Decode instruction
+                const opcode = (instruction & 0xF000) >> 12;
+                const x = (instruction & 0x0F00) >> 8;
+                const y = (instruction & 0x00F0) >> 4;
+                const n = instruction & 0x000F;
+                const kk = instruction & 0x00FF;
+                const nnn = instruction & 0x0FFF;
+                
+                // Execute instruction
+                switch (opcode) {
+                    case 0x0:
+                        if (instruction === 0x00E0) {
+                            // CLS
+                            this.display.fill(0);
+                        }
+                        break;
+                        
+                    case 0x1:
+                        // JP addr
+                        this.programCounter = nnn;
+                        break;
+                        
+                    case 0x6:
+                        // LD Vx, byte
+                        this.registers[x] = kk;
+                        break;
+                        
+                    case 0x7:
+                        // ADD Vx, byte
+                        this.registers[x] = (this.registers[x] + kk) & 0xFF;
+                        break;
+                        
+                    case 0xA:
+                        // LD I, addr
+                        this.indexRegister = nnn;
+                        break;
+                        
+                    case 0xD:
+                        // DRW Vx, Vy, nibble
+                        this.drawSprite(x, y, n);
+                        break;
+                        
+                    default:
+                        // For demo purposes, ignore unknown instructions
+                        break;
+                }
+                
+                return true;
+            }
+
+            drawSprite(xReg, yReg, height) {
+                const vx = this.registers[xReg] % 64;
+                const vy = this.registers[yReg] % 32;
+                this.registers[0xF] = 0; // Clear collision flag
+                
+                for (let row = 0; row < height; row++) {
+                    if (vy + row >= 32) break;
+                    
+                    const spriteByte = this.memory[this.indexRegister + row];
+                    
+                    for (let col = 0; col < 8; col++) {
+                        if (vx + col >= 64) break;
+                        
+                        if (spriteByte & (0x80 >> col)) {
+                            const pixelIndex = (vy + row) * 64 + (vx + col);
+                            
+                            if (this.display[pixelIndex]) {
+                                this.registers[0xF] = 1; // Collision detected
+                            }
+                            
+                            this.display[pixelIndex] ^= 1;
+                        }
+                    }
+                }
+            }
+
+            clearDisplay() {
+                this.ctx.fillStyle = '#000000';
+                this.ctx.fillRect(0, 0, 64, 32);
+            }
+
+            updateDisplay() {
+                // Clear canvas
+                this.clearDisplay();
+                
+                // Draw pixels
+                this.ctx.fillStyle = '#ffffff';
+                for (let y = 0; y < 32; y++) {
+                    for (let x = 0; x < 64; x++) {
+                        if (this.display[y * 64 + x]) {
+                            this.ctx.fillRect(x, y, 1, 1);
+                        }
+                    }
+                }
+            }
+        }
+
+        // Initialize renderer when page loads
+        window.addEventListener('DOMContentLoaded', () => {
+            new CHIP8Renderer();
+        });
+    </script>
+</body>
+</html>
