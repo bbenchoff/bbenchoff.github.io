@@ -162,6 +162,62 @@ The core of the parallel implementation is available [on Github](https://github.
 </div>
 
 
+<style>
+  .chip8-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+    max-width: 1200px;
+    margin: 2rem auto;
+  }
+  
+  .chip8-grid-item {
+    width: 100%;
+  }
+  
+  .chip8-grid iframe {
+    width: 100%;
+    height: 280px;
+    border: none;
+    border-radius: 4px;
+  }
+  
+  /* Mobile responsive */
+  @media (max-width: 768px) {
+    .chip8-grid {
+      grid-template-columns: 1fr;
+      gap: 1rem;
+    }
+  }
+</style>
+
+<div class="chip8-grid">
+  <div class="chip8-grid-item">
+    <iframe src="/assets/pages/babelscope/chip8-emulator.html?rom=random_004751_inst1000000_pix731_dens0.357.ch8" 
+            frameborder="0">
+    </iframe>
+  </div>
+  
+  <div class="chip8-grid-item">
+    <iframe src="/assets/pages/babelscope/chip8-emulator.html?rom=random_012345_inst1000000_pix234_dens0.114.ch8" 
+            frameborder="0">
+    </iframe>
+  </div>
+  
+  <div class="chip8-grid-item">
+    <iframe src="/assets/pages/babelscope/chip8-emulator.html?rom=random_067890_inst1000000_pix156_dens0.076.ch8" 
+            frameborder="0">
+    </iframe>
+  </div>
+  
+  <div class="chip8-grid-item">
+    <iframe src="/assets/pages/babelscope/chip8-emulator.html?rom=random_098765_inst1000000_pix445_dens0.217.ch8" 
+            frameborder="0">
+    </iframe>
+  </div>
+</div>
+
+
 ### Emergent Algorithm Catalog
 ### Comparison with Finite Atari Machine
 
