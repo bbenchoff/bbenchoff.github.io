@@ -115,10 +115,10 @@ The core of the parallel implementation is available [on Github](https://github.
 ## Results and Discoveries
 
 ### Program a9c127
-<div style="width: 100%; max-width: 600px; margin: 2rem auto;">
+<div style="width: 100%; max-width: 800px; margin: 2rem auto;">
   <iframe src="/assets/pages/babelscope/chip8-emulator.html?rom=a9c127f68bd9850538dc8801aa8e58dcb7058246.ch8" 
           width="100%" 
-          height="250" 
+          height="300" 
           frameborder="0" 
           style="border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
   </iframe>

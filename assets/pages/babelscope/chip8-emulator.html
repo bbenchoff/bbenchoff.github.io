@@ -103,7 +103,6 @@
         <div class="controls">
             <button id="run-btn">Run</button>
             <button id="stop-btn" disabled>Stop</button>
-            <button id="step-btn">Step</button>
             <button id="reset-btn">Reset</button>
         </div>
     </div>
@@ -144,7 +143,6 @@
             setupControls() {
                 document.getElementById('run-btn').addEventListener('click', () => this.run());
                 document.getElementById('stop-btn').addEventListener('click', () => this.stop());
-                document.getElementById('step-btn').addEventListener('click', () => this.step());
                 document.getElementById('reset-btn').addEventListener('click', () => this.reset());
             }
 
@@ -262,13 +260,6 @@
                 if (this.animationId) {
                     cancelAnimationFrame(this.animationId);
                     this.animationId = null;
-                }
-            }
-
-            step() {
-                if (!this.running) {
-                    this.executeInstruction();
-                    this.updateDisplay();
                 }
             }
 
