@@ -124,6 +124,16 @@ The core of the parallel implementation is available [on Github](https://github.
   </iframe>
 </div>
 
+### Program 168bc9
+<div style="width: 100%; max-width: 800px; margin: 2rem auto;">
+  <iframe src="/assets/pages/babelscope/chip8-emulator.html?rom=168bc90a024151297ee0d5dc12c4b40e3fad5e49.ch8" 
+          width="100%" 
+          height="280" 
+          frameborder="0" 
+          style="border: none; border-radius: 4px;">
+  </iframe>
+</div>
+
 
 ### Emergent Algorithm Catalog
 ### Comparison with Finite Atari Machine
