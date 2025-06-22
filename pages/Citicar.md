@@ -37,7 +37,7 @@ The plan, at the time, was to fix the wiring in the car, put some batteries in, 
 
 Week 1 began with getting it up on jack stands. This revealed some [weirdness with the back suspension](https://bbenchoff.github.io/images/Car/Part1/1.png). For some reason, half a leaf spring was bolted to the driver's side suspension. I don't know what's going on there. The [wiring under the dash was a mess](https://bbenchoff.github.io/images/Car/Part1/5.png), and the 120 Volt input [was highly dangerous](https://twitter.com/BBenchoff/status/1484325182399340554) so that was torn out to be replaced with all new wiring.
 
-During the teardown, I was looking at this weird box right next to the motor. The car still had the original contactors (the old "speed controller"), and I had assumed the previous owner was still trying to use this. Not so, because that weird box [was a brand new motor controller](/images/Car/Part1/7.png). To reiterate, I found an unused motor controller worth $1000 in a car I paid $1000 for. I bought a motor controller and got a free car.
+During the teardown, I was looking at this weird box right next to the motor. The car still had the original contactors (the old "speed controller"), and I had assumed the previous owner was still trying to use this. Not so, because that weird box [was a brand new motor controller](/images/Car/Part1/7.png). To reiterate, I found an unused motor controller worth \$1000 in a car I paid \$1000 for. I bought a motor controller and got a free car.
 
 Given the serial number on the unused motor controller, a few parts on the wiring harness, and the oral history of the car from the seller, I think I can put together a reasonably correct history of this car. Sometime after 1993 and before 2000, the car was in Palm Springs where the owner decided a refurbishment was in order. This person had the knowledge to walk into NAPA auto, but not the skills to put those parts together. The last time it was registered was in 2000, after which it was moved to Coarsegold, half an hour north of Fresno. In 2022, I brought it to San Francisco where it was restored.
 
@@ -159,7 +159,7 @@ The connectors are listed below:
 | 16 Pin Connector | KET MG653019 | ST730770 |
 
 
-The connectors for the Pacifica battery can be easily obtained on AliExpress for $15/10pcs.
+The connectors for the Pacifica battery can be easily obtained on AliExpress for \$15/10pcs.
 
 These connectors will be used instead of the [EV West Pacifica Battery Harness](https://www.evwest.com/catalog/product_info.php?products_id=539), because crimping your own purpose-built wires reduces the number of adapters and converters required.
 

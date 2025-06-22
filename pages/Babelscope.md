@@ -99,7 +99,7 @@ Here we're getting into the brilliance of using the CHIP-8 architecture. There a
 
 The core of the parallel implementation is available [on Github](https://github.com/bbenchoff/Babelscope/blob/main/emulators/parallel_chip8.py)
 
-## Emulator Design
+## Emulator Design and Algorithm Discovery
 ### Core Architecture
 ### Memory State Instrumentation
 ### Warp Divergence Solutions
@@ -223,6 +223,13 @@ The core of the parallel implementation is available [on Github](https://github.
 
 ## Future Directions
 ### Distributed Computing Possibilities
+
+This was a project to build a _truly massive_ framework for emulating a lot of different virtual machines at the same time. Limiting myself to the CHIP-8 helped, as did moving the entire pipeline into my GPU. But this wasn't enough. The pace of discovery was glacial.
+
+For finding cellular automata in code, emulating batches of 10,000 ROMs for 1,000,000 cycles, I was only processing around 250 ROMs per second. Sure, that's a lot of compute that pegged my graphics card at 100% for hours at a time. But it still isn't enough. It took _wee
+
+If anyone were to do this right, and couldn't get their hands on a datacenter full of H200 GPUs, a distributed computing project is the only way to do this. Think of something like SETI@Home, where people would turn their GPUs onto various 'Babelscope-like' projects, like finding a new sorting algorithm, or looking for evidence of Rule 110 in random noise. It's niche, but there might be enough weird people out there that would be interested. And since Arecibo collapsed, we might as well look for something else other than mining shitcoins.
+
 ### Other Virtual Machine Targets
 
 As discussed in the [Finite Atari Project](https://bbenchoff.github.io/pages/FiniteAtari.html), there are reasons I went with CHIP-8 over more interesting and social media-friendly architectures. The NES and Game Boy have memory mappers, bank switching, and memory protection. Rehashing the Atari involves complex emulation for video output, and 128 bytes of RAM doesn't allow for very much algorithmic complexity. The CHIP-8 is nearly ideal for this project with a flat memory model, programs that write to their own code area, and a limited number of instructions.
