@@ -16,6 +16,8 @@ image: "/images/default.jpg"
 
 ## Introduction
 
+<i><b>"Computer science is no more about telescopes than astronomy is about computers"  -- Bizzaro Dijkstra</i></b>
+
 This is the followup to my previous project, the [Finite Atari Machine](https://bbenchoff.github.io/pages/FiniteAtari.html). With the Finite Atari Machine, I used a GPU to generate billions and billions of Atari 2600 ROMs filled with random data that conformed to some heuristics gleaned from commercially released Atari games. I found some interesting stuff, including a 'protogame' that produced changing visual output dependent on player input.
 
 This project is the next step. Instead of merely generating random ROMs in a GPU and checking results in an emulator, we build a massively parallel framework to generate billions of ROMs and test them all with emulation. 
