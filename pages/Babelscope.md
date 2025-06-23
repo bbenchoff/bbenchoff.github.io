@@ -75,11 +75,11 @@ This single-instance emulator is insufficient for running in a massive parallel 
 
 The current Python implementation is available below, or [on Github](https://github.com/bbenchoff/Babelscope/blob/main/emulators/chip8.py)
 
-{% raw %}
+
 <pre><code class="language-python">
-{% include_remote https://github.com/bbenchoff/Babelscope/blob/main/emulators/chip8.py %}
+{% include_remote https://raw.githubusercontent.com/bbenchoff/Babelscope/main/emulators/chip8.py %}
 </code></pre>
-{% endraw %}
+
 
 
 ### GPU / Parallel Implementation 
@@ -104,12 +104,9 @@ Here we're getting into the brilliance of using the CHIP-8 architecture. There a
 
 The core of the parallel implementation is available below, or [on Github](https://github.com/bbenchoff/Babelscope/blob/main/emulators/parallel_chip8.py)
 
-{% raw %}
 <pre><code class="language-python">
 {% include_remote https://raw.githubusercontent.com/bbenchoff/Babelscope/main/emulators/parallel_chip8.py %}
 </code></pre>
-{% endraw %}
-
 
 ## Results and Discoveries
 
