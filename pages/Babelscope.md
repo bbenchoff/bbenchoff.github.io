@@ -13,7 +13,7 @@ image: "/images/default.jpg"
 <i><b>"Computer science is no more about telescopes than astronomy is about computers"  -- Bizzaro Dijkstra</b></i>
 
 <div class="abstract" style="margin: 2rem 3rem; padding: 1.5rem 2rem; font-style: italic; color: #666; background-color: #fafafa; font-size: 0.95rem; line-height: 1.7; border-radius: 4px;">
-   The Babelscope is a massively parallel emulation framework designed to explore the computational space of random programs. Building on the <a href="https://bbenchoff.github.io/pages/FiniteAtari.html">Finite Atari Machine</a>, this project generates billions of random CHIP-8 ROMs and executes them simultaneously on GPU hardware to catalog emergent behaviors. Rather than training models or optimizing for specific outcomes, we conduct an exhaustive survey of the program space looking for anything that produces interesting visual output, responds to input, or exhibits complex computational patterns. The framework addresses fundamental questions about what algorithms might spontaneously emerge from randomness, from simple graphics routines to potentially sophisticated sorting or path finding behaviors.
+   The Babelscope is a massively parallel emulation framework designed to explore the computational space of random programs. Building on the <a href="https://bbenchoff.github.io/pages/FiniteAtari.html">Finite Atari Machine</a>, this project generates billions of random CHIP-8 ROMs and executes them simultaneously on GPU hardware to catalog emergent behaviors. This project conducts an exhaustive survey of the program space looking for anything that produces interesting visual output, response to input, or exhibits complex computational patterns, e.x. sorting algorithms. Several interesting programs were found in this random computational space, including XXXXXXXXX.
 </div>
 
 ## Introduction
@@ -101,20 +101,9 @@ Here we're getting into the brilliance of using the CHIP-8 architecture. There a
 
 The core of the parallel implementation is available [on Github](https://github.com/bbenchoff/Babelscope/blob/main/emulators/parallel_chip8.py)
 
-## Emulator Design and Algorithm Discovery
-### Core Architecture
-### Memory State Instrumentation
-### Warp Divergence Solutions
-
-## ROM Generation Strategy
-### Random Program Generation
-### Memory Pre-seeding for Algorithm Detection
-
-## Algorithm Discovery Framework
-### Pattern Recognition Pipeline
-### Sorting Algorithm Detection
-
 ## Results and Discoveries
+
+This blog post is already too long and it's not even halfway done, so I'd like to share some discoveries I've made. 
 
 ### Program a9c127
 <div style="width: 100%; max-width: 800px; margin: 2rem auto;">
@@ -218,6 +207,21 @@ The core of the parallel implementation is available [on Github](https://github.
     </iframe>
   </div>
 </div>
+
+
+## Emulator Design and Algorithm Discovery
+### Core Architecture
+### Memory State Instrumentation
+### Warp Divergence Solutions
+
+## ROM Generation Strategy
+### Random Program Generation
+### Memory Pre-seeding for Algorithm Detection
+
+## Algorithm Discovery Framework
+### Pattern Recognition Pipeline
+### Sorting Algorithm Detection
+
 
 
 ### Emergent Algorithm Catalog
