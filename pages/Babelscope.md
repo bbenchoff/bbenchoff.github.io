@@ -73,7 +73,14 @@ This single-instance emulator is insufficient for running in a massive parallel 
   </div>
 </div>
 
-The current Python implementation is available [on Github](https://github.com/bbenchoff/Babelscope/blob/main/emulators/chip8.py)
+The current Python implementation is available below, or [on Github](https://github.com/bbenchoff/Babelscope/blob/main/emulators/chip8.py)
+
+{% raw %}
+<pre><code class="language-python">
+{% include_remote https://github.com/bbenchoff/Babelscope/blob/main/emulators/chip8.py %}
+</code></pre>
+{% endraw %}
+
 
 ### GPU / Parallel Implementation 
 
@@ -95,7 +102,14 @@ Let's say I'm running 10,000 instances of a CHIP-8 emulator, all running differe
 
 Here we're getting into the brilliance of using the CHIP-8 architecture. There are only 35 instructions, much less than the 150+ instructions of the Atari 2600. This means less time spent on each cycle, and better overall performance of the parallel emulator system.
 
-The core of the parallel implementation is available [on Github](https://github.com/bbenchoff/Babelscope/blob/main/emulators/parallel_chip8.py)
+The core of the parallel implementation is available below, or [on Github](https://github.com/bbenchoff/Babelscope/blob/main/emulators/parallel_chip8.py)
+
+{% raw %}
+<pre><code class="language-python">
+{% include_remote https://raw.githubusercontent.com/bbenchoff/Babelscope/main/emulators/parallel_chip8.py %}
+</code></pre>
+{% endraw %}
+
 
 ## Results and Discoveries
 
