@@ -1881,7 +1881,9 @@ ParallelChip8Emulator = MegaKernelChip8Emulator
 
 This blog post is already too long and it's not even halfway done, so I'd like to share some discoveries I've made. I started this project by generating random CHIP-8 programs and viewing the output of whatever didn't crash. Here's some screencaps of the ouput after a million instructions:
 
+<center>
 ![screencaps of emulators finished](/images/Bablescope/rom_mosaic.png)
+</center>
 
 And emulators of some interesting programs:
 
