@@ -1950,9 +1950,39 @@ Program `a9c127` was the first interesting program I found because it kinda, sor
 
 Program `e20edb` shows the `XOR` more clearly -- it's a diagnally looping sprite drawing routine with an offset. This is simply writing the same sprite over and over to slightly offset positions. The `XOR` pattern means these diagonal stripes change over time, eventually disappearing, at which point the cycle repeats.
 
-Programs `368cbd` and `7d301` look extremely similar, but they're distinct ROMs from distinct runs (distinctness proven by the shortened SHA-1 name). They are both simply writing random data as sprite data, `XOR`-ing the result on the screen.
+Programs `368cbd` and `7d301` look extremely similar, but they're distinct ROMs from distinct runs (distinctness proven by the shortened SHA-1 name). They are both simply writing random data as sprite data, `XOR`-ing the result on the screen. While these programs might not be much to look at, they're at least as complex as what I found with the [Finite Atari Machine](https://bbenchoff.github.io/pages/FiniteAtari.html). 
 
-While these programs might not be much to look at, they're at least as complex as what I found with the [Finite Atari Machine](https://bbenchoff.github.io/pages/FiniteAtari.html). 
+## Actual Experiments
+### Sorting Algorithms
+
+The entire point of this isn't to generate cool, broken QR codes. I've already proven that's possible with the Finite Atari Machine. The purpose of the CHIP-8 exploration is to __find__ something. How about sorting algorithms.
+
+The structure of the search for sorting algorithms is fairly simple in concept. Instead of generating completely _random_ ROMs, I'm going to pre-seed the data with an array at memory location 0x300 to 0x307. 
+
+[20:53:31] 🔢 Starting Batch 15034
+CUDA ROM Generator on NVIDIA GeForce GTX 1070 (8.0 GB)
+ROM size: 3584 bytes
+Generating 39,999 random ROMs on GPU...
+✅ Generated 39,999 ROMs in 0.04s (893523 ROMs/sec)
+[20:53:31] Generated 39,999 random ROMs on GPU
+🚀 Loading 39999 ROMs with optimized GPU operations...
+[20:53:33] 🛑 Search interrupted by user at batch 15034
+[20:53:33]
+[20:53:33] 🏁 SORTING ALGORITHM SEARCH COMPLETE
+[20:53:33] ============================================================
+[20:53:33] Session ID: 20250622_230319
+[20:53:33] Total batches: 15034
+[20:53:33] Total ROMs tested: 601,304,967
+[20:53:33] Total execution time: 21.84 hours
+[20:53:33] Average rate: 7649 ROMs/sec
+[20:53:33] 🎯 TOTAL SORTING ALGORITHMS FOUND: 277
+[20:53:33] 🔢 Final discovery rate: 1 per 2,170,776 ROMs
+[20:53:33] 📁 ROMs saved to: output\sorting\session_20250622_230319\roms
+[20:53:33] 📋 Debug log: output\sorting\session_20250622_230319\logs\debug.txt
+[20:53:33] 📊 Summary: output\sorting\session_20250622_230319\logs\summary.json
+🎉 Search completed successfully!
+📁 Results saved to: output\sorting\session_20250622_230319
+PS C:\Users\Benchoff\Documents\GitHub\Babelscope> 
 
 ## Emulator Design and Algorithm Discovery
 ### Core Architecture
