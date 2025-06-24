@@ -1923,20 +1923,22 @@ And emulators of some interesting programs:
   </div>
   
   <div class="chip8-grid-item">
-    <h3>Program 7d6ab</h3>
-    <iframe src="/assets/pages/babelscope/chip8-emulator.html?rom=7d6ab.ch8" 
+    <h3>Program 7d301</h3>
+    <iframe src="/assets/pages/babelscope/chip8-emulator.html?rom=7d301.ch8" 
             frameborder="0">
     </iframe>
   </div>
   
   <div class="chip8-grid-item">
-    <iframe src="/assets/pages/babelscope/chip8-emulator.html?rom=f6fdf.ch8" 
+    <h3>Program e20edb</h3>
+    <iframe src="/assets/pages/babelscope/chip8-emulator.html?rom=e20edb.ch8" 
             frameborder="0">
     </iframe>
   </div>
   
   <div class="chip8-grid-item">
-    <iframe src="/assets/pages/babelscope/chip8-emulator.html?rom=random_098765_inst1000000_pix445_dens0.217.ch8" 
+    <h3>Program 42d9ec</h3>
+    <iframe src="/assets/pages/babelscope/chip8-emulator.html?rom=42d9ec.ch8" 
             frameborder="0">
     </iframe>
   </div>
