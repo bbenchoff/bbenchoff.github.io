@@ -1879,55 +1879,11 @@ ParallelChip8Emulator = MegaKernelChip8Emulator
 ```
 ## Results and Discoveries
 
-This blog post is already too long and it's not even halfway done, so I'd like to share some discoveries I've made. 
+This blog post is already too long and it's not even halfway done, so I'd like to share some discoveries I've made. I started this project by generating random CHIP-8 programs and viewing the output of whatever didn't crash. Here's some screencaps of the ouput after a million instructions:
 
-### Program a9c127
-<div style="width: 100%; max-width: 800px; margin: 2rem auto;">
-  <iframe src="/assets/pages/babelscope/chip8-emulator.html?rom=a9c127f68bd9850538dc8801aa8e58dcb7058246.ch8" 
-          width="100%" 
-          height="280" 
-          frameborder="0" 
-          style="border: none; border-radius: 4px;">
-  </iframe>
-</div>
+![screencaps of emulators finished](/images/Bablescope/rom_mosaic.png)
 
-### Program 168bc9
-<div style="width: 100%; max-width: 800px; margin: 2rem auto;">
-  <iframe src="/assets/pages/babelscope/chip8-emulator.html?rom=168bc90a024151297ee0d5dc12c4b40e3fad5e49.ch8" 
-          width="100%" 
-          height="280" 
-          frameborder="0" 
-          style="border: none; border-radius: 4px;">
-  </iframe>
-</div>
-
-<div style="width: 100%; max-width: 800px; margin: 2rem auto;">
-  <iframe src="/assets/pages/babelscope/chip8-emulator.html?rom=random_004210_inst1000000_pix1007_dens0.492.ch8" 
-          width="100%" 
-          height="280" 
-          frameborder="0" 
-          style="border: none; border-radius: 4px;">
-  </iframe>
-</div>
-
-<div style="width: 100%; max-width: 800px; margin: 2rem auto;">
-  <iframe src="/assets/pages/babelscope/chip8-emulator.html?rom=random_004751_inst1000000_pix731_dens0.357.ch8" 
-          width="100%" 
-          height="280" 
-          frameborder="0" 
-          style="border: none; border-radius: 4px;">
-  </iframe>
-</div>
-
-<div style="width: 100%; max-width: 800px; margin: 2rem auto;">
-  <iframe src="/assets/pages/babelscope/chip8-emulator.html?rom=random_006424_inst1000000_pix688_dens0.336.ch8" 
-          width="100%" 
-          height="280" 
-          frameborder="0" 
-          style="border: none; border-radius: 4px;">
-  </iframe>
-</div>
-
+And emulators of some interesting programs:
 
 <style>
   .chip8-grid {
@@ -1960,19 +1916,21 @@ This blog post is already too long and it's not even halfway done, so I'd like t
 
 <div class="chip8-grid">
   <div class="chip8-grid-item">
-    <iframe src="/assets/pages/babelscope/chip8-emulator.html?rom=random_004751_inst1000000_pix731_dens0.357.ch8" 
+    <h3>Program a9c127</h3>
+    <iframe src="/assets/pages/babelscope/chip8-emulator.html?rom=a9c127f68bd9850538dc8801aa8e58dcb7058246.ch8" 
             frameborder="0">
     </iframe>
   </div>
   
   <div class="chip8-grid-item">
-    <iframe src="/assets/pages/babelscope/chip8-emulator.html?rom=random_012345_inst1000000_pix234_dens0.114.ch8" 
+    <h3>Program 7d6ab</h3>
+    <iframe src="/assets/pages/babelscope/chip8-emulator.html?rom=7d6ab.ch8" 
             frameborder="0">
     </iframe>
   </div>
   
   <div class="chip8-grid-item">
-    <iframe src="/assets/pages/babelscope/chip8-emulator.html?rom=random_067890_inst1000000_pix156_dens0.076.ch8" 
+    <iframe src="/assets/pages/babelscope/chip8-emulator.html?rom=f6fdf.ch8" 
             frameborder="0">
     </iframe>
   </div>
@@ -1983,6 +1941,10 @@ This blog post is already too long and it's not even halfway done, so I'd like t
     </iframe>
   </div>
 </div>
+
+Program `a9c127` was the first interesting program I found because it kinda, sorta looked like a cellular automata. It's not, because of the biggest weakness of the CHIP-8 platform for this sort of research. Sprite draws in the CHIP-8 are `XOR`-ed with each other; if an existing pixel is 1, and another pixel is written to the same screen location, the result is a blank pixel. This is a double-edged sword because it does produce the interesting patterns found in other, later programs but it's not quite as cool as it could be. I could add a `NAND` or `NOR` instruction, though. Future research possibilities.
+
+
 
 
 ## Emulator Design and Algorithm Discovery
