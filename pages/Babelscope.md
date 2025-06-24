@@ -1986,6 +1986,52 @@ Generating 39,999 random ROMs on GPU...
 📁 Results saved to: output\sorting\session_20250622_230319
 PS C:\Users\Benchoff\Documents\GitHub\Babelscope> 
 
+
+
+SECOND RUN:
+
+[16:14:02] ⚠️  Using unvalidated results - false positives possible
+[16:14:02] Batch 10406 Results:
+[16:14:02]   Execution time: 2.64s
+[16:14:02]   Arrays accessed: 24
+[16:14:02]   Sorting algorithms found: 0
+[16:14:02]   Total array reads: 60
+[16:14:02]   Total array writes: 100
+[16:14:02]   Total comparisons: 10523405
+[16:14:02]   Total swaps: 802419
+[16:14:02]
+[16:14:02] 📊 Session Progress:
+[16:14:02]   Total ROMs tested: 208,120,000
+[16:14:02]   Total batches: 10406
+[16:14:02]   Total sorts found: 219
+[16:14:02]   Processing rate: 7910 ROMs/sec
+[16:14:02]   Session time: 7.31 hours
+[16:14:02]   Discovery rate: 1 in 950,319 ROMs
+[16:14:02] ============================================================
+[16:14:02] 🔢 Starting Batch 10407
+CUDA ROM Generator on NVIDIA GeForce GTX 1070 (8.0 GB)
+ROM size: 3584 bytes
+Generating 20,000 random ROMs on GPU...
+✅ Generated 20,000 ROMs in 0.02s (1006673 ROMs/sec)
+[16:14:02] Generated 20,000 random ROMs on GPU
+🚀 Loading 20000 ROMs with optimized GPU operations...
+[16:14:03] 🛑 Search interrupted by user at batch 10407
+[16:14:03]
+[16:14:03] 🏁 SORTING ALGORITHM SEARCH COMPLETE
+[16:14:03] ============================================================
+[16:14:03] Session ID: 20250624_085530
+[16:14:03] Total batches: 10407
+[16:14:03] Total ROMs tested: 208,120,000
+[16:14:03] Total execution time: 7.31 hours
+[16:14:03] Average rate: 7909 ROMs/sec
+[16:14:03] 🎯 TOTAL SORTING ALGORITHMS FOUND: 219
+[16:14:03] 🔢 Final discovery rate: 1 per 950,319 ROMs
+[16:14:03] 📁 ROMs saved to: output\sorting\session_20250624_085530\roms
+[16:14:03] 📋 Debug log: output\sorting\session_20250624_085530\logs\debug.txt
+[16:14:03] 📊 Summary: output\sorting\session_20250624_085530\logs\summary.json
+🎉 Search completed successfully!
+📁 Results saved to: output\sorting\session_20250624_085530
+
 ## Emulator Design and Algorithm Discovery
 ### Core Architecture
 ### Memory State Instrumentation
