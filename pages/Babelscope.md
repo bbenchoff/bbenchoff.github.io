@@ -1938,13 +1938,17 @@ And emulators of some interesting programs:
   
   <div class="chip8-grid-item">
     <h3>Program 42d9ec</h3>
-    <iframe src="/assets/pages/babelscope/chip8-emulator.html?rom=42d9ec.ch8" 
+    <iframe src="/assets/pages/babelscope/chip8-emulator.html?rom=368cbd.ch8" 
             frameborder="0">
     </iframe>
   </div>
 </div>
 
 Program `a9c127` was the first interesting program I found because it kinda, sorta looked like a cellular automata. It's not, because of the biggest weakness of the CHIP-8 platform for this sort of research. Sprite draws in the CHIP-8 are `XOR`-ed with each other; if an existing pixel is 1, and another pixel is written to the same screen location, the result is a blank pixel. This is a double-edged sword because it does produce the interesting patterns found in other, later programs but it's not quite as cool as it could be. I could add a `NAND` or `NOR` instruction, though. Future research possibilities.
+
+Program `e20edb` shows the `XOR` more clearly -- it's a diagnally looping sprite drawing routine with an offset. This is simply writing the same sprite over and over to slightly offset positions. The `XOR` pattern means these diagonal stripes change over time, eventually disappearing, at which point the cycle repeats.
+
+Programs `368cbd` and `7d301` look extremely similar, but they're distinct ROMs from distinct runs (distinctness proven by the shortened SHA-1 name).
 
 
 
