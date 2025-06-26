@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CHIP-8 ROM Memory Layout</title>
+    <style>
+        body {
+            font-family: 'Courier New', monospace;
+            background: #1a1a1a;
+            color: #e0e0e0;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+        
+        .container {
+            background: #2a2a2a;
+            border-radius: 10px;
+            padding: 30px;
+            box-shadow: 0 0 20px rgba(0,255,0,0.1);
+            max-width: 800px;
+            width: 100%;
+        }
+        
+        .title {
+            text-align: center;
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 30px;
+            color: #0400ff;
+            text-shadow: 0 0 10px rgba(1, 3, 138, 0.3);
+        }
+        
+        .memory-map {
+            display: flex;
+            flex-direction: column;
+            gap: 1px;
+            border: 2px solid #444;
+            border-radius: 8px;
+            overflow: hidden;
+            height: 400px;
+        }
+        
+        .memory-section {
+            display: flex;
+            align-items: center;
+            padding: 8px 16px;
+            position: relative;
+            transition: all 0.3s ease;
+        }
+        
+        .memory-section:hover {
+            transform: translateX(5px);
+            box-shadow: -5px 0 15px rgba(0,255,136,0.1);
+        }
+        
+        .interpreter {
+            background: linear-gradient(90deg, #4a4a4a, #5a5a5a);
+            border-left: 4px solid #ff6b6b;
+            height: 12.5%; /* 512/4096 = 12.5% */
+        }
+        
+        .random-code {
+            background: linear-gradient(90deg, #1e3d59, #2e4d69);
+            border-left: 4px solid #4ecdc4;
+            height: 6.25%; /* 256/4096 = 6.25% */
+        }
+        
+        .test-data {
+            background: linear-gradient(90deg, #2d5016, #3d6026);
+            border-left: 4px solid #95e1d3;
+            height: 75%; /* 3072/4096 = 75% */
+        }
+        
+        .free-memory {
+            background: linear-gradient(90deg, #2a2a2a, #3a3a3a);
+            border-left: 4px solid #666;
+            height: 6.25%; /* 256/4096 = 6.25% */
+        }
+        
+        .address {
+            font-weight: bold;
+            min-width: 100px;
+            color: #ffa726;
+        }
+        
+        .description {
+            flex: 1;
+            margin-left: 20px;
+        }
+        
+        .size {
+            font-size: 12px;
+            color: #aaa;
+            min-width: 80px;
+            text-align: right;
+        }
+        
+        .pattern-box {
+            margin-top: 30px;
+            padding: 20px;
+            background: #1a1a1a;
+            border-radius: 8px;
+            border: 1px solid #444;
+        }
+        
+        .pattern-title {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 15px;
+            color: #95e1d3;
+        }
+        
+        .pattern-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 10px;
+        }
+        
+        .pattern-item {
+            background: #2a2a2a;
+            padding: 12px;
+            border-radius: 6px;
+            border-left: 3px solid #95e1d3;
+        }
+        
+        .pattern-addr {
+            font-size: 12px;
+            color: #ffa726;
+            margin-bottom: 5px;
+        }
+        
+        .pattern-data {
+            font-family: monospace;
+            color: #e0e0e0;
+            font-size: 14px;
+        }
+        
+        .stats {
+            margin-top: 20px;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+        }
+        
+        .stat-item {
+            background: #1a1a1a;
+            padding: 15px;
+            border-radius: 6px;
+            text-align: center;
+            border: 1px solid #444;
+        }
+        
+        .stat-number {
+            font-size: 20px;
+            font-weight: bold;
+            color: #00ff88;
+        }
+        
+        .stat-label {
+            font-size: 12px;
+            color: #aaa;
+            margin-top: 5px;
+        }
+        
+        .legend {
+            margin-top: 20px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            justify-content: center;
+        }
+        
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .legend-color {
+            width: 20px;
+            height: 12px;
+            border-radius: 2px;
+        }
+        
+        .legend-interpreter { background: #ff6b6b; }
+        .legend-random { background: #4ecdc4; }
+        .legend-test { background: #95e1d3; }
+        .legend-free { background: #666; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="title">BABELSCOPE: CHIP-8 ROM MEMORY LAYOUT</div>
+        
+        <div class="memory-map">
+            <div class="memory-section interpreter">
+                <div class="address">0x000-0x1FF</div>
+                <div class="description">CHIP-8 Interpreter & Font Data</div>
+                <div class="size">512 bytes</div>
+            </div>
+            
+            <div class="memory-section random-code">
+                <div class="address">0x200-0x2FF</div>
+                <div class="description"><strong>RANDOM CODE SPACE</strong> - Pure entropy, anything can happen</div>
+                <div class="size">256 bytes</div>
+            </div>
+            
+            <div class="memory-section test-data">
+                <div class="address">0x300-0xEFF</div>
+                <div class="description"><strong>TEST DATA PATTERN</strong> - 384 copies of [8,3,6,1,7,2,5,4]</div>
+                <div class="size">3072 bytes</div>
+            </div>
+            
+            <div class="memory-section free-memory">
+                <div class="address">0xF00-0xFFF</div>
+                <div class="description">Free Memory / Stack Space</div>
+                <div class="size">256 bytes</div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
