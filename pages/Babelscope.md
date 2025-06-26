@@ -183,7 +183,7 @@ The entire point of this isn't to generate cool, broken QR codes. I've already p
 
 The structure of the search for sorting algorithms is fairly simple in concept. Instead of generating completely _random_ ROMs, I'm going to pre-seed the data with an array at memory location 0x300 to 0x307, and repeat that for the rest of the program. Here's what's actually going on in these 'random' ROMs:
 
-<iframe src="/assets/pages/babelscope/memory-layout.html" width="100%" height="600px" frameborder="0"></iframe>
+<iframe src="/assets/pages/babelscope/memory-layout.html" width="100%" frameborder="0"></iframe>
 
 [20:53:31] 🔢 Starting Batch 15034
 CUDA ROM Generator on NVIDIA GeForce GTX 1070 (8.0 GB)
