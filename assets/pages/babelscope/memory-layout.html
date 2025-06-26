@@ -8,7 +8,7 @@
         body {
             font-family: 'Courier New', monospace;
             background: #ffffff;
-            color: #ffffff;
+            color: #333333;
             margin: 0;
             padding: 10px;
             min-height: 100vh;
@@ -70,14 +70,14 @@
         .random-code {
             background: linear-gradient(90deg, #1e3d59, #2e4d69);
             border-left: 4px solid #4ecdc4;
-            height: 6.25%; /* 256/4096 = 6.25% */
+            height: 25%; /* 1024/4096 = 25% */
             color: white;
         }
         
         .test-data {
             background: linear-gradient(90deg, #2d5016, #3d6026);
             border-left: 4px solid #95e1d3;
-            height: 75%; /* 3072/4096 = 75% */
+            height: 56.25%; /* 2304/4096 = 56.25% */
             color: white;
         }
         
@@ -197,15 +197,15 @@
             </div>
             
             <div class="memory-section random-code">
-                <div class="address">0x200-0x2FF</div>
-                <div class="description"><strong>RANDOM CODE SPACE</strong> - anything can happen</div>
-                <div class="size">256 bytes</div>
+                <div class="address">0x200-0x5FF</div>
+                <div class="description"><strong>RANDOM CODE SPACE</strong> - Pure entropy, anything can happen</div>
+                <div class="size">1024 bytes</div>
             </div>
             
             <div class="memory-section test-data">
-                <div class="address">0x300-0xEFF</div>
-                <div class="description"><strong>TEST DATA PATTERN</strong> - 384 copies of [8,3,6,1,7,2,5,4]</div>
-                <div class="size">3072 bytes</div>
+                <div class="address">0x600-0xEFF</div>
+                <div class="description"><strong>TEST DATA PATTERN</strong> - Multiple test arrays of different sizes</div>
+                <div class="size">2304 bytes</div>
             </div>
             
             <div class="memory-section free-memory">
