@@ -361,53 +361,24 @@ This is not a fuzzer, because instead of generating random input, I'm seeing if 
 
 You know the movie _Contact_? You know the book? In the last chapter of the book, the main character looks a trillion digits into pi, in base 11, and finds a perfect circle, rendered in ones and zeros. In the book, that’s a sign of something greater. That's not what I'm doing here. I just built the telescope, and I'm looking for anything interesting.
 
-## Conclusion
-
-/* Image text wrapping for Howard Stark image */
-.conclusion-image {
-  float: right;
-  margin: 0 0 1rem 1.5rem;
-  max-width: 45%;
-  height: auto;
-  border-radius: 4px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-}
-
-/* Mobile adjustments */
-@media (max-width: 768px) {
-  .conclusion-image {
-    float: none;
-    display: block;
-    margin: 1rem auto;
-    max-width: 90%;
-    width: 100%;
-  }
-}
-
-/* Tablet adjustments */
-@media (min-width: 769px) and (max-width: 1024px) {
-  .conclusion-image {
-    max-width: 40%;
-    margin: 0 0 1rem 1rem;
-  }
-}
-
-/* Clear float after conclusion section */
-.conclusion-section::after {
-  content: "";
-  display: table;
-  clear: both;
-}
-
-<img src="/images/Bablescope/limited.jpg" alt="Howard Stark, limited by the technology of his time" class="conclusion-image">
-
 REDO THIS SECTION WITH PROPER MATH LATER
 
-I am immensely pissed off at this project. Not because I did it, but because it would have been so much easier if I had access to resources. This is a compute-bound problem, solved by writing a little bit of CUDA, and it takes __weeks__ to find a single 8-element sorting algorithm. There are better ways to do this; it's a highly parallelizable problem and there are already data centers running hundreds of thousands of GPUs at full tilt.
+## Conclusion
 
-Just imagine; instead of training a new LLM model, we could have novel sorting algorithms being spat out of a machine every few minutes. With enough compute, you could find novel algorithms for graph traversal, or new compression techniques. These things just fall out of random data if you have enough compute. Instead of mining the computational space of random programs, we're training a large language model to be really good at writing CSS, and really bad at limiting the use of em dashes.
+<div class="side-image">
+  <div class="side-text">
+    <p>I am immensely pissed off at this project. Not because I did it, but because it would have been so much easier if I had access to resources. This is a compute-bound problem, solved by writing a little bit of CUDA, and it takes __weeks__ to find a single 8-element sorting algorithm. </p>
+    <p>There are better ways to do this; it's a highly parallelizable problem and there are already data centers running hundreds of thousands of GPUs at full tilt.</p>
+    <p>Just imagine: instead of training a new LLM model, we could have novel sorting algorithms being spat out of a machine every few minutes. With enough compute, you could brute-force new graph traversal strategies. New compression techniques. Whole classes of useful code might just fall out of noise, if we had enough eyes on it.</p>
+    <p>Instead, we’re mining the computational space of random programs... to make a chatbot slightly better at writing CSS. And slightly worse at knowing when to stop using em dashes.</p>
+    <p>Maybe this will be worth a revisit when the GPUs go dark in the next AI winter. I'll reassess next year.</p>
+  </div>
+  <div class="side-image-container">
+      <img src="/images/Bablescope/limited.jpg" alt="Howard Stark, limited by the technology of his time">
+  </div>
+</div>
 
-Technology, man.
+
 
 ### Comparison to Related Works
 
