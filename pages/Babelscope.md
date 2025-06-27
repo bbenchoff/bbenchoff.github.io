@@ -192,6 +192,34 @@ The implementation of this is simple. I want to find a sorting algorithm I gener
 
 More rarely, I'll get programs where registers V0 through V4 are `[1 2 3 4 5]` or `[8 7 6 5 4]`. After running this emulator script for a few days, I may even get registers V0 through V7 containing `[1 2 3 4 5 6 7 8]` or `[8 7 6 5 4 3 2 1]`. If that happens, I may have found a sorting algorithm in random data. I would need to disassemble the program and step through the instructions to confirm it, but this is a viable way to find quicksort, or bubble sort, or a sorting algorithm no one has thought of before.
 
+For this experiment, I adapted the existing code into two python files. The sorting_emulator.py file is the emulator, sorting_search.py is the 'runner' -- a script that manages program generation, emulator execution, search, and background tasks like collecting metadata and saving good programs.
+
+**sorting_emulator.py** [view on github](https://github.com/bbenchoff/Babelscope/blob/main/emulators/sorting_emulator.py)
+
+The core parallel CHIP-8 emulation engine optimized for sorting algorithm detection. This file implements a massively parallel GPU-based emulator using CuPy that can simultaneously run thousands of CHIP-8 instances. Key features include:
+
+* Vectorized instruction execution: All 35 CHIP-8 opcodes implemented as masked vector operations to handle warp divergence efficiently
+* Register monitoring: Real-time tracking of V0-V7 registers across all instances to detect sorted sequences
+* Pattern detection: Configurable detection of 3+ consecutive sorted elements (ascending or descending) during emulation
+* Memory management: Optimized GPU memory allocation for handling large batches of ROM data
+* State instrumentation: Comprehensive logging of register states, instruction counts, and execution statistics
+* Crash detection: Identifies and filters out instances that hit invalid opcodes or infinite loops
+
+The emulator processes batches of 20,000-500,000 programs simultaneously. It can check register patterns every instruction cycle but this is very computationally expensive; I'm checking the registers every four instruction cycles. All programs run for 100,000 cycles until they're terminated and the process repeats for another batch of 20,000 to 500,000 programs.
+
+**sorting_search.py** [view on github](https://github.com/bbenchoff/Babelscope/blob/main/sorting_search.py)
+
+The orchestration and data management layer that coordinates the entire sorting algorithm discovery pipeline. This script handles:
+
+* Batch generation: Creates randomized CHIP-8 ROMs with the test pattern [8 3 6 1 7 2 5 4] pre-loaded into registers V0-V7
+* Search coordination: Manages the execution of multiple emulator batches with configurable search parameters
+* Result classification: Sorts discoveries by sequence length (3-element, 4-element, etc.) and saves promising candidates
+* Session management: Tracks progress across multi-hour search sessions with detailed logging and recovery capabilities
+* Performance monitoring: Real-time statistics on ROM processing rates, discovery rates, and computational efficiency
+* Data persistence: Saves discovered sorting algorithms to disk with metadata for later analysis and validation
+
+The search script is designed for long-running exploration sessions, automatically managing GPU resources and providing detailed progress reporting as it searches through billions of random programs.
+
 ### Discovering A Sorting Algorithm: Results
 
 
