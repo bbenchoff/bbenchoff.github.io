@@ -367,18 +367,17 @@ REDO THIS SECTION WITH PROPER MATH LATER
 
 <div class="side-image">
   <div class="side-text">
-    <p>I am immensely pissed off at this project. Not because I did it, but because it would have been so much easier if I had access to resources. This is a compute-bound problem, solved by writing a little bit of CUDA, and it takes __weeks__ to find a single 8-element sorting algorithm. </p>
-    <p>There are better ways to do this; it's a highly parallelizable problem and there are already data centers running hundreds of thousands of GPUs at full tilt.</p>
+    <p>I am immensely pissed off at this project. Not because I did it, but because it would have been so much easier if I had access to resources. This is a compute-bound problem, solved by writing a little bit of CUDA, and it takes __weeks__ to find a single 8-element sorting algorithm. There are better ways to do this; it's a highly parallelizable problem and there are already data centers running hundreds of thousands of GPUs at full tilt.</p>
     <p>Just imagine: instead of training a new LLM model, we could have novel sorting algorithms being spat out of a machine every few minutes. With enough compute, you could brute-force new graph traversal strategies. New compression techniques. Whole classes of useful code might just fall out of noise, if we had enough eyes on it.</p>
-    <p>Instead, we’re mining the computational space of random programs... to make a chatbot slightly better at writing CSS. And slightly worse at knowing when to stop using em dashes.</p>
-    <p>Maybe this will be worth a revisit when the GPUs go dark in the next AI winter. I'll reassess next year.</p>
   </div>
   <div class="side-image-container">
       <img src="/images/Bablescope/limited.jpg" alt="Howard Stark, limited by the technology of his time">
   </div>
 </div>
 
+Instead, we’re mining the computational space of random programs... to make a chatbot slightly better at writing CSS. And slightly worse at knowing when to stop using em dashes.
 
+Maybe this will be worth a revisit when the GPUs go dark in the next AI winter. I'll reassess next year.
 
 ### Comparison to Related Works
 
