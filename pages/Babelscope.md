@@ -100,6 +100,7 @@ Here we're getting into the brilliance of using the CHIP-8 architecture. There a
 The core of the parallel implementation is available [on Github](https://github.com/bbenchoff/Babelscope/blob/main/emulators/parallel_chip8.py)
 
 ## Results and Discoveries
+### Experiment 1: Finding Random Games
 
 This blog post is already too long and it's not even halfway done, so I'd like to share some discoveries I've made. I started this project by generating random CHIP-8 programs and viewing the output of whatever didn't crash. Here's some screencaps of the ouput after a million instructions:
 
@@ -176,25 +177,25 @@ Program `e20edb` shows the `XOR` more clearly -- it's a diagnally looping sprite
 
 Programs `368cbd` and `7d301` look extremely similar, but they're distinct ROMs from distinct runs (distinctness proven by the shortened SHA-1 name). They are both simply writing random data as sprite data, `XOR`-ing the result on the screen. While these programs might not be much to look at, they're at least as complex as what I found with the [Finite Atari Machine](https://bbenchoff.github.io/pages/FiniteAtari.html). 
 
-## Actual Experiments
-### Sorting Algorithms
+### Experiment 2: Discovering A Sorting Algorithm
 
-The entire point of this isn't to generate cool, broken QR codes. I've already proven that's possible with the Finite Atari Machine. The purpose of the CHIP-8 exploration is to __find__ something. How about sorting algorithms.
+The entire point of this isn't to generate cool, broken QR codes. I've already proven that's possible with the Finite Atari Machine. The purpose of the CHIP-8 exploration is to __find__ something interesting. Specifically, I want to find something __computationally interesting__.
 
-The structure of the search for sorting algorithms is fairly simple in concept. Instead of generating completely _random_ ROMs, I'm going to pre-seed the data with an array at memory location 0x300 to 0x307, and repeat that for the rest of the program. Here's what's actually going on in these 'random' ROMs:
+<p class="callout-sidebar">
+The reason for breaking up the search for sorting algorithms into sorted substrings is because a limitation of my setup. Searching substrings of registers is extremely computationally expensive; searching for 3+ consecutive sorted elements means I can search about 40,000 programs per second. Only searching for perfect sorts (eight registers in order, forwards or backwards) is a search rate of 140,000 programs per second on an RTX 5080.
 
-<iframe src="/assets/pages/babelscope/memory-layout.html" 
-        width="100%" 
-        frameborder="0"
-        id="memory-iframe"
-        onload="resizeIframe(this)">
-</iframe>
+However, because of the very high number of programs I need to search to find a single perfect sort -- tens of billions -- I opted for the substring search, just to know if the computer was doing anything. This isn't a complete waste. A sorted substring with length of 6 could still have a proper sorting algorithm in it.
 
-<script>
-function resizeIframe(iframe) {
-  iframe.height = iframe.contentWindow.document.body.scrollHeight + "px";
-}
-</script>
+If I had an immense amount of compute power consisting of hundreds of thousands of GPUs, like an OpenAI or Twitter datacenter, I would only search for sorts in eight registers, substring sorts be damned. At this scale, a 'perfect' sort would fall out of the random data every fifteen minutes or so. That would be interesting.
+</p>
+
+The idea of this is simple. I generate billions of programs filled with random data, and store [8 3 6 1 7 2 5 4] in eight of the sixteen registers of the CHIP-8, in V0 through V7. I fill up the rest of the program space with random bytes, emulate them, and monitor the values in the registers. Emulate billions of these random programs. Eventually, I'll get a few programs where registers V0 through V3 are `[1 2 3 4]` or `[8 7 6 5]`.
+
+More rarely, I'll get programs where registers V0 through V4 are `[1 2 3 4 5]` or `[8 7 6 5 4]`. After running this emulator script for a few days, I may even get registers V0 through V7 containing `[1 2 3 4 5 6 7 8]` or `[8 7 6 5 4 3 2 1]`. If that happens, I may have found a sorting algorithm in random data. I would need to disassemble the program and step through the instructions to confirm it, but this is a viable way to find quicksort, or bubble sort, or a sort no one has thought of before.
+
+**In short, I'm looking for a sorting algorithm in random data.**
+
+The code for this is available on 
 
 
 [20:53:31] 🔢 Starting Batch 15034
