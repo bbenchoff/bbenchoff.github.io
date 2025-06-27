@@ -104,9 +104,7 @@ The core of the parallel implementation is available [on Github](https://github.
 
 This blog post is already too long and it's not even halfway done, so I'd like to share some discoveries I've made. I started this project by generating random CHIP-8 programs and viewing the output of whatever didn't crash. Here's some screencaps of the ouput after a million instructions:
 
-<center>
 ![screencaps of emulators finished](/images/Bablescope/rom_mosaic.png)
-</center>
 
 And emulators of some interesting programs:
 
@@ -179,12 +177,12 @@ Programs `368cbd` and `7d301` look extremely similar, but they're distinct ROMs 
 
 ### Experiment 2: Discovering A Sorting Algorithm
 
-The entire point of this isn't to generate cool, broken QR codes. I've already proven that's possible with the Finite Atari Machine. The purpose of the CHIP-8 exploration is to __find__ something interesting. Specifically, I want to find something __computationally interesting__.
-
 <p class="callout-sidebar">
 The reason for breaking up the search for sorting algorithms into sorted substrings is because a limitation of my setup. Searching substrings of registers is extremely computationally expensive; searching for 3+ consecutive sorted elements means I can search about 40,000 programs per second. Only searching for perfect sorts (eight registers in order, forwards or backwards) is a search rate of 140,000 programs per second on an RTX 5080. I opted for the substring search, just to know if the computer was doing anything. This isn't a complete waste. A sorted substring with length of 6 could still have a proper sorting algorithm in it.
 With a lot of compute, like an OpenAI or Twitter datacenter, I would only search for sorts in eight registers, substring sorts be damned. At this scale, a 'perfect' sort would fall out of the random data every fifteen minutes or so. That would be interesting.
 </p>
+
+The entire point of this isn't to generate cool, broken QR codes. I've already proven that's possible with the Finite Atari Machine. The purpose of the CHIP-8 exploration is to __find__ something interesting. Specifically, I want to find something __computationally interesting__.
 
 The idea of this is simple. I generate billions of programs filled with random data, and store [8 3 6 1 7 2 5 4] in eight of the sixteen registers of the CHIP-8, in V0 through V7. I fill up the rest of the program space with random bytes, emulate them, and monitor the values in the registers. Emulate billions of these random programs. Eventually, I'll get a few programs where registers V0 through V3 are `[1 2 3 4]` or `[8 7 6 5]`.
 
@@ -194,127 +192,6 @@ More rarely, I'll get programs where registers V0 through V4 are `[1 2 3 4 5]` o
 
 The code for this is available on 
 
-
-[20:53:31] 🔢 Starting Batch 15034
-CUDA ROM Generator on NVIDIA GeForce GTX 1070 (8.0 GB)
-ROM size: 3584 bytes
-Generating 39,999 random ROMs on GPU...
-✅ Generated 39,999 ROMs in 0.04s (893523 ROMs/sec)
-[20:53:31] Generated 39,999 random ROMs on GPU
-🚀 Loading 39999 ROMs with optimized GPU operations...
-[20:53:33] 🛑 Search interrupted by user at batch 15034
-[20:53:33]
-[20:53:33] 🏁 SORTING ALGORITHM SEARCH COMPLETE
-[20:53:33] ============================================================
-[20:53:33] Session ID: 20250622_230319
-[20:53:33] Total batches: 15034
-[20:53:33] Total ROMs tested: 601,304,967
-[20:53:33] Total execution time: 21.84 hours
-[20:53:33] Average rate: 7649 ROMs/sec
-[20:53:33] 🎯 TOTAL SORTING ALGORITHMS FOUND: 277
-[20:53:33] 🔢 Final discovery rate: 1 per 2,170,776 ROMs
-[20:53:33] 📁 ROMs saved to: output\sorting\session_20250622_230319\roms
-[20:53:33] 📋 Debug log: output\sorting\session_20250622_230319\logs\debug.txt
-[20:53:33] 📊 Summary: output\sorting\session_20250622_230319\logs\summary.json
-🎉 Search completed successfully!
-📁 Results saved to: output\sorting\session_20250622_230319
-PS C:\Users\Benchoff\Documents\GitHub\Babelscope> 
-
-
-
-SECOND RUN:
-
-[16:14:02] ⚠️  Using unvalidated results - false positives possible
-[16:14:02] Batch 10406 Results:
-[16:14:02]   Execution time: 2.64s
-[16:14:02]   Arrays accessed: 24
-[16:14:02]   Sorting algorithms found: 0
-[16:14:02]   Total array reads: 60
-[16:14:02]   Total array writes: 100
-[16:14:02]   Total comparisons: 10523405
-[16:14:02]   Total swaps: 802419
-[16:14:02]
-[16:14:02] 📊 Session Progress:
-[16:14:02]   Total ROMs tested: 208,120,000
-[16:14:02]   Total batches: 10406
-[16:14:02]   Total sorts found: 219
-[16:14:02]   Processing rate: 7910 ROMs/sec
-[16:14:02]   Session time: 7.31 hours
-[16:14:02]   Discovery rate: 1 in 950,319 ROMs
-[16:14:02] ============================================================
-[16:14:02] 🔢 Starting Batch 10407
-CUDA ROM Generator on NVIDIA GeForce GTX 1070 (8.0 GB)
-ROM size: 3584 bytes
-Generating 20,000 random ROMs on GPU...
-✅ Generated 20,000 ROMs in 0.02s (1006673 ROMs/sec)
-[16:14:02] Generated 20,000 random ROMs on GPU
-🚀 Loading 20000 ROMs with optimized GPU operations...
-[16:14:03] 🛑 Search interrupted by user at batch 10407
-[16:14:03]
-[16:14:03] 🏁 SORTING ALGORITHM SEARCH COMPLETE
-[16:14:03] ============================================================
-[16:14:03] Session ID: 20250624_085530
-[16:14:03] Total batches: 10407
-[16:14:03] Total ROMs tested: 208,120,000
-[16:14:03] Total execution time: 7.31 hours
-[16:14:03] Average rate: 7909 ROMs/sec
-[16:14:03] 🎯 TOTAL SORTING ALGORITHMS FOUND: 219
-[16:14:03] 🔢 Final discovery rate: 1 per 950,319 ROMs
-[16:14:03] 📁 ROMs saved to: output\sorting\session_20250624_085530\roms
-[16:14:03] 📋 Debug log: output\sorting\session_20250624_085530\logs\debug.txt
-[16:14:03] 📊 Summary: output\sorting\session_20250624_085530\logs\summary.json
-🎉 Search completed successfully!
-📁 Results saved to: output\sorting\session_20250624_085530
-
-
-
-TESTING NEW VERSION WITH 1070:
-
-🎯 BATCH 4
-------------------------------
-🎲 Generating 200,000 random ROMs on GPU...
-🎲 Generating 200,000 pure random ROMs on GPU (3584 bytes each)...
-   ✅ Generated on GPU in 0.004s (50,195,117 ROMs/sec)
-   ✅ Generated in 0.00s
-📥 Loading ROMs with test pattern...
-📥 Loading 200,000 random ROMs from GPU array...
-   Test pattern: [8 3 6 1 7 2 5 4]
-   ✅ Loaded ROMs with test pattern at 0x300
-   ✅ Loaded in 0.00s
-🔍 Running CHIP-8 emulation and sort detection...
-🔍 Running Babelscope search: 100,000 cycles, check every 100
-
-🛑 Received signal 2, shutting down gracefully...
-⚡ Execution time: 11.446s
-⚡ 17,473 ROMs/sec
-🎯 Sorting algorithms found: 0
-💥 Crashed instances: 194344
-📊 Instances that accessed array: 81
-   ✅ Search completed in 11.45s
-   🎯 Discoveries: 0
-📊 Batch 4 summary:
-   ROMs tested: 200,000
-   Discoveries: 0
-   Batch time: 11.45s
-   Rate: 17,463 ROMs/sec
-🎯 Session totals:
-   Total ROMs: 800,000
-   Total discoveries: 0
-   Session time: 0.01 hours
-   Avg rate: 17,325 ROMs/sec
-
-
-🏁 BABELSCOPE EXPLORATION COMPLETE
-============================================================
-Session ID: 20250624_171431
-Batches completed: 4
-Total ROMs tested: 800,000
-Total time: 0.01 hours
-Average rate: 17,319 ROMs/sec
-🎯 SORTING ALGORITHMS DISCOVERED: 0
-📋 Session data: babelscope_results\session_20250624_171431\logs
-📁 All results: babelscope_results\session_20250624_171431
-🎉 Exploration completed successfully!
 
 ## Emulator Design and Algorithm Discovery
 ### Core Architecture
