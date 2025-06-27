@@ -13,7 +13,7 @@ image: "/images/default.jpg"
 <i><b>"Computer science is no more about telescopes than astronomy is about computers"  -- Bizzaro Dijkstra</b></i>
 
 <div class="abstract" style="margin: 2rem 3rem; padding: 1.5rem 2rem; font-style: italic; color: #666; background-color: #fafafa; font-size: 0.95rem; line-height: 1.7; border-radius: 4px;">
-   The Babelscope is a massively parallel emulation framework designed to explore the computational space of random programs. Building on the <a href="https://bbenchoff.github.io/pages/FiniteAtari.html">Finite Atari Machine</a>, this project generates billions of random CHIP-8 ROMs and executes them simultaneously on GPU hardware to catalog emergent behaviors. This project conducts an exhaustive survey of the program space looking for anything that produces interesting visual output, response to input, or exhibits complex computational patterns, from graphical glitches to sorting algorithms. Several interesting programs were found in this random computational space, including XXXXXXXXXTODO: WRITE SOME STUFF HERE.
+   The Babelscope is a massively parallel emulation framework designed to explore the computational space of random programs. Building on the <a href="https://bbenchoff.github.io/pages/FiniteAtari.html">Finite Atari Machine</a>, this project generates billions of random CHIP-8 ROMs and executes them simultaneously on GPU hardware to catalog emergent behaviors. This project conducts a deliberate exhaustive survey of the program space looking for anything that produces interesting visual output, response to input, or exhibits complex computational patterns, from graphical glitches to sorting algorithms. Several interesting programs were found in this random computational space, including sorting algorithms.
 </div>
 
 ## Introduction
@@ -23,6 +23,18 @@ This is the followup to my previous project, the [Finite Atari Machine](https://
 This project is the next step. Instead of merely generating random ROMs in a GPU and checking results in an emulator, we build a massively parallel framework to generate billions of ROMs and test them all with emulation. Like the Finite Atari Machine project, I found interesting visual output and 'protogames' that respond to user input. The parallel emulation framework makes this vastly more interesting; with this technique I was also able to find interesting random programs with applications.
 
 This is the computer science equivalent of the [Miller-Urey experiment](https://en.wikipedia.org/wiki/Miller%E2%80%93Urey_experiment). This was an experiment in chemical synthesis by simulating the primordial Earth in a test tube. Add water, methane, ammonia, hydrogen, heat and electric sparks and you'll eventually get amino acids, the building blocks of life. I'm doing this with computer code. If you have a computer run random data as code, eventually you'll get algorithms that do something.
+
+### Comparison to Related Works
+
+The Babelscope is not without historical precedent. 
+
+The closest thing to Babelscope is [stoke](https://github.com/StanfordPL/stoke) from the Stanford Programming Languages Group. This uses random search to explore program transformations, but not a program _space_. It's a bounded search, looking for novel or interesting permutations of interesting algorithms, but it's not really for discovering algorithms _in_ random data. Although, I'm using Babelscope to find sorting algorithms, so the comparison between it an Stoke is really six of one, half a dozen of the other.
+
+A forerunner to stoke is the [Superoptimizer](https://dl.acm.org/doi/pdf/10.1145/36177.36194). This ancient CS paper -- nearly half as old as what I expect the audience of this post to be -- used random perturbations to find the shortest program that would compute a given function. This is somewhat like what I'm doing, except the Babelscope looks at a huge search space to find _any_ program that does _something_. 
+
+In literature, there are a few analogs to what I'm doing here. [Borges' _The Library of Babel_](https://en.wikipedia.org/wiki/The_Library_of_Babel) is the most obvious and where this project steals its name. It's a short story, just go read it now, but the basic premise is that the universe is a library filled with random books. There's a cult searching for the library index, and another cult destroying books that don't make sense. Just go read it.
+
+There's also Victor Pelevin's _iPhuck 10_, Russian fiction that [cannot be easily translated into English](https://rustrans.exeter.ac.uk/2020/10/23/translating-the-uncanny-valley-victor-pelevins-iphuck-10/) because the main character is an LLM trained on the entire corpus of Russian literature. [The summaries and commentary](https://r0l.livejournal.com/921339.html) around this work talk about "Random Code Programming", exactly what I'm doing here. _iPhuck 10_ uses quantum computers but the idea is the same -- look at the space of random programs and see what pops out. I'd like to mention that I have not read _iPhuck 10_ because I can't; I don't speak Russian and I'm certainly not well-versed in Russian literature. But I like _Star Trek VI_ because it's a Shakespearean space opera and _Wrath of Kahn_ because it was written by Melville, so I'd be interested in a translation.
 
 ## Technical Background and Reasoning
 
@@ -171,7 +183,7 @@ These are the best of the best of about 100 Terabytes of random data.
 
 Program `a9c127` was the first interesting program I found because it kinda, sorta looked like a cellular automata. It's not, because of the biggest weakness of the CHIP-8 platform for this sort of research. Sprite draws in the CHIP-8 are `XOR`-ed with each other; if an existing pixel is 1, and another pixel is written to the same screen location, the result is a blank pixel. This is a double-edged sword because it does produce the interesting patterns found in other, later programs but it's not quite as cool as it could be. I could add a `NAND` or `NOR` instruction, though. Future research possibilities.
 
-Program `e20edb` shows the `XOR` more clearly -- it's a diagnally looping sprite drawing routine with an offset. This is simply writing the same sprite over and over to slightly offset positions. The `XOR` pattern means these diagonal stripes change over time, eventually disappearing, at which point the cycle repeats.
+Program `e20edb` shows the `XOR` more clearly -- it's a diagonally looping sprite drawing routine with an offset. This is simply writing the same sprite over and over to slightly offset positions. The `XOR` pattern means these diagonal stripes change over time, eventually disappearing, at which point the cycle repeats.
 
 Programs `368cbd` and `7d301` look extremely similar, but they're distinct ROMs from distinct runs (distinctness proven by the shortened SHA-1 name). They are both simply writing random data as sprite data, `XOR`-ing the result on the screen. While these programs might not be much to look at, they're at least as complex as what I found with the [Finite Atari Machine](https://bbenchoff.github.io/pages/FiniteAtari.html). 
 
@@ -194,11 +206,12 @@ More rarely, I'll get programs where registers V0 through V4 are `[1 2 3 4 5]` o
 
 For this experiment, I adapted the existing code into two python files. The sorting_emulator.py file is the emulator, sorting_search.py is the 'runner' -- a script that manages program generation, emulator execution, search, and background tasks like collecting metadata and saving good programs.
 
-**sorting_emulator.py** [view on github](https://github.com/bbenchoff/Babelscope/blob/main/emulators/sorting_emulator.py)
+### **sorting_emulator.py** [View on Github](https://github.com/bbenchoff/Babelscope/blob/main/emulators/sorting_emulator.py)
 
 The core parallel CHIP-8 emulation engine optimized for sorting algorithm detection. This file implements a massively parallel GPU-based emulator using CuPy that can simultaneously run thousands of CHIP-8 instances. Key features include:
 
 * Vectorized instruction execution: All 35 CHIP-8 opcodes implemented as masked vector operations to handle warp divergence efficiently
+* Batch generation: Creates randomized CHIP-8 ROMs with the test pattern [8 3 6 1 7 2 5 4] pre-loaded into registers V0-V7
 * Register monitoring: Real-time tracking of V0-V7 registers across all instances to detect sorted sequences
 * Pattern detection: Configurable detection of 3+ consecutive sorted elements (ascending or descending) during emulation
 * Memory management: Optimized GPU memory allocation for handling large batches of ROM data
@@ -207,11 +220,10 @@ The core parallel CHIP-8 emulation engine optimized for sorting algorithm detect
 
 The emulator processes batches of 20,000-500,000 programs simultaneously. It can check register patterns every instruction cycle but this is very computationally expensive; I'm checking the registers every four instruction cycles. All programs run for 100,000 cycles until they're terminated and the process repeats for another batch of 20,000 to 500,000 programs.
 
-**sorting_search.py** [view on github](https://github.com/bbenchoff/Babelscope/blob/main/sorting_search.py)
+### **sorting_search.py** [View on Github](https://github.com/bbenchoff/Babelscope/blob/main/sorting_search.py)
 
 The orchestration and data management layer that coordinates the entire sorting algorithm discovery pipeline. This script handles:
 
-* Batch generation: Creates randomized CHIP-8 ROMs with the test pattern [8 3 6 1 7 2 5 4] pre-loaded into registers V0-V7
 * Search coordination: Manages the execution of multiple emulator batches with configurable search parameters
 * Result classification: Sorts discoveries by sequence length (3-element, 4-element, etc.) and saves promising candidates
 * Session management: Tracks progress across multi-hour search sessions with detailed logging and recovery capabilities
@@ -220,35 +232,11 @@ The orchestration and data management layer that coordinates the entire sorting 
 
 The search script is designed for long-running exploration sessions, automatically managing GPU resources and providing detailed progress reporting as it searches through billions of random programs.
 
-### Discovering A Sorting Algorithm: Results
+### Results From A Week Of Discovery
 
-
-## Emulator Design and Algorithm Discovery
-### Core Architecture
-### Memory State Instrumentation
-### Warp Divergence Solutions
-
-## ROM Generation Strategy
-### Random Program Generation
-### Memory Pre-seeding for Algorithm Detection
-
-## Algorithm Discovery Framework
-### Pattern Recognition Pipeline
-### Sorting Algorithm Detection
-
-
-
-### Emergent Algorithm Catalog
-### Comparison with Finite Atari Machine
+IMAGINE I HAVE ACTUAL RESULTS HERE
 
 ## Future Directions
-### Distributed Computing Possibilities
-
-This was a project to build a _truly massive_ framework for emulating a lot of different virtual machines at the same time. Limiting myself to the CHIP-8 helped, as did moving the entire pipeline into my GPU. But this wasn't enough. The pace of discovery was glacial.
-
-For finding cellular automata in code, emulating batches of 10,000 ROMs for 1,000,000 cycles, I was only processing around 250 ROMs per second. Sure, that's a lot of compute that pegged my graphics card at 100% for hours at a time. But it still isn't enough. It took _wee
-
-If anyone were to do this right, and couldn't get their hands on a datacenter full of H200 GPUs, a distributed computing project is the only way to do this. Think of something like SETI@Home, where people would turn their GPUs onto various 'Babelscope-like' projects, like finding a new sorting algorithm, or looking for evidence of Rule 110 in random noise. It's niche, but there might be enough weird people out there that would be interested. And since Arecibo collapsed, we might as well look for something else other than mining shitcoins.
 
 ### Other Virtual Machine Targets
 
@@ -283,16 +271,6 @@ REDO THIS SECTION WITH PROPER MATH LATER
 Instead, we’re mining the computational space of random programs... to make a chatbot slightly better at writing CSS. And slightly worse at knowing when to stop using em dashes.
 
 Maybe this will be worth a revisit when the GPUs go dark in the next AI winter. I'll reassess next year.
-
-### Comparison to Related Works
-
-The Babelscope is not without historical precedent. 
-
-The closest thing to Babelscope is [stoke](https://github.com/StanfordPL/stoke) from the Stanford Programming Languages Group. This uses random search to explore program transformations, but not a program _space_. It's a bounded search, looking for novel or interesting permutations of interesting algorithms, but it's not really for discovering algorithms _in_ random data. Although, I'm using Babelscope to find sorting algorithms, so the comparison between it an Stoke is really six of one, half a dozen of the other.
-
-In literature, there are a few analogs to what I'm doing here. [Borges' _The Library of Babel_](https://en.wikipedia.org/wiki/The_Library_of_Babel) is the most obvious and where this project steals its name. It's a short story, just go read it now, but the basic premise is that the universe is a library filled with random books. There's a cult searching for the library index, and another cult destroying books that don't make sense. Just go read it.
-
-There's also Victor Pelevin's _iPhuck 10_, Russian fiction that [cannot be easily translated into English](https://rustrans.exeter.ac.uk/2020/10/23/translating-the-uncanny-valley-victor-pelevins-iphuck-10/) because the main character is an LLM trained on the entire corpus of Russian literature. [The summaries and commentary](https://r0l.livejournal.com/921339.html) around this work talk about "Random Code Programming", which is exactly what I'm doing here. _iPhuck 10_ uses quantum computers, but the idea is the same -- look at the space of random programs and see what pops out. I'd like to mention that I have not read _iPhuck 10_ because I can't; I don't speak Russian and I'm certainly not well-versed in Russian literature. But I like _Star Trek VI_ because it's a Shakespearean space opera, so I'd be interested in a translation.
 
 ### Finally...
 
