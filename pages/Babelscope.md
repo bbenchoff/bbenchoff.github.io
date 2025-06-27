@@ -177,20 +177,20 @@ Programs `368cbd` and `7d301` look extremely similar, but they're distinct ROMs 
 
 ### Experiment 2: Discovering A Sorting Algorithm
 
-<p class="callout-sidebar">
-The reason for breaking up the search for sorting algorithms into sorted substrings is because a limitation of my setup. Searching substrings of registers is extremely computationally expensive; searching for 3+ consecutive sorted elements means I can search about 40,000 programs per second. Only searching for perfect sorts (eight registers in order, forwards or backwards) is a search rate of 140,000 programs per second on an RTX 5080. I opted for the substring search, just to know if the computer was doing anything. This isn't a complete waste. A sorted substring with length of 6 could still have a proper sorting algorithm in it.
-With a lot of compute, like an OpenAI or Twitter datacenter, I would only search for sorts in eight registers, substring sorts be damned. At this scale, a 'perfect' sort would fall out of the random data every fifteen minutes or so. That would be interesting.
-</p>
-
 The entire point of this isn't to generate cool, broken QR codes on the display of a CHIP-8 emulator. I've already proven that's possible with the Finite Atari Machine. The purpose of this experiment is to find something interesting. Specifically, I want to find something __computationally interesting__. This means algorithms, for sorting or graph traversal. It could mean cellular automata. A lot of stuff can just fall out of random data if you run it through a computer.
 
 **In short, I'm looking for a sorting algorithm in random data.**
 
 ### Discovering A Sorting Algorithm: Method
 
+<p class="callout-sidebar">
+The reason for breaking up the search for sorting algorithms into sorted substrings is because a limitation of my setup. Searching substrings of registers is extremely computationally expensive; searching for 3+ consecutive sorted elements means I can search about 40,000 programs per second. Only searching for perfect sorts (eight registers in order, forwards or backwards) is a search rate of 140,000 programs per second on an RTX 5080. I opted for the substring search, just to know if the computer was doing anything. This isn't a complete waste. A sorted substring with length of 6 could still have a proper sorting algorithm in it.
+With a lot of compute, like an OpenAI or Twitter datacenter, I would only search for sorts in eight registers, substring sorts be damned. At this scale, a 'perfect' sort would fall out of the random data every fifteen minutes or so. That would be interesting.
+</p>
+
 The implementation of this is simple. I want to find a sorting algorithm I generate billions of programs filled with random data, and store [8 3 6 1 7 2 5 4] in eight of the sixteen registers of the CHIP-8, in V0 through V7. Then, I fill up the rest of the program space with random bytes, emulate them, and monitor the values in the registers. Emulate billions of these random programs. Eventually, I'll get a few programs where registers V0 through V3 are `[1 2 3 4]` or `[8 7 6 5]`.
 
-More rarely, I'll get programs where registers V0 through V4 are `[1 2 3 4 5]` or `[8 7 6 5 4]`. After running this emulator script for a few days, I may even get registers V0 through V7 containing `[1 2 3 4 5 6 7 8]` or `[8 7 6 5 4 3 2 1]`. If that happens, I may have found a sorting algorithm in random data. I would need to disassemble the program and step through the instructions to confirm it, but this is a viable way to find quicksort, or bubble sort, or a sort no one has thought of before.
+More rarely, I'll get programs where registers V0 through V4 are `[1 2 3 4 5]` or `[8 7 6 5 4]`. After running this emulator script for a few days, I may even get registers V0 through V7 containing `[1 2 3 4 5 6 7 8]` or `[8 7 6 5 4 3 2 1]`. If that happens, I may have found a sorting algorithm in random data. I would need to disassemble the program and step through the instructions to confirm it, but this is a viable way to find quicksort, or bubble sort, or a sorting algorithm no one has thought of before.
 
 ### Discovering A Sorting Algorithm: Results
 
