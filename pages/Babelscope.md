@@ -195,6 +195,8 @@ The entire point of this isn't to generate cool, broken QR codes on the display 
 
 ### Discovering A Sorting Algorithm: Method
 
+#### Stage 1: Things that look like sorting algorithms
+
 <p class="callout-sidebar">
 The reason for breaking up the search for sorting algorithms into sorted substrings is because a limitation of my setup. Searching substrings of registers is extremely computationally expensive; searching for 3+ consecutive sorted elements means I can search about 40,000 programs per second. Only searching for perfect sorts (eight registers in order, forwards or backwards) is a search rate of 140,000 programs per second on an RTX 5080. I opted for the substring search, just to know if the computer was doing anything. This isn't a complete waste. A sorted substring with length of 6 could still have a proper sorting algorithm in it.
 With a lot of compute, like an OpenAI or Twitter datacenter, I would only search for sorts in eight registers, substring sorts be damned. At this scale, a 'perfect' sort would fall out of the random data every fifteen minutes or so. That would be interesting.
@@ -211,7 +213,7 @@ For this experiment, I adapted the existing code into two python files. The sort
 The core parallel CHIP-8 emulation engine optimized for sorting algorithm detection. This file implements a massively parallel GPU-based emulator using CuPy that can simultaneously run thousands of CHIP-8 instances. Key features include:
 
 * Vectorized instruction execution: All 35 CHIP-8 opcodes implemented as masked vector operations to handle warp divergence efficiently
-* Batch generation: Creates randomized CHIP-8 ROMs with the test pattern [8 3 6 1 7 2 5 4] pre-loaded into registers V0-V7
+* Batch generation: Creates randomized CHIP-8 ROMs with the test pattern `[8 3 6 1 7 2 5 4]` pre-loaded into registers V0-V7
 * Register monitoring: Real-time tracking of V0-V7 registers across all instances to detect sorted sequences
 * Pattern detection: Configurable detection of 3+ consecutive sorted elements (ascending or descending) during emulation
 * Memory management: Optimized GPU memory allocation for handling large batches of ROM data
@@ -231,6 +233,46 @@ The orchestration and data management layer that coordinates the entire sorting 
 * Data persistence: Saves discovered sorting algorithms to disk with metadata for later analysis and validation
 
 The search script is designed for long-running exploration sessions, automatically managing GPU resources and providing detailed progress reporting as it searches through billions of random programs.
+
+#### Stage 2: Things that actually _are_ sorting algorithms
+
+The first stage is a bulk search; it's simply looking at registers V0 through V7, and seeing if there the registers have the values  `[8 3 6 1 7 2 5 4]` sorted in any way. For example, `V0 = 8, V1 = 7, V2 = 6` would count as a 3-element sort, descending. `V4 = 5, V5 = 6, V6 = 7, V7 = 8` would count as a 4-element sort, ascending. The following table shows exactly how rare this is and demonstrates the exponential drop-off one would expect. 
+
+#### Discovery Rates per Billion ROMs Tested
+
+| Sequence Length | Per Billion ROMs | Rarity Factor |
+|-----------------|------------------|-------------------------|
+| **3 Elements**  | 82.4 Million     | 1 in 12       |
+| **4 Elements**  | 6.9 Million      | 1 in 145      |
+| **5 Elements**  | 33,518           | 1 in 29,839   |
+| **6 Elements**  | 13.2             | 1 in 75.6 Million |
+| **7 Elements**  | 2.0              | 1 in 487.8 Million |
+| **8 Elements**  | 2.0              | 1 in 487.8 Million |
+
+__Most of these discoveries are not sorting algorithms__. Most of these 'discoveries' generalize into a few different types of errors:
+
+1. Identity errors
+  - Programs don't actually sort, they just leave 'sorted' data in the registers.
+2. Pattern-specific manipulation
+  - These programs only work on the original `[8,3,6,1,7,2,5,4]` test pattern
+3. Coincidental consecutive placement
+  - Programs that overwrite the registers with random consecutive numbers
+  - An output of `[225,226,227,228,229,230]` is not derived from the `[8,3,6,1,7,2,5,4]` test pattern
+
+To find a true sorting algorithm in random data, the fastest approach is to first gather hundreds of programs that __could__ sort, and then test all of those programs with different test data. Whatever falls out after that process is an excellent candidate for decompilation. This requires another test script, `rom_generalization_tester.py`; this script is [available in the Github repo](https://github.com/bbenchoff/Babelscope/blob/main/rom_generalization_tester.py). This script uses the same CUDA emulator as the 'discovery' scripts, but it modifies the V0 through V7 registers to test different patterns. The ROM generalizer tests eight patterns:
+
+- `[22, 25, 21, 28, 24, 27, 23, 26]` 22-29 range
+- `[4, 7, 2, 8, 1, 6, 5, 3]` Different permutation of 1-8
+- `[18, 15, 21, 16, 20, 17, 22, 19]` 15-22 range
+- `[94, 97, 91, 98, 93, 96, 92, 95]` Range in the 90s
+- `[10, 30, 5, 35, 15, 25, 20, 40]` Mixed spacing
+- `[4, 5, 2, 7, 1, 6, 3, 8]` Reverse of the original pattern
+- `[1, 2, 3, 4, 5, 6, 7, 8]` Already sorted
+- `[8, 7, 6, 5, 4, 3, 2, 1]` Reverse sorted
+
+The idea of this being is if a program passes the first test by virtue of being saved in the initial search, __and__ passes these eight tests for sorting, then it's __probably__ a sorting algorithm. Or at least it's worth doing the actual decompilation of the program code and figuring out what's going on.
+
+
 
 ### Results From A Week Of Discovery
 
