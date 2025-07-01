@@ -276,9 +276,7 @@ As discussed in the [Finite Atari Project](https://bbenchoff.github.io/pages/Fin
 
 No, I'm not doing Brainfuck, but not for the reason you might imagine. The Babelscope operates on a fixed window of a ~4kB program. "Random Brainfuck" is completely unbounded. You can write anything a computer can do in Brainfuck, but I have no idea how long the program would be. I'm not searching for CHIP-8 programs larger than 4kB simply because of GPU limitations. Not wanting to search the Brainfuck space is a limit of the GPU; there's no effective way to search an unbounded Brainfuck space. I'm also not doing Brainfuck for the reasons you do imagine.
 
-x86 and ARM are too complex and have variable instruction lengths. RISC-V is nearly perfect with a fixed instruction width and simple addressing. In fact, this project could have been written for RISC-V and would have been much more 'legitimate' in the eyes of CS researchers. If anyone is going to replicate this project, I would suggest RISC-V, with the caveat that it wouldn't necessarily have a display output. I needed that, so I went with CHIP-8.
-
-Additionally, I'm extremely interested in applying this to embedded platforms. Think of it like this: a PIC12F has 1024 words (12-bits) of program memory. That gives you a search space of $2^{12288}$, or $10^{3700}$ programs. It's still an absurd number but compared to real, not-embedded computers it's significantly smaller and an entire PIC12F could easily be emulated in parallel on a GPU. Whether this will ever be useful to anyone is doubtful, but the methodology is solid.
+x86 and ARM are too complex and have variable instruction lengths. RISC-V is nearly perfect with a fixed instruction width and simple addressing. In fact, this project could have been written for RISC-V and would have been much more 'legitimate' in the eyes of the the audience that's reading this. If anyone is going to replicate this project, I would suggest RISC-V, with the caveat that it wouldn't necessarily have a display output. I needed that, so I went with CHIP-8.
 
 ### Theoretical Implications
 
