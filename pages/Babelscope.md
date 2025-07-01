@@ -212,13 +212,13 @@ For this experiment, I adapted the existing code into two python files. The sort
 
 The core parallel CHIP-8 emulation engine optimized for sorting algorithm detection. This file implements a massively parallel GPU-based emulator using CuPy that can simultaneously run thousands of CHIP-8 instances. Key features include:
 
-* Vectorized instruction execution: All 35 CHIP-8 opcodes implemented as masked vector operations to handle warp divergence efficiently
-* Batch generation: Creates randomized CHIP-8 ROMs with the test pattern `[8 3 6 1 7 2 5 4]` pre-loaded into registers V0-V7
-* Register monitoring: Real-time tracking of V0-V7 registers across all instances to detect sorted sequences
-* Pattern detection: Configurable detection of 3+ consecutive sorted elements (ascending or descending) during emulation
-* Memory management: Optimized GPU memory allocation for handling large batches of ROM data
-* State instrumentation: Comprehensive logging of register states, instruction counts, and execution statistics
-* Crash detection: Identifies and filters out instances that hit invalid opcodes or infinite loops
+* _Vectorized instruction execution_: All 35 CHIP-8 opcodes implemented as masked vector operations to handle warp divergence efficiently
+* _Batch generation_: Creates randomized CHIP-8 ROMs with the test pattern `[8 3 6 1 7 2 5 4]` pre-loaded into registers V0-V7
+* _Register monitoring_: Real-time tracking of V0-V7 registers across all instances to detect sorted sequences
+* _Pattern detection_: Configurable detection of 3+ consecutive sorted elements (ascending or descending) during emulation
+* _Memory management_: Optimized GPU memory allocation for handling large batches of ROM data
+* _State instrumentation_: Comprehensive logging of register states, instruction counts, and execution statistics
+* _Crash detection_: Identifies and filters out instances that hit invalid opcodes or infinite loops
 
 The emulator processes batches of 20,000-500,000 programs simultaneously. It can check register patterns every instruction cycle but this is very computationally expensive; I'm checking the registers every four instruction cycles. All programs run for 100,000 cycles until they're terminated and the process repeats for another batch of 20,000 to 500,000 programs.
 
@@ -226,11 +226,11 @@ The emulator processes batches of 20,000-500,000 programs simultaneously. It can
 
 The orchestration and data management layer that coordinates the entire sorting algorithm discovery pipeline. This script handles:
 
-* Search coordination: Manages the execution of multiple emulator batches with configurable search parameters
-* Result classification: Sorts discoveries by sequence length (3-element, 4-element, etc.) and saves promising candidates
-* Session management: Tracks progress across multi-hour search sessions with detailed logging and recovery capabilities
-* Performance monitoring: Real-time statistics on ROM processing rates, discovery rates, and computational efficiency
-* Data persistence: Saves discovered sorting algorithms to disk with metadata for later analysis and validation
+* _Search coordination_: Manages the execution of multiple emulator batches with configurable search parameters
+* _Result classification_: Sorts discoveries by sequence length (3-element, 4-element, etc.) and saves promising candidates
+* _Session management_: Tracks progress across multi-hour search sessions with detailed logging and recovery capabilities
+* _Performance monitoring_: Real-time statistics on ROM processing rates, discovery rates, and computational efficiency
+* _Data persistence_: Saves discovered sorting algorithms to disk with metadata for later analysis and validation
 
 The search script is designed for long-running exploration sessions, automatically managing GPU resources and providing detailed progress reporting as it searches through billions of random programs.
 
@@ -241,7 +241,7 @@ The first stage is a bulk search; it's simply looking at registers V0 through V7
 #### Discovery Rates per Billion ROMs Tested
 
 | Sequence Length | Per Billion ROMs | Rarity Factor |
-|-----------------|------------------|-------------------------|
+|-------------------------|------------------|-------------------------|
 | **3 Elements**  | 82.4 Million     | 1 in 12       |
 | **4 Elements**  | 6.9 Million      | 1 in 145      |
 | **5 Elements**  | 33,518           | 1 in 29,839   |
@@ -249,15 +249,7 @@ The first stage is a bulk search; it's simply looking at registers V0 through V7
 | **7 Elements**  | 2.0              | 1 in 487.8 Million |
 | **8 Elements**  | 2.0              | 1 in 487.8 Million |
 
-__Most of these discoveries are not sorting algorithms__. Most of these 'discoveries' generalize into a few different types of errors:
-
-1. Identity errors
-  - Programs don't actually sort, they just leave 'sorted' data in the registers.
-2. Pattern-specific manipulation
-  - These programs only work on the original `[8,3,6,1,7,2,5,4]` test pattern
-3. Coincidental consecutive placement
-  - Programs that overwrite the registers with random consecutive numbers
-  - An output of `[225,226,227,228,229,230]` is not derived from the `[8,3,6,1,7,2,5,4]` test pattern
+__Most of these discoveries are not sorting algorithms__. Most of these 'discoveries' generalize into a few different types of errors. These include identity errors, or programs don't actually sort, they just leave 'sorted' data in the registers. Also, pattern-specific manipulation were found. These errors only work on the original `[8,3,6,1,7,2,5,4]` test pattern. Finally, coincidental consecutive placement was found in the first pass over the data. These programs overwrite the registers with random consecutive numbers. For example, an output of `[225,226,227,228,229,230]` is not derived from the `[8,3,6,1,7,2,5,4]` test pattern.
 
 To find a true sorting algorithm in random data, the fastest approach is to first gather hundreds of programs that __could__ sort, and then test all of those programs with different test data. Whatever falls out after that process is an excellent candidate for decompilation. This requires another test script, `rom_generalization_tester.py`; this script is [available in the Github repo](https://github.com/bbenchoff/Babelscope/blob/main/rom_generalization_tester.py). This script uses the same CUDA emulator as the 'discovery' scripts, but it modifies the V0 through V7 registers to test different patterns. The ROM generalizer tests eight patterns:
 
@@ -272,9 +264,7 @@ To find a true sorting algorithm in random data, the fastest approach is to firs
 
 The idea of this being is if a program passes the first test by virtue of being saved in the initial search, __and__ passes these eight tests for sorting, then it's __probably__ a sorting algorithm. Or at least it's worth doing the actual decompilation of the program code and figuring out what's going on.
 
-
-
-### Results From A Week Of Discovery
+### Results From A Week Or Two Of Discovery
 
 IMAGINE I HAVE ACTUAL RESULTS HERE
 
@@ -284,21 +274,17 @@ IMAGINE I HAVE ACTUAL RESULTS HERE
 
 As discussed in the [Finite Atari Project](https://bbenchoff.github.io/pages/FiniteAtari.html), there are reasons I went with CHIP-8 over more interesting and social media-friendly architectures. The NES and Game Boy have memory mappers, bank switching, and memory protection. Rehashing the Atari involves complex emulation for video output, and 128 bytes of RAM doesn't allow for very much algorithmic complexity. The CHIP-8 is nearly ideal for this project with a flat memory model, programs that write to their own code area, and a limited number of instructions.
 
-No, I'm not doing Brainfuck, but not for the reason you might imagine. The Babelscope operates on a fixed window of a ~4kB program. "Random Brainfuck" is completely unbounded. You can write anything a computer can do in Brainfuck, but I have no idea how long the program would be. I'm not searching for CHIP-8 programs larger than 4kB simply because of GPU limitations. Not wanting to search the Brainfuck space is a limit of the GPU; there's no effective way to search an unbounded Brainfuck space.
+No, I'm not doing Brainfuck, but not for the reason you might imagine. The Babelscope operates on a fixed window of a ~4kB program. "Random Brainfuck" is completely unbounded. You can write anything a computer can do in Brainfuck, but I have no idea how long the program would be. I'm not searching for CHIP-8 programs larger than 4kB simply because of GPU limitations. Not wanting to search the Brainfuck space is a limit of the GPU; there's no effective way to search an unbounded Brainfuck space. I'm also not doing Brainfuck for the reasons you do imagine.
 
 x86 and ARM are too complex and have variable instruction lengths. RISC-V is nearly perfect with a fixed instruction width and simple addressing. In fact, this project could have been written for RISC-V and would have been much more 'legitimate' in the eyes of CS researchers. If anyone is going to replicate this project, I would suggest RISC-V, with the caveat that it wouldn't necessarily have a display output. I needed that, so I went with CHIP-8.
 
 Additionally, I'm extremely interested in applying this to embedded platforms. Think of it like this: a PIC12F has 1024 words (12-bits) of program memory. That gives you a search space of $2^{12288}$, or $10^{3700}$ programs. It's still an absurd number but compared to real, not-embedded computers it's significantly smaller and an entire PIC12F could easily be emulated in parallel on a GPU. Whether this will ever be useful to anyone is doubtful, but the methodology is solid.
-
-I would like to revisit the Finite Atari Machine someday, with a very different platform and a very specific target in mind. I want to find a romhack of Oregon Trail for the Apple II. Specifically, I would like to play Oregon Trail with a fourth career option. In addition to being a banker from Boston, a carpenter from Ohio, or a farmer from Illinois, I would like to play as a Black freeman from Pennsylvania. After arriving at the Willamette valley in 1848, the black farmer would be kicked out of the state because of the Oregon Exclusion Law. Teach children real history, you know? Maybe just rewriting the game from scratch would work too.
 
 ### Theoretical Implications
 
 This is not a fuzzer, because instead of generating random input, I'm seeing if a random _program_ runs. It's not genetic programming, because there's no fitness function. It's not the [Superoptimizer](https://dl.acm.org/doi/pdf/10.1145/36177.36194), because I'm looking for _all_ programs that do _something_. There are CS papers going back to the 60s that touch on this, but until now we haven't had the compute to actually do this. This isn't computer science, because there's no real condition of success. This isn't machine learning, because I'm not training anything to get better. This isn't art, because it's random data without intent. It's more like astronomy. I'm pointing a telescope at $10^{10159}$ random 4 kilobyte binaries and cataloging whatever strange objects I happen to find.
 
 You know the movie _Contact_? You know the book? In the last chapter of the book, the main character looks a trillion digits into pi, in base 11, and finds a perfect circle, rendered in ones and zeros. In the book, that’s a sign of something greater. That's not what I'm doing here. I just built the telescope, and I'm looking for anything interesting.
-
-REDO THIS SECTION WITH PROPER MATH LATER
 
 ## Conclusion
 
@@ -318,19 +304,15 @@ Maybe this will be worth a revisit when the GPUs go dark in the next AI winter. 
 
 ### Finally...
 
-<div class="side-image">
-  <div class="side-text">
-    <p>
-      The purpose of this exercise wasn't to find ROMs that could have been Atari games released in 1980. It wasn't to find <em>Adventure II</em>, <em>Pitfall III</em>, or the Atari 2600 version of <em>Koyaanisqatsi</em>, with chiptunes by Philip Glass.
-    </p>
-  </div>
-  <div class="side-image-container">
-    <img src="/images/Koyaanisqatsi.jpg" alt="Koyaanisqatsi, the video game">
-  </div>
-</div>
+In any event, this entire project is entirely stupid, and about two decades before its time. 
 
+Consider what this project would have looked like twenty years ago, in 2005. Back then, there was no CUDA, and the closest thing to parallel computing anyone could pull off was a Beowulf cluster for the Slashdot street cred. Back then, sinking $100,000 into this project would get _maybe_ 100 single-core processors running at around 2 GHz. Instead of testing 250,000 programs simultaneously, I would be lucky to test 100 at a time. Building a dataset of 500 programs that sort more than six registers would take centuries instead of a week.
 
+Now consider what the landscape will look like in twenty years. I'm using an RTX 5080 in the year 2025. Moore's law broke a while back, but there's still a trajectory; GPU performance has been growing 25% per year for a while. Compound that over a few decades, and what took me a week in 2025 could be done in ten minutes in 2045. Instead of testing 250,000 programs simultaneously, I could be testing 250 million in parallel. Instead of tying up a GPU for a month, this search could be done over a lunch break.
 
+We wouldn't even be limited to little 'toy' computers like the CHIP-8. With that much compute, we could test real architectures like ARM, RISC-V, or even the last iteration of x86, from before Intel's bankruptcy in 2031.
+
+Right now, this is the stupidest waste of compute power ever envisioned. But if we don't blow ourselves up, Taiwan isn't invaded, and we continue cramming more transistors into GPUs, this could be an interesting tool for computer science.
 
 <style>
 .side-image {
