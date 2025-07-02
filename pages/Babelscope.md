@@ -16,6 +16,16 @@ image: "/images/default.jpg"
    The Babelscope is a massively parallel emulation framework designed to explore the computational space of random programs. Building on the <a href="https://bbenchoff.github.io/pages/FiniteAtari.html">Finite Atari Machine</a>, this project generates billions of random CHIP-8 ROMs and executes them simultaneously on GPU hardware to catalog emergent behaviors. This project conducts a deliberate exhaustive survey of the program space looking for anything that produces interesting visual output, response to input, or exhibits complex computational patterns, from graphical glitches to sorting algorithms. Several interesting programs were found in this random computational space, including sorting algorithms.
 </div>
 
+I've had this idea for the past twenty years. What would happen if you had a computer and gave it random machine code? Obviously we're not talking about anything with a BIOS or other low-level firmware; what would happen if you filled a Nintendo cartridge with random data, or mashed random bytes into the hex editor of an Apple II.
+
+A few months ago, I made the [Finite Atari Machine](https://bbenchoff.github.io/pages/FiniteAtari.html), a framework that did just that for the Atari 2600. I generated 30 billion different ROMs full of random data and emulated the ones that looked like commercial ROMs. The results were interesting: I found programs that generated cool, glitchy visuals and even a 'protogame' that responded to user input.
+
+This experiment had significant shortcomings. Instead of emulating 30 billion ROMs, I used some heuristic filtering to single out the ROMs that _could_ be games. The halting problem is a harsh mistress, and to find interesting algorithms in random data, you actually had to _run_ billions of these random ROMs.
+
+This is the Babelscope. It's a framework to emulate tens of thousands of programs written for the CHIP-8 virtual machine. With this, I can find programs that produce interesting visual output, and I can also find programs that manipulate registers and memory in interesting ways. I found a sorting algorithm in random data, and I found something that's a little like, but not quite, Newton's method to find square roots.
+
+It's the computer science equivalent of the [Miller-Urey experiment](https://en.wikipedia.org/wiki/Miller%E2%80%93Urey_experiment). This was an experiment in chemical synthesis by simulating the primordial Earth in a test tube. Add water, methane, ammonia, hydrogen, heat and electric sparks and you'll eventually get amino acids, the building blocks of life. I'm doing this with computer code. If you have a computer run random data as code, eventually you'll get algorithms that do something.
+
 ## Introduction
 
 This is the followup to my previous project, the [Finite Atari Machine](https://bbenchoff.github.io/pages/FiniteAtari.html). With the Finite Atari Machine, I used a GPU to generate billions and billions of Atari 2600 ROMs filled with random data that conformed to some heuristics gleaned from commercially released Atari games. I found some interesting stuff, including a 'protogame' that produced changing visual output dependent on player input.
@@ -304,7 +314,7 @@ Maybe this will be worth a revisit when the GPUs go dark in the next AI winter. 
 
 In any event, this entire project is entirely stupid, and about two decades before its time. 
 
-Consider what this project would have looked like twenty years ago, in 2005. Back then, there was no CUDA, and the closest thing to parallel computing anyone could pull off was a Beowulf cluster for the Slashdot street cred. Back then, sinking $100,000 into this project would get _maybe_ 100 single-core processors running at around 2 GHz. Instead of testing 250,000 programs simultaneously, I would be lucky to test 100 at a time. Building a dataset of 500 programs that sort more than six registers would take centuries instead of a week.
+Consider what this project would have looked like twenty years ago, in 2005. Back then there was no CUDA and the closest thing to parallel computing anyone could pull off was a Beowulf cluster for the Slashdot street cred. Sinking $100,000 into this project in 2005 would get _maybe_ 100 single-core processors running at around 2 GHz. Instead of testing 250,000 programs simultaneously, I would be lucky to test a hundred at a time. Building a dataset of 500 programs that sort more than six registers would take centuries instead of a week.
 
 Now consider what the landscape will look like in twenty years. I'm using an RTX 5080 in the year 2025. Moore's law broke a while back, but there's still a trajectory; GPU performance has been growing 25% per year for a while. Compound that over a few decades, and what took me a week in 2025 could be done in ten minutes in 2045. Instead of testing 250,000 programs simultaneously, I could be testing 250 million in parallel. Instead of tying up a GPU for a month, this search could be done over a lunch break.
 
