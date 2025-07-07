@@ -34,6 +34,7 @@ I design, build, and reverse-engineer **hardware, embedded systems, and unconven
 🔹**[Copying 20 year old USB devices](https://bbenchoff.github.io/pages/atapi.html)** -- When you can only find **one on eBay**<br>
 
 ### 💻 **Coding Projects**
+🔹**[Babelscope](https://bbenchoff.github.io/pages/Babelscope.html)** -- A **massively parallel emulation framework** that found absolutely nothing<br>
 🔹**[Finding Atari Games in Randomly Generated Data](https://bbenchoff.github.io/pages/FiniteAtari.html)** -- 30 billion ROM files **and only one broken game**<br>
 🔹**[A port of Mbed-TLS for the Classic Macintosh OS 7/8/9](https://bbenchoff.github.io/pages/MacSSL.html)** -- SSL/TLS **for something that was never meant to have it**<br>
 🔹**[Embedded SSL and GZIP](https://bbenchoff.github.io/pages/BusTideDisplay.html)** -- Because **you don't need to run everything in Linux**<br>
