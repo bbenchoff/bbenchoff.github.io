@@ -5,7 +5,7 @@ description: "Bablescope: Finding algorithms in random data with CUDA"
 keywords: ["GPU", "Emulation", "CHIP-8", "ROM generation", "procedural generation", "Brian Benchoff"]
 author: "Brian Benchoff"
 date: 2025-06-04
-last_modified_at: 2022-07-07
+last_modified_at: 2025-07-07
 image: "/images/Bablescope/Fluffer.png"
 ---
 # Babelscope
