@@ -2,19 +2,21 @@
 layout: default
 title: "Babelscope"
 description: "Bablescope: Finding algorithms in random data with CUDA"
-keywords: ["GPU", "Emulation", "CHIP-8", "ROM generation", "procedural generation", "computational phenomenology", "Brian Benchoff"]
+keywords: ["GPU", "Emulation", "CHIP-8", "ROM generation", "procedural generation", "Brian Benchoff"]
 author: "Brian Benchoff"
 date: 2025-06-04
-last_modified_at: 2022-06-04
-image: "/images/default.jpg"
+last_modified_at: 2022-07-07
+image: "/images/Bablescope/Fluffer.png"
 ---
 # Babelscope
 
 <i><b>"Computer science is no more about telescopes than astronomy is about computers"  -- Bizzaro Dijkstra</b></i>
 
 <div class="abstract" style="margin: 2rem 3rem; padding: 1.5rem 2rem; font-style: italic; color: #666; background-color: #fafafa; font-size: 0.95rem; line-height: 1.7; border-radius: 4px;">
-   The Babelscope is a massively parallel emulation framework designed to explore the computational space of random programs. Building on the <a href="https://bbenchoff.github.io/pages/FiniteAtari.html">Finite Atari Machine</a>, this project generates billions of random CHIP-8 ROMs and executes them simultaneously on GPU hardware to catalog emergent behaviors. This project conducts a deliberate exhaustive survey of the program space looking for anything that produces interesting visual output, response to input, or exhibits complex computational patterns, from graphical glitches to sorting algorithms. Several interesting programs were found in this random computational space, including sorting algorithms.
+   The Babelscope is a massively parallel emulation framework designed to explore the computational space of random programs. Building on the <a href="https://bbenchoff.github.io/pages/FiniteAtari.html">Finite Atari Machine</a>, this project generates billions of random CHIP-8 ROMs and executes them simultaneously on GPU hardware to catalog emergent behaviors. This project conducts survey of 50 billion random programs in the CHIP-8 program space looking for anything that produces interesting visual output, response to input, or exhibits complex computational patterns, such as sorting algorithms. Nothing was found, but the techniques will be interesting in a few decades' time.
 </div>
+
+## Introduction
 
 I've had this idea for the past twenty years. What would happen if you had a computer and gave it random machine code? Obviously we're not talking about anything with a BIOS or other low-level firmware; what would happen if you filled a Nintendo cartridge with random data, or mashed random bytes into the hex editor of an Apple II.
 
@@ -22,21 +24,12 @@ A few months ago, I made the [Finite Atari Machine](https://bbenchoff.github.io/
 
 This experiment had significant shortcomings. Instead of emulating 30 billion ROMs, I used some heuristic filtering to single out the ROMs that _could_ be games. The halting problem is a harsh mistress, and to find interesting algorithms in random data, you actually had to _run_ billions of these random ROMs.
 
-This is the Babelscope. It's a framework to emulate tens of thousands of programs written for the CHIP-8 virtual machine. With this, I can find programs that produce interesting visual output, and I can also find programs that manipulate registers and memory in interesting ways. I found a sorting algorithm in random data, and I found something that's a little like, but not quite, Newton's method to find square roots.
-
 It's the computer science equivalent of the [Miller-Urey experiment](https://en.wikipedia.org/wiki/Miller%E2%80%93Urey_experiment). This was an experiment in chemical synthesis by simulating the primordial Earth in a test tube. Add water, methane, ammonia, hydrogen, heat and electric sparks and you'll eventually get amino acids, the building blocks of life. I'm doing this with computer code. If you have a computer run random data as code, eventually you'll get algorithms that do something.
 
-## Introduction
-
-This is the followup to my previous project, the [Finite Atari Machine](https://bbenchoff.github.io/pages/FiniteAtari.html). With the Finite Atari Machine, I used a GPU to generate billions and billions of Atari 2600 ROMs filled with random data that conformed to some heuristics gleaned from commercially released Atari games. I found some interesting stuff, including a 'protogame' that produced changing visual output dependent on player input.
-
-This project is the next step. Instead of merely generating random ROMs in a GPU and checking results in an emulator, we build a massively parallel framework to generate billions of ROMs and test them all with emulation. Like the Finite Atari Machine project, I found interesting visual output and 'protogames' that respond to user input. The parallel emulation framework makes this vastly more interesting; with this technique I was also able to find interesting random programs with applications.
-
-This is the computer science equivalent of the [Miller-Urey experiment](https://en.wikipedia.org/wiki/Miller%E2%80%93Urey_experiment). This was an experiment in chemical synthesis by simulating the primordial Earth in a test tube. Add water, methane, ammonia, hydrogen, heat and electric sparks and you'll eventually get amino acids, the building blocks of life. I'm doing this with computer code. If you have a computer run random data as code, eventually you'll get algorithms that do something.
 
 ### Comparison to Related Works
 
-The Babelscope is not without historical precedent. 
+The Babelscope is not without historical precedent, although it is by necessity a little bit cruder than other related work.
 
 The closest thing to Babelscope is [stoke](https://github.com/StanfordPL/stoke) from the Stanford Programming Languages Group. This uses random search to explore program transformations, but not a program _space_. It's a bounded search, looking for novel or interesting permutations of interesting algorithms, but it's not really for discovering algorithms _in_ random data. Although, I'm using Babelscope to find sorting algorithms, so the comparison between it an Stoke is really six of one, half a dozen of the other.
 
@@ -63,11 +56,7 @@ The solution to finding interesting bits of computation in random data would req
 
 The answer is [CHIP-8](https://en.wikipedia.org/wiki/CHIP-8). The CHIP-8 provides a stable video interface instead of the Atari's complex TIA timing requirements and NTSC waveform generation. The CHIP-8 also provides 4kB of directly addressable RAM compared to the Atari's disjointed memory model of 4kB of ROM and 128 bytes of RAM. Most important for this project, the CHIP-8 is ideal for GPU parallelization. The architecture makes it straightforward to instrument the internal state of the system during emulation.
 
-The goal of this project is to run billions of ROMs in parallel, just to see if something interesting happens. Because of my success with the Finite Atari Machine, this is somewhat of a foregone conclusion, even if it might take a while. But the change to the CHIP-8 platform also allows me to ask a deeper question: If I pre-seed memory with structured data, will a random program ever sort it? Could something like quicksort be found in the program space? If I define a graph in memory -- a set of nodes and weighted edges -- will Dijkstra stumble out?
-
-Here's the cool thing: Since I'm effectively doing an exhaustive search (limited by the heat death of the Universe), bubblesort and A* can be found in the program space if they can be expressed on the system at all. This raises the question: _what else is there waiting to be found?_
-
-If this sounds somewhat familiar, you're right: it's effectively [A New Kind of Science](https://en.wikipedia.org/wiki/A_New_Kind_of_Science), but slightly modified. Stephen Wolfram's research involves studying how complex behaviors emerge from cellular automata and Turing machines using a systematic exploration of simple rule sets. The Babelscope inverts this approach entirely. Instead of starting with simple rules and seeing what emerges, I'm taking a complex system and looking at what random instances do. It's the difference between breeding finches and setting up a webcam next to a bird feeder. _Why_ this research has never been done is anyone's guess, but if I had to, I'd say Wolfram is more interested in getting a second element named after himself than doing anything cool.
+The goal of this project is to run billions of ROMs in parallel, just to see if something interesting happens. Because of my success with the Finite Atari Machine, this is somewhat of a foregone conclusion, even if it might take a while. But the change to the CHIP-8 platform also allows me to ask a deeper question: If I pre-seed memory with structured data, will a random program ever sort it? Could something like quicksort be found in the program space? The answer, unfortunately, is not in two weeks, and not with 50 billion random CHIP-8 programs.
 
 ## Technical Implementation
 ### Platform Choice
@@ -197,13 +186,13 @@ Program `e20edb` shows the `XOR` more clearly -- it's a diagonally looping sprit
 
 Programs `368cbd` and `7d301` look extremely similar, but they're distinct ROMs from distinct runs (distinctness proven by the shortened SHA-1 name). They are both simply writing random data as sprite data, `XOR`-ing the result on the screen. While these programs might not be much to look at, they're at least as complex as what I found with the [Finite Atari Machine](https://bbenchoff.github.io/pages/FiniteAtari.html). 
 
-### Experiment 2: Discovering A Sorting Algorithm
+### Experiment 2: Searching for Sorting Algorithms
 
 The entire point of this isn't to generate cool, broken QR codes on the display of a CHIP-8 emulator. I've already proven that's possible with the Finite Atari Machine. The purpose of this experiment is to find something interesting. Specifically, I want to find something __computationally interesting__. This means algorithms, for sorting or graph traversal. It could mean cellular automata. A lot of stuff can just fall out of random data if you run it through a computer.
 
 **In short, I'm looking for a sorting algorithm in random data.**
 
-### Discovering A Sorting Algorithm: Method
+### On Not Discovering A Sorting Algorithm: Method
 
 #### Stage 1: Things that look like sorting algorithms
 
@@ -246,20 +235,27 @@ The search script is designed for long-running exploration sessions, automatical
 
 #### Stage 2: Things that actually _are_ sorting algorithms
 
-The first stage is a bulk search; it's simply looking at registers V0 through V7, and seeing if there the registers have the values  `[8 3 6 1 7 2 5 4]` sorted in any way. For example, `V0 = 8, V1 = 7, V2 = 6` would count as a 3-element sort, descending. `V4 = 5, V5 = 6, V6 = 7, V7 = 8` would count as a 4-element sort, ascending. The following table shows exactly how rare this is and demonstrates the exponential drop-off one would expect. 
+The first stage is a bulk search; it's simply looking at registers V0 through V7, and seeing if there the registers have the values  `[8 3 6 1 7 2 5 4]` sorted in any way. For example, `V0 = 8, V1 = 7, V2 = 6` would count as a 3-element sort, descending. `V4 = 5, V5 = 6, V6 = 7, V7 = 8` would count as a 4-element sort, ascending. The following table shows exactly how rare this is and demonstrates the exponential drop-off one would expect.
+
+This data set represents over 50 billion ROMs tested across 17 search sessions, consuming 217 hours of GPU time on an RTX 5080. The search yielded 3.47 billion total discoveries, with 174 programs producing complete 8-element sorted sequences. These are the potential sorting algorithms that warrant deeper analysis.
 
 #### Discovery Rates per Billion ROMs Tested
 
 | Sequence Length | Per Billion ROMs | Rarity Factor |
 |-------------------------|------------------|-------------------------|
-| **3 Elements**  | 82.4 Million     | 1 in 12       |
-| **4 Elements**  | 6.9 Million      | 1 in 145      |
-| **5 Elements**  | 33,518           | 1 in 29,839   |
-| **6 Elements**  | 13.2             | 1 in 75.6 Million |
-| **7 Elements**  | 2.0              | 1 in 487.8 Million |
-| **8 Elements**  | 2.0              | 1 in 487.8 Million |
+| **3 Elements**  | 62.8 Million     | 1 in 16       |
+| **4 Elements**  | 6.1 Million      | 1 in 165      |
+| **5 Elements**  | 31,279           | 1 in 31,947   |
+| **6 Elements**  | 13.8             | 1 in 72.6 Million |
+| **7 Elements**  | 4.7              | 1 in 212.7 Million |
+| **8 Elements**  | 3.5              | 1 in 289.6 Million |
 
-__Most of these discoveries are not sorting algorithms__. Most of these 'discoveries' generalize into a few different types of errors. These include identity errors, or programs don't actually sort, they just leave 'sorted' data in the registers. Also, pattern-specific manipulation were found. These errors only work on the original `[8,3,6,1,7,2,5,4]` test pattern. Finally, coincidental consecutive placement was found in the first pass over the data. These programs overwrite the registers with random consecutive numbers. For example, an output of `[225,226,227,228,229,230]` is not derived from the `[8,3,6,1,7,2,5,4]` test pattern.
+
+### Results From A Week Or Two Of Discovery
+
+After about two weeks of compute time, I had over 1,000 different programs consisting of what could be 6-, 7-, or 8-element sorting algorithms. These again had to be winnowed down to see if there's anything there.
+
+![A sankey diagram of what I found, which was nothing](/images/Bablescope/Fluffer.png)
 
 To find a true sorting algorithm in random data, the fastest approach is to first gather hundreds of programs that __could__ sort, and then test all of those programs with different test data. Whatever falls out after that process is an excellent candidate for decompilation. This requires another test script, `rom_generalization_tester.py`; this script is [available in the Github repo](https://github.com/bbenchoff/Babelscope/blob/main/rom_generalization_tester.py). This script uses the same CUDA emulator as the 'discovery' scripts, but it modifies the V0 through V7 registers to test different patterns. The ROM generalizer tests eight patterns:
 
@@ -274,9 +270,7 @@ To find a true sorting algorithm in random data, the fastest approach is to firs
 
 The idea of this being is if a program passes the first test by virtue of being saved in the initial search, __and__ passes these eight tests for sorting, then it's __probably__ a sorting algorithm. Or at least it's worth doing the actual decompilation of the program code and figuring out what's going on.
 
-### Results From A Week Or Two Of Discovery
-
-IMAGINE I HAVE ACTUAL RESULTS HERE
+The results of this generalization tester were disappointing but not unsurprising. No individual program could find a general sorting algorithm that consistently sorted any subset of the registers in question. While they did work with some patterns, most of these 'discoveries' generalize into a few different types of errors. These include identity errors, or programs don't actually sort, they just leave 'sorted' data in the registers. Also, pattern-specific manipulation were found. These errors only work on the original `[8,3,6,1,7,2,5,4]` test pattern. Finally, coincidental consecutive placement was found in the first pass over the data. These programs overwrite the registers with random consecutive numbers. For example, an output of `[225,226,227,228,229,230]` is not derived from the `[8,3,6,1,7,2,5,4]` test pattern.
 
 ## Future Directions
 
@@ -288,17 +282,11 @@ No, I'm not doing Brainfuck, but not for the reason you might imagine. The Babel
 
 x86 and ARM are too complex and have variable instruction lengths. RISC-V is nearly perfect with a fixed instruction width and simple addressing. In fact, this project could have been written for RISC-V and would have been much more 'legitimate' in the eyes of the the audience that's reading this. If anyone is going to replicate this project, I would suggest RISC-V, with the caveat that it wouldn't necessarily have a display output. I needed that, so I went with CHIP-8.
 
-### Theoretical Implications
-
-This is not a fuzzer, because instead of generating random input, I'm seeing if a random _program_ runs. It's not genetic programming, because there's no fitness function. It's not the [Superoptimizer](https://dl.acm.org/doi/pdf/10.1145/36177.36194), because I'm looking for _all_ programs that do _something_. There are CS papers going back to the 60s that touch on this, but until now we haven't had the compute to actually do this. This isn't computer science, because there's no real condition of success. This isn't machine learning, because I'm not training anything to get better. This isn't art, because it's random data without intent. It's more like astronomy. I'm pointing a telescope at $10^{10159}$ random 4 kilobyte binaries and cataloging whatever strange objects I happen to find.
-
-You know the movie _Contact_? You know the book? In the last chapter of the book, the main character looks a trillion digits into pi, in base 11, and finds a perfect circle, rendered in ones and zeros. In the book, that’s a sign of something greater. That's not what I'm doing here. I just built the telescope, and I'm looking for anything interesting.
-
 ## Conclusion
 
 <div class="side-image">
   <div class="side-text">
-    <p>I am immensely pissed off at this project. Not because I did it, but because it would have been so much easier if I had access to resources. This is a compute-bound problem, solved by writing a little bit of CUDA, and it takes __weeks__ to find a single 8-element sorting algorithm. There are better ways to do this; it's a highly parallelizable problem and there are already data centers running hundreds of thousands of GPUs at full tilt.</p>
+    <p>I am immensely pissed off at this project, but not because I didn't find anything. Given enough time -- on the scale of entire lifetimes -- something would eventually fall out of the random data stuffed into a computer. This is a compute-bound problem, solved by writing a little bit of CUDA, and it would take months to find a single algorithm that sorts a handful of registers or finds a Newton-like square root algorithm There are better ways to do this; it's a highly parallelizable problem and there are already data centers running hundreds of thousands of GPUs at full tilt.</p>
     <p>Just imagine: instead of training a new LLM model, we could have novel sorting algorithms being spat out of a machine every few minutes. With enough compute, you could brute-force new graph traversal strategies. New compression techniques. Whole classes of useful code might just fall out of noise, if we had enough eyes on it.</p>
   </div>
   <div class="side-image-container">
@@ -308,19 +296,19 @@ You know the movie _Contact_? You know the book? In the last chapter of the book
 
 Instead, we’re mining the computational space of random programs... to make a chatbot slightly better at writing CSS. And slightly worse at knowing when to stop using em dashes.
 
-Maybe this will be worth a revisit when the GPUs go dark in the next AI winter. I'll reassess next year.
+That's not to say this is a good method of algorithm discovery. It's actually terrible. To find A*, you'd have to boil a lake. No, really, I've done the math and it would actually boil some small alpine lakes. Maybe this will be worth a revisit when the GPUs go dark in the next AI winter. I'll reassess next year.
 
 ### Finally...
 
 In any event, this entire project is entirely stupid, and about two decades before its time. 
 
-Consider what this project would have looked like twenty years ago, in 2005. Back then there was no CUDA and the closest thing to parallel computing anyone could pull off was a Beowulf cluster for the Slashdot street cred. Sinking $100,000 into this project in 2005 would get _maybe_ 100 single-core processors running at around 2 GHz. Instead of testing 250,000 programs simultaneously, I would be lucky to test a hundred at a time. Building a dataset of 500 programs that sort more than six registers would take centuries instead of a week.
+Consider what this project would have looked like twenty years ago, in 2005. Back then there was no CUDA and the closest thing to parallel computing anyone could pull off was a Beowulf cluster for the Slashdot street cred. Sinking $100,000 into this project in 2005 would get _maybe_ 100 single-core processors running at around 2 GHz. Instead of testing 250,000 programs simultaneously, I would be lucky to test a hundred at a time.
 
 Now consider what the landscape will look like in twenty years. I'm using an RTX 5080 in the year 2025. Moore's law broke a while back, but there's still a trajectory; GPU performance has been growing 25% per year for a while. Compound that over a few decades, and what took me a week in 2025 could be done in ten minutes in 2045. Instead of testing 250,000 programs simultaneously, I could be testing 250 million in parallel. Instead of tying up a GPU for a month, this search could be done over a lunch break.
 
 We wouldn't even be limited to little 'toy' computers like the CHIP-8. With that much compute, we could test real architectures like ARM, RISC-V, or even the last iteration of x86, from before Intel's bankruptcy in 2031.
 
-Right now, this is the stupidest waste of compute power ever envisioned. But if we don't blow ourselves up, Taiwan isn't invaded, and we continue cramming more transistors into GPUs, this could be an interesting tool for computer science.
+Right now, this is the stupidest waste of compute power ever envisioned. But if we don't blow ourselves up, Taiwan isn't invaded, and we continue cramming more transistors into GPUs, this could be an interesting tool in a few decades.
 
 <style>
 .side-image {
@@ -363,6 +351,5 @@ Right now, this is the stupidest waste of compute power ever envisioned. But if 
   }
 }
 </style>
-
 
 [back](../)
