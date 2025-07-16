@@ -49,7 +49,17 @@ Why did I build my own 64x64 LED array, instead of using an off-the-shelf HUB75 
 
 [[[[[VIDEO OF BLINKY GOES HERE]]]]]
 
-# Connection Machine Reproduction
+# Connection Machine
+
+Disregarding the architecture of a 12-dimensional hypercube, the layout of this machine is shockingly simple:
+
+![Block diagram of the Connection Machine](/images/ConnM/BlockDiagram.png)
+
+As discussed above, the LED array is controlled by an RP2040 microcontroller over I2C. Data for the LEDs is received from the 'master' controller over a serial link. The hypercube of RISC-V chips are not directly connected to the LEDs, so fidelity and accuracy of what is actually happening in the computer suffers _somewhat_, but not really enough to notice.
+
+The main controller for the Connection Machine is connected to the hypercube array over 4,096 individual Single Wire Debug lines. This is accomplished through a crossbar, allowing each individual processor to be programmed independently. The crossbar also allows for 'global' broadcasts to all nodes in the hypercube individually.
+
+Internally, the hypercube array is simply a bunch of RISC-V chips, each connected to 12 of its neighbors. This is a wiring nightmare.
 
 ## Overview
 Modern reproduction of 1985 CM-1 supercomputer using contemporary components. 4,096-processor distributed computer in 12D hypercube topology with real-time LED visualization.
