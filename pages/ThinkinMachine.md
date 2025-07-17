@@ -29,6 +29,8 @@ This project is a faithful reproduction of the original, 1985-era Connection Mac
 
 # The LED Panel
 
+Listen, we all know why you're reading this, so I'm going to start off with the LED array before digging into massively parallel hypercube supercomputer. 
+
 The Connection Machine was _defined_ by a giant array of LEDs. It's the reason there's one of these in the MoMA, so I need 4,096 LEDs showing the state of every parallel processor in this machine. Also, blinky equals cool equals eyeballs, so there's that.
 
 ![Schematic and PCB of the LED array](/images/ConnM/LEDSchBoard.png)
@@ -49,7 +51,7 @@ Why did I build my own 64x64 LED array, instead of using an off-the-shelf HUB75 
 
 [[[[[VIDEO OF BLINKY GOES HERE]]]]]
 
-# Connection Machine
+# Connection Machine, High-Level Design
 
 Disregarding the architecture of a 12-dimensional hypercube, the layout of this machine is shockingly simple:
 
@@ -57,9 +59,9 @@ Disregarding the architecture of a 12-dimensional hypercube, the layout of this 
 
 As discussed above, the LED array is controlled by an RP2040 microcontroller over I2C. Data for the LEDs is received from the 'master' controller over a serial link. The hypercube of RISC-V chips are not directly connected to the LEDs, so fidelity and accuracy of what is actually happening in the computer suffers _somewhat_, but not really enough to notice.
 
-The main controller for the Connection Machine is connected to the hypercube array over 4,096 individual Single Wire Debug lines. This is accomplished through a crossbar, allowing each individual processor to be programmed independently. The crossbar also allows for 'global' broadcasts to all nodes in the hypercube individually. I/O to and from this computer is through a simple low-speed Ethernet link.
+The 4096 nodes in the Connection Machine are connected to the 'local coordinators' of the hypercube array. 16 of these controllers handle Single Wire Debug for 256 RISC-V chips, allowing for programming each individual node in the hypercube, as well as providing input and output to each individual node. Each of these coordinators handle a single 8-dimensional hypercube, sixteen of these 8-dimension cubes comprise the entire 12-dimensional hypercube array. 
 
-Internally, the hypercube array is simply a bunch of RISC-V chips, each connected to 12 of its neighbors. This is a wiring nightmare.
+These coordinators communicate with the main controller over a bidirectional serial link. The main controller is responsible for communicating with the local coordinators, both to write software to the RISC-V nodes, and to read the state of the RISC-V nodes. Input and output to the rest of the universe is through the main controller over an Ethernet connection provided by a WIZnet W5500 controller.
 
 
 
