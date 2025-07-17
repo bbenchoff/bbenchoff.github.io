@@ -9,6 +9,48 @@ last_modified_at: 2022-06-04
 image: "/images/default.jpg"
 ---
 
+<style>
+.side-image {
+  display: flex;
+  flex-direction: column-reverse;
+  align-items: flex-start;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.side-text {
+  font-size: 1rem;
+  line-height: 1.6;
+}
+
+.side-image-container {
+  width: 100%;
+}
+
+.side-image-container img {
+  width: 100%;
+  height: auto;
+  border-radius: 4px;
+  box-shadow: 0 0 8px rgba(0,0,0,0.2);
+}
+
+@media (min-width: 768px) {
+  .side-image {
+    flex-direction: row;
+  }
+
+  .side-text {
+    flex: 2 1 400px;
+    min-width: 250px;
+  }
+
+  .side-image-container {
+    flex: 1 1 300px;
+    max-width: 300px;
+  }
+}
+</style>
+
 A while back, I had a contract with a company making tamper-evident enclosures for computer hardware. The idea was to wrap the entire system in a cage of printed circuit boards, each layered with a dense grid of traces. One layer on top, a few in the middle, one on the bottom. Enough to ensure that even the smallest drill bit couldn't pass through undetected.
 
 The layout of these traces was exceptionally hard to visualize. If you've ever seen a drawing of a four-dimensional cube, it's that. A tesseract. Each node was connected to four others. At first, it was mind-bending. But after a week or two, I began to internalize it.
@@ -591,44 +633,3 @@ Success of this prototype will provide the foundation for scaling to the full 4,
 
 [back](../)
 
-<style>
-.side-image {
-  display: flex;
-  flex-direction: column-reverse;
-  align-items: flex-start;
-  gap: 1rem;
-  margin-bottom: 1.5rem;
-}
-
-.side-text {
-  font-size: 1rem;
-  line-height: 1.6;
-}
-
-.side-image-container {
-  width: 100%;
-}
-
-.side-image-container img {
-  width: 100%;
-  height: auto;
-  border-radius: 4px;
-  box-shadow: 0 0 8px rgba(0,0,0,0.2);
-}
-
-@media (min-width: 768px) {
-  .side-image {
-    flex-direction: row;
-  }
-
-  .side-text {
-    flex: 2 1 400px;
-    min-width: 250px;
-  }
-
-  .side-image-container {
-    flex: 1 1 400px;
-    max-width: 400px;
-  }
-}
-</style>
