@@ -104,10 +104,10 @@ Why did I build my own 64x64 LED array, instead of using an off-the-shelf HUB75 
 
   <div class="conclusion-text">
     <p>This post has already gone on far too long without a proper explanation of what I'm building. This is _simply_ a very, very large cluster of very, very small computers. The Connection Machine was designed as a massively parallel computer first. The entire idea was to stuff as many computers into a box, and connect those computers together. But then the problem became how to connect these computers. If you <a href="https://dspace.mit.edu/bitstream/handle/1721.1/14719/18524280-MIT.pdf">read Danny Hillis' dissertation</a>, there were several network topologies to choose from.</p>
-    <p>These small computers could have been arranged as a (binary) tree, but this would have the downside of a communications bottleneck at the root of the tree. They could have been connected with a crossbar -- effectively connecting every node to every other node. A full crossbar requires N², where N is the number of nodes. This does not scale in silicon and hardware. Hashnets were also considered, where everything was connected randomly. This is too much of a mind trip to do anything useful.
+    <p>These small computers could have been arranged as a (binary) tree, but this would have the downside of a communications bottleneck at the root of the tree. They could have been connected with a crossbar -- effectively connecting every node to every other node. A full crossbar requires N², where N is the number of nodes. This does not scale in silicon and hardware. Hashnets were also considered, where everything was connected randomly. This is too much of a mind trip to do anything useful.</p>
     <p>The solution settled on was a hypercube layout, where in a network of 8 nodes (a 3D cube), each node would be connected to 3 adjacent nodes. In a network of 16 nodes (4D, a tesseract), each node would have 4 connections. A network of 4,096 nodes would have 12 connections per node, and a network of 65,536 nodes would have 16 connections per node.</p>
     <p>The advantages to this layout is that routing algorithms for passing messages between nodes are simple, and there are redundant paths between nodes. If you want to build a hypercluster of tiny computers, you build it as a hypercube.</p>
-  </div>
+    </div>
 </div>
 
 
