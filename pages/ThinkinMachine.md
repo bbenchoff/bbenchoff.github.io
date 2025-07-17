@@ -12,19 +12,9 @@ image: "/images/default.jpg"
 <style>
 .side-image {
   display: flex;
-  flex-direction: column-reverse;
-  align-items: flex-start;
+  flex-direction: column;
   gap: 1rem;
   margin-bottom: 1.5rem;
-}
-
-.side-text {
-  font-size: 1rem;
-  line-height: 1.6;
-}
-
-.side-image-container {
-  width: 100%;
 }
 
 .side-image-container img {
@@ -37,6 +27,7 @@ image: "/images/default.jpg"
 @media (min-width: 768px) {
   .side-image {
     flex-direction: row;
+    align-items: flex-start; /* Aligns tops of text and image */
   }
 
   .side-text {
@@ -47,6 +38,7 @@ image: "/images/default.jpg"
   .side-image-container {
     flex: 1 1 300px;
     max-width: 300px;
+    margin-left: 1rem; /* Push image to the right with spacing */
   }
 }
 </style>
