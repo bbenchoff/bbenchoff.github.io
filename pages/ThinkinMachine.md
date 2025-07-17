@@ -17,6 +17,16 @@ image: "/images/default.jpg"
   margin-bottom: 1.5rem;
 }
 
+.side-text {
+  flex: 1 1 auto;
+  font-size: 1rem;
+  line-height: 1.6;
+}
+
+.side-image-container {
+  width: 100%;
+}
+
 .side-image-container img {
   width: 100%;
   height: auto;
@@ -31,14 +41,13 @@ image: "/images/default.jpg"
   }
 
   .side-text {
-    flex: 2 1 400px;
-    min-width: 250px;
+    flex: 1 1 0; /* Text takes up remaining space */
   }
 
   .side-image-container {
-    flex: 1 1 300px;
+    flex: 0 0 300px; /* Image is fixed at 300px wide */
     max-width: 300px;
-    margin-left: 1rem; /* Push image to the right with spacing */
+    margin-left: 1rem;
   }
 }
 </style>
