@@ -68,7 +68,7 @@ This project is effectively identical to the lowest-spec Connection Machine buil
 
 The Connection Machine was an early experiment in massive parallelism. The individual processors in the CM-1 couldn't do much -- they could only operate on a single bit at a time, and their computational capability isn't much more than an ALU. This project leverages 40 years of Moore's law to put small, cheap computers into a parallel array. Not only does this allow me to emulate the ALU-like processors in the original CM-1, but I can also run actual programs at the corners of a 12-dimensional hypercube.
 
-This project is a faithful reproduction of the original, 1985-era Connection Machine, plus 40 years of Moore's law and very poor impulse control. In 1985, this was the cutting edge of parallel computing. In 2025, it's a weird art project with better chips.
+This is a faithful reproduction of the original, 1985-era Connection Machine, plus 40 years of Moore's law and very poor impulse control. In 1985, this was the cutting edge of parallel computing. In 2025, it's a weird art project with better chips.
 
 # The LED Panel
 
@@ -98,11 +98,13 @@ Why did I build my own 64x64 LED array, instead of using an off-the-shelf HUB75 
 
 ![Unfolding a 4-dimensional tesserect](/images/ConnM/UnfoldingHoriz.png)
 
-This post has already gone on far too long without a proper explanation of what I'm building. This is _simply_ a very, very large cluster of very, very small computers. The Connection Machine was designed as a massively parallel computer first. The entire idea was to stuff as many computers into a box, and connect those computers together. But then the problem became how to connect these computers. If you <a href="https://dspace.mit.edu/bitstream/handle/1721.1/14719/18524280-MIT.pdf">read Danny Hillis' dissertation</a>, there were several network topologies to choose from.
+This post has already gone on far too long without a proper explanation of what I'm building. 
 
-These small computers could have been arranged as a (binary) tree, but this would have the downside of a communications bottleneck at the root of the tree. They could have been connected with a crossbar -- effectively connecting every node to every other node. A full crossbar requires N², where N is the number of nodes. This does not scale in silicon and hardware. Hashnets were also considered, where everything was connected randomly. This is too much of a mind trip to do anything useful.
+This is _simply_ a very, very large cluster of very, very small computers. The Connection Machine was designed as a massively parallel computer first. The entire idea was to stuff as many computers into a box, and connect those computers together. But then the problem became how to connect these computers. If you <a href="https://dspace.mit.edu/bitstream/handle/1721.1/14719/18524280-MIT.pdf">read Danny Hillis' dissertation</a>, there were several network topologies to choose from.
 
-The solution settled on was a hypercube layout, where in a network of 8 nodes (a 3D cube), each node would be connected to 3 adjacent nodes. In a network of 16 nodes (4D, a tesseract), each node would have 4 connections. A network of 4,096 nodes would have 12 connections per node, and a network of 65,536 nodes would have 16 connections per node.
+These small computers could have been arranged as a (binary) tree, but this would have the downside of a communications bottleneck at the root of the tree. They could have been connected with a crossbar -- effectively connecting every node to every other node. A full crossbar requires N², where N is the number of nodes. While this might work with ~256 nodes, it does not scale to thousands of nodes in silicon or hardware. Hashnets were also considered, where everything was connected randomly. This is too much of a mind trip to do anything useful.
+
+The Connection Machine settled on a hypercube layout, where in a network of 8 nodes (a 3D cube), each node would be connected to 3 adjacent nodes. In a network of 16 nodes (4D, a tesseract), each node would have 4 connections. A network of 4,096 nodes would have 12 connections per node, and a network of 65,536 nodes would have 16 connections per node.
 
 The advantages to this layout is that routing algorithms for passing messages between nodes are simple, and there are redundant paths between nodes. If you want to build a hypercluster of tiny computers, you build it as a hypercube.
 
@@ -117,6 +119,39 @@ As discussed above, the LED array is controlled by an RP2040 microcontroller ove
 The 4096 nodes in the Connection Machine are connected to the 'local coordinators' of the hypercube array. 16 of these controllers handle Single Wire Debug for 256 RISC-V chips, allowing for programming each individual node in the hypercube, as well as providing input and output to each individual node. Each of these coordinators handle a single 8-dimensional hypercube, sixteen of these 8-dimension cubes comprise the entire 12-dimensional hypercube array. 
 
 These coordinators communicate with the main controller over a bidirectional serial link. The main controller is responsible for communicating with the local coordinators, both to write software to the RISC-V nodes, and to read the state of the RISC-V nodes. Input and output to the rest of the universe is through the main controller over an Ethernet connection provided by a WIZnet W5500 controller.
+
+## The Routing
+
+This would be an easy project if I was building a parallel computer with only eight nodes -- that would be a cube. This would be easy if it was just sixteen nodes, because that's only a tesserect. But I'm not building a machine with just eight or sixteen nodes. I'm building a machine with 4,096. This was _hard_.
+
+A _really cool_ property of hypercubes is that you can divide them up into segments. For this build, I'm dividing 4,096 individual chips and placing them onto 16 identical boards containing 256 individual RISC-V chips. Every board will have 2048 connections between chips, and 1024 connections to to other boards through a backplane. The boards are segmented like this:
+
+### Board-to-Board Connection Matrix
+
+Rows = Source Board, Columns = Destination Board, Digits indicate number of connections
+
+| Board | B00 | B01 | B02 | B03 | B04 | B05 | B06 | B07 | B08 | B09 | B10 | B11 | B12 | B13 | B14 | B15 |
+|-------|-----|-----|-----|-----|-----|-----|-----|-----|-----|-----|-----|-----|-----|-----|-----|-----|
+| B00   |  0  | 256 | 256 |  0  | 256 |  0  |  0  |  0  | 256 |  0  |  0  |  0  |  0  |  0  |  0  |  0  |
+| B01   | 256 |  0  |  0  | 256 |  0  | 256 |  0  |  0  |  0  | 256 |  0  |  0  |  0  |  0  |  0  |  0  |
+| B02   | 256 |  0  |  0  | 256 |  0  |  0  | 256 |  0  |  0  |  0  | 256 |  0  |  0  |  0  |  0  |  0  |
+| B03   |  0  | 256 | 256 |  0  |  0  |  0  |  0  | 256 |  0  |  0  |  0  | 256 |  0  |  0  |  0  |  0  |
+| B04   | 256 |  0  |  0  |  0  |  0  | 256 | 256 |  0  |  0  |  0  |  0  |  0  | 256 |  0  |  0  |  0  |
+| B05   |  0  | 256 |  0  |  0  | 256 |  0  |  0  | 256 |  0  |  0  |  0  |  0  |  0  | 256 |  0  |  0  |
+| B06   |  0  |  0  | 256 |  0  | 256 |  0  |  0  | 256 |  0  |  0  |  0  |  0  |  0  |  0  | 256 |  0  |
+| B07   |  0  |  0  |  0  | 256 |  0  | 256 | 256 |  0  |  0  |  0  |  0  |  0  |  0  |  0  |  0  | 256 |
+| B08   | 256 |  0  |  0  |  0  |  0  |  0  |  0  |  0  |  0  | 256 | 256 |  0  | 256 |  0  |  0  |  0  |
+| B09   |  0  | 256 |  0  |  0  |  0  |  0  |  0  |  0  | 256 |  0  |  0  | 256 |  0  | 256 |  0  |  0  |
+| B10   |  0  |  0  | 256 |  0  |  0  |  0  |  0  |  0  | 256 |  0  |  0  | 256 |  0  |  0  | 256 |  0  |
+| B11   |  0  |  0  |  0  | 256 |  0  |  0  |  0  |  0  |  0  | 256 | 256 |  0  |  0  |  0  |  0  | 256 |
+| B12   |  0  |  0  |  0  |  0  | 256 |  0  |  0  |  0  | 256 |  0  |  0  |  0  |  0  | 256 | 256 |  0  |
+| B13   |  0  |  0  |  0  |  0  |  0  | 256 |  0  |  0  |  0  | 256 |  0  |  0  | 256 |  0  |  0  | 256 |
+| B14   |  0  |  0  |  0  |  0  |  0  |  0  | 256 |  0  |  0  |  0  | 256 |  0  | 256 |  0  |  0  | 256 |
+| B15   |  0  |  0  |  0  |  0  |  0  |  0  |  0  | 256 |  0  |  0  |  0  | 256 |  0  | 256 | 256 |  0  |
+
+If you’re wondering what this looks like physically, imagine 8,192 wires crisscrossing between 16 boards. Now imagine soldering them. Incidentally, this would be an _excellent_ application of wire-wrap technology. Wire-wrap uses thin wire and a special tool to spiral the bare wire around square posts of a connector. It’s mechanically solid, electrically excellent, and looks like absolute madness in practice. This is how the first computers were made (like the PDP-8), and was how the backplane in the Connection Machine was made.
+
+This is not how the Connection Machine solved the massive interconnect problem. The OG CM used multiple backplanes and twisted-pair connections between these backplanes. I'm solving this simply with high density interconnects and a very, very expensive circuit board.
 
 
 
