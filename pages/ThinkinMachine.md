@@ -120,18 +120,18 @@ The 4096 nodes in the Connection Machine are connected to the 'local coordinator
 
 These coordinators communicate with the main controller over a bidirectional serial link. The main controller is responsible for communicating with the local coordinators, both to write software to the RISC-V nodes, and to read the state of the RISC-V nodes. Input and output to the rest of the universe is through the main controller over an Ethernet connection provided by a WIZnet W5500 controller.
 
-## The Routing
+## The Routing -- Back plane
 
 This would be an easy project if I was building a parallel computer with only eight nodes -- that would be a cube. This would be easy if it was just sixteen nodes, because that's only a tesserect. But I'm not building a machine with just eight or sixteen nodes. I'm building a machine with 4,096. This was _hard_.
 
-A _really cool_ property of hypercubes is that you can divide them up into segments. For this build, I'm dividing 4,096 individual chips and placing them onto 16 identical boards containing 256 individual RISC-V chips. Every board will have 2048 connections between chips, and 1024 connections to to other boards through a backplane. The boards are segmented like this:
+A _really cool_ property of hypercubes is that you can divide them up into segments. For this build, I'm dividing 4,096 individual chips and placing them onto 16 identical boards containing 256 individual RISC-V chips. Every board will have 2048 connections between chips, and 1024 connections to to other boards through a back plane. The boards are segmented like this:
 
 ### Board-to-Board Connection Matrix
 
 Rows = Source Board, Columns = Destination Board, Digits indicate number of connections
 
 | Board | B00 | B01 | B02 | B03 | B04 | B05 | B06 | B07 | B08 | B09 | B10 | B11 | B12 | B13 | B14 | B15 |
-|-------|-----|-----|-----|-----|-----|-----|-----|-----|-----|-----|-----|-----|-----|-----|-----|-----|
+|---------|-------|-------|-------|-------|-------|-------|-------|-------|-------|-------|-------|-------|-------|-------|-------|-------|
 | B00   |  0  | 256 | 256 |  0  | 256 |  0  |  0  |  0  | 256 |  0  |  0  |  0  |  0  |  0  |  0  |  0  |
 | B01   | 256 |  0  |  0  | 256 |  0  | 256 |  0  |  0  |  0  | 256 |  0  |  0  |  0  |  0  |  0  |  0  |
 | B02   | 256 |  0  |  0  | 256 |  0  |  0  | 256 |  0  |  0  |  0  | 256 |  0  |  0  |  0  |  0  |  0  |
@@ -149,9 +149,9 @@ Rows = Source Board, Columns = Destination Board, Digits indicate number of conn
 | B14   |  0  |  0  |  0  |  0  |  0  |  0  | 256 |  0  |  0  |  0  | 256 |  0  | 256 |  0  |  0  | 256 |
 | B15   |  0  |  0  |  0  |  0  |  0  |  0  |  0  | 256 |  0  |  0  |  0  | 256 |  0  | 256 | 256 |  0  |
 
-If you’re wondering what this looks like physically, imagine 8,192 wires crisscrossing between 16 boards. Now imagine soldering them. Incidentally, this would be an _excellent_ application of wire-wrap technology. Wire-wrap uses thin wire and a special tool to spiral the bare wire around square posts of a connector. It’s mechanically solid, electrically excellent, and looks like absolute madness in practice. This is how the first computers were made (like the PDP-8), and was how the backplane in the Connection Machine was made.
+If you’re wondering what this looks like physically, imagine 8,192 wires crisscrossing between 16 boards. Now imagine soldering them. Incidentally, this would be an _excellent_ application of wire-wrap technology. Wire-wrap uses thin wire and a special tool to spiral the bare wire around square posts of a connector. It’s mechanically solid, electrically excellent, and looks like absolute madness in practice. This is how the first computers were made (like the PDP-8), and was how the back plane in the Connection Machine was made.
 
-This is not how the Connection Machine solved the massive interconnect problem. The OG CM used multiple backplanes and twisted-pair connections between these backplanes. I'm solving this simply with high density interconnects and a very, very expensive circuit board.
+This is not how the Connection Machine solved the massive interconnect problem. The OG CM used multiple back planes and twisted-pair connections between these back planes. I'm solving this simply with high density interconnects and a very, very expensive circuit board.
 
 
 
