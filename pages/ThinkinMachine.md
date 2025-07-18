@@ -6,7 +6,7 @@ keywords: ["hardware engineering", "PCB design", "electronics", "reverse enginee
 author: "Brian Benchoff"
 date: 2022-06-04
 last_modified_at: 2022-06-04
-image: "/images/default.jpg"
+image: "/images/ConnM/CMSocialCard.png"
 ---
 
 <style>
