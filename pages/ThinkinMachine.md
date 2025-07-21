@@ -60,6 +60,8 @@ Conventional wisdom says you can't really comprehend structures beyond three dim
 
 With the idea that visualizing and working with higher-dimension objects can be learned, I wondered what else I could do. This is that object. It's a portfolio piece, really. But it does have a lot of blinkenlights.
 
+![Render of the machine](/images/ConnM/CMSocialCard.png)
+
 # Thinkin Machine Supercomputer
 
 This project is a reproduction and modern recreation of the Thinking Machines [Connection Machine CM-1](https://en.wikipedia.org/wiki/Connection_Machine). The Connection Machine was a massively parallel computer from 1985, containing 65,536 individual processors arranged at the vertexes of a 16-dimension hypercube. This means each processor in the machine is connected to 16 adjacent processors.
