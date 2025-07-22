@@ -79,15 +79,15 @@ image: "/images/ConnM/CMSocialCard.png"
 }
 </style>
 
+![Render of the machine](/images/ConnM/CMSocialCard.png)
+
 A while back, I had a contract with a company making tamper-evident enclosures for computer hardware. The idea was to wrap the entire system in a cage of printed circuit boards, each layered with a dense grid of traces. One layer on top, a few in the middle, one on the bottom. Enough to ensure that even the smallest drill bit couldn't pass through undetected.
 
-The layout of these traces was exceptionally hard to visualize. If you've ever seen a drawing of a four-dimensional cube, it's that. A tesseract. Each node was connected to four others. At first, it was mind-bending. But after a week or two, I began to internalize it.
+The layout of these traces was exceptionally hard to visualize. If you've ever seen a drawing of a four-dimensional cube, it's that. A tesseract. Each node in the graph was connected to four others. At first, it was mind-bending. But after a week or two, I began to get a handle on it.
 
 Conventional wisdom says you can't really comprehend structures beyond three dimensions. You're a three-dimensional being; your mind simply can't handle it. That's a lie. I know it. You just need practice. After working with that circuit-board tesseract, you begin to get a _feel_ for it.
 
 With the idea that visualizing and working with higher-dimension objects can be learned, I wondered what else I could do. This is that object. It's a portfolio piece, really. But it does have a lot of blinkenlights.
-
-![Render of the machine](/images/ConnM/CMSocialCard.png)
 
 # Thinkin Machine Supercomputer
 
@@ -184,18 +184,20 @@ A _really cool_ property of hypercubes is that you can divide them up into segme
 
 If you’re wondering what this looks like physically, imagine 8,192 wires crisscrossing between 16 boards. Now imagine soldering them. Incidentally, this would be an _excellent_ application of wire-wrap technology. Wire-wrap uses thin wire and a special tool to spiral the bare wire around square posts of a connector. It’s mechanically solid, electrically excellent, and looks like absolute madness in practice. This is how the first computers were made (like the PDP-8), and was how the back plane in the Connection Machine was made.
 
-This is not how the Connection Machine solved the massive interconnect problem. The OG CM used multiple back planes and twisted-pair connections between these back planes. I'm solving this simply with high density interconnects and a very, very expensive circuit board.
+This is not how the Connection Machine solved the massive interconnect problem. The OG CM used multiple back planes and twisted-pair connections between these back planes. I'm solving this simply with modern high-density interconnects and a very, very expensive circuit board.
 
 
 ### The Mechanical Bits
 
-Mechanically, this device is very simple. The LED panel is screwed into a frame that also holds the back plane on the opposite side. The back plane has USB-C and Ethernet connections to the outside world, handled by a breakout board screwed to the back face of the box and attached to the back plane with a ribbon cable.
+Mechanically, this device is very simple. The LED panel is screwed into a frame that also holds the back plane on the opposite side. The back side has USB-C and Ethernet connections to the outside world. This is attached to the backplane through a ribbon cable.
 
-Internally, there's a bunch of crap. A Mean Well power supply provides the box with 350 Watts of 12V power. Since 4096 RISC-V chips will draw _hundreds_ of Amps, cooling is also a necessity. This is handled by a 200mm fan. There's a lot of stuff in this box, and not a lot of places to put 16 boards, each with 256 RISC-V chips, along with handling 1024 connections between each of these boards and the back plane. Here's a graphic showing the internals of the device, with the area for the RISC-V boards highlighted in pink:
+Internally, there's a bunch of crap. A Mean Well power supply provides the box with 350 Watts of 12V power. Since 4096 RISC-V chips will draw _hundreds_ of Watts, cooling is also a necessity. This is handled by a 200mm fan. 
+
+There's a lot of stuff in this box, and not a lot of places to put 16 boards. Here's a graphic showing the internals of the device, with the area for the RISC-V boards highlighted in pink:
 
 ![An internal view of the device, showing where the RISC-V boards will go](/images/ConnM/HighlightedBoardArea.png)
 
-Even though the entire device is $262mm^3$, the area allowed for the 16 RISC-V boards is only about $190mm^3$. This means for each of the 16 boards in this device, I need to fit at least 1024 connections onto the backplane, where the connectors can only take up 190mm, in a height of about 10mm. _This is hard_. There are no edge connectors that do this. There's nothing in the Samtec or Amphenol catalogs that allow me to put over a thousand board-to-board connections in just 190mm of length and 10mm in height.
+Even though the entire device is $262mm^3$, the volume allowed for the 16 RISC-V boards is only about $190mm^3$. This means for each of the 16 boards in this device, I need to fit at least 1024 connections onto the backplane, where the connectors can only take up 190mm, in a height of about 10mm. _This is hard_. There are no edge connectors that do this. There's nothing in the Samtec or Amphenol catalogs that allow me to put over a thousand board-to-board connections in just 190mm of length and 10mm in height.
 
 So how do you physically connect 1024 signals per board, in 190mm, with 10mm of height to work with? You don’t, because the connector you need doesn’t exist. After an evening spent crawling Samtec, Amphenol, Hirose, and Molex catalogs, I landed on this solution:
 
