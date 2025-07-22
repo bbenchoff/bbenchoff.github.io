@@ -1,7 +1,7 @@
 ---
 layout: default
 title: "Thinkin Machine Supercomputer"
-description: "Hardware engineering and PCB design documentation by Brian Benchoff"
+description: "A modern recreation of the Connection Machines CM-1"
 keywords: ["hardware engineering", "PCB design", "electronics", "reverse engineering"]
 author: "Brian Benchoff"
 date: 2022-06-04
@@ -80,14 +80,6 @@ image: "/images/ConnM/CMSocialCard.png"
 </style>
 
 ![Render of the machine](/images/ConnM/CMSocialCard.png)
-
-A while back, I had a contract with a company making tamper-evident enclosures for computer hardware. The idea was to wrap the entire system in a cage of printed circuit boards, each layered with a dense grid of traces. One layer on top, a few in the middle, one on the bottom. Enough to ensure that even the smallest drill bit couldn't pass through undetected.
-
-The layout of these traces was exceptionally hard to visualize. If you've ever seen a drawing of a four-dimensional cube, it's that. A tesseract. Each node in the graph was connected to four others. At first, it was mind-bending. But after a week or two, I began to get a handle on it.
-
-Conventional wisdom says you can't really comprehend structures beyond three dimensions. You're a three-dimensional being; your mind simply can't handle it. That's a lie. I know it. You just need practice. After working with that circuit-board tesseract, you begin to get a _feel_ for it.
-
-With the idea that visualizing and working with higher-dimension objects can be learned, I wondered what else I could do. This is that object. It's a portfolio piece, really. But it does have a lot of blinkenlights.
 
 # Thinkin Machine Supercomputer
 
@@ -719,6 +711,18 @@ The 5D Connection Machine represents a practical implementation of massively par
 The project demonstrates that historical supercomputer architectures can be reproduced using contemporary microcontrollers, making advanced parallel computing concepts accessible to students, researchers, and hobbyists. The real-time LED visualization provides unprecedented insight into the operation of parallel algorithms, bridging the gap between theoretical computer science and physical reality.
 
 Success of this prototype will provide the foundation for scaling to the full 4,096-processor Connection Machine, representing the only functional CM-1 reproduction in existence and a significant contribution to both computer science education and parallel computing research.
+
+
+
+# This is the intro i cut:
+
+A while back, I had a contract with a company making tamper-evident enclosures for computer hardware. The idea was to wrap the entire system in a cage of printed circuit boards, each layered with a dense grid of traces. One layer on top, a few in the middle, one on the bottom. Enough to ensure that even the smallest drill bit couldn't pass through undetected.
+
+The layout of these traces was exceptionally hard to visualize. If you've ever seen a drawing of a four-dimensional cube, it's that. A tesseract. Each node in the graph was connected to four others. At first, it was mind-bending. But after a week or two, I began to get a handle on it.
+
+Conventional wisdom says you can't really comprehend structures beyond three dimensions. You're a three-dimensional being; your mind simply can't handle it. That's a lie. I know it. You just need practice. After working with that circuit-board tesseract, you begin to get a _feel_ for it.
+
+With the idea that visualizing and working with higher-dimension objects can be learned, I wondered what else I could do. This is that object. It's a portfolio piece, really. But it does have a lot of blinkenlights.
 
 
 
