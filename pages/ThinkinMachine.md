@@ -10,6 +10,33 @@ image: "/images/ConnM/CMSocialCard.png"
 ---
 
 <style>
+.matrix-table {
+    border-collapse: collapse;
+    font-family: monospace;
+    font-size: 14px;
+    margin: 0 auto;
+}
+
+.matrix-table th, .matrix-table td {
+    border: 1px solid #ddd;
+    padding: 6px 8px;
+    text-align: center;
+}
+
+.matrix-table th {
+    background-color: #f5f5f5;
+    font-weight: bold;
+}
+
+.matrix-table td.connected {
+    background-color: #ffebee;
+    font-weight: bold;
+}
+
+.matrix-table td.empty {
+    color: #999;
+}
+
 .side-image {
   display: flex;
   flex-direction: column;
@@ -122,6 +149,44 @@ The 4096 nodes in the Connection Machine are connected to the 'local coordinator
 
 These coordinators communicate with the main controller over a bidirectional serial link. The main controller is responsible for communicating with the local coordinators, both to write software to the RISC-V nodes, and to read the state of the RISC-V nodes. Input and output to the rest of the universe is through the main controller over an Ethernet connection provided by a WIZnet W5500 controller.
 
+### The Routing -- Back plane
+
+This would be an easy project if I was building a parallel computer with only eight nodes -- that would be a cube. This would be easy if it was just sixteen nodes, because that's only a tesserect. But I'm not building a machine with just eight or sixteen nodes. I'm building a machine with 4,096. This was _hard_.
+
+A _really cool_ property of hypercubes is that you can divide them up into segments. For this build, I'm dividing 4,096 individual chips and placing them onto 16 identical boards containing 256 individual RISC-V chips. Every board will have 2048 connections between chips, and 1024 connections to to other boards through a back plane. The boards are segmented like this:
+
+<h3>Board-to-Board Connection Matrix</h3>
+<p><em>Rows = Source Board, Columns = Destination Board, Values = Number of connections</em></p>
+
+<table class="matrix-table">
+<tr>
+  <th>Board</th>
+  <th>B00</th><th>B01</th><th>B02</th><th>B03</th><th>B04</th><th>B05</th><th>B06</th><th>B07</th>
+  <th>B08</th><th>B09</th><th>B10</th><th>B11</th><th>B12</th><th>B13</th><th>B14</th><th>B15</th>
+</tr>
+<tr><th>B00</th><td class="empty">0</td><td class="connected">256</td><td class="connected">256</td><td class="empty">0</td><td class="connected">256</td><td class="empty">0</td><td class="empty">0</td><td class="empty">0</td><td class="connected">256</td><td class="empty">0</td><td class="empty">0</td><td class="empty">0</td><td class="empty">0</td><td class="empty">0</td><td class="empty">0</td><td class="empty">0</td></tr>
+<tr><th>B01</th><td class="connected">256</td><td class="empty">0</td><td class="empty">0</td><td class="connected">256</td><td class="empty">0</td><td class="connected">256</td><td class="empty">0</td><td class="empty">0</td><td class="empty">0</td><td class="connected">256</td><td class="empty">0</td><td class="empty">0</td><td class="empty">0</td><td class="empty">0</td><td class="empty">0</td><td class="empty">0</td></tr>
+<tr><th>B02</th><td class="connected">256</td><td class="empty">0</td><td class="empty">0</td><td class="connected">256</td><td class="empty">0</td><td class="empty">0</td><td class="connected">256</td><td class="empty">0</td><td class="empty">0</td><td class="empty">0</td><td class="connected">256</td><td class="empty">0</td><td class="empty">0</td><td class="empty">0</td><td class="empty">0</td><td class="empty">0</td></tr>
+<tr><th>B03</th><td class="empty">0</td><td class="connected">256</td><td class="connected">256</td><td class="empty">0</td><td class="empty">0</td><td class="empty">0</td><td class="empty">0</td><td class="connected">256</td><td class="empty">0</td><td class="empty">0</td><td class="empty">0</td><td class="connected">256</td><td class="empty">0</td><td class="empty">0</td><td class="empty">0</td><td class="empty">0</td></tr>
+<tr><th>B04</th><td class="connected">256</td><td class="empty">0</td><td class="empty">0</td><td class="empty">0</td><td class="empty">0</td><td class="connected">256</td><td class="connected">256</td><td class="empty">0</td><td class="empty">0</td><td class="empty">0</td><td class="empty">0</td><td class="empty">0</td><td class="connected">256</td><td class="empty">0</td><td class="empty">0</td><td class="empty">0</td></tr>
+<tr><th>B05</th><td class="empty">0</td><td class="connected">256</td><td class="empty">0</td><td class="empty">0</td><td class="connected">256</td><td class="empty">0</td><td class="empty">0</td><td class="connected">256</td><td class="empty">0</td><td class="empty">0</td><td class="empty">0</td><td class="empty">0</td><td class="empty">0</td><td class="connected">256</td><td class="empty">0</td><td class="empty">0</td></tr>
+<tr><th>B06</th><td class="empty">0</td><td class="empty">0</td><td class="connected">256</td><td class="empty">0</td><td class="connected">256</td><td class="empty">0</td><td class="empty">0</td><td class="connected">256</td><td class="empty">0</td><td class="empty">0</td><td class="empty">0</td><td class="empty">0</td><td class="empty">0</td><td class="empty">0</td><td class="connected">256</td><td class="empty">0</td></tr>
+<tr><th>B07</th><td class="empty">0</td><td class="empty">0</td><td class="empty">0</td><td class="connected">256</td><td class="empty">0</td><td class="connected">256</td><td class="connected">256</td><td class="empty">0</td><td class="empty">0</td><td class="empty">0</td><td class="empty">0</td><td class="empty">0</td><td class="empty">0</td><td class="empty">0</td><td class="empty">0</td><td class="connected">256</td></tr>
+<tr><th>B08</th><td class="connected">256</td><td class="empty">0</td><td class="empty">0</td><td class="empty">0</td><td class="empty">0</td><td class="empty">0</td><td class="empty">0</td><td class="empty">0</td><td class="empty">0</td><td class="connected">256</td><td class="connected">256</td><td class="empty">0</td><td class="connected">256</td><td class="empty">0</td><td class="empty">0</td><td class="empty">0</td></tr>
+<tr><th>B09</th><td class="empty">0</td><td class="connected">256</td><td class="empty">0</td><td class="empty">0</td><td class="empty">0</td><td class="empty">0</td><td class="empty">0</td><td class="empty">0</td><td class="connected">256</td><td class="empty">0</td><td class="empty">0</td><td class="connected">256</td><td class="empty">0</td><td class="connected">256</td><td class="empty">0</td><td class="empty">0</td></tr>
+<tr><th>B10</th><td class="empty">0</td><td class="empty">0</td><td class="connected">256</td><td class="empty">0</td><td class="empty">0</td><td class="empty">0</td><td class="empty">0</td><td class="empty">0</td><td class="connected">256</td><td class="empty">0</td><td class="empty">0</td><td class="connected">256</td><td class="empty">0</td><td class="empty">0</td><td class="connected">256</td><td class="empty">0</td></tr>
+<tr><th>B11</th><td class="empty">0</td><td class="empty">0</td><td class="empty">0</td><td class="connected">256</td><td class="empty">0</td><td class="empty">0</td><td class="empty">0</td><td class="empty">0</td><td class="empty">0</td><td class="connected">256</td><td class="connected">256</td><td class="empty">0</td><td class="empty">0</td><td class="empty">0</td><td class="empty">0</td><td class="connected">256</td></tr>
+<tr><th>B12</th><td class="empty">0</td><td class="empty">0</td><td class="empty">0</td><td class="empty">0</td><td class="connected">256</td><td class="empty">0</td><td class="empty">0</td><td class="empty">0</td><td class="connected">256</td><td class="empty">0</td><td class="empty">0</td><td class="empty">0</td><td class="empty">0</td><td class="connected">256</td><td class="connected">256</td><td class="empty">0</td></tr>
+<tr><th>B13</th><td class="empty">0</td><td class="empty">0</td><td class="empty">0</td><td class="empty">0</td><td class="empty">0</td><td class="connected">256</td><td class="empty">0</td><td class="empty">0</td><td class="empty">0</td><td class="connected">256</td><td class="empty">0</td><td class="empty">0</td><td class="connected">256</td><td class="empty">0</td><td class="empty">0</td><td class="connected">256</td></tr>
+<tr><th>B14</th><td class="empty">0</td><td class="empty">0</td><td class="empty">0</td><td class="empty">0</td><td class="empty">0</td><td class="empty">0</td><td class="connected">256</td><td class="empty">0</td><td class="empty">0</td><td class="empty">0</td><td class="connected">256</td><td class="empty">0</td><td class="connected">256</td><td class="empty">0</td><td class="empty">0</td><td class="connected">256</td></tr>
+<tr><th>B15</th><td class="empty">0</td><td class="empty">0</td><td class="empty">0</td><td class="empty">0</td><td class="empty">0</td><td class="empty">0</td><td class="empty">0</td><td class="connected">256</td><td class="empty">0</td><td class="empty">0</td><td class="empty">0</td><td class="connected">256</td><td class="empty">0</td><td class="connected">256</td><td class="connected">256</td><td class="empty">0</td></tr>
+</table>
+
+If you’re wondering what this looks like physically, imagine 8,192 wires crisscrossing between 16 boards. Now imagine soldering them. Incidentally, this would be an _excellent_ application of wire-wrap technology. Wire-wrap uses thin wire and a special tool to spiral the bare wire around square posts of a connector. It’s mechanically solid, electrically excellent, and looks like absolute madness in practice. This is how the first computers were made (like the PDP-8), and was how the back plane in the Connection Machine was made.
+
+This is not how the Connection Machine solved the massive interconnect problem. The OG CM used multiple back planes and twisted-pair connections between these back planes. I'm solving this simply with high density interconnects and a very, very expensive circuit board.
+
+
 ### The Mechanical Bits
 
 Mechanically, this device is very simple. The LED panel is screwed into a frame that also holds the back plane on the opposite side. The back plane has USB-C and Ethernet connections to the outside world, handled by a breakout board screwed to the back face of the box and attached to the back plane with a ribbon cable.
@@ -140,38 +205,6 @@ For the card-to-backplane connections, I'm using Molex SlimStack connectors, 0.4
 
 With an array of 22 connectors per card -- 11 on both top and bottom -- I have 1100 electrical connections between the cards and backplane, enough for the 1024 hypercube connections, and enough left over for power, ground, and some sparse signalling. That's the _electrical_ connections sorted, but there's still a  slight mechanical issue. For interfacing and mating with the backplane, I'll be using Samtec's [GPSK guide post sockets](https://www.samtec.com/products/gpsk) and [GPPK guide posts](https://www.samtec.com/products/gppk). With that, I've effectively solved making the biggest backplane one person has ever produced. The rest is only a routing problem.
 
-## The Routing -- Back plane
-
-This would be an easy project if I was building a parallel computer with only eight nodes -- that would be a cube. This would be easy if it was just sixteen nodes, because that's only a tesserect. But I'm not building a machine with just eight or sixteen nodes. I'm building a machine with 4,096. This was _hard_.
-
-A _really cool_ property of hypercubes is that you can divide them up into segments. For this build, I'm dividing 4,096 individual chips and placing them onto 16 identical boards containing 256 individual RISC-V chips. Every board will have 2048 connections between chips, and 1024 connections to to other boards through a back plane. The boards are segmented like this:
-
-### Board-to-Board Connection Matrix
-
-Rows = Source Board, Columns = Destination Board, Digits indicate number of connections
-
-| Board | B00 | B01 | B02 | B03 | B04 | B05 | B06 | B07 | B08 | B09 | B10 | B11 | B12 | B13 | B14 | B15 |
-|---------|-------|-------|-------|-------|-------|-------|-------|-------|-------|-------|-------|-------|-------|-------|-------|-------|
-| B00   |  0  | 256 | 256 |  0  | 256 |  0  |  0  |  0  | 256 |  0  |  0  |  0  |  0  |  0  |  0  |  0  |
-| B01   | 256 |  0  |  0  | 256 |  0  | 256 |  0  |  0  |  0  | 256 |  0  |  0  |  0  |  0  |  0  |  0  |
-| B02   | 256 |  0  |  0  | 256 |  0  |  0  | 256 |  0  |  0  |  0  | 256 |  0  |  0  |  0  |  0  |  0  |
-| B03   |  0  | 256 | 256 |  0  |  0  |  0  |  0  | 256 |  0  |  0  |  0  | 256 |  0  |  0  |  0  |  0  |
-| B04   | 256 |  0  |  0  |  0  |  0  | 256 | 256 |  0  |  0  |  0  |  0  |  0  | 256 |  0  |  0  |  0  |
-| B05   |  0  | 256 |  0  |  0  | 256 |  0  |  0  | 256 |  0  |  0  |  0  |  0  |  0  | 256 |  0  |  0  |
-| B06   |  0  |  0  | 256 |  0  | 256 |  0  |  0  | 256 |  0  |  0  |  0  |  0  |  0  |  0  | 256 |  0  |
-| B07   |  0  |  0  |  0  | 256 |  0  | 256 | 256 |  0  |  0  |  0  |  0  |  0  |  0  |  0  |  0  | 256 |
-| B08   | 256 |  0  |  0  |  0  |  0  |  0  |  0  |  0  |  0  | 256 | 256 |  0  | 256 |  0  |  0  |  0  |
-| B09   |  0  | 256 |  0  |  0  |  0  |  0  |  0  |  0  | 256 |  0  |  0  | 256 |  0  | 256 |  0  |  0  |
-| B10   |  0  |  0  | 256 |  0  |  0  |  0  |  0  |  0  | 256 |  0  |  0  | 256 |  0  |  0  | 256 |  0  |
-| B11   |  0  |  0  |  0  | 256 |  0  |  0  |  0  |  0  |  0  | 256 | 256 |  0  |  0  |  0  |  0  | 256 |
-| B12   |  0  |  0  |  0  |  0  | 256 |  0  |  0  |  0  | 256 |  0  |  0  |  0  |  0  | 256 | 256 |  0  |
-| B13   |  0  |  0  |  0  |  0  |  0  | 256 |  0  |  0  |  0  | 256 |  0  |  0  | 256 |  0  |  0  | 256 |
-| B14   |  0  |  0  |  0  |  0  |  0  |  0  | 256 |  0  |  0  |  0  | 256 |  0  | 256 |  0  |  0  | 256 |
-| B15   |  0  |  0  |  0  |  0  |  0  |  0  |  0  | 256 |  0  |  0  |  0  | 256 |  0  | 256 | 256 |  0  |
-
-If you’re wondering what this looks like physically, imagine 8,192 wires crisscrossing between 16 boards. Now imagine soldering them. Incidentally, this would be an _excellent_ application of wire-wrap technology. Wire-wrap uses thin wire and a special tool to spiral the bare wire around square posts of a connector. It’s mechanically solid, electrically excellent, and looks like absolute madness in practice. This is how the first computers were made (like the PDP-8), and was how the back plane in the Connection Machine was made.
-
-This is not how the Connection Machine solved the massive interconnect problem. The OG CM used multiple back planes and twisted-pair connections between these back planes. I'm solving this simply with high density interconnects and a very, very expensive circuit board.
 
 
 
