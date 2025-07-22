@@ -122,6 +122,16 @@ The 4096 nodes in the Connection Machine are connected to the 'local coordinator
 
 These coordinators communicate with the main controller over a bidirectional serial link. The main controller is responsible for communicating with the local coordinators, both to write software to the RISC-V nodes, and to read the state of the RISC-V nodes. Input and output to the rest of the universe is through the main controller over an Ethernet connection provided by a WIZnet W5500 controller.
 
+### The Mechanical Bits
+
+Mechanically, this device is very simple. The LED panel is screwed into a frame that also holds the back plane on the opposite side. The back plane has USB-C and Ethernet connections to the outside world, handled by a breakout board screwed to the back face of the box and attached to the back plane with a ribbon cable.
+
+Internally, there's a bunch of crap. A Mean Well power supply provides the box with 350 Watts of 12V power. Since 4096 RISC-V chips will draw _hundreds_ of Amps, cooling is also a necessity. This is handled by a 200mm fan. There's a lot of stuff in this box, and not a lot of places to put 16 boards, each with 256 RISC-V chips, along with handling 1024 connections between each of these boards and the back plane. Here's a graphic showing the internals of the device, with the area for the RISC-V boards highlighted in pink:
+
+![An internal view of the device, showing where the RISC-V boards will go](/images/ConnM/HighlightedBoardArea.png)
+
+Even though the entire device is $262mm^3$, the area allowed for the 16 RISC-V boards is only about $190mm^3$. This means for each of the 16 boards in this device, I need to fit at least 1024 connections onto the backplane, where the connectors can only take up 190mm, in a height of about 10mm. _This is hard_. There are no edge connectors that do this. There's nothing in the Samtec or Amphenol catalogs that allow me to put over a thousand board-to-board connections in just 190mm of length and 10mm in height.
+
 ## The Routing -- Back plane
 
 This would be an easy project if I was building a parallel computer with only eight nodes -- that would be a cube. This would be easy if it was just sixteen nodes, because that's only a tesserect. But I'm not building a machine with just eight or sixteen nodes. I'm building a machine with 4,096. This was _hard_.
