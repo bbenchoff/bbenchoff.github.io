@@ -83,6 +83,8 @@ image: "/images/ConnM/CMSocialCard.png"
 
 # Thinkin Machine Supercomputer
 
+#### I made a supercomputer out of a bunch of connectors from cell phones, a chip from RGB mechanical keyboards, and four thousand tiny microcontrollers.
+
 This project is a reproduction and modern recreation of the Thinking Machines [Connection Machine CM-1](https://en.wikipedia.org/wiki/Connection_Machine). The Connection Machine was a massively parallel computer from 1985, containing 65,536 individual processors arranged at the vertexes of a 16-dimension hypercube. This means each processor in the machine is connected to 16 adjacent processors.
 
 This project is effectively identical to the lowest-spec Connection Machine built. It contains 4,096 individual RISC-V processors, each connected to 12 neighbors in a 12-dimensional hypercube.
