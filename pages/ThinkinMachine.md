@@ -117,11 +117,11 @@ Why did I build my own 64x64 LED array, instead of using an off-the-shelf HUB75 
 
 # Connection Machine, High-Level Design
 
-![Unfolding a 4-dimensional tesserect](/images/ConnM/UnfoldingHoriz.png)
+![Unfolding a 4-dimensional tesseract](/images/ConnM/UnfoldingHoriz.png)
 
 This post has already gone on far too long without a proper explanation of what I'm building. 
 
-This is _simply_ a very, very large cluster of very, very small computers. The Connection Machine was designed as a massively parallel computer first. The entire idea was to stuff as many computers into a box, and connect those computers together. But then the problem became how to connect these computers. If you <a href="https://dspace.mit.edu/bitstream/handle/1721.1/14719/18524280-MIT.pdf">read Danny Hillis' dissertation</a>, there were several network topologies to choose from.
+__Very very simply__, this is a very, very large cluster of very, very small computers. The Connection Machine was designed as a massively parallel computer first. The entire idea was to stuff as many computers into a box, and connect those computers together. The problem then becomes how to connect these computers. If you <a href="https://dspace.mit.edu/bitstream/handle/1721.1/14719/18524280-MIT.pdf">read Danny Hillis' dissertation</a>, there were several network topologies to choose from.
 
 These small computers could have been arranged as a (binary) tree, but this would have the downside of a communications bottleneck at the root of the tree. They could have been connected with a crossbar -- effectively connecting every node to every other node. A full crossbar requires N², where N is the number of nodes. While this might work with ~256 nodes, it does not scale to thousands of nodes in silicon or hardware. Hashnets were also considered, where everything was connected randomly. This is too much of a mind trip to do anything useful.
 
@@ -141,11 +141,15 @@ The 4096 nodes in the Connection Machine are connected to the 'local coordinator
 
 These coordinators communicate with the main controller over a bidirectional serial link. The main controller is responsible for communicating with the local coordinators, both to write software to the RISC-V nodes, and to read the state of the RISC-V nodes. Input and output to the rest of the universe is through the main controller over an Ethernet connection provided by a WIZnet W5500 controller.
 
-### The Routing -- Back plane
+### The Backplane -- Theory
 
-This would be an easy project if I was building a parallel computer with only eight nodes -- that would be a cube. This would be easy if it was just sixteen nodes, because that's only a tesserect. But I'm not building a machine with just eight or sixteen nodes. I'm building a machine with 4,096. This was _hard_.
+This would be an easy project if I was building a parallel computer with only eight nodes -- that would be a cube. This would be easy if it was just sixteen nodes, because that's only a tesseract. But I'm not building a machine with just eight or sixteen nodes. I'm building a machine with 4,096. This was _hard_.
 
-A _really cool_ property of hypercubes is that you can divide them up into segments. For this build, I'm dividing 4,096 individual chips and placing them onto 16 identical boards containing 256 individual RISC-V chips. Every board will have 2048 connections between chips, and 1024 connections to to other boards through a back plane. The boards are segmented like this:
+The key insight that makes this buildable is exploiting a really cool property of hypercubes: __you can divide them up into identical segments.__
+
+Instead of trying to route a 12-dimensional hypercube as one massive board, I'm breaking the 4,096 processors into 16 completely identical processor boards, each containing exactly 256 RISC-V chips. Think of it like this: each board is its own 8-dimensional hypercube (since 256 = 2⁸), and the backplane connects those 16 sub-cubes into a full 12-dimensional hypercube (because 16 = 2⁴, and 8 + 4 = 12).
+
+This means I only have to design one processor board and manufacture it 16 times. Each board handles 2,048 internal connections between its 256 chips, and exposes 1,024 connections to the backplane. The backplane does all the heavy lifting. It's where the real routing complexity lives, implementing the inter-board connections that make 16 separate 8D cubes behave like one unified 12D hypercube. The boards are segmented like this:
 
 <h3>Board-to-Board Connection Matrix</h3>
 <p><em>Rows = Source Board, Columns = Destination Board, Values = Number of connections</em></p>
@@ -174,12 +178,11 @@ A _really cool_ property of hypercubes is that you can divide them up into segme
 <tr><th>B15</th><td class="empty">0</td><td class="empty">0</td><td class="empty">0</td><td class="empty">0</td><td class="empty">0</td><td class="empty">0</td><td class="empty">0</td><td class="connected">256</td><td class="empty">0</td><td class="empty">0</td><td class="empty">0</td><td class="connected">256</td><td class="empty">0</td><td class="connected">256</td><td class="connected">256</td><td class="empty">0</td></tr>
 </table>
 
-If you’re wondering what this looks like physically, imagine 8,192 wires crisscrossing between 16 boards. Now imagine soldering them. Incidentally, this would be an _excellent_ application of wire-wrap technology. Wire-wrap uses thin wire and a special tool to spiral the bare wire around square posts of a connector. It’s mechanically solid, electrically excellent, and looks like absolute madness in practice. This is how the first computers were made (like the PDP-8), and was how the back plane in the Connection Machine was made.
+Incidentally, this would be an _excellent_ application of wire-wrap technology. Wire-wrap uses thin wire and a special tool to spiral the bare wire around square posts of a connector. It’s mechanically solid, electrically excellent, and looks like absolute madness in practice. This is how the first computers were made (like the PDP-8), and was how the back plane in the Connection Machine was made.
 
 This is not how the Connection Machine solved the massive interconnect problem. The OG CM used multiple back planes and twisted-pair connections between these back planes. I'm solving this simply with modern high-density interconnects and a very, very expensive circuit board.
 
-
-### The Mechanical Bits
+### The Backplane -- Implementation
 
 Mechanically, this device is very simple. The LED panel is screwed into a frame that also holds the back plane on the opposite side. The back side has USB-C and Ethernet connections to the outside world. This is attached to the backplane through a ribbon cable.
 
@@ -189,7 +192,7 @@ There's a lot of stuff in this box, and not a lot of places to put 16 boards. He
 
 ![An internal view of the device, showing where the RISC-V boards will go](/images/ConnM/HighlightedBoardArea.png)
 
-Even though the entire device is $262mm^3$, the volume allowed for the 16 RISC-V boards is only about $190mm^3$. This means for each of the 16 boards in this device, I need to fit at least 1024 connections onto the backplane, where the connectors can only take up 190mm, in a height of about 10mm. _This is hard_. There are no edge connectors that do this. There's nothing in the Samtec or Amphenol catalogs that allow me to put over a thousand board-to-board connections in just 190mm of length and 10mm in height.
+Even though the full enclosure is 262 mm cubed, only about 190 mm cubed is allocated to the 16 RISC-V boards. This means for each of the 16 boards in this device, I need to fit at least 1024 connections onto the backplane, where the connectors can only take up 190mm, in a height of about 10mm. _This is hard_. There are no edge connectors that do this. There's nothing in the Samtec or Amphenol catalogs that allow me to put over a thousand board-to-board connections in just 190mm of length and 10mm in height.
 
 So how do you physically connect 1024 signals per board, in 190mm, with 10mm of height to work with? You don’t, because the connector you need doesn’t exist. After an evening spent crawling Samtec, Amphenol, Hirose, and Molex catalogs, I landed on this solution:
 
@@ -199,8 +202,9 @@ For the card-to-backplane connections, I'm using Molex SlimStack connectors, 0.4
 
 With an array of 22 connectors per card -- 11 on both top and bottom -- I have 1100 electrical connections between the cards and backplane, enough for the 1024 hypercube connections, and enough left over for power, ground, and some sparse signalling. That's the _electrical_ connections sorted, but there's still a  slight mechanical issue. For interfacing and mating with the backplane, I'll be using Samtec's [GPSK guide post sockets](https://www.samtec.com/products/gpsk) and [GPPK guide posts](https://www.samtec.com/products/gppk). With that, I've effectively solved making the biggest backplane one person has ever produced. The rest is only a routing problem.
 
+### The Backplane -- Routing
 
-
+And oh what a routing problem it is! 
 
 
 
