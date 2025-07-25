@@ -393,14 +393,128 @@ if __name__ == "__main__":
 
 This script will spit out an 8000+ line text file, defining all 4096 nodes and all of the connections between nodes. For each of the 16 CPU boards, there are 2048 local connections to other chips on the same board, and 1024 off-board connections. The output of the above script looks like `Node 2819: 2818, 2817, 2823, 2827, 2835, 2851, 2883, 2947`, meaning Node 2819 connects to 8 other nodes locally. I also get the off-board connections with `Node 2819: (Node 2563 -> Board 10), (Node 2307 -> Board 09), (Node 3843 -> Board 15), (Node 771 -> Board 03)`. Add these up, and you can get a complete list of what's connected to this single node:
 
-Node 2819 (on Board 11):
+**Node 2819 (on Board 11):**
 - Connected to **2818, 2817, 2823, 2827, 2835, 2851, 2883, 2947** locally
 - Connected to **2563** on Board 10
 - Connected to **2307** on Board 9
 - Connected to **3843** on Board 15
-- Connected to **771** on Board 3 
+- Connected to **771** on Board 3
 
+That's the _complete_ routing. But I'm not doing a complete routing; this is going to be broken up over multiple boards and connected through a very very large backplane. This means even more scripting. For creating the backplane routing, I came up with this short script that generates a .CSV file laying out the board-to-board connections:
 
+```python
+import csv
+from collections import defaultdict
+
+NUM_BOARDS = 16
+NODES_PER_BOARD = 256
+TOTAL_NODES = NUM_BOARDS * NODES_PER_BOARD
+DIMENSIONS = 12
+OFFBOARD_DIMS = [8, 9, 10, 11]
+MAX_PINS_PER_CONNECTOR = 1024
+
+def get_board(node_id):
+    return node_id // NODES_PER_BOARD
+
+def get_node_on_board(node_id):
+    return node_id % NODES_PER_BOARD
+
+def generate_offboard_connections():
+    # (board -> list of (local_node_id, dimension, neighbor_board, neighbor_node_id))
+    offboard_edges = []
+
+    for node in range(TOTAL_NODES):
+        for d in OFFBOARD_DIMS:
+            neighbor = node ^ (1 << d)
+            if neighbor >= TOTAL_NODES:
+                continue
+
+            b1 = get_board(node)
+            b2 = get_board(neighbor)
+            if b1 != b2:
+                offboard_edges.append((
+                    (b1, get_node_on_board(node)),
+                    d,
+                    (b2, get_node_on_board(neighbor))
+                ))
+
+    # De-duplicate (undirected)
+    seen = set()
+    deduped = []
+    for src, d, dst in offboard_edges:
+        net_id = tuple(sorted([src, dst]) + [d])
+        if net_id not in seen:
+            seen.add(net_id)
+            deduped.append((src, d, dst))
+    return deduped
+
+def assign_pins(routing):
+    pin_usage = defaultdict(int)  # board_id -> next free pin
+    pin_assignments = []
+    
+    # Track connections per board pair for numbering
+    board_pair_signals = defaultdict(int)
+
+    for src, d, dst in routing:
+        b1, n1 = src
+        b2, n2 = dst
+
+        pin1 = pin_usage[b1] + 1
+        pin2 = pin_usage[b2] + 1
+
+        if pin1 > MAX_PINS_PER_CONNECTOR or pin2 > MAX_PINS_PER_CONNECTOR:
+            raise Exception(f"Ran out of pins on board {b1} or {b2}")
+
+        pin_usage[b1] += 1
+        pin_usage[b2] += 1
+
+        # Create short, meaningful net name
+        # Sort board numbers for consistent naming
+        if b1 < b2:
+            board_pair = (b1, b2)
+            signal_num = board_pair_signals[board_pair]
+        else:
+            board_pair = (b2, b1)
+            signal_num = board_pair_signals[board_pair]
+        
+        board_pair_signals[board_pair] += 1
+        
+        # Generate short net name: B00B01_042
+        net_name = f"B{board_pair[0]:02d}B{board_pair[1]:02d}_{signal_num:03d}"
+        
+        pin_assignments.append((
+            net_name,
+            f"J{b1+1}", pin1,
+            f"J{b2+1}", pin2
+        ))
+
+    return pin_assignments
+
+def write_csv(pin_assignments, filename="backplane_routing.csv"):
+    with open(filename, "w", newline="") as csvfile:
+        writer = csv.writer(csvfile)
+        writer.writerow(["NetName", "ConnectorA", "PinA", "ConnectorB", "PinB"])
+        for row in pin_assignments:
+            writer.writerow(row)
+    print(f"Wrote routing to {filename}")
+
+if __name__ == "__main__":
+    print("Generating hypercube routing...")
+    routing = generate_offboard_connections()
+    print(f"Found {len(routing)} off-board connections.")
+
+    print("Assigning pins...")
+    pin_assignments = assign_pins(routing)
+
+    print("Writing CSV...")
+    write_csv(pin_assignments)
+```
+
+The output is just a netlist, and is an 8000-line file with lines that look like `B10B11_246,J11,1005,J12,759`. Here, the connection between Board 10 and Board 11, net 246, is defined as a connection between J11 (backplane connection number 11),  pin 1005 and J12, pin 759. This was imported into the KiCad schematic with the [kicad-skip library](https://github.com/psychogenic/kicad-skip). The resulting schematic is just a little bit insane. It's 16 connectors with 1100 pins each, and there are 8192 unrouted connections after importing the netlist.
+
+![a view of the backplane, before routing the PCB](/images/ConnM/unroutedbackplane.png)
+
+Yeah, it's the most complex PCB I've ever designed. 
 
 
 
