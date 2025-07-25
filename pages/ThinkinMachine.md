@@ -214,6 +214,192 @@ It's _tight_, but it's possible. The rest is only a routing problem.
 
 And oh what a routing problem it is! 
 
+A human mind cannot route a 12-dimensional hypercube, but getting back to the interesting properties of hypercube network topology, every node on the graph can be defined as a binary number and importantly, when defined as a binary number _every neighbor is a single bit flip away_. Defining the network of nodes and links is then pretty easy. It can be done in a few dozen lines of Python. This script defines the links between nodes in a 12D hypercube, broken up into 16 8D cubes:
+
+```python
+import sys
+import random
+import math
+import copy
+
+def generate_board_routing(num_boards, output_file="hypercube_routing.txt"):
+    nodes_per_board = 256  # 8D cube per board
+    total_nodes = num_boards * nodes_per_board
+    total_dimensions = 12  # 12D hypercube
+    
+    # Define which dimensions are on-board vs off-board
+    onboard_dims = list(range(8))      # Dimensions 0-7 are within each board
+    offboard_dims = list(range(8, 12)) # Dimensions 8-11 connect between boards
+
+    if num_boards != 2 ** (total_dimensions - 8):
+        print(f"Warning: For a full 12D cube with 8D boards, you need {2 ** (total_dimensions - 8)} boards.")
+
+    # Initialize data structures
+    boards = {board_id: {"local": [], "offboard": [], "local_count": 0, "offboard_count": 0} for board_id in range(num_boards)}
+    connection_matrix = [[0 for _ in range(num_boards)] for _ in range(num_boards)]
+
+    for node in range(total_nodes):
+        board_id = node // nodes_per_board
+        local_conns = []
+        offboard_conns = []
+
+        # Handle on-board connections (dimensions 0-7)
+        for d in onboard_dims:
+            neighbor = node ^ (1 << d)
+            if neighbor < total_nodes:
+                neighbor_board = neighbor // nodes_per_board
+                if neighbor_board == board_id:  # Should always be true for dims 0-7
+                    local_conns.append(neighbor)
+                    boards[board_id]["local_count"] += 1
+
+        # Handle off-board connections (dimensions 8-11)
+        for d in offboard_dims:
+            neighbor = node ^ (1 << d)
+            if neighbor < total_nodes:
+                neighbor_board = neighbor // nodes_per_board
+                if neighbor_board != board_id:  # Should always be true for dims 8-11
+                    offboard_conns.append((neighbor, d))
+                    boards[board_id]["offboard_count"] += 1
+                    connection_matrix[board_id][neighbor_board] += 1
+
+        boards[board_id]["local"].append((node, local_conns))
+        boards[board_id]["offboard"].append((node, offboard_conns))
+
+    # Perform placement optimization
+    grid_size = num_boards
+    original_mapping = list(range(num_boards))  # Board ID to grid position
+
+    optimized_mapping = simulated_annealing(connection_matrix, grid_size)
+
+    inverse_mapping = {new_id: old_id for new_id, old_id in enumerate(optimized_mapping)}
+
+    # Output routing
+    with open(output_file, "w") as f:
+        f.write(f"=== Hypercube Routing Analysis ===\n")
+        f.write(f"Total nodes: {total_nodes}\n")
+        f.write(f"Nodes per board: {nodes_per_board}\n")
+        f.write(f"Number of boards: {num_boards}\n")
+        f.write(f"On-board dimensions: {onboard_dims}\n")
+        f.write(f"Off-board dimensions: {offboard_dims}\n\n")
+        
+        for board_id in range(num_boards):
+            f.write(f"\n=== Board {board_id} ===\n")
+            f.write("Local connections (dimensions 0-7):\n")
+            for node, local in boards[board_id]["local"]:
+                if local:  # Only show nodes that have local connections
+                    f.write(f"Node {node:04d}: {', '.join(str(n) for n in local)}\n")
+
+            f.write("\nOff-board connections (dimensions 8-11):\n")
+            for node, offboard in boards[board_id]["offboard"]:
+                if offboard:
+                    # Show which boards each node connects to, not the dimension
+                    conns = []
+                    for neighbor_node, d in offboard:
+                        neighbor_board = neighbor_node // nodes_per_board
+                        conns.append(f"(Node {neighbor_node} -> Board {neighbor_board:02d})")
+                    conns_str = ', '.join(conns)
+                    f.write(f"Node {node:04d}: {conns_str}\n")
+
+            f.write("\nSummary:\n")
+            f.write(f"Total local connections (on-board): {boards[board_id]['local_count']}\n")
+            f.write(f"Total off-board connections: {boards[board_id]['offboard_count']}\n")
+
+        # Output original board-to-board connection matrix
+        f.write("\n=== Original Board-to-Board Connection Matrix ===\n")
+        f.write("Rows = Source Board, Columns = Destination Board\n\n")
+
+        header = "     " + "".join([f"B{b:02d} " for b in range(num_boards)]) + "\n"
+        f.write(header)
+        for i in range(num_boards):
+            row = f"B{i:02d}: " + " ".join(f"{connection_matrix[i][j]:3d}" for j in range(num_boards)) + "\n"
+            f.write(row)
+
+        # Verify the matrix matches expected pattern
+        f.write("\n=== Connection Matrix Verification ===\n")
+        for i in range(num_boards):
+            connected_boards = [j for j in range(num_boards) if connection_matrix[i][j] > 0]
+            f.write(f"Board {i} connects to boards: {connected_boards}\n")
+            # Each board should connect to exactly 4 other boards (for dims 8,9,10,11)
+            if len(connected_boards) != 4:
+                f.write(f"  WARNING: Expected 4 connections, got {len(connected_boards)}\n")
+
+        # Output optimized board-to-board connection matrix
+        f.write("\n=== Optimized Board-to-Board Connection Matrix (Reordered Boards) ===\n")
+        f.write("Rows = New Source Board (Grid Order), Columns = New Destination Board\n\n")
+
+        f.write(header)
+        for i in range(num_boards):
+            real_i = optimized_mapping[i]
+            row = f"B{i:02d}: " + " ".join(f"{connection_matrix[real_i][optimized_mapping[j]]:3d}" for j in range(num_boards)) + "\n"
+            f.write(row)
+
+        # Output board-to-grid mapping
+        f.write("\n=== Board to Grid Mapping ===\n")
+        for idx, board_id in enumerate(optimized_mapping):
+            x, y = idx % grid_size, idx // grid_size
+            f.write(f"Grid Pos ({x}, {y}): Board {board_id}\n")
+
+    print(f"Board routing and connection matrix (optimized) written to {output_file}")
+
+    
+def compute_total_cost(mapping, connection_matrix, grid_size):
+    num_boards = len(mapping)
+    pos = {mapping[i]: i for i in range(num_boards)}  # slot positions in 1D
+    cost = 0
+    for i in range(num_boards):
+        for j in range(num_boards):
+            if i != j:
+                distance = abs(pos[i] - pos[j])
+                cost += connection_matrix[i][j] * distance
+    return cost
+
+def simulated_annealing(connection_matrix, grid_size, initial_temp=10000.0, final_temp=1.0, alpha=0.95, iterations=5000):
+    num_boards = len(connection_matrix)
+    current = list(range(num_boards))
+    best = current[:]
+    best_cost = compute_total_cost(best, connection_matrix, grid_size)
+
+    temp = initial_temp
+    for it in range(iterations):
+        # Random swap
+        i, j = random.sample(range(num_boards), 2)
+        new = current[:]
+        new[i], new[j] = new[j], new[i]
+
+        new_cost = compute_total_cost(new, connection_matrix, grid_size)
+        delta = new_cost - best_cost
+
+        if delta < 0 or random.random() < math.exp(-delta / temp):
+            current = new
+            if new_cost < best_cost:
+                best = new[:]
+                best_cost = new_cost
+
+        temp *= alpha
+        if temp < final_temp:
+            break
+
+    return best
+
+if __name__ == "__main__":
+    if len(sys.argv) < 2:
+        print("Usage: python generate_hypercube_routing.py <num_boards>")
+        sys.exit(1)
+
+    num_boards = int(sys.argv[1])
+    generate_board_routing(num_boards)
+
+```
+
+This script will spit out an 8000+ line text file, defining all 4096 nodes and all of the connections between nodes. For each of the 16 CPU boards, there are 2048 local connections to other chips on the same board, and 1024 off-board connections. The output of the above script looks like `Node 2819: 2818, 2817, 2823, 2827, 2835, 2851, 2883, 2947`, meaning Node 2819 connects to 8 other nodes locally. I also get the off-board connections with `Node 2819: (Node 2563 -> Board 10), (Node 2307 -> Board 09), (Node 3843 -> Board 15), (Node 771 -> Board 03)`. Add these up, and you can get a complete list of what's connected to this single node:
+
+Node 2819 (on Board 11):
+- Connected to **2818, 2817, 2823, 2827, 2835, 2851, 2883, 2947** locally
+- Connected to **2563** on Board 10
+- Connected to **2307** on Board 9
+- Connected to **3843** on Board 15
+- Connected to **771** on Board 3 
+
 
 
 
