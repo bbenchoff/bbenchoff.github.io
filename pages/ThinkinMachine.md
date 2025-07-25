@@ -514,7 +514,17 @@ The output is just a netlist, and is an 8000-line file with lines that look like
 
 ![a view of the backplane, before routing the PCB](/images/ConnM/unroutedbackplane.png)
 
-Yeah, it's the most complex PCB I've ever designed. 
+Yeah, it's the most complex PCB I've ever designed. It's also a perfect stress test for the autorouter. Using the [FreeRouting plugin for KiCad](https://freerouting.org/freerouting/using-with-kicad), I loaded the board and set it to the task of routing 16,000 airwires with a 12-layer board. Here's the result of four hours of work, with 712 of those 16k traces routed:
+
+![result of the FreeRouting plugin. It looks like shit.](/images/ConnM/freerouting.png)
+
+After four hours, the FreeRouting autorouter managed about 4% of the total number of nets. _These were the easy traces, too_. It would have taken hundreds or thousands of hours for the autorouter to do everything, and it would still look like shit.
+
+#### I'll build my own autorouter, with blackjack, and hookers
+
+Routing the backplane with the autorouter would take months, as would routing it by hand. The obvious solution, therefore, is to build my own autorouter. Or at least spend a week or two on writing an autorouter.
+
+Writing an autorouter for circuit boards is _the_ hardest problem in computer science; the smartest people on the planet have been working on this problem for sixty years and all autorouters still suck. Routing this backplane, however, does not require a general solution to the problem of writing a good autorouter. It's an extremely domain-specific autorouter; I can constrain all of the traces coming off the connector pads to something very specific, and come up with extremely orthogonal routing solution to this problem. That's what I would do if I were routing by hand, anyway.
 
 
 
