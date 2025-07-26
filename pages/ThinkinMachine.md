@@ -525,7 +525,7 @@ The output is just a netlist, and is an 8000-line file with lines that look like
 
 ![a view of the backplane, before routing the PCB](/images/ConnM/unroutedbackplane.png)
 
-Yeah, it's the most complex PCB I've ever designed. It's also a perfect stress test for the autorouter. Using the [FreeRouting plugin for KiCad](https://freerouting.org/freerouting/using-with-kicad), I loaded the board and set it to the task of routing 16,000 airwires with a 12-layer board. Here's the result of four hours of work, with 712 of those 16k traces routed:
+Yeah, it's the most complex PCB I've ever designed. Doing this by hand would take months. It's also a perfect stress test for the autorouter. Using the [FreeRouting plugin for KiCad](https://freerouting.org/freerouting/using-with-kicad), I loaded the board and set it to the task of routing 16,000 airwires with a 12-layer board. Here's the result of four hours of work, with 712 of those 16k traces routed:
 
 ![result of the FreeRouting plugin. It looks like shit.](/images/ConnM/freerouting.png)
 
@@ -537,7 +537,7 @@ Routing the backplane with the FreeRouting autorouter would take months, as woul
 
 Writing an autorouter for circuit boards is _the_ hardest problem in computer science; the smartest people on the planet have been working on this problem for sixty years and all autorouters still suck. Routing this backplane, however, does not require a general solution to the problem of writing a good autorouter. It's an extremely domain-specific autorouter; I can constrain all of the traces coming off the connector pads to something very specific, and come up with extremely orthogonal routing solution to this problem. That's what I would do if I were routing by hand, anyway.
 
-__So fuck it, I'll write my own autorouter__. 
+**[This is OrthoRouter](https://github.com/bbenchoff/OrthoRoute)**, a GPU-accelerated autorouter for KiCad. Basically, the entire idea for this project came when I realized I had to route 8000 traces, and I have 10,000 CUDA cores on my GPU. That's it. It's _very_ domain-specific and optimized entirely for the backplane and 
 
 
 
