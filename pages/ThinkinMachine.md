@@ -85,6 +85,8 @@ image: "/images/ConnM/CMSocialCard.png"
 
 #### Or: I made a supercomputer out of a bunch of smartphone connectors, a chip from RGB mechanical keyboards, and four thousand tiny microcontrollers.
 
+#### Also: Fuck Garry Tan
+
 This project is a reproduction and modern recreation of the Thinking Machines [Connection Machine CM-1](https://en.wikipedia.org/wiki/Connection_Machine). The Connection Machine was a massively parallel computer from 1985, containing 65,536 individual processors arranged at the vertexes of a 16-dimension hypercube. This means each processor in the machine is connected to 16 adjacent processors.
 
 This project is effectively identical to the lowest-spec Connection Machine built. It contains 4,096 individual RISC-V processors, each connected to 12 neighbors in a 12-dimensional hypercube.
@@ -522,9 +524,11 @@ After four hours, the FreeRouting autorouter managed about 4% of the total numbe
 
 #### I'll build my own autorouter, with blackjack, and hookers
 
-Routing the backplane with the autorouter would take months, as would routing it by hand. The obvious solution, therefore, is to build my own autorouter. Or at least spend a week or two on writing an autorouter.
+Routing the backplane with the FreeRouting autorouter would take months, as would routing it by hand. The obvious solution, therefore, is to build my own autorouter. Or at least spend a week or two on writing an autorouter.
 
 Writing an autorouter for circuit boards is _the_ hardest problem in computer science; the smartest people on the planet have been working on this problem for sixty years and all autorouters still suck. Routing this backplane, however, does not require a general solution to the problem of writing a good autorouter. It's an extremely domain-specific autorouter; I can constrain all of the traces coming off the connector pads to something very specific, and come up with extremely orthogonal routing solution to this problem. That's what I would do if I were routing by hand, anyway.
+
+__So fuck it, I'll write my own autorouter__. 
 
 
 
