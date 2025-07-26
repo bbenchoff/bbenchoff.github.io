@@ -61,6 +61,14 @@ image: "/images/ConnM/CMSocialCard.png"
   box-shadow: 0 0 8px rgba(0,0,0,0.2);
 }
 
+.table-wrap { overflow-x:auto; -webkit-overflow-scrolling: touch; margin: 1rem 0; }
+.matrix-table td.empty { color:#666; } /* #999 is low-contrast on light BG */
+.matrix-table caption { caption-side: top; font-weight:600; padding: .5rem 0; }
+@media (prefers-color-scheme: dark) {
+  .matrix-table th { background:#1e1e1e; }
+  .matrix-table td { border-color:#333; }
+}
+
 @media (min-width: 768px) {
   .side-image {
     flex-direction: row;
@@ -157,7 +165,7 @@ This means I only have to design one processor board and manufacture it 16 times
 
 <h3>Board-to-Board Connection Matrix</h3>
 <p><em>Rows = Source Board, Columns = Destination Board, Values = Number of connections</em></p>
-
+<div class="table-wrap">
 <table class="matrix-table">
 <tr>
   <th>Board</th>
@@ -181,6 +189,7 @@ This means I only have to design one processor board and manufacture it 16 times
 <tr><th>B14</th><td class="empty">0</td><td class="empty">0</td><td class="empty">0</td><td class="empty">0</td><td class="empty">0</td><td class="empty">0</td><td class="connected">256</td><td class="empty">0</td><td class="empty">0</td><td class="empty">0</td><td class="connected">256</td><td class="empty">0</td><td class="connected">256</td><td class="empty">0</td><td class="empty">0</td><td class="connected">256</td></tr>
 <tr><th>B15</th><td class="empty">0</td><td class="empty">0</td><td class="empty">0</td><td class="empty">0</td><td class="empty">0</td><td class="empty">0</td><td class="empty">0</td><td class="connected">256</td><td class="empty">0</td><td class="empty">0</td><td class="empty">0</td><td class="connected">256</td><td class="empty">0</td><td class="connected">256</td><td class="connected">256</td><td class="empty">0</td></tr>
 </table>
+</div>
 
 Incidentally, this would be an _excellent_ application of wire-wrap technology. Wire-wrap uses thin wire and a special tool to spiral the bare wire around square posts of a connector. It’s mechanically solid, electrically excellent, and looks like absolute madness in practice. This is how the first computers were made (like the PDP-8), and was how the back plane in the Connection Machine was made.
 
