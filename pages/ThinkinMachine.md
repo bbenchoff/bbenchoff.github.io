@@ -93,8 +93,6 @@ image: "/images/ConnM/CMSocialCard.png"
 
 #### Or: I made a supercomputer out of a bunch of smartphone connectors, a chip from RGB mechanical keyboards, and four thousand tiny microcontrollers.
 
-#### Also: Fuck Garry Tan
-
 This project is a reproduction and modern recreation of the Thinking Machines [Connection Machine CM-1](https://en.wikipedia.org/wiki/Connection_Machine). The Connection Machine was a massively parallel computer from 1985, containing 65,536 individual processors arranged at the vertexes of a 16-dimension hypercube. This means each processor in the machine is connected to 16 adjacent processors.
 
 This project is effectively identical to the lowest-spec Connection Machine built. It contains 4,096 individual RISC-V processors, each connected to 12 neighbors in a 12-dimensional hypercube.
@@ -221,7 +219,7 @@ Above is a render of the machine showing the scale and density of what's going o
 
 It's _tight_, but it's possible. The rest is only a routing problem.
 
-### The Backplane -- Routing
+### The Backplane -- Routing, And Why I Had To Write An Autorouter
 
 And oh what a routing problem it is! 
 
@@ -525,19 +523,26 @@ The output is just a netlist, and is an 8000-line file with lines that look like
 
 ![a view of the backplane, before routing the PCB](/images/ConnM/unroutedbackplane.png)
 
-Yeah, it's the most complex PCB I've ever designed. Doing this by hand would take months. It's also a perfect stress test for the autorouter. Using the [FreeRouting plugin for KiCad](https://freerouting.org/freerouting/using-with-kicad), I loaded the board and set it to the task of routing 16,000 airwires with a 12-layer board. Here's the result of four hours of work, with 712 of those 16k traces routed:
+Yeah, it's the most complex PCB I've ever designed. Doing this by hand would take weeks. It's also a perfect stress test for the autorouter. Using the [FreeRouting plugin for KiCad](https://freerouting.org/freerouting/using-with-kicad), I loaded the board and set it to the task of routing 16,000 air wires with a 12-layer board. Here's the result of four hours of work, with 712 of those 16k traces routed:
 
 ![result of the FreeRouting plugin. It looks like shit.](/images/ConnM/freerouting.png)
 
 After four hours, the FreeRouting autorouter managed about 4% of the total number of nets. _These were the easy traces, too_. It would have taken hundreds or thousands of hours for the autorouter to do everything, and it would still look like shit.
 
-#### I'll build my own autorouter, with blackjack, and hookers
+The obvious solution, therefore, is to build my own autorouter. Or at least spend a week or two on writing an autorouter. Writing an autorouter for circuit boards is _the_ hardest problem in computer science; the smartest people on the planet have been working on this problem for sixty years and all autorouters still suck. Routing this backplane, however, does not require a general solution to the problem of writing a good autorouter. It's an extremely domain-specific autorouter; I can constrain all of the traces coming off the connector pads to something very specific, and come up with extremely orthogonal routing solution to this problem. That's what I would do if I were routing by hand, anyway.
 
-Routing the backplane with the FreeRouting autorouter would take months, as would routing it by hand. The obvious solution, therefore, is to build my own autorouter. Or at least spend a week or two on writing an autorouter.
+## A Quick Aside - A GPU-Accelerated Autorouter
 
-Writing an autorouter for circuit boards is _the_ hardest problem in computer science; the smartest people on the planet have been working on this problem for sixty years and all autorouters still suck. Routing this backplane, however, does not require a general solution to the problem of writing a good autorouter. It's an extremely domain-specific autorouter; I can constrain all of the traces coming off the connector pads to something very specific, and come up with extremely orthogonal routing solution to this problem. That's what I would do if I were routing by hand, anyway.
+**[This is OrthoRouter](https://github.com/bbenchoff/OrthoRoute)**, a GPU-accelerated autorouter for KiCad. It's _very_ domain-specific and optimized entirely for this backplane. There's very little that's actually _new_ here; I'm just leafing through some of the VLSI books in my basement and stealing some ideas that look like they might work. But if you throw enough compute at a problem, you might get something that works.
 
-**[This is OrthoRouter](https://github.com/bbenchoff/OrthoRoute)**, a GPU-accelerated autorouter for KiCad. Basically, the entire idea for this project came when I realized I had to route 8000 traces, and I have 10,000 CUDA cores on my GPU. That's it. It's _very_ domain-specific and optimized entirely for the backplane and 
+**[HEY CHRIS CAN YOU PRINT SOME MORE OF THE SHIRTS?](https://contextualelectronics.com/product/never-trust-the-autorouter-t-shirt/)**
+
+**Key Features of Orthorouter:**
+- True parallel routing using GPU compute
+- Real-time visualization of routing process
+- Orthogonal grid-based routing strategy
+- Open source and KiCad integration
+- Optimized for high-density, complex boards
 
 
 
@@ -1059,7 +1064,27 @@ Conventional wisdom says you can't really comprehend structures beyond three dim
 
 With the idea that visualizing and working with higher-dimension objects can be learned, I wondered what else I could do. This is that object. It's a portfolio piece, really. But it does have a lot of blinkenlights.
 
+# Conclusion
 
+Talk to an engineer, and somehow they'll try to solve your problem. Women know this. What they'll never do is try to solve a systemic problem.
+
+In conclusion, the 'maker movement', those YouTube that say you can build anything, the startup ecosystem, and technology in general, is an exploitative system. There's a quote floating around, 'Imagine startups as a carnival midway. Everything is just a carnival game. The middle class kids can afford a few chances and throw a ball into a bucket a few times. Maybe one of them hits it big, and they're going home with a giant stuffed animal. The rich kids can afford to throw hundreds of rings onto a bottle. They're going to go home with the big stuffed animal, no matter what. The poor kids? They're the ones working the carnival.'
+
+This was just a portfolio piece. Yeah, building a supercomputer and a GPU-accelerated autorouter and a parallel programming language is _nice_, it's not what I really want. I didn't build this for fun. I built this out of desperation. What I really want is a job.
+
+I've worked for jobs that.... just forgot to pay me. Like I had to remind them. I've worked for startups that lost all their money when FTX went belly up. Yeah, the company held all their money in a crypto exchange. I'm not working for Calacanis again because... well, a coworker was driven to grad school because of him, and that turned out to be the better decision. Meanwhile there's a half dozen projects documented on this portfolio that would make great a great business. 
+
+I've been unemployed for a year now, and I've just been throwing my resume into the black hole of LinkedIn. I haven't been able to get past any recruiter screenings.
+
+While you were doing internships in college, I was working at the gas station I could walk to. I couldn't get an internship because I couldn't afford a car, and because I lived in the middle of nowhere. While you were going from junior to senior developer, I was rotting in jobs where I was so highly underutilized.
+
+While you're taking your third or fourth vacation of the year, I'm at home, because I don't have money. I can't see that well because I need a new prescription for glasses, and I don't have money for the copay. Or five hundred bucks for the glasses. I _really_ need to go to the dentist.
+
+I have no savings left. I will never own a home. Smoking is my retirement plan. I'm wondering if the cancer or heart attack will get me first. Meritocracy is a god damned lie.
+
+This is what I can do, while you sit in meetings all day accomplishing nothing but generating Jira tickets.
+
+Fuck you. Give me a job.
 
 [back](../)
 
