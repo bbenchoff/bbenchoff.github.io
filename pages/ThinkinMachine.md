@@ -523,7 +523,7 @@ The output is just a netlist, and is an 8000-line file with lines that look like
 
 ![a view of the backplane, before routing the PCB](/images/ConnM/unroutedbackplane.png)
 
-Yeah, it's the most complex PCB I've ever designed. Doing this by hand would take weeks. It's also a perfect stress test for the autorouter. Using the [FreeRouting plugin for KiCad](https://freerouting.org/freerouting/using-with-kicad), I loaded the board and set it to the task of routing 16,000 air wires with a 12-layer board. Here's the result of four hours of work, with 712 of those 16k traces routed:
+Yeah, it's the most complex PCB I've ever designed. Doing this by hand would take weeks. It's also a perfect stress test for the autorouter. Using the [FreeRouting plugin for KiCad](https://freerouting.org/freerouting/using-with-kicad), I loaded the board and set it to the task of routing 16,000 airwires with a 12-layer board. Here's the result of four hours of work, with 712 of those 16k traces routed:
 
 ![result of the FreeRouting plugin. It looks like shit.](/images/ConnM/freerouting.png)
 
