@@ -10,7 +10,16 @@ image: "/images/default.jpg"
 ---
 
 
-# OrthoRoute: GPU-Accelerated PCB Autorouter
+<table width="100%">
+  <tr>
+    <td align="center" width="300">
+      <img src="/images/icon200.png" alt="OrthoRoute Logo" width="200" />
+    </td>
+    <td align="left">
+      <h2>OrthoRoute - GPU Accelerated Autorouting for KiCad</h2>
+      <p><em>You shouldn't trust the autorouter, but at least this one is faster</em></p>
+    </td>
+  </tr>
 
 ## Project Overview
 
