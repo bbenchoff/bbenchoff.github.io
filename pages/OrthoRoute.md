@@ -20,6 +20,7 @@ image: "/images/default.jpg"
       <p><em>You shouldn't trust the autorouter, but at least this one is faster</em></p>
     </td>
   </tr>
+</table>
 
 ## Project Overview
 
