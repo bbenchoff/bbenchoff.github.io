@@ -547,7 +547,7 @@ From there, OrthoRoute reads the airwires and nets and figures out what pads are
 
 ### New SSSP Algorithm Dropped
 
-Right around the time I finished up figuring out the KiCad API, and got the plugin visualization / Qt bullshit working, [this dropped on arxiv](https://arxiv.org/pdf/2504.17033). _Breaking the Sorting Barrier for Directed Single-Source Shortest Paths_ by Duan, Mao, Mao, Shu, Yin (July 31, 2025) introduced a new algorithm that's faster than Dijkstra's algorithm. Dijkstra's algorithm is $\bigO{m + n \log n}$ while this new algorithm is $\bigO{m \log^{2/3} n}$. The new algorithm is literally an exponential speedup.
+Right around the time I finished up figuring out the KiCad API, and got the plugin visualization / Qt bullshit working, [this dropped on arxiv](https://arxiv.org/pdf/2504.17033). _Breaking the Sorting Barrier for Directed Single-Source Shortest Paths_ by Duan, Mao, Mao, Shu, Yin (July 31, 2025) introduced a new algorithm that's faster than Dijkstra's algorithm. Dijkstra's algorithm is $O{m + n \log n}$ while this new algorithm is $O{m \log^{2/3} n}$. The new algorithm is literally an exponential speedup.
 
 So fuck it, I'm writing a GPU autorouter anyway. Let's implement it.
 
