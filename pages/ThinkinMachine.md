@@ -531,27 +531,42 @@ After four hours, the FreeRouting autorouter managed about 4% of the total numbe
 
 The obvious solution, therefore, is to build my own autorouter. Or at least spend a week or two on writing an autorouter. Building an autorouter for circuit boards is _the_ hardest problem in computer science; the smartest people on the planet have been working on this problem for sixty years and all autorouters still suck. 
 
-Routing this backplane, however, does not require a general solution to the problem of writing a good autorouter. I need an extremely domain-specific autorouter; I can constrain all of the traces coming off the connector pads to something very specific, and come up with extremely orthogonal routing solution to this problem. That's what I would do if I were routing by hand, anyway.
-
 ## A Quick Aside - A GPU-Accelerated Autorouter
 
-**[This is OrthoRoute](https://github.com/bbenchoff/OrthoRoute)**, a GPU-accelerated autorouter for KiCad. There's very little that's actually _new_ here; I'm just leafing through some of the VLSI books in my basement and stealing some ideas that look like they might work. But if you throw enough compute at a problem, you might get something that works.
+**[This is OrthoRoute](https://github.com/bbenchoff/OrthoRoute)**, a GPU-accelerated autorouter for KiCad. There's very little that's actually _new_ here; I'm just leafing through some of the VLSI books in my basement and stealing some ideas that look like they might work. If you throw enough compute at a problem, you might get something that works.
 
 **[HEY CHRIS CAN YOU PRINT SOME MORE OF THESE SHIRTS?](https://contextualelectronics.com/product/never-trust-the-autorouter-t-shirt/)**
 
-OrthoRoute is written for the new IPC plugin system for KiCad 9.0. This has several advantages over the old SWIG-based plugin system that allows me to run code outside of KiCad's Python environment. That's important, since I'll be using CuPy for CUDA acceleration and Qt to make the plugin look good. The basic structure of the OrthoRoute plugin looks something like this:
+OrthoRoute is written for the new IPC plugin system for KiCad 9.0. This has several advantages over the old SWIG-based plugin system. IPC allows me to run code outside of KiCad's Python environment. That's important, since I'll be using CuPy for CUDA acceleration and Qt to make the plugin look good. The basic structure of the OrthoRoute plugin looks something like this:
 
 ![Block diagram of the OrthoRoute plugin](/images/ConnM/OrthorouteArch.png)
 
 The OrthoRoute plugin communicates with KiCad via the IPC API over a Unix socket. This API is basically a bunch of C++ classes that gives me access to board data -- nets, pads, copper pour geometry, airwires, and everything else. This allows me to build a second model of a PCB inside a Python script and model it however I want.
 
-From there, OrthoRoute reads the airwires and nets and figures out what pads are connected together. This is the basis of any autorouter. From there, OrthoRoute runs another Python script written with [CuPy](https://cupy.dev/), that performs routing algorithms on a GPU.
+From there, OrthoRoute reads the airwires and nets and figures out what pads are connected together. This is the basis of any autorouter. OrthoRoute then runs another Python script written with [CuPy](https://cupy.dev/), that performs routing algorithms on a GPU. I'm using [Lee's Algorithm](https://en.wikipedia.org/wiki/Lee_algorithm) and [Wavefront expansion](https://en.wikipedia.org/wiki/Wavefront_expansion_algorithm) -- the 'standard' autorouting algorithms, all done on a GPU. _But that's not all..._
 
-I'm using [Lee's Algorithm](https://en.wikipedia.org/wiki/Lee_algorithm) and [Wavefront expansion](https://en.wikipedia.org/wiki/Wavefront_expansion_algorithm) for the 'standard' autorouting algorithms, but I'm also doing a domain-specific algorithm specifically for this backplane. Basically, this algorithm writes a fine-pitch grid of traces to the board underneath the backplane connectors, on layers 2 through 12, leaving the top layer blank. From there, the algorithm grabs an airwire from a pad and connects to the closest unused trace on another layer, connecting with a via. This net is the routed through this orthogonal grid of traces until it connects all the pads on this net together.
+### New SSSP Algorithm Dropped
 
-I'm basically automating [Manhattan routing](https://resources.pcb.cadence.com/blog/2020-pcb-manhattan-routing-techniques), where one layer is _only_ vertical, and another layer is _only_ horizontal. It's a common technique if you've seen enough old computer motherboards, but for the life of me I couldn't find an autorouter that actually did Manhattan routing. So I built one. It's called OrthoRoute.
+Right around the time I finished up figuring out the KiCad API, and got the plugin visualization / Qt bullshit working, [this dropped on arxiv](https://arxiv.org/pdf/2504.17033). _Breaking the Sorting Barrier for Directed Single-Source Shortest Paths_ by Duan, Mao, Mao, Shu, Yin (July 31, 2025) introduced a new algorithm that's faster than Dijkstra's algorithm. Dijkstra's algorithm is $\bigO{m + n \log n}$ while this new algorithm is $\bigO{m \log^{2/3} n}$. The new algorithm is literally an exponential speedup.
 
-Yes, it's a GPU-accelerated autorouting plugin for KiCad, the first of its kind. But this isn't smart. I probably could have put this board up on Fiverr and gotten results in a week or two. This yak is fuckin bald now. But I think the screencaps speak for themselves:
+So fuck it, I'm writing a GPU autorouter anyway. Let's implement it.
+
+![The new algorithm compared to Dijkstra, animated](/images/ConnM/Pathfinding.gif)
+
+First off, forgive the animation. I read the paper and whipped this up in an hour or so. The important thing to take away is *the new algorithm is much faster*.
+
+REWRITE THIS SECTION WHEN I UNDERSTAND IT
+
+
+### But I needed an ancient algorithm
+
+Routing this backplane, however, neither requires a general solution to the problem of writing a good autorouter, nor does it need a new algorithm that dropped a week ago at the time of this writing. I've also included a domain-specific algorithm specifically for this backplane.
+
+This algorithm writes a fine-pitch grid of traces to the board underneath the backplane connectors, on layers 2 through 12, leaving the top layer blank. From there, the algorithm grabs an airwire from a pad and connects to the closest unused trace on another layer, connecting with a via. This net is the routed through this orthogonal grid of traces until it connects all the pads on this net together.
+
+The domain-specific algorithm for this backplane is [Manhattan routing](https://resources.pcb.cadence.com/blog/2020-pcb-manhattan-routing-techniques), where one layer is _only_ vertical, and another layer is _only_ horizontal. It's a common technique if you've seen enough old computer motherboards, but for the life of me I couldn't find an autorouter that actually did Manhattan routing. So I built one. It's called OrthoRoute.
+
+It's a GPU-accelerated autorouting plugin for KiCad, probably the first of its kind. But this isn't smart. I probably could have put this board up on Fiverr and gotten results in a week or two. This yak is fuckin bald now. But I think the screencaps speak for themselves:
 
 ![OrthoRoute screencap 1](/images/ConnM/Orthoroute/1.png)
 
@@ -559,12 +574,42 @@ Yes, it's a GPU-accelerated autorouting plugin for KiCad, the first of its kind.
 
 ![OrthoRoute screencap 3](/images/ConnM/Orthoroute/3.png)
 
-You can run OrthoRoute yourself ![by downloading it from the repo](https://github.com/bbenchoff/OrthoRoute). Install the .zip file via the package manager. A somewhat beefy Nvidia GPU is highly suggested but not required; there's CPU fallback. If you want a deeper dive on how I built OrthoRoute, [there's also a page in my portfolio about it](http://bbenchoff.github.io/pages/OrthoRoute.html).
+You can run OrthoRoute yourself [by downloading it from the repo](https://github.com/bbenchoff/OrthoRoute). Install the .zip file via the package manager. A somewhat beefy Nvidia GPU is highly suggested but not required; there's CPU fallback. If you want a deeper dive on how I built OrthoRoute, [there's also a page in my portfolio about it](http://bbenchoff.github.io/pages/OrthoRoute.html).
 
 
+## The RISC-V Boards
 
+The RISC-V Hypercube Architecture Summary:
+Hardware:
 
+4,096 CH32V003 processors arranged in 12-dimensional hypercube topology
+16 boards of 256 processors each (8D hypercube per board)
+Each processor connects to 12 neighbors via single-wire bidirectional serial
+Wired-OR communication - floating/pull-high/pull-low on shared lines
+Distributed clocking - slow reference clock to all boards, local PLLs multiply up
 
+Control Infrastructure:
+
+Board controllers - one per 16-board managing 256 processors
+LIN bus - board controller to processors (master-slave, automotive-grade)
+SWD debug - FPGA-based multiplexer for programming/debugging 256 chips
+Main controller - coordinates all 16 board controllers
+
+Communication Hierarchy:
+
+Main ↔ Board Controllers - coordination, algorithm distribution
+Board Controller ↔ Processors - LIN bus for setup/control
+Processor ↔ Neighbors - direct hypercube connections for data
+Programming/Debug - separate SWD network via FPGA mux
+
+The Clever Bits:
+
+Single wire does bidirectional serial between neighbors
+Global clock sync enables collision-free time-slotted communication
+LIN bus handles broadcast/multicast addressing perfectly
+20¢ processors make 4,096-way parallelism economically viable
+
+Result: A massively parallel computer where every processor can talk to 12 neighbors in 12-dimensional space, all synchronized and controllable.
 
 
 # This is the intro i cut:
