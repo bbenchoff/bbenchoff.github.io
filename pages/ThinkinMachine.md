@@ -547,7 +547,7 @@ From there, OrthoRoute reads the airwires and nets and figures out what pads are
 
 ### New SSSP Algorithm Dropped
 
-Right around the time I finished up figuring out the KiCad API, and got the plugin visualization / Qt bullshit working, [this dropped on arxiv](https://arxiv.org/pdf/2504.17033). _Breaking the Sorting Barrier for Directed Single-Source Shortest Paths_ by Duan, Mao, Mao, Shu, Yin (July 31, 2025) introduced a new algorithm that's faster than Dijkstra's algorithm. Dijkstra's algorithm is $O{m + n \log n}$ while this new algorithm is $O{m \log^{2/3} n}$. The new algorithm is literally an exponential speedup.
+Right around the time I finished up figuring out the KiCad API, and got the plugin visualization / Qt bullshit working, [this dropped on arxiv](https://arxiv.org/pdf/2504.17033). _Breaking the Sorting Barrier for Directed Single-Source Shortest Paths_ by Duan, Mao, Mao, Shu, Yin (July 31, 2025) introduced a new algorithm that's faster than Dijkstra's algorithm. Dijkstra's algorithm is $O{m + n \log n}$ while this new algorithm is $O{m \log^{2/3} n}$.
 
 So fuck it, I'm writing a GPU autorouter anyway. Let's implement it.
 
@@ -555,8 +555,9 @@ So fuck it, I'm writing a GPU autorouter anyway. Let's implement it.
 
 First off, forgive the animation. I read the paper and whipped this up in an hour or so. The important thing to take away is *the new algorithm is much faster*.
 
-REWRITE THIS SECTION WHEN I UNDERSTAND IT
+Dijkstra's algorithm expands a _frontier_ across a grid of cells, and will eventually find the shortest path. This expansion can grow to $O{n}$ cells, meaning an algorithm would have to sort all of these cells which is an expensive operation. The new algorithm divides this frontier and identifies a 'pivot' where multiple paths converge. This reduces the amount of sorting, and speeds up the algorithm.
 
+It's _interesting_, and I might as well implement it, but Lee's algorithm and wavefront expansion are already really good at routing grid-based problems. And it's kind of a flex to include a new path finding algorithm written a week and a half ago in my GPU-based autorouter.
 
 ### But I needed an ancient algorithm
 
@@ -574,7 +575,7 @@ It's a GPU-accelerated autorouting plugin for KiCad, probably the first of its k
 
 ![OrthoRoute screencap 3](/images/ConnM/Orthoroute/3.png)
 
-You can run OrthoRoute yourself [by downloading it from the repo](https://github.com/bbenchoff/OrthoRoute). Install the .zip file via the package manager. A somewhat beefy Nvidia GPU is highly suggested but not required; there's CPU fallback. If you want a deeper dive on how I built OrthoRoute, [there's also a page in my portfolio about it](http://bbenchoff.github.io/pages/OrthoRoute.html).
+You can run OrthoRoute yourself [by downloading it from the repo](https://github.com/bbenchoff/OrthoRoute). Install the .zip file via the package manager. A somewhat beefy Nvidia GPU is highly suggested but not required; there's CPU fallback. If you want a deeper dive on how I built OrthoRoute, [there's also a page in my portfolio about it](http://bbenchoff.github.io/pages/OrthoRoute.html). There's also benchmarks of different pathfinding algorithms there.
 
 
 ## The RISC-V Boards
