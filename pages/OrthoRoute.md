@@ -26,7 +26,7 @@ This is a project born out of necessity. [Another thing I was working on](https:
 
 ![a view of the backplane, before routing the PCB](/images/ConnM/unroutedbackplane.png)
 
-Look at that shit. Hand routing this would take a month. I tried FreeRouting, the KiCad autorouter plugin, and it routed 4% of the traces in seven hours. This left me with a few options, all of which would take weeks.
+Look at that shit. Hand routing this would take a month. I tried [FreeRouting](https://freerouting.org/), the KiCad autorouter plugin, and it routed 4% of the traces in seven hours. If that trend held, which it wouldn't, that would be a month of autorouting. This left me with a few options, all of which would take weeks.
 
 - I could route the board by hand. This would be painful and take weeks, but I would get a good-looking board at the end.
 - I could yolo everything and just let the autorouter handle it. It would take weeks, because the first traces are easy, the last traces take the longest. This would result in an ugly board.
