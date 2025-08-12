@@ -36,14 +36,24 @@ When confronted with a task that will take months, always choose the more intere
 
 ## Project Overview
 
-**OrthoRoute** is a GPU-accelerated PCB autorouter, designed for massively parallel routing of complex circuit boards. Unlike traditional CPU-based autorouters that process nets sequentially, OrthoRoute leverages thousands of CUDA cores to route all nets simultaneously.
+**OrthoRoute** is a GPU-accelerated PCB autorouter, designed for parallel routing of massive circuit boards. Autorouting is a parallel problem, and nearly everyone doing serious work has a few CUDA cores Unlike most autorouters such as [Altium Situs](https://www.altium.com/documentation/altium-designer/automated-board-layout-situs-topological-autorouter), [FreeRouting](https://freerouting.org/), and a dozen EE-focused B2B SaaS startups, OrthoRoute uses GPUs for parallelizing the task of connecting pads with traces.
+
+I don't know why no one has thought to put wavefront expansion in a GPU before. It's _designed_ for parallel operation. I'm not going to say this is the best software ever, but I can say I have a better imagination than other people making autorouters.
 
 **Key Features:**
-- True parallel routing using GPU compute
-- Real-time visualization of routing process
-- Orthogonal grid-based routing strategy
-- Open source and KiCad integration
-- Optimized for high-density, complex boards
+- **Real-time Visualization**: Interactive 2D board view with zoom, pan, and layer controls
+- **Professional Interface**: Clean PyQt6-based interface with KiCad color themes
+- **Multi-layer Support**: Handle complex multi-layer PCB designs with front/back copper visualization
+- **GPU-Accelerated Routing**: Future support for ultra-fast routing algorithms (Lee's, Wavefront)
+- **Manhattan Routing**: Where OrthoRoute gets its name. 
+
+
+### Screenshots
+
+![Screenshot 1, showing an Arduino clone](/images/ConnM/OrthorouteScreenshot1.png)
+
+Orthoroute is designed as a KiCad plugin, and heavily leverages the new-ish [KiCad IPC API](https://dev-docs.kicad.org/en/apis-and-binding/ipc-api/) and [kicad-python](https://docs.kicad.org/kicad-python-main/index.html) bindings for the IPC API.
+
 
 ## Technical Architecture
 
