@@ -2,7 +2,7 @@
 layout: default
 title: "OrthoRoute"
 description: "OrthoRoute: GPU-Accelerated PCB Autorouter"
-keywords: ["hardware engineering", "PCB design", "electronics""]
+keywords: ["hardware engineering", "PCB design", "autorouting", "autorouter", "CUDA", "CuPy", "electronics"]
 author: "Brian Benchoff"
 date: 2025-06-04
 last_modified_at: 2022-06-04
@@ -36,9 +36,9 @@ When confronted with a task that will take months, always choose the more intere
 
 ## Project Overview
 
-**OrthoRoute** is a GPU-accelerated PCB autorouter, designed for parallel routing of massive circuit boards. Autorouting is a parallel problem, and nearly everyone doing serious work has a few CUDA cores Unlike most autorouters such as [Altium Situs](https://www.altium.com/documentation/altium-designer/automated-board-layout-situs-topological-autorouter), [FreeRouting](https://freerouting.org/), and a dozen EE-focused B2B SaaS startups, OrthoRoute uses GPUs for parallelizing the task of connecting pads with traces.
+**OrthoRoute** is a GPU-accelerated PCB autorouter, designed for parallel routing of massive circuit boards. Autorouting is a parallel problem, and nearly everyone doing serious work has a few spare CUDA cores sitting around. Unlike most autorouters such as [Altium Situs](https://www.altium.com/documentation/altium-designer/automated-board-layout-situs-topological-autorouter), [FreeRouting](https://freerouting.org/), and a dozen EE-focused B2B SaaS startups, OrthoRoute uses GPUs for parallelizing the task of connecting pads with traces.
 
-I don't know why no one has thought to put wavefront expansion in a GPU before. It's _designed_ for parallel operation. I'm not going to say this is the best software ever, but I can say I have a better imagination than other people making autorouters.
+I don't know why no one has thought to put wavefront expansion in a GPU before. I seriously feel like I'm taking crazy pills. Autorouting algorithms are _ideal_ for parallel operation. I'm not going to say this is the best software ever, but I can say I have a better imagination than other people making autorouters.
 
 **Key Features:**
 - **Real-time Visualization**: Interactive 2D board view with zoom, pan, and layer controls
@@ -48,11 +48,30 @@ I don't know why no one has thought to put wavefront expansion in a GPU before. 
 - **Manhattan Routing**: Where OrthoRoute gets its name. 
 
 
-### Screenshots
+## Screenshots
 
 ![Screenshot 1, showing an Arduino clone](/images/ConnM/OrthorouteScreenshot1.png)
 
 Orthoroute is designed as a KiCad plugin, and heavily leverages the new-ish [KiCad IPC API](https://dev-docs.kicad.org/en/apis-and-binding/ipc-api/) and [kicad-python](https://docs.kicad.org/kicad-python-main/index.html) bindings for the IPC API.
+
+
+## Performance
+
+Unsurprisingly, doing extremely parallel operations in a GPU is _fast_. But how does it compare to other Autorouters?
+
+SOMETHING ABOUT PERFORMANCE WHEN I GET THE AUTOROUTING DONE
+
+## Implementation
+
+The following are the implementation details of Orthoroute. How I built it, and why I made the decisions I did. If you want to never write a plugin for KiCad, skip this section.
+
+Pre-KiCad 9.0 was limited to a SWIG-based plugin system. Compared to the new IPC plugin system released with KiCad 9, there are serious deficits. The SWIG-based system was locked to the Python environment bundled with KiCad. Process isolation, threading, and performance constraints abound. Doing GPU programming with CuPy, while not impossible, is difficult.
+
+The new IPC plugin system for KiCad is a godsend. The basic structure of the OrthoRoute plugin looks something like this:
+
+![Orthoroute archetecture](images/ConnM/OrthorouteArch.png)
+
+The OrthoRoute plugin communicates with KiCad via the IPC API over a Unix socket. This API is basically a bunch of C++ classes that gives me access to board data – nets, pads, copper pour geometry, airwires, and everything else. This allows me to build a second model of a PCB inside a Python script and model it however I want.
 
 
 ## Technical Architecture
