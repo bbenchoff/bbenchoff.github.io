@@ -6,7 +6,7 @@ keywords: ["hardware engineering", "PCB design", "autorouting", "autorouter", "C
 author: "Brian Benchoff"
 date: 2025-06-04
 last_modified_at: 2022-06-04
-image: "/images/default.jpg"
+image: "/images/icon200.jpg"
 ---
 
 
@@ -69,7 +69,7 @@ Pre-KiCad 9.0 was limited to a SWIG-based plugin system. Compared to the new IPC
 
 The new IPC plugin system for KiCad is a godsend. The basic structure of the OrthoRoute plugin looks something like this:
 
-![Orthoroute archetecture](/images/ConnM/OrthorouteArch.png)
+![Orthoroute architecture](/images/ConnM/OrthorouteArch.png)
 
 The OrthoRoute plugin communicates with KiCad via the IPC API over a Unix socket. This API is basically a bunch of C++ classes that gives me access to board data – nets, pads, copper pour geometry, airwires, and everything else. This allows me to build a second model of a PCB inside a Python script and model it however I want.
 
