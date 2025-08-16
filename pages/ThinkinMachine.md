@@ -93,6 +93,8 @@ image: "/images/ConnM/CMSocialCard.png"
 
 #### Or: I made a supercomputer out of a bunch of smartphone connectors, a chip from RGB mechanical keyboards, and four thousand tiny microcontrollers.
 
+Before I begin, I must admit this entire post is a shibboleth. Only people who already understand it will comprehend it. But this is all writing, I suppose.
+
 This project is a reproduction and modern recreation of the Thinking Machines [Connection Machine CM-1](https://en.wikipedia.org/wiki/Connection_Machine). The Connection Machine was a massively parallel computer from 1985, containing 65,536 individual processors arranged at the vertexes of a 16-dimension hypercube. This means each processor in the machine is connected to 16 adjacent processors.
 
 This project is effectively identical to the lowest-spec Connection Machine built. It contains 4,096 individual RISC-V processors, each connected to 12 neighbors in a 12-dimensional hypercube.
@@ -623,8 +625,21 @@ Conventional wisdom says you can't really comprehend structures beyond three dim
 
 With the idea that visualizing and working with higher-dimension objects can be learned, I wondered what else I could do. This is that object. It's a portfolio piece, really. But it does have a lot of blinkenlights.
 
-# Conclusion
+# Another Ending
 
+The purpose of a system is what it does. So what's the purpose of this system? While this is _cool_, and the autorouter is marginally useful, there are really only two reasons I started this project.
+
+The first was a revelation after attending the first Open Sauce held at the San Mateo County Events Center, the old stomping grounds of pre-bankruptcy Maker Faire. This was six or seven years after the last Maker Faire at the County Fair, and I was _disgusted_. There were booths at Open Sauce that hadn't changed since Maker Faire. What the hell are you people doing for seven years? Nothing new, just the same old shit? Wow bro, a knitting machine. Hey I heard Becky Stern got married and I haven't seen her on the Internet in ages. Good for her. A pad printer, bro? Yeah, those were fun when I did it. Six years ago.
+
+Take some pride in your work and advance your skill set. You are creatively stagnant. Show me something new. _This_ is new. I guarantee that I will not be showing off my Connection Machine seven years from now without creating something new. If I'm ever in a position where I'm giving a demo on this Connection Machine in seven years, I'll have also made my shotgun helmet that shoots eight deer slugs into my brain simultaneously.
+
+Although I will give Open Sauce good marks for dialing back the Burning Man art. San Francisco public arts commission has been snapping those up pretty hard.
+
+Secondly, this is a portfolio piece. As you can already tell this entire project reeks of unemployment. This is in line with the other projects I also did while unemployed, like [using CUDA to find algorithms in fifty billion random virtual machines](https://bbenchoff.github.io/pages/Babelscope.html), [reverse engineering datacenter GPU pinouts](https://bbenchoff.github.io/pages/SXM2PCIe.html), [porting SSL and TLS to thirty year old computers](https://bbenchoff.github.io/pages/MacSSL.html), and [running billions of random game cartridges in an Atari](https://bbenchoff.github.io/pages/FiniteAtari.html).
+
+This is what I can do, and I'm looking for a job. [Here's my portfolio](https://bbenchoff.github.io/), drop me a line if you have something interesting. Don't ask me to apply, because I'm only getting one callback for every 80 or 90 applications.
+
+Oh and Cory Doctorow is a terrible writer.
 
 [back](../)
 
