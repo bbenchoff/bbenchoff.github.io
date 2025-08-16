@@ -84,7 +84,7 @@ While the [kicad-python library](https://docs.kicad.org/kicad-python-main/board.
 That's exactly what I did. By using a board that already had a copper pour, I figured out a way to extract the footprints on the board, apply the DRC, and make a polygon out of what remained. By comparing this to the ground truth of the copper pour polygon extracted from the board, I could validate that my 'virtual' copper pour was correct, and could use this with boards without a copper pour.
 
 <figure>
-  <img src="/images/ConnM/OrthorouteCopper.png" alt="Development of the virtual copper pour extraction showing real thermal relief vs virtual algorithm vs difference map" />
+  <img src="/images/OrthorouteCopper.png" alt="Development of the virtual copper pour extraction showing real thermal relief vs virtual algorithm vs difference map" />
   <figcaption>
     Development of the 'virtual' copper pour extraction. Left: Real copper pour from KiCad (58.8% routable). Middle: Virtual algorithm recreation (68.9% routable). Right: Difference map showing 73.7% accuracy between real and virtual methods. This was from early in the development of my 'virtual' copper pour solution.
   </figcaption>
