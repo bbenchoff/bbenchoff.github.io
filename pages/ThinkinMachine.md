@@ -631,7 +631,7 @@ The purpose of a system is what it does. So what's the purpose of this system? W
 
 The first was a revelation after attending the first Open Sauce held at the San Mateo County Events Center, the old stomping grounds of pre-bankruptcy Maker Faire. This was six or seven years after the last Maker Faire at the County Fair, and I was _disgusted_. There were booths at Open Sauce that hadn't changed since Maker Faire. What the hell are you people doing for seven years? Nothing new, just the same old shit? Wow bro, a knitting machine. Hey I heard Becky Stern got married and I haven't seen her on the Internet in ages. Good for her. A pad printer, bro? Yeah, those were fun when I did it. Six years ago.
 
-Take some pride in your work and advance your skill set. You are creatively stagnant. Show me something new. _This_ is new. I guarantee that I will not be showing off my Connection Machine seven years from now without creating something new. If I'm ever in a position where I'm giving a demo on this Connection Machine in seven years, I'll have also made my shotgun helmet that shoots eight deer slugs into my brain simultaneously.
+Take some pride in your work and advance your skill set. You are creatively stagnant. Show me something new. _This_ is new. I guarantee that I will not be showing off my Connection Machine seven years from now without creating something new. This is because if I'm demonstrating this Connection Machine as _new_ in seven years, I'll have also made my shotgun helmet that shoots eight deer slugs into my brain simultaneously.
 
 Although I will give Open Sauce good marks for dialing back the Burning Man art. San Francisco public arts commission has been snapping those up pretty hard.
 

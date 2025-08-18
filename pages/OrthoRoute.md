@@ -38,7 +38,9 @@ When confronted with a task that will take months, always choose the more intere
 
 **OrthoRoute** is a GPU-accelerated PCB autorouter, designed for parallel routing of massive circuit boards. Autorouting is a parallel problem, and nearly everyone doing serious work has a few spare CUDA cores sitting around. Unlike most autorouters such as [Altium Situs](https://www.altium.com/documentation/altium-designer/automated-board-layout-situs-topological-autorouter), [FreeRouting](https://freerouting.org/), and a dozen EE-focused B2B SaaS startups, OrthoRoute uses GPUs for parallelizing the task of connecting pads with traces.
 
-I don't know why no one has thought to put wavefront expansion in a GPU before. I seriously feel like I'm taking crazy pills. Autorouting algorithms are _ideal_ for parallel operation. I'm not going to say this is the best software ever, but I can say I have a better imagination than other people making autorouters.
+I don't know why no one has thought to put wavefront expansion in a GPU before. I seriously feel like I'm taking crazy pills. Autorouting algorithms are _ideal_ for parallel operation.
+
+OrthoRoute is designed as a KiCad plugin, and heavily leverages the new-ish [KiCad IPC API](https://dev-docs.kicad.org/en/apis-and-binding/ipc-api/) and [kicad-python](https://docs.kicad.org/kicad-python-main/index.html) bindings for the IPC API.
 
 **Key Features:**
 - **Real-time Visualization**: Interactive 2D board view with zoom, pan, and layer controls
@@ -46,13 +48,12 @@ I don't know why no one has thought to put wavefront expansion in a GPU before. 
 - **Multi-layer Support**: Handle complex multi-layer PCB designs with front/back copper visualization
 - **GPU-Accelerated Routing**: Routing algorithms in CUDA
 - **Manhattan Routing**: Where OrthoRoute gets its name. It's a grid of traces, vertical on one layer, horizontal on the other
+- **It's a KiCad Plugin**: Just download and install with the Plugin Manager
 
 
 ## Screenshots
 
 ![Screenshot 1, showing an Arduino clone](/images/ConnM/OrthorouteScreenshot1.png)
-
-OrthoRoute is designed as a KiCad plugin, and heavily leverages the new-ish [KiCad IPC API](https://dev-docs.kicad.org/en/apis-and-binding/ipc-api/) and [kicad-python](https://docs.kicad.org/kicad-python-main/index.html) bindings for the IPC API.
 
 
 ## Performance
@@ -60,6 +61,29 @@ OrthoRoute is designed as a KiCad plugin, and heavily leverages the new-ish [KiC
 Unsurprisingly, doing extremely parallel operations in a GPU is _fast_. But how does it compare to other Autorouters?
 
 SOMETHING ABOUT PERFORMANCE WHEN I GET THE AUTOROUTING DONE
+
+## Why A GPU-Accelerated Autorouter Is Dumb
+
+GPUs are really good at parallel problems. And you would think autorouting is a very parallel problem. It's just finding a path between two points on a graph. There are algorithms that are embarrassingly parallel that just do this. It's not that easy, but there is a good case for using a GPU.
+
+Instead of mapping an entire (blank) PCB into a GPU's memory and drawing traces around obstacles, an autorouter is about finding a path under constraints that are always changing. If you have three nets, route(A→B), route(C→D), and route(E→F), you start out by routing the direct path A→B. But C→D can't take the direct path between those points, because it's blocked by A→B. Now E→F is blocked by both previous routes, so it takes a worse path. It's _like_ the traveling salesman problem, but all the salesmen can't take the same road. Also there are thousands of salesmen.
+
+This is why people have been working on autorouters for sixty years, and they all suck.
+
+GPUs are terrible at this problem. Should net (A→B) be higher priority than (C→D)? If they are, GPUs hate branching logic. You can't route (C→D) until you've routed (A→B), so that embarrassingly parallel problem is actually pretty small. Now deal with Design Rules. If you don't want a trace to intersect another trace of a different net, you apply the design rules. But this changes when you go to the next net! You're constantly rewriting Design Rules, which kills any GPU efficiency.
+
+However, there's exactly one part of autorouting that's actually parallel, and a useful case to deploy a GPU. Lee's Wavefront expansion. You route your traces on a fine-pitch grid, and propagate a 'wave' through the grid. Each cell in the wave can be processed independently. Shortest path wins, put your trace there. That's what I'm using the GPU for, and the CPU for everything else. Yeah, it's faster, but it's not _great_. Don't trust the autorouter, but at least this one is fast.
+
+## Why OrthoRoute is Great on a GPU.
+
+But the entire point of this project isn't to build a general autorouter. I built this to route _one_ board. And I'm doing it with 'Manhattan routing'. Manhattan routing is embarrassingly parallel because it's geometrically constrained. I have 16 identical parts, each with 1100 SMD pads, arranged in a regular grid. That's 17,600 pads that need to connect to each other in very predictable patterns.
+
+PUT A PICTURE OF ORTHOGINAL ROUTING HERE
+
+Instead of the "route anything anywhere" problem of general autorouting, I have layers with dedicated directions: horizontal traces on one layer, vertical on the next, horizontal again, and so on. When a net needs to change direction, it drops a via and moves to the appropriate layer. No complex pathfinding required, just geometric moves on a regular grid.
+
+_This_ is why it's called OrthoRoute. It's just routing through a grid of traces. There's no DRC needed, and it's only a stupidly parallel problem that fits in the memory of a GPU.
+
 
 ## Implementation
 
@@ -89,8 +113,7 @@ That's exactly what I did. First I learned how to extract the copper pour from a
 
 Pathfinding wasn't the issue. That's easy because there are published algorithms. What really gave me a lot of trouble is figuring out where the pathfinding was valid. I'm sure someone else would have spent months going through IPC specifications to figure out where an autorouter _should_ route traces. But I leveraged the simple fact that this data is already generated by KiCad -- the copper pour itself -- and just replicated it.
 
-If there are any KiCad devs out there reading this, _this_ is what you should implement in the next iteration kicad-python. A `get_free_routing_space()` function. Something that returns the polygon of a copper pour on boards that don't have a copper pour, for each layer of copper.
-
+If there are any KiCad devs out there reading this, _this_ is what you should implement in the next iteration kicad-python. A `get_free_routing_space(int copper_layer)` function. Something that returns the polygon of a copper pour on boards that don't have a copper pour, for each layer of copper.
 
 
 
