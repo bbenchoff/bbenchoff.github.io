@@ -64,13 +64,17 @@ SOMETHING ABOUT PERFORMANCE WHEN I GET THE AUTOROUTING DONE
 
 ## Why A GPU-Accelerated Autorouter Is Dumb
 
-GPUs are really good at parallel problems. And you would think autorouting is a very parallel problem. It's just finding a path between two points on a graph. There are algorithms that are embarrassingly parallel that just do this. It's not that easy, but there is a good case for using a GPU.
+GPUs are really good at parallel problems. And you would think autorouting is a very parallel problem. It's just finding a path between two points on a graph. There are algorithms that are embarrassingly parallel that just do this. This is true, but there's a lot you're not considering. 
 
-Instead of mapping an entire (blank) PCB into a GPU's memory and drawing traces around obstacles, an autorouter is about finding a path under constraints that are always changing. If you have three nets, route(A→B), route(C→D), and route(E→F), you start out by routing the direct path (A→B). But (C→D) can't take the direct path between those points, because it's blocked by (A→B). Now (E→F) is blocked by both previous routes, so it takes a worse path. It's _like_ the traveling salesman problem, but all the salesmen can't take the same road. Also there are thousands of salesmen.
+Instead of mapping an entire (blank) PCB into a GPU's memory and drawing traces around obstacles, an autorouter is about finding a path _under constraints that are always changing_.
+
+If you have three nets, route(A→B), route(C→D), and route(E→F), you start out by routing the direct path (A→B). But (C→D) can't take the direct path between those points, because it's blocked by (A→B). Now (E→F) is blocked by both previous routes, so it takes a worse path. 
+
+It's _like_ the traveling salesman problem, but all the salesmen can't take the same road. Also there are thousands of salesmen.
 
 There's a reason this is the hardest problem in computer science. This is why people have been working on autorouters for sixty years, and they all suck.
 
-GPUs are terrible at this problem. Should net (A→B) be higher priority than (C→D)? If they are, GPUs hate branching logic. You can't route (C→D) until you've routed (A→B), so that embarrassingly parallel problem is actually pretty small. Now deal with Design Rules. If you don't want a trace to intersect another trace of a different net, you apply the design rules. But this changes when you go to the next net! You're constantly redefining Design Rules, which kills any GPU efficiency.
+GPUs are mostly terrible for autorouting. Should net (A→B) be higher priority than (C→D)? GPUs hate branching logic. You can't route (C→D) until you've routed (A→B), so that embarrassingly parallel problem is actually pretty small. Now deal with Design Rules. If you don't want a trace to intersect another trace of a different net, you apply the design rules. But this changes when you go to the next net! You're constantly redefining Design Rules, which kills any GPU efficiency.
 
 But all is not lost. There's exactly one part of autorouting that's actually parallel, and a useful case to deploy a GPU. Lee's Wavefront expansion. You route your traces on a fine-pitch grid, and propagate a 'wave' through the grid. Each cell in the wave can be processed independently. Shortest path wins, put your trace there. That's what I'm using the GPU for, and the CPU for everything else. Yeah, it's faster, but it's not _great_. Don't trust the autorouter, but at least this one is fast.
 
@@ -84,7 +88,7 @@ PUT A PICTURE OF ORTHOGINAL ROUTING HERE
 
 Instead of the "route anything anywhere" problem of general autorouting, I have layers with dedicated directions: horizontal traces on one layer, vertical on the next, horizontal again, and so on. When a net needs to change direction, it drops a via and moves to the appropriate layer. No complex pathfinding required, just geometric moves on a regular grid.
 
-_This_ is why it's called OrthoRoute. It's just routing through a grid of traces. There's no DRC needed, because drawing the grid of traces is defined by DRC. The places w and it's only a stupidly parallel problem that fits in the memory of a GPU.
+_This_ is why it's called OrthoRoute. It's just routing through a grid of traces. There's no DRC needed, because drawing the grid of traces is defined by DRC.
 
 
 ## Implementation
@@ -117,155 +121,5 @@ Pathfinding wasn't the issue. That's easy because there are published algorithms
 
 If there are any KiCad devs out there reading this, _this_ is what you should implement in the next iteration kicad-python. A `get_free_routing_space(int copper_layer)` function. Something that returns the polygon of a copper pour on boards that don't have a copper pour, for each layer of copper.
 
-
-
-## Technical Architecture
-
-### Core Innovation: Parallel Pathfinding
-- **One CUDA thread per net** - simultaneous routing of thousands of connections
-- **Shared grid state** - dynamic congestion management across all threads
-- **Conflict resolution** - real-time negotiation between competing routes
-
-### Grid-Based Routing Strategy
-- **Orthogonal grid** on multiple PCB layers
-- **Via sites** at grid intersections for layer changes
-- **Capacity management** - multiple traces per grid segment
-- **Adaptive fragmentation** - reuse partial grid segments
-
-## Project Structure
-
-```plaintext
-OrthoRoute/
-├── src/
-│   ├── core/
-│   │   ├── grid_generator.py       # Grid infrastructure
-│   │   ├── netlist_parser.py       # KiCad integration
-│   │   └── route_optimizer.py      # Quality metrics
-│   ├── cuda/
-│   │   ├── routing_kernels.cu      # Parallel A* pathfinding
-│   │   ├── conflict_resolution.cu  # Grid conflict handling
-│   │   └── memory_manager.cu       # GPU memory optimization
-│   ├── visualization/
-│   │   ├── realtime_display.py     # OpenGL rendering
-│   │   ├── route_animator.py       # Routing visualization
-│   │   └── performance_monitor.py  # Statistics dashboard
-│   └── kicad_plugin/
-│       ├── orthoroute_plugin.py    # KiCad Action Plugin
-│       └── ui_controls.py          # GUI integration
-├── tests/
-│   ├── unit_tests/
-│   ├── benchmark_boards/           # Test PCBs
-│   └── performance_tests/
-├── docs/
-│   ├── algorithm_design.md
-│   ├── cuda_optimization.md
-│   └── user_guide.md
-└── examples/
-    ├── simple_board/
-    ├── high_density_board/
-    └── hypercube_backplane/        # Original use case
-```
-
-## Development Phases
-
-### Phase 1: Proof of Concept (Week 1)
-**Goal:** Route simple boards with basic parallel algorithm
-
-- **Core grid generation** and CUDA data structures
-- **Basic A* pathfinding** kernel (single layer)
-- **KiCad netlist import** and board geometry extraction  
-- **Simple visualization** with matplotlib
-- **Unit tests** for small boards (10-100 nets)
-
-**Deliverable:** Working prototype that can route simple boards faster than traditional tools
-
-### Phase 2: Scaling & Optimization (Week 2)  
-**Goal:** Handle complex boards with thousands of nets
-
-- **Multi-layer routing** with via placement
-- **Conflict resolution** algorithms for competing nets
-- **Memory optimization** for large datasets
-- **Real-time OpenGL visualization** 
-- **Performance benchmarking** vs existing tools
-
-**Deliverable:** Production-ready autorouter for complex boards
-
-### Phase 3: Integration & Polish (Week 3)
-**Goal:** Professional KiCad integration and documentation
-
-- **KiCad Action Plugin** with GUI controls
-- **Route quality optimization** (wire length, via count)
-- **Comprehensive documentation** and examples
-- **Performance tuning** and edge case handling
-- **Community release** preparation
-
-**Deliverable:** Public release of OrthoRoute as open source project
-
-## Target Performance
-
-### Benchmark Comparisons
-| Metric | Traditional Tools | OrthoRoute Target |
-|--------|------------------|-------------------|
-| 1K nets | 30 minutes | 30 seconds |
-| 8K nets | Hours/impossible | 5 minutes |
-| Real-time viz | No | Yes |
-| Parallel routing | No | Full parallel |
-
-### Hardware Requirements
-- **Minimum:** RTX 3060 (3,584 CUDA cores)
-- **Recommended:** RTX 4080+ (9,728+ CUDA cores)  
-- **Optimal:** RTX 5090 (16,384+ CUDA cores)
-- **RAM:** 16GB+ for large boards
-- **KiCad:** Version 7.0+
-
-## Use Cases
-
-### Primary Applications
-- **High-density backplanes** (servers, networking equipment)
-- **GPU/CPU boards** with thousands of nets
-- **Multi-board systems** with complex interconnects
-- **Rapid prototyping** where routing speed matters
-
-### Research Applications  
-- **Algorithm research** - novel routing strategies
-- **Academic projects** - teaching parallel algorithms
-- **Industry R&D** - next-generation EDA tools
-
-## Community Impact
-
-### Open Source Strategy
-- **MIT License** - maximum compatibility and adoption
-- **Modular design** - easy to extend and modify
-- **Comprehensive docs** - lower barrier to contribution
-- **Example projects** - demonstrate capabilities
-
-### Industry Disruption Potential
-- **Proof of concept** for GPU-accelerated EDA tools
-- **Performance baseline** for commercial tool comparison  
-- **Research platform** for next-generation routing algorithms
-- **Democratization** of advanced PCB routing capabilities
-
-## Long-term Vision
-
-### OrthoRoute 2.0 Features
-- **Machine learning** optimization of routing strategies
-- **Multi-GPU** support for massive boards
-- **Cloud routing** services for distributed teams
-- **Advanced constraints** (impedance control, crosstalk)
-
-### Ecosystem Development
-- **Plugin marketplace** for specialized routing algorithms
-- **Integration APIs** for other EDA tools (Altium, Eagle)
-- **Educational materials** for universities and training
-- **Commercial licensing** for enterprise features
-
-## Getting Started
-
-### Quick Start
-```bash
-git clone https://github.com/username/OrthoRoute
-cd OrthoRoute
-pip install -r requirements.txt
-python -m orthoroute examples/simple_board/test.kicad_pcb
 
 [back](../)
