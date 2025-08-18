@@ -22,6 +22,8 @@ image: "/images/ConnM/OrthorouteCard.png"
   </tr>
 </table>
 
+#### You can download this project from [the Github repository](https://github.com/bbenchoff/OrthoRoute)
+
 This is a project born out of necessity. [Another thing I was working on](https://bbenchoff.github.io/pages/ThinkinMachine.html) needed an _enormous_ backplane. A PCB with sixteen connectors, with 1100 pins on each connector. That's 17,600 individual pads. Here, just take a look:
 
 ![a view of the backplane, before routing the PCB](/images/ConnM/unroutedbackplane.png)
