@@ -24,25 +24,25 @@ image: "/images/ConnM/OrthorouteCard.png"
 
 #### You can download this project from [the Github repository](https://github.com/bbenchoff/OrthoRoute)
 
-This is a project born out of necessity. [Another thing I was working on](https://bbenchoff.github.io/pages/ThinkinMachine.html) needed an _enormous_ backplane. A PCB with sixteen connectors, with 1100 pins on each connector. That's 17,600 individual pads. Here, just take a look:
+This is a project born out of necessity. Another thing I was working on needed an _enormous_ backplane. A PCB with sixteen connectors, with 1,100 pins on each connector. That's 17,600 individual pads, and 8,192 airwires that need to be routed  Here, just take a look:
 
 ![a view of the backplane, before routing the PCB](/images/ConnM/unroutedbackplane.png)
 
-Look at that shit. Hand routing this would take a month. I tried [FreeRouting](https://freerouting.org/), the KiCad autorouter plugin, for a laugh and it routed 4% of the traces in seven hours. If that trend held, which it wouldn't, that would be a month of autorouting. I had a few options, all of which would take weeks.
+Look at that shit. Hand routing this would take months. I tried [FreeRouting](https://freerouting.org/), the KiCad autorouter plugin, for a laugh and it routed 4% of the traces in seven hours. If that trend held, which it wouldn't, that would be a month of autorouting, and it probably wouldn't work in the end. I had a few options, all of which would take far too long
 
-- I could route the board by hand. This would be painful and take weeks, but I would get a good-looking board at the end.
+- I could route the board by hand. This would be painful and take months, but I would get a good-looking board at the end.
 - I could yolo everything and just let the autorouter handle it. It would take weeks, because the first traces are easy, the last traces take the longest. This would result in an ugly board.
-- I could spend a few weeks building my own autorouter plugin for KiCad. I have a fairly powerful GPU and routing a PCB is a very parallel problem. I could also implement my own routing algorithms to make the finished product look good.
+- I could spend a month or two building my own autorouter plugin for KiCad. I have a fairly powerful GPU and routing a PCB is a very parallel problem. I could also implement my own routing algorithms to make the finished product look good.
 
 When confronted with a task that will take months, always choose the more interesting path.
 
 ## Project Overview
 
-**OrthoRoute** is a GPU-accelerated PCB autorouter, designed for parallel routing of massive circuit boards. Autorouting is a parallel problem, and nearly everyone doing serious work has a few spare CUDA cores sitting around. Unlike most autorouters such as [Altium Situs](https://www.altium.com/documentation/altium-designer/automated-board-layout-situs-topological-autorouter), [FreeRouting](https://freerouting.org/), and a dozen EE-focused B2B SaaS startups, OrthoRoute uses GPUs for parallelizing the task of connecting pads with traces.
+**OrthoRoute** is a GPU-accelerated PCB autorouter, designed for parallel routing of massive circuit boards. Unlike most autorouters such as [Altium Situs](https://www.altium.com/documentation/altium-designer/automated-board-layout-situs-topological-autorouter), [FreeRouting](https://freerouting.org/), and a dozen EE-focused B2B SaaS startups, OrthoRoute uses GPUs for parallelizing the task of connecting pads with traces.
 
-I don't know why no one has thought to put wavefront expansion in a GPU before. I seriously feel like I'm taking crazy pills. Autorouting algorithms are _ideal_ for parallel operation.
+Autorouting is a mostly parallel problem, and nearly everyone doing serious work has a few spare CUDA cores sitting around. I don't know why no one has thought to put wavefront expansion in a GPU before. I seriously feel like I'm taking crazy pills. Autorouting algorithms are _ideal_ for parallel operation.
 
-OrthoRoute is designed as a KiCad plugin, and heavily leverages the new-ish [KiCad IPC API](https://dev-docs.kicad.org/en/apis-and-binding/ipc-api/) and [kicad-python](https://docs.kicad.org/kicad-python-main/index.html) bindings for the IPC API.
+OrthoRoute is designed as a KiCad plugin, and heavily leverages the new [KiCad IPC API](https://dev-docs.kicad.org/en/apis-and-binding/ipc-api/) and [kicad-python](https://docs.kicad.org/kicad-python-main/index.html) bindings for the IPC API.
 
 **Key Features:**
 - **Real-time Visualization**: Interactive 2D board view with zoom, pan, and layer controls
@@ -101,7 +101,7 @@ _This_ is why it's called OrthoRoute. It's just routing through a grid of traces
 
 The following are the implementation details of OrthoRoute. How I built it, and why I made the decisions I did. If you want to never write a plugin for KiCad, skip this section.
 
-Pre-KiCad 9.0 had a SWIG-based plugin system. Compared to the new IPC plugin system released with KiCad 9, there are serious deficits. The SWIG-based system was locked to the Python environment bundled with KiCad. Process isolation, threading, and performance constraints abound. Doing GPU programming with CuPy, while not impossible, is difficult.
+Pre-KiCad 9.0 had a SWIG-based plugin system. There are serious deficits with this SWIG-based system compared to the new IPC plugin system released with KiCad 9. The SWIG-based system was locked to the Python environment bundled with KiCad. Process isolation, threading, and performance constraints abound. Doing GPU programming with CuPy, while not impossible, is difficult.
 
 The new IPC plugin system for KiCad is a godsend. The basic structure of the OrthoRoute plugin looks something like this:
 
@@ -123,9 +123,154 @@ That's exactly what I did. First I learned how to extract the copper pour from a
   <img src="/images/OrthorouteCopper.png" alt="Development of the virtual copper pour extraction showing real thermal relief vs virtual algorithm vs difference map" />
 </figure>
 
-Pathfinding wasn't the issue. That's easy because there are published algorithms. What really gave me a lot of trouble is figuring out where the pathfinding was valid. I'm sure someone else would have spent months going through IPC specifications to figure out where an autorouter _should_ route traces. But I leveraged the simple fact that this data is already generated by KiCad -- the copper pour itself -- and just replicated it.
+Pathfinding wasn't the issue. There are standard algorithms for that. What really gave me a lot of trouble is figuring out where the pathfinding was valid. I'm sure someone else would have spent months going through IPC specifications to figure out where an autorouter _should_ route traces. But I leveraged the simple fact that this data is already generated by KiCad -- the copper pour itself -- and just replicated it.
 
 If there are any KiCad devs out there reading this, _this_ is what you should implement in the next iteration kicad-python. A `get_free_routing_space(int copper_layer)` function. Something that returns the polygon of a copper pour on boards that don't have a copper pour, for each layer of copper.
+
+### The Non-Orthogonal Router
+
+Until now this entire project was an exercise. I had to get my head around the KiCad IPC API.
+
+The entire point of this project wasn't to build a general-purpose autorouter. I needed something that would route a truly insane backplane with 16 connectors, each with 1100 pads, and 8195 unrouted nets. But to even start that project, I chose to build a general purpose autorouter. Nothing fancy; just something that would route a few microcontroller breakout boards and a mechanical keyboard PCB.
+
+That's exactly what I did. I built an autorouter that only uses wavefront expansion. And I quickly hit the fundamental limit of how useful this autorouter could be:
+
+![A poorly routed RP2040 board](/images/ConnM/OrthorouteScreenshot2.png)
+
+Above is a screenshot of the OrthoRoute plugin, attempting to route a board with an RP2040 microcontroller. This is the standard RP2040 breakout taken off of Raspberry Pi's FTP server. I deleted the traces that put the GPIOs onto pin headers and pressed 'Route Now'. The results were terrible.
+
+This is routing with DRC awareness if you look really close. The routed traces aren't interfering with each other, but not many traces are routed. Airwires are still there, and the routing isn't quite as good as it could be.
+
+For a single pass, this is fine! But autorouters don't do a single pass. There are other techniques not implemented in this plugin like:
+
+- Push-and-Shove routing. This technique moves existing traces to make room for new ones. It's found in all real autorouters, but not implemented here
+- Rip-up and retry. Right now we have single-pass routing. If a route fails, it's done. Rip-up is the ability to remove 'blocking' or conflicting routes and try alternate paths.
+- A global routing plan. When a person looks at a circuit board full of airwires, they might see 'busses' -- a bunch of traces that all go from one component to another. It would be really smart to route these together, and route these first. I'm not doing that with my OrthoRoute. I'm just grabbing the first net from a list of unrouted nets and routing that.
+
+The problems faced with my wavefront expansion algorithm require solutions that are also needed in my orthogonal grid routing algorithm. So I pivoted to that. I had the bare bones of an autorouter plugin, but I wanted to get this _done_. This project was already taking a few weeks, time to get something done.
+
+### Development of the Manhattan Routing Engine
+
+A non-orthogonal autorouter is a good starting point, but it's ex
+
+The 'Manhattan Routing Engine' is based on a simple idea. Instead of drawing traces from pad to pad, instead you first create a multilayer grid. The top copper layer remains free of traces, but the In1.Cu, In2.Cu, In3.Cu... B.Cu layers have an array of parallel traces on them. In1.Cu has horizontal traces on them, In2.Cu has vertical traces, and continuing until you have all but one of the layers on the PCB filled with traces. This is the _fabric_, because I'm effectively using FPGA routing techniques on a PCB.
+
+<<<Image of the traces>>>
+
+To connect the pads on the PCB together, first bring a small trace off a pad. Use a via to 'punch down' into the fabric. From there, you can route through this grid of traces. To go left, take the trace you punched down into. To go down, punch a via up or down into a vertical layer. Finally, come back up to the F.Cu layer and make a short trace over to the pad.
+
+This technique is best yet still terribly googled as a **Route Routing Grid**. It's a simple Manhattan grid of traces that's extended into multiple dimensions with vias.
+
+Since I'm using a simple grid, I could route traces is with the A* pathfinding algorithm. But this board is too dense for that. I either need to spend a lot of cycles on ripup and restore, or find a better algorithm The path finding algorithm I'm using for this is called the equally ungooglable [PathFinder](https://ieeexplore.ieee.org/document/1377269), a routing algorithm developed for FPGAs in 1995. The core idea of PathFinder is to iteratively negotiate paths through this grid until congestion is resolved. It first puts all traces into the grid, letting chaos ensue. Then congestion costs are applied. This applies costs to the edges of the graph for the next iteration. After enough iterations, the traces spread out and you get a stable routing solution.
+
+<<< Image of PathFinder routed board>>>
+
+It's also _stupidly parallel_
+
+IT'S A 3D LATTICE NOT A BUNCH OF GRIDS JESUS FUCK
+
+
+
+<code>
+I started this project thinking I would just take PathFinder, the old FPGA routing algorithm, and brute force it onto a GPU. PathFinder works like this: you run shortest-path expansion (Dijkstra or Δ-stepping) across every net, you adjust costs, you do it again, and eventually congestion sorts itself out. It’s iterative, it’s predictable, and it’s been around for thirty years. In theory, it should map well to CUDA. In practice, it was a disaster. My naïve GPU implementation took a full minute per net. That wasn’t a batching problem or a memory problem or a penalty-calculation problem — it was the kernel itself. The GPU was choking on irregular buckets, sparse memory access, and watchdog stalls. That’s the first real insight: the bottleneck wasn’t where you’d expect, it was the shortest-path kernel itself. That’s not an “optimize the loop” moment, that’s an algorithmic diagnosis.
+
+The second breakthrough was realizing I didn’t need to run Δ-stepping over the entire ~600,000-node, ~2 million-edge lattice for every single net. That’s absurd. Each net only cares about a narrow corridor of the board. So I built ROI-restricted graphs: dynamically carving out small regions of interest around source and sink, a tight bounding box with some margin. That shrinks the search space by 94–99% — from hundreds of thousands of nodes down to a few hundred. Suddenly, the GPU kernel is feasible. This wasn’t a micro-optimization, it was a re-formulation of the problem. Instead of treating routing as “global graph SSSP,” I treated it as “localized subgraph exploration.” That’s exactly the kind of domain restriction you see in HPC papers: change the problem to fit the machine.
+
+The third step was replacing Δ-stepping itself. Δ-stepping is fine on CPU, where you can pointer-chase through buckets all day. On a GPU, pointer-chasing kills you. Warps need dense, predictable memory access. So I replaced it with a Near–Far worklist. It looks simple, but the effect is huge: instead of scatter-shot buckets, you compress frontier nodes into dense arrays. Now when a warp touches memory, it touches consecutive addresses. That means coalesced loads, fewer stalls, and a kernel that actually behaves like a GPU kernel. This is algorithm–hardware co-design: don’t just port the algorithm, reshape its data structures for the memory hierarchy you’re actually running on.
+
+The next step — the one I’m sprinting toward right now — is parallelizing ROIs themselves. Today I can run one ROI per kernel launch. But GPUs want saturation, not dribs and drabs. The obvious play is to pack multiple ROIs into one launch: blockIdx.x = ROI_ID, each block solves a different ROI. That means building buffer-packing logic (CSR arrays with offsets), per-block queue management, and proper offset arithmetic in the kernel. It’s the same pattern you see in high-performance graph frameworks: don’t run one small problem at a time, run a hundred of them at once. That’s when you start chewing through nets at under a second each instead of ten or twenty.
+
+And this all isn’t static. The plan is dynamic adaptation. The system will query device properties, budget memory per ROI, pick K automatically based on SM count and VRAM, and sort ROIs by size so the big ones don’t starve the machine. It’ll self-tune: track milliseconds per net, occupancy, memory use, then push K up or down based on how the device responds. That’s the kind of feedback-driven optimization you only see in cutting-edge GPU compilers and frameworks like Gunrock or Groute.
+
+So the arc looks like this: I started with PathFinder, then I found the kernel bottleneck, then I shrank the graph with ROIs, then I replaced Δ-stepping with Near–Far, then I planned multi-ROI kernels, and now I’m building an adaptive system that configures itself to the hardware. That’s not “just write an autorouter.” That’s re-architecting an algorithm at every level — theory, data structure, kernel, and runtime.
+</code>
+
+
+
+### This is _extremely_ memory intensive
+
+The gold standard for the orthogonal autorouter is the board that forced me to make this: a 200x160mm board with 17,000 pads, and 8192 different nets to route. If it routes _this_, it'll probably route anything. But this needed a lot of compute and a lot of memory.
+
+The 
+
+🧮 Memory Calculation Algorithm:
+
+  def calculate_total_memory(board_width_mm, board_height_mm, num_nets, num_pads,
+                            grid_pitch_mm=0.2, num_layers=12):
+      """
+      Calculate total CPU and GPU memory requirements for OrthoRoute
+      """
+
+      # 1. GRID DIMENSIONS
+      grid_cols = int(board_width_mm / grid_pitch_mm)
+      grid_rows = int(board_height_mm / grid_pitch_mm)
+      grid_cells = grid_cols * grid_rows * num_layers
+
+      # 2. RRG NODES
+      base_nodes = grid_cells * 3  # rail + bus + switch nodes per cell
+      tap_nodes = num_pads * 8     # ~8 tap candidates per pad (avg from your data)
+      total_nodes = base_nodes + tap_nodes
+
+      # 3. RRG EDGES
+      # From your data: edge/node ratio ≈ 1.42 (5.8M edges / 4.1M nodes)
+      total_edges = int(total_nodes * 1.42)
+
+      # 4. ADJACENCY MATRIX
+      adjacency_connections = total_edges * 2  # directed graph, 2x edges
+
+      # 5. CPU MEMORY (Python objects)
+      cpu_node_memory = total_nodes * 200      # ~200 bytes per RRGNode object
+      cpu_edge_memory = total_edges * 300      # ~300 bytes per RRGEdge object
+      cpu_total_mb = (cpu_node_memory + cpu_edge_memory) / (1024**2)
+
+      # 6. GPU MEMORY (numpy/cupy arrays)
+      # Node arrays: positions(2×f32) + layers(i32) + types(i32) + capacity(i32) + cost(f32)
+      gpu_node_memory = total_nodes * (2*4 + 4 + 4 + 4 + 4)  # 22 bytes per node
+
+      # Edge arrays: lengths(f32) + types(i32) + capacity(i32) + cost(f32)
+      gpu_edge_memory = total_edges * (4 + 4 + 4 + 4)         # 16 bytes per edge
+
+      # PathFinder state: 8 arrays for nodes + 8 arrays for edges
+      pathfinder_memory = (total_nodes + total_edges) * 4 * 8 # 32 bytes per node+edge
+
+      # Adjacency matrix (sparse): data + indices + indptr
+      adjacency_memory = adjacency_connections * 4 * 3        # 12 bytes per connection
+
+      gpu_total_mb = (gpu_node_memory + gpu_edge_memory + pathfinder_memory + adjacency_memory) / (1024**2)
+
+      # 7. PADTAP MEMORY
+      padtap_memory_mb = (num_pads * 8 * 6 * 4) / (1024**2)  # 8 taps × 6 fields × 4 bytes
+
+      return {
+          'grid_dimensions': f"{grid_cols}×{grid_rows}×{num_layers}",
+          'grid_cells': grid_cells,
+          'total_nodes': total_nodes,
+          'total_edges': total_edges,
+          'adjacency_connections': adjacency_connections,
+          'cpu_memory_mb': cpu_total_mb,
+          'gpu_memory_mb': gpu_total_mb,
+          'padtap_memory_mb': padtap_memory_mb,
+          'total_memory_mb': cpu_total_mb + gpu_total_mb + padtap_memory_mb
+      }
+
+  📈 Memory Requirements for Your Board:
+
+  For 10 nets (your current test):
+  result = calculate_total_memory(125.2, 115.9, 10, 16384, 0.2, 12)
+  # Predicted: 592MB GPU + 2427MB CPU ≈ 3GB total
+  # Actual: 592.3MB GPU + 2427.3MB CPU ≈ 3GB total ✅ MATCHES!
+
+  For full 8,192 nets:
+  result = calculate_total_memory(161.0, 204.9, 8192, 16384, 0.2, 12)
+
+  Results:
+  - Grid: 806×1,025×12 = 9.9M cells
+  - Nodes: ~30M nodes (base) + 131K taps = ~30.1M
+  - Edges: ~42.7M edges
+  - CPU Memory: ~21.4GB (Python objects)
+  - GPU Memory: ~6.8GB (arrays)
+  - Total Memory: ~28.2GB
+
 
 
 [back](../)
