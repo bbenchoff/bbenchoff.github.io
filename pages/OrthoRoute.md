@@ -22,16 +22,16 @@ image: "/images/ConnM/OrthorouteCard.png"
   </tr>
 </table>
 
-#### You can download this project from [the Github repository](https://github.com/bbenchoff/OrthoRoute)
+#### This document is a compliment to the README in [the Github repository](https://github.com/bbenchoff/OrthoRoute). The README provides information about performance, capabilities, and tests. This document reflects more on the why and how. The README describes what it does, this document describes how and why it does it.
 
 This is a project born out of necessity. Another thing I was working on needed an _enormous_ backplane. A PCB with sixteen connectors, with 1,100 pins on each connector. That's 17,600 individual pads, and 8,192 airwires that need to be routed  Here, just take a look:
 
 ![a view of the backplane, before routing the PCB](/images/ConnM/unroutedbackplane.png)
 
-Look at that shit. Hand routing this would take months. I tried [FreeRouting](https://freerouting.org/), the KiCad autorouter plugin, for a laugh and it routed 4% of the traces in seven hours. If that trend held, which it wouldn't, that would be a month of autorouting, and it probably wouldn't work in the end. I had a few options, all of which would take far too long
+Look at that shit. Hand routing this would take months. For a laugh, I tried [FreeRouting](https://freerouting.org/), the KiCad autorouter plugin, and it routed 4% of the traces in seven hours. If that trend held, which it wouldn't, that would be a month of autorouting. And it probably wouldn't work in the end. I had a few options, all of which would take far too long
 
 - I could route the board by hand. This would be painful and take months, but I would get a good-looking board at the end.
-- I could yolo everything and just let the autorouter handle it. It would take weeks, because the first traces are easy, the last traces take the longest. This would result in an ugly board.
+- I could YOLO everything and just let the FreeRouting autorouter handle it. It would take weeks, because the first traces are easy, the last traces take the longest. This would result in an ugly board.
 - I could spend a month or two building my own autorouter plugin for KiCad. I have a fairly powerful GPU and routing a PCB is a very parallel problem. I could also implement my own routing algorithms to make the finished product look good.
 
 When confronted with a task that will take months, always choose the more interesting path.
@@ -40,8 +40,6 @@ When confronted with a task that will take months, always choose the more intere
 
 **OrthoRoute** is a GPU-accelerated PCB autorouter, designed for parallel routing of massive circuit boards. Unlike most autorouters such as [Altium Situs](https://www.altium.com/documentation/altium-designer/automated-board-layout-situs-topological-autorouter), [FreeRouting](https://freerouting.org/), and a dozen EE-focused B2B SaaS startups, OrthoRoute uses GPUs for parallelizing the task of connecting pads with traces.
 
-Autorouting is a mostly parallel problem, and nearly everyone doing serious work has a few spare CUDA cores sitting around. I don't know why no one has thought to put wavefront expansion in a GPU before. I seriously feel like I'm taking crazy pills. Autorouting algorithms are _ideal_ for parallel operation.
-
 OrthoRoute is designed as a KiCad plugin, and heavily leverages the new [KiCad IPC API](https://dev-docs.kicad.org/en/apis-and-binding/ipc-api/) and [kicad-python](https://docs.kicad.org/kicad-python-main/index.html) bindings for the IPC API.
 
 **Key Features:**
@@ -49,13 +47,19 @@ OrthoRoute is designed as a KiCad plugin, and heavily leverages the new [KiCad I
 - **Professional Interface**: Clean PyQt6-based interface with KiCad color themes
 - **Multi-layer Support**: Handle complex multi-layer PCB designs with front/back copper visualization
 - **GPU-Accelerated Routing**: Routing algorithms in CUDA
+- **Multi-algorithm routing**: Some boards are better suited to different algorithms
 - **Manhattan Routing**: Where OrthoRoute gets its name. It's a grid of traces, vertical on one layer, horizontal on the other
+- **Lee's Algorithm**: The most 'traditional' autorouting algorithm. 
 - **It's a KiCad Plugin**: Just download and install with the Plugin Manager
 
 
 ## Screenshots
 
 ![Screenshot 1, showing an Arduino clone](/images/ConnM/OrthorouteScreenshot1.png)
+
+## More on the GitHub
+
+This document is a compliment to the README in [the Github repository](https://github.com/bbenchoff/OrthoRoute). The README provides information about 
 
 
 ## Performance
@@ -95,7 +99,6 @@ PUT A PICTURE OF ORTHOGINAL ROUTING HERE
 Instead of the "route anything anywhere" problem of general autorouting, I have layers with dedicated directions: horizontal traces on one layer, vertical on the next, horizontal again, and so on. When a net needs to change direction, it drops a via and moves to the appropriate layer. No complex pathfinding required, just geometric moves on a regular grid.
 
 _This_ is why it's called OrthoRoute. It's just routing through a grid of traces. There's no DRC needed, because drawing the grid of traces is defined by DRC.
-
 
 ## Implementation
 
@@ -151,17 +154,21 @@ The problems faced with my wavefront expansion algorithm require solutions that 
 
 ### Development of the Manhattan Routing Engine
 
-A non-orthogonal autorouter is a good starting point, but it's ex
+A non-orthogonal autorouter is a good starting point, but I simply used that as an exercise to wrap my head around the KiCad IPC API. The real build is a 'Manhattan Orthoginal Routing Engine', the tool needed to route my mess of a backplane. 
 
-The 'Manhattan Routing Engine' is based on a simple idea. Instead of drawing traces from pad to pad, instead you first create a multilayer grid. The top copper layer remains free of traces, but the In1.Cu, In2.Cu, In3.Cu... B.Cu layers have an array of parallel traces on them. In1.Cu has horizontal traces on them, In2.Cu has vertical traces, and continuing until you have all but one of the layers on the PCB filled with traces. This is the _fabric_, because I'm effectively using FPGA routing techniques on a PCB.
+The 'Manhattan Routing Engine' is based on a simple idea. Instead of drawing traces from pad to pad, instead you first create a multilayer grid. The top copper layer remains free of traces, but the In1.Cu, In2.Cu, In3.Cu... B.Cu layers have an array of parallel traces on them. In1.Cu has horizontal traces on them, In2.Cu has vertical traces, and continuing until you have all but one of the layers on the PCB filled with traces. This is the _fabric_, a useful term because I'm effectively using FPGA routing techniques on a PCB.
 
-<<<Image of the traces>>>
+Next, allow blind and buried vias at the intersection of these grid points. The F.Cu layer can connect to In1.Cu, In2.Cu... all the way to B.Cu. These are blind and buried vias, so a via from In3.Cu to In4.Cu means traces on F.Cu...In2.Cu and In5.Cu...B.Cu can occupy the same node in this graph without interfering. We've now turned the fabric into a 3-dimensional lattice.
 
 To connect the pads on the PCB together, first bring a small trace off a pad. Use a via to 'punch down' into the fabric. From there, you can route through this grid of traces. To go left, take the trace you punched down into. To go down, punch a via up or down into a vertical layer. Finally, come back up to the F.Cu layer and make a short trace over to the pad.
 
-This technique is best yet still terribly googled as a **Route Routing Grid**. It's a simple Manhattan grid of traces that's extended into multiple dimensions with vias.
+<<<Image of the traces>>>
 
-Since I'm using a simple grid, I could route traces is with the A* pathfinding algorithm. But this board is too dense for that. I either need to spend a lot of cycles on ripup and restore, or find a better algorithm The path finding algorithm I'm using for this is called the equally ungooglable [PathFinder](https://ieeexplore.ieee.org/document/1377269), a routing algorithm developed for FPGAs in 1995. The core idea of PathFinder is to iteratively negotiate paths through this grid until congestion is resolved. It first puts all traces into the grid, letting chaos ensue. Then congestion costs are applied. This applies costs to the edges of the graph for the next iteration. After enough iterations, the traces spread out and you get a stable routing solution.
+### Actually Routing Nets
+
+ I either need to spend a lot of cycles on ripup and restore, or find a better algorithm The path finding algorithm I'm using for this is called the equally ungooglable [PathFinder](https://ieeexplore.ieee.org/document/1377269), a routing algorithm developed for FPGAs in 1995. The core idea of PathFinder is to iteratively negotiate paths through this grid until congestion is resolved. It first puts all traces into the grid, letting chaos ensue. Then congestion costs are applied. This applies costs to the edges of the graph for the next iteration. After enough iterations, the traces spread out and you get a stable routing solution.
+
+
 
 <<< Image of PathFinder routed board>>>
 
