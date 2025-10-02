@@ -22,11 +22,55 @@ image: "/images/ConnM/OrthorouteCard.png"
   </tr>
 </table>
 
+<style>
+.side-image {
+  display: flex;
+  flex-direction: column-reverse;
+  align-items: flex-start;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.side-text {
+  font-size: 1rem;
+  line-height: 1.6;
+}
+
+.side-image-container {
+  width: 100%;
+}
+
+.side-image-container img {
+  width: 100%;
+  height: auto;
+  border-radius: 4px;
+  box-shadow: 0 0 8px rgba(0,0,0,0.2);
+}
+
+@media (min-width: 768px) {
+  .side-image {
+    flex-direction: row;
+  }
+
+  .side-text {
+    flex: 2 1 400px;
+    min-width: 250px;
+  }
+
+  .side-image-container {
+    flex: 1 1 400px;
+    max-width: 400px;
+  }
+}
+</style>
+
 #### This document is a compliment to the README in [the Github repository](https://github.com/bbenchoff/OrthoRoute). The README provides information about performance, capabilities, and tests. This document reflects more on the why and how.
 
 ## Project Overview
 
 **OrthoRoute** is a GPU-accelerated PCB autorouter, designed for parallel routing of massive circuit boards. Unlike most autorouters such as [Altium Situs](https://www.altium.com/documentation/altium-designer/automated-board-layout-situs-topological-autorouter), [FreeRouting](https://freerouting.org/), and a dozen EE-focused B2B SaaS startups, OrthoRoute uses GPUs for parallelizing the task of connecting pads with traces.
+
+OrthoRoute uses a unique routing technique borrowed from FPGA fabric routers. Instead of drawing individual traces, it first creates a 3-dimensional lattice of traces on multiple layers. Algorithms borrowed from the FPGA and VLSI world are used to connect individual pads. This is unlike any other autorouter you've ever seen.
 
 OrthoRoute is designed as a KiCad plugin, and heavily leverages the new [KiCad IPC API](https://dev-docs.kicad.org/en/apis-and-binding/ipc-api/) and [kicad-python](https://docs.kicad.org/kicad-python-main/index.html) bindings for the IPC API.
 
@@ -36,7 +80,7 @@ OrthoRoute is designed as a KiCad plugin, and heavily leverages the new [KiCad I
 - **Multi-layer Support**: Handle complex multi-layer PCB designs with front/back copper visualization
 - **GPU-Accelerated Routing**: Routing algorithms in CUDA
 - **Multi-algorithm routing**: Some boards are better suited to different algorithms
-- **Manhattan Routing**: Where OrthoRoute gets its name. It's a grid of traces, vertical on one layer, horizontal on the other
+- **Manhattan Routing**: A grid of traces, vertical on one layer, horizontal on the other
 - **Lee's Algorithm**: The most 'traditional' autorouting algorithm. 
 - **It's a KiCad Plugin**: Just download and install with the Plugin Manager
 
@@ -59,9 +103,25 @@ When confronted with a task that will take months, always choose the more intere
 ![Screenshot 1, showing an Arduino clone](/images/ConnM/OrthorouteScreenshot1.png)
 
 
+## The Why and How of OrthoRoute
+
+With the explanation of _what_ OrthoRoute is out of the way, I'd like to dive into the How and Why of what this is.
+
 ### Why A GPU-Accelerated Autorouter Is Dumb
 
-GPUs are really good at parallel problems. And you would think autorouting is a very parallel problem. It's just finding a path between two points on a graph. There are algorithms that are embarrassingly parallel that just do this. This is true, but there's a lot you're not considering. 
+<div class="side-image">
+  <div class="side-text">
+    <p>GPUs are really good at parallel problems. And you would think autorouting is a very parallel problem. It's just finding a path between two points on a graph. There are algorithms that are embarrassingly parallel that just do this. This is true, but there's a lot you're not considering.</p>
+    <p>Instead of mapping an entire (blank) PCB into a GPU's memory and drawing traces around obstacles, an autorouter is about finding a path _under constraints that are always changing_.</p>
+    <p>Instead of mapping an entire (blank) PCB into a GPU's memory and drawing traces around obstacles, an autorouter is about finding a path _under constraints that are always changing_.</p>
+  </div>
+  <div class="side-image-container">
+    <figure>
+      <img src="/images/WavefrontExpansion.gif" alt="GIF of Wavefront Expansion">
+      <figcaption>Wavefront expansion. The breadth-first search that finds the shortest path to a goal.</figcaption>
+    </figure>
+  </div>
+</div>
 
 Instead of mapping an entire (blank) PCB into a GPU's memory and drawing traces around obstacles, an autorouter is about finding a path _under constraints that are always changing_.
 
@@ -72,8 +132,6 @@ It's _like_ the traveling salesman problem, but all the salesmen can't take the 
 There's a reason this is the hardest problem in computer science. This is why people have been working on autorouters for sixty years, and they all suck.
 
 GPUs are mostly terrible for autorouting. Should net (A→B) be higher priority than (C→D)? GPUs hate branching logic. You can't route (C→D) until you've routed (A→B), so that embarrassingly parallel problem is actually pretty small. Now deal with Design Rules. If you don't want a trace to intersect another trace of a different net, you apply the design rules. But this changes when you go to the next net! You're constantly redefining whatever area you can route in because of Design Rules, which kills any GPU efficiency.
-
-![Animated GIF of Wavefront Expansion](/images/WavefrontExpansion.gif)
 
 But all is not lost. There's exactly one part of autorouting that's actually parallel, and a useful case to deploy a GPU. Lee's Wavefront expansion. You route your traces on a fine-pitch grid, and propagate a 'wave' through the grid. Each cell in the wave can be processed independently. Shortest path wins, put your trace there. That's what I'm using the GPU for, and the CPU for everything else. Yeah, it's faster, but it's not _great_. Don't trust the autorouter, but at least this one is fast.
 
