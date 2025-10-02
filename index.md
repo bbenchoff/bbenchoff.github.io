@@ -44,6 +44,7 @@ I design, build, and reverse-engineer **hardware, embedded systems, and unconven
 🔹 **[Car CAN Bus Conversion](https://bbenchoff.github.io/pages/CANconversion.html)** -- Replacing **all relays & analog systems with a CAN-based network**<br>
 
 ### 💻 **Embedded & Open Hardware**
+🔹 **[Multi-Stop Bus Tracker](https://bbenchoff.github.io/pages/BusTideDisplay.html)** -- When is the next bus coming **to many different bus stops**<br>
 🔹 **[The $15 Linux Machine](https://bbenchoff.github.io/pages/LinuxDevice.html)** -- A fully functional **Linux handheld** for under $15<br>
 🔹 **[Isolated Thermocouple Reader](https://bbenchoff.github.io/pages/IsoTherm.html)** -- A **low-cost alternative** to a $2,000 industrial module<br>
 

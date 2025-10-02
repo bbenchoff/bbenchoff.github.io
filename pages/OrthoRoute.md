@@ -24,18 +24,6 @@ image: "/images/ConnM/OrthorouteCard.png"
 
 #### This document is a compliment to the README in [the Github repository](https://github.com/bbenchoff/OrthoRoute). The README provides information about performance, capabilities, and tests. This document reflects more on the why and how. The README describes what it does, this document describes how and why it does it.
 
-This is a project born out of necessity. Another thing I was working on needed an _enormous_ backplane. A PCB with sixteen connectors, with 1,100 pins on each connector. That's 17,600 individual pads, and 8,192 airwires that need to be routed  Here, just take a look:
-
-![a view of the backplane, before routing the PCB](/images/ConnM/unroutedbackplane.png)
-
-Look at that shit. Hand routing this would take months. For a laugh, I tried [FreeRouting](https://freerouting.org/), the KiCad autorouter plugin, and it routed 4% of the traces in seven hours. If that trend held, which it wouldn't, that would be a month of autorouting. And it probably wouldn't work in the end. I had a few options, all of which would take far too long
-
-- I could route the board by hand. This would be painful and take months, but I would get a good-looking board at the end.
-- I could YOLO everything and just let the FreeRouting autorouter handle it. It would take weeks, because the first traces are easy, the last traces take the longest. This would result in an ugly board.
-- I could spend a month or two building my own autorouter plugin for KiCad. I have a fairly powerful GPU and routing a PCB is a very parallel problem. I could also implement my own routing algorithms to make the finished product look good.
-
-When confronted with a task that will take months, always choose the more interesting path.
-
 ## Project Overview
 
 **OrthoRoute** is a GPU-accelerated PCB autorouter, designed for parallel routing of massive circuit boards. Unlike most autorouters such as [Altium Situs](https://www.altium.com/documentation/altium-designer/automated-board-layout-situs-topological-autorouter), [FreeRouting](https://freerouting.org/), and a dozen EE-focused B2B SaaS startups, OrthoRoute uses GPUs for parallelizing the task of connecting pads with traces.
@@ -52,27 +40,26 @@ OrthoRoute is designed as a KiCad plugin, and heavily leverages the new [KiCad I
 - **Lee's Algorithm**: The most 'traditional' autorouting algorithm. 
 - **It's a KiCad Plugin**: Just download and install with the Plugin Manager
 
+## But Why?
 
-## Screenshots
+This is a project born out of necessity. Another thing I was working on needed an _enormous_ backplane. A PCB with sixteen connectors, with 1,100 pins on each connector. That's 17,600 individual pads, and 8,192 airwires that need to be routed  Here, just take a look:
+
+![a view of the backplane, before routing the PCB](/images/ConnM/unroutedbackplane.png)
+
+Look at that shit. Hand routing this would take months. For a laugh, I tried [FreeRouting](https://freerouting.org/), the KiCad autorouter plugin, and it routed 4% of the traces in seven hours. If that trend held, which it wouldn't, that would be a month of autorouting. And it probably wouldn't work in the end. I had a few options, all of which would take far too long
+
+- I could route the board by hand. This would be painful and take months, but I would get a good-looking board at the end.
+- I could YOLO everything and just let the FreeRouting autorouter handle it. It would take weeks, because the first traces are easy, the last traces take the longest. This would result in an ugly board.
+- I could spend a month or two building my own autorouter plugin for KiCad. I have a fairly powerful GPU and routing a PCB is a very parallel problem. I could also implement my own routing algorithms to make the finished product look good.
+
+When confronted with a task that will take months, always choose the more interesting path.
+
+### Screenshots
 
 ![Screenshot 1, showing an Arduino clone](/images/ConnM/OrthorouteScreenshot1.png)
 
-## More on the GitHub
 
-This document is a compliment to the README in [the Github repository](https://github.com/bbenchoff/OrthoRoute). The README provides information about 
-
-
-## Performance
-
-Unsurprisingly, doing extremely parallel operations in a GPU is _fast_. But how does it compare to other Autorouters? Before I get into this, I must say I've come to the conclusion that assessing PCB routing is not objective. Board layout is a qualia. Yes, there's RF considerations, impedance, stackup, and manufacturability concerns, but a 'good' board layout is a subjective criterion.
-
-It's like airplanes. Aesthetics correlates with good engineering. If it looks good, it'll probably fly. Even if it looks _weird_, but good, it'll probably fly. You develop a sense of this after looking at tens of thousands of circuit boards or reading _Jane’s All the World’s Aircraft_ cover to cover, you start to get a sense of these things.
-
-That being said, this autorouter doesn't quite produce _good_ boards. Like all autorouters, I suppose. But it will produce a _valid_ circuit board. And it does it fast.
-
-SOMETHING ABOUT PERFORMANCE WHEN I GET THE AUTOROUTING DONE This paragraph is going to compare Orthoroute vs other autorouters in speed, and what they look like
-
-## Why A GPU-Accelerated Autorouter Is Dumb
+### Why A GPU-Accelerated Autorouter Is Dumb
 
 GPUs are really good at parallel problems. And you would think autorouting is a very parallel problem. It's just finding a path between two points on a graph. There are algorithms that are embarrassingly parallel that just do this. This is true, but there's a lot you're not considering. 
 
@@ -84,13 +71,13 @@ It's _like_ the traveling salesman problem, but all the salesmen can't take the 
 
 There's a reason this is the hardest problem in computer science. This is why people have been working on autorouters for sixty years, and they all suck.
 
-GPUs are mostly terrible for autorouting. Should net (A→B) be higher priority than (C→D)? GPUs hate branching logic. You can't route (C→D) until you've routed (A→B), so that embarrassingly parallel problem is actually pretty small. Now deal with Design Rules. If you don't want a trace to intersect another trace of a different net, you apply the design rules. But this changes when you go to the next net! You're constantly redefining Design Rules, which kills any GPU efficiency.
-
-But all is not lost. There's exactly one part of autorouting that's actually parallel, and a useful case to deploy a GPU. Lee's Wavefront expansion. You route your traces on a fine-pitch grid, and propagate a 'wave' through the grid. Each cell in the wave can be processed independently. Shortest path wins, put your trace there. That's what I'm using the GPU for, and the CPU for everything else. Yeah, it's faster, but it's not _great_. Don't trust the autorouter, but at least this one is fast.
+GPUs are mostly terrible for autorouting. Should net (A→B) be higher priority than (C→D)? GPUs hate branching logic. You can't route (C→D) until you've routed (A→B), so that embarrassingly parallel problem is actually pretty small. Now deal with Design Rules. If you don't want a trace to intersect another trace of a different net, you apply the design rules. But this changes when you go to the next net! You're constantly redefining whatever area you can route in because of Design Rules, which kills any GPU efficiency.
 
 ![Animated GIF of Wavefront Expansion](/images/WavefrontExpansion.gif)
 
-## Why OrthoRoute is Great on a GPU.
+But all is not lost. There's exactly one part of autorouting that's actually parallel, and a useful case to deploy a GPU. Lee's Wavefront expansion. You route your traces on a fine-pitch grid, and propagate a 'wave' through the grid. Each cell in the wave can be processed independently. Shortest path wins, put your trace there. That's what I'm using the GPU for, and the CPU for everything else. Yeah, it's faster, but it's not _great_. Don't trust the autorouter, but at least this one is fast.
+
+### Why OrthoRoute is Great on a GPU.
 
 But the entire point of this project isn't to build a general autorouter. I built this to route _one_ board. And I'm doing it with 'Manhattan routing'. Manhattan routing is embarrassingly parallel because it's geometrically constrained. I have 16 identical parts, each with 1100 SMD pads, arranged in a regular grid. That's 17,600 pads that need to connect to each other in very predictable patterns.
 
@@ -102,9 +89,9 @@ _This_ is why it's called OrthoRoute. It's just routing through a grid of traces
 
 ## Implementation
 
-The following are the implementation details of OrthoRoute. How I built it, and why I made the decisions I did. If you want to never write a plugin for KiCad, skip this section.
+The following are the implementation details of OrthoRoute. How I built it, and why I made the decisions I did.
 
-Pre-KiCad 9.0 had a SWIG-based plugin system. There are serious deficits with this SWIG-based system compared to the new IPC plugin system released with KiCad 9. The SWIG-based system was locked to the Python environment bundled with KiCad. Process isolation, threading, and performance constraints abound. Doing GPU programming with CuPy, while not impossible, is difficult.
+KiCad, Pre-version 9.0, had a SWIG-based plugin system. There are serious deficits with this SWIG-based system compared to the new IPC plugin system released with KiCad 9. The SWIG-based system was locked to the Python environment bundled with KiCad. Process isolation, threading, and performance constraints abound. Doing GPU programming with CuPy or PyTorch, while not impossible, is difficult.
 
 The new IPC plugin system for KiCad is a godsend. The basic structure of the OrthoRoute plugin looks something like this:
 

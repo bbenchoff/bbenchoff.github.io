@@ -525,11 +525,11 @@ The output is just a netlist, and is an 8000-line file with lines that look like
 
 ![a view of the backplane, before routing the PCB](/images/ConnM/unroutedbackplane.png)
 
-Yeah, it's the most complex PCB I've ever designed. Doing this by hand would take weeks. It's also a perfect stress test for the autorouter. Using the [FreeRouting plugin for KiCad](https://freerouting.org/freerouting/using-with-kicad), I loaded the board and set it to the task of routing 16,000 airwires with a 12-layer board. Here's the result of four hours of work, with 712 of those 16k traces routed:
+Yeah, it's the most complex PCB I've ever designed. Doing this by hand would take weeks. It's also a perfect stress test for the autorouter. Using the [FreeRouting plugin for KiCad](https://freerouting.org/freerouting/using-with-kicad), I loaded the board and set it to the task of routing 16,000 airwires with a 12-layer board. Here's the result of seven hours of work, with 712 of those 16k traces routed:
 
 ![result of the FreeRouting plugin. It looks like shit.](/images/ConnM/freerouting.png)
 
-After four hours, the FreeRouting autorouter managed about 4% of the total number of nets. _These were the easy traces, too_. It would have taken hundreds or thousands of hours for the autorouter to do everything, and it would still look like shit.
+_These were the easy traces, too_. It would have taken hundreds or thousands of hours for the autorouter to do everything, and it would still look like shit.
 
 The obvious solution, therefore, is to build my own autorouter. Or at least spend a week or two on writing an autorouter. Building an autorouter for circuit boards is _the_ hardest problem in computer science; the smartest people on the planet have been working on this problem for sixty years and all autorouters still suck. 
 
@@ -547,25 +547,7 @@ The OrthoRoute plugin communicates with KiCad via the IPC API over a Unix socket
 
 From there, OrthoRoute reads the airwires and nets and figures out what pads are connected together. This is the basis of any autorouter. OrthoRoute then runs another Python script written with [CuPy](https://cupy.dev/), that performs routing algorithms on a GPU. I'm using [Lee's Algorithm](https://en.wikipedia.org/wiki/Lee_algorithm) and [Wavefront expansion](https://en.wikipedia.org/wiki/Wavefront_expansion_algorithm) -- the 'standard' autorouting algorithms, all done on a GPU. _But that's not all..._
 
-### New SSSP Algorithm Dropped
-
-Right around the time I finished up figuring out the KiCad API, and got the plugin visualization / Qt bullshit working, [this dropped on arxiv](https://arxiv.org/pdf/2504.17033). _Breaking the Sorting Barrier for Directed Single-Source Shortest Paths_ by Duan, Mao, Mao, Shu, Yin (July 31, 2025) introduced a new algorithm that's faster than Dijkstra's algorithm. Dijkstra's algorithm is $O{m + n \log n}$ while this new algorithm is $O{m \log^{2/3} n}$.
-
-So fuck it, I'm writing a GPU autorouter anyway. Let's implement it.
-
-![The new algorithm compared to Dijkstra, animated](/images/ConnM/Pathfinding.gif)
-
-First off, forgive the animation. I read the paper and whipped this up in an hour or so. The important thing to take away is *the new algorithm is much faster*.
-
-Dijkstra's algorithm expands a _frontier_ across a grid of cells, and will eventually find the shortest path. This expansion can grow to $O{n}$ cells, meaning an algorithm would have to sort all of these cells which is an expensive operation. The new algorithm divides this frontier and identifies a 'pivot' where multiple paths converge. This reduces the amount of sorting, and speeds up the algorithm.
-
-It's _interesting_, and I might as well implement it, but Lee's algorithm and wavefront expansion are already really good at routing grid-based problems. And it's kind of a flex to include a new path finding algorithm written a week and a half ago in my GPU-based autorouter.
-
-### But I needed an ancient algorithm
-
-Routing this backplane, however, neither requires a general solution to the problem of writing a good autorouter, nor does it need a new algorithm that dropped a week ago at the time of this writing. I've also included a domain-specific algorithm specifically for this backplane.
-
-This algorithm writes a fine-pitch grid of traces to the board underneath the backplane connectors, on layers 2 through 12, leaving the top layer blank. From there, the algorithm grabs an airwire from a pad and connects to the closest unused trace on another layer, connecting with a via. This net is the routed through this orthogonal grid of traces until it connects all the pads on this net together.
+### A Manhattan Router
 
 The domain-specific algorithm for this backplane is [Manhattan routing](https://resources.pcb.cadence.com/blog/2020-pcb-manhattan-routing-techniques), where one layer is _only_ vertical, and another layer is _only_ horizontal. It's a common technique if you've seen enough old computer motherboards, but for the life of me I couldn't find an autorouter that actually did Manhattan routing. So I built one. It's called OrthoRoute.
 
