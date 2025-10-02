@@ -22,7 +22,7 @@ image: "/images/ConnM/OrthorouteCard.png"
   </tr>
 </table>
 
-#### This document is a compliment to the README in [the Github repository](https://github.com/bbenchoff/OrthoRoute). The README provides information about performance, capabilities, and tests. This document reflects more on the why and how. The README describes what it does, this document describes how and why it does it.
+#### This document is a compliment to the README in [the Github repository](https://github.com/bbenchoff/OrthoRoute). The README provides information about performance, capabilities, and tests. This document reflects more on the why and how.
 
 ## Project Overview
 
