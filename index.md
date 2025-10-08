@@ -74,7 +74,7 @@ I’m open to **collaborations, consulting, and full-time roles** in:
 
 ---
 
-## **🚀 Bonus: Want Something More Fun?**
+## ** Want Something More Fun?**
 [ Switch to System 7 Mode →](https://bbenchoff.github.io/system7) *(For the full retrocomputing experience!)*  
 
 ---

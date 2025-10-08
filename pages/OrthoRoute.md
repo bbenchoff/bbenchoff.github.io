@@ -107,45 +107,7 @@ When confronted with a task that will take months, always choose the more intere
 
 With the explanation of _what_ OrthoRoute is out of the way, I'd like to dive into the How and Why of what this is.
 
-### Why A GPU-Accelerated Autorouter Is Dumb
-
-<div class="side-image">
-  <div class="side-text">
-    <p>GPUs are really good at parallel problems. And you would think autorouting is a very parallel problem. It's just finding a path between two points on a graph. There are algorithms that are embarrassingly parallel that just do this. This is true, but there's a lot you're not considering.</p>
-    <p>Instead of mapping an entire (blank) PCB into a GPU's memory and drawing traces around obstacles, an autorouter is about finding a path _under constraints that are always changing_.</p>
-    <p>Instead of mapping an entire (blank) PCB into a GPU's memory and drawing traces around obstacles, an autorouter is about finding a path _under constraints that are always changing_.</p>
-  </div>
-  <div class="side-image-container">
-    <figure>
-      <img src="/images/WavefrontExpansion.gif" alt="GIF of Wavefront Expansion">
-      <figcaption>Wavefront expansion. The breadth-first search that finds the shortest path to a goal.</figcaption>
-    </figure>
-  </div>
-</div>
-
-Instead of mapping an entire (blank) PCB into a GPU's memory and drawing traces around obstacles, an autorouter is about finding a path _under constraints that are always changing_.
-
-If you have three nets, route(A→B), route(C→D), and route(E→F), you start out by routing the direct path (A→B). But (C→D) can't take the direct path between those points, because it's blocked by (A→B). Now (E→F) is blocked by both previous routes, so it takes a worse path. 
-
-It's _like_ the traveling salesman problem, but all the salesmen can't take the same road. Also there are thousands of salesmen.
-
-There's a reason this is the hardest problem in computer science. This is why people have been working on autorouters for sixty years, and they all suck.
-
-GPUs are mostly terrible for autorouting. Should net (A→B) be higher priority than (C→D)? GPUs hate branching logic. You can't route (C→D) until you've routed (A→B), so that embarrassingly parallel problem is actually pretty small. Now deal with Design Rules. If you don't want a trace to intersect another trace of a different net, you apply the design rules. But this changes when you go to the next net! You're constantly redefining whatever area you can route in because of Design Rules, which kills any GPU efficiency.
-
-But all is not lost. There's exactly one part of autorouting that's actually parallel, and a useful case to deploy a GPU. Lee's Wavefront expansion. You route your traces on a fine-pitch grid, and propagate a 'wave' through the grid. Each cell in the wave can be processed independently. Shortest path wins, put your trace there. That's what I'm using the GPU for, and the CPU for everything else. Yeah, it's faster, but it's not _great_. Don't trust the autorouter, but at least this one is fast.
-
-### Why OrthoRoute is Great on a GPU.
-
-But the entire point of this project isn't to build a general autorouter. I built this to route _one_ board. And I'm doing it with 'Manhattan routing'. Manhattan routing is embarrassingly parallel because it's geometrically constrained. I have 16 identical parts, each with 1100 SMD pads, arranged in a regular grid. That's 17,600 pads that need to connect to each other in very predictable patterns.
-
-PUT A PICTURE OF ORTHOGINAL ROUTING HERE
-
-Instead of the "route anything anywhere" problem of general autorouting, I have layers with dedicated directions: horizontal traces on one layer, vertical on the next, horizontal again, and so on. When a net needs to change direction, it drops a via and moves to the appropriate layer. No complex pathfinding required, just geometric moves on a regular grid.
-
-_This_ is why it's called OrthoRoute. It's just routing through a grid of traces. There's no DRC needed, because drawing the grid of traces is defined by DRC.
-
-## Implementation
+### A New KiCad API and Implementation
 
 The following are the implementation details of OrthoRoute. How I built it, and why I made the decisions I did.
 
@@ -157,27 +119,21 @@ The new IPC plugin system for KiCad is a godsend. The basic structure of the Ort
 
 The OrthoRoute plugin communicates with KiCad via the IPC API over a Unix socket. This API is basically a bunch of C++ classes that gives me access to board data – nets, pads, copper pour geometry, airwires, and everything else. This allows me to build a second model of a PCB inside a Python script and model it however I want.
 
-### Bug-finding and Path-finding.
+### Development of the Manhattan Routing Engine
 
-After using the IPC API to extract the board, I had everything. Drills, pads, and copper pours. The next step was to implement path finding. This is the process of selecting an airwire, and finding a path between its beginning and end. This is what autorouters _do_, so I'm using standard algorithms like Wavefront expansion, and a few other things I picked up from a VLSI textbook. All I needed to do was convert that list of pads and traces and keepouts to a map of where the autorouter could draw traces.
+With the ability to _read_ and _write_ board information to and from KiCad, I had to figure out a way to route traces algorithmically. Obviously a traditional push-and-shove autorouter wouldn't work well, and I wanted something _fast_. The solution to both of these problems is to pre-define a 'grid' or 'lattice' of traces, with _only_ vertical traces on the top-most layer, _only_ horizontal traces on the next layer down, vertical traces on the layer below that, and continuing the pattern for the entire board stack.
 
-The key insight here, and I think this is pretty damn smart, is that a copper ground plane _is_ the map of where traces can go. If I create a board with a few parts on it and put down a ground plane, that ground plane defines where the autorouter can draw traces.
+To route a trace through this lattice, I first take a signal or airwire off a pad, and 'punch down' into the grid. From here, it's routing through a Manhattan-like grid; a well-studied problem in computer science. When I get to the destination, simply go back up to the top layer and a single net is done.
 
-While the [kicad-python library](https://docs.kicad.org/kicad-python-main/board.html) has functions that will return the polygon of a copper pour, I can't use that. Not all boards will have a copper pour. What I really need to do is reverse engineer the process of making these copper pours myself. I need a way to extract the pads, traces, and keepouts and applying DRC constraints to them. 
+The algorithm I'm using is the eminently ungooglable [PathFinder algorithm](https://ieeexplore.ieee.org/document/1377269). This is an algorithm designed for routing FPGA fabric. The algorithm assumes an orthogonal grid and routes points to point in an iterative process. The first pass is lazy and greedy so there's a lot of congestion on certain edges of a graph. For a PCB, this means multiple nets run over the same physical trace. After each iteration, this congestion is measured and routing begins again. Eventually the algorithm converges on a solution that's close to ideal.
 
-That's exactly what I did. First I learned how to extract the copper pour from a board, giving me a 5000-point polygon of copper with holes representing pads, traces, and clearances. Then, I reverse engineered this to create a 'virtual' copper pour -- one that could be generated even if the KiCad board file doesn't have a copper pour. By comparing this 'virtual' copper pour to the ground truth of the copper pour polygon extracted from the board, I could validate that my 'virtual' copper pour was correct. This gives me an exact map of where the autorouter can lay down copper.
+![The escape path planning for individual pads](/images/ConnM/EscapePlanning.png)
 
-<figure>
-  <img src="/images/OrthorouteCopper.png" alt="Development of the virtual copper pour extraction showing real thermal relief vs virtual algorithm vs difference map" />
-</figure>
 
-Pathfinding wasn't the issue. There are standard algorithms for that. What really gave me a lot of trouble is figuring out where the pathfinding was valid. I'm sure someone else would have spent months going through IPC specifications to figure out where an autorouter _should_ route traces. But I leveraged the simple fact that this data is already generated by KiCad -- the copper pour itself -- and just replicated it.
 
-If there are any KiCad devs out there reading this, _this_ is what you should implement in the next iteration kicad-python. A `get_free_routing_space(int copper_layer)` function. Something that returns the polygon of a copper pour on boards that don't have a copper pour, for each layer of copper.
+
 
 ### The Non-Orthogonal Router
-
-Until now this entire project was an exercise. I had to get my head around the KiCad IPC API.
 
 The entire point of this project wasn't to build a general-purpose autorouter. I needed something that would route a truly insane backplane with 16 connectors, each with 1100 pads, and 8195 unrouted nets. But to even start that project, I chose to build a general purpose autorouter. Nothing fancy; just something that would route a few microcontroller breakout boards and a mechanical keyboard PCB.
 
@@ -197,7 +153,7 @@ For a single pass, this is fine! But autorouters don't do a single pass. There a
 
 The problems faced with my wavefront expansion algorithm require solutions that are also needed in my orthogonal grid routing algorithm. So I pivoted to that. I had the bare bones of an autorouter plugin, but I wanted to get this _done_. This project was already taking a few weeks, time to get something done.
 
-### Development of the Manhattan Routing Engine
+
 
 A non-orthogonal autorouter is a good starting point, but I simply used that as an exercise to wrap my head around the KiCad IPC API. The real build is a 'Manhattan Orthoginal Routing Engine', the tool needed to route my mess of a backplane. 
 
@@ -215,13 +171,85 @@ To connect the pads on the PCB together, first bring a small trace off a pad. Us
 
 
 
+### Bug-finding and Path-finding.
+
+After using the IPC API to extract the board, I had everything. Drills, pads, and copper pours. The next step was to implement path finding. This is the process of selecting an airwire, and finding a path between its beginning and end. This is what autorouters _do_, so I'm using standard algorithms like Wavefront expansion, and a few other things I picked up from a VLSI textbook. All I needed to do was convert that list of pads and traces and keepouts to a map of where the autorouter could draw traces.
+
+The key insight here, and I think this is pretty damn smart, is that a copper ground plane _is_ the map of where traces can go. If I create a board with a few parts on it and put down a ground plane, that ground plane defines where the autorouter can draw traces.
+
+While the [kicad-python library](https://docs.kicad.org/kicad-python-main/board.html) has functions that will return the polygon of a copper pour, I can't use that. Not all boards will have a copper pour. What I really need to do is reverse engineer the process of making these copper pours myself. I need a way to extract the pads, traces, and keepouts and applying DRC constraints to them. 
+
+That's exactly what I did. First I learned how to extract the copper pour from a board, giving me a 5000-point polygon of copper with holes representing pads, traces, and clearances. Then, I reverse engineered this to create a 'virtual' copper pour -- one that could be generated even if the KiCad board file doesn't have a copper pour. By comparing this 'virtual' copper pour to the ground truth of the copper pour polygon extracted from the board, I could validate that my 'virtual' copper pour was correct. This gives me an exact map of where the autorouter can lay down copper.
+
+<figure>
+  <img src="/images/OrthorouteCopper.png" alt="Development of the virtual copper pour extraction showing real thermal relief vs virtual algorithm vs difference map" />
+</figure>
+
+Pathfinding wasn't the issue. There are standard algorithms for that. What really gave me a lot of trouble is figuring out where the pathfinding was valid. I'm sure someone else would have spent months going through IPC specifications to figure out where an autorouter _should_ route traces. But I leveraged the simple fact that this data is already generated by KiCad -- the copper pour itself -- and just replicated it.
+
+If there are any KiCad devs out there reading this, please implement a `get_free_routing_space(int copper_layer)` function in the next iteration kicad-python. Something that returns the polygon of a copper pour on boards that don't have a copper pour, for each layer of copper.
+
+
+
 <<< Image of PathFinder routed board>>>
 
 It's also _stupidly parallel_
 
 IT'S A 3D LATTICE NOT A BUNCH OF GRIDS JESUS FUCK
 
+### Why A GPU-Accelerated Autorouter Is Dumb
 
+There's a reason this is the hardest problem in computer science. This is why people have been working on autorouters for sixty years, and they all suck.
+
+<div class="side-image">
+  <div class="side-text">
+    <p>GPUs are really good at parallel problems. And you would think autorouting is a very parallel problem. It's just finding a path between two points on a graph. There are algorithms that are embarrassingly parallel that just do this. This is true, but there's a lot you're not considering.</p>
+    <p>Instead of mapping an entire (blank) PCB into a GPU's memory and drawing traces around obstacles, an autorouter is about finding a path _under constraints that are always changing_.</p>
+    <p>Instead of mapping an entire (blank) PCB into a GPU's memory and drawing traces around obstacles, an autorouter is about finding a path _under constraints that are always changing_.</p>
+  </div>
+  <div class="side-image-container">
+    <figure>
+      <img src="/images/WavefrontExpansion.gif" alt="GIF of Wavefront Expansion">
+      <figcaption>Wavefront expansion. The breadth-first search that finds the shortest path to a goal.</figcaption>
+    </figure>
+  </div>
+</div>
+
+Instead of mapping an entire (blank) PCB into a GPU's memory and drawing traces around obstacles, an autorouter is about finding a path _under constraints that are always changing_. If you have three nets, route(A→B), route(C→D), and route(E→F), you start out by routing the direct path (A→B). But (C→D) can't take the direct path between those points, because it's blocked by (A→B). Now (E→F) is blocked by both previous routes, so it takes a worse path. 
+
+It's _like_ the traveling salesman problem, but all the salesmen can't take the same road. Also there are thousands of salesmen. Should net (A→B) be higher priority than (C→D)? GPUs hate branching logic. You can't route (C→D) until you've routed (A→B), so that embarrassingly parallel problem is actually pretty small. Now deal with Design Rules. If you don't want a trace to intersect another trace of a different net, you apply the design rules. But this changes when you go to the next net! You're constantly redefining whatever area you can route in because of Design Rules, which kills any GPU efficiency.
+
+But all is not lost. There's exactly one part of autorouting that's actually parallel, and a useful case to deploy a GPU. Lee's Wavefront expansion. You route your traces on a fine-pitch grid, and propagate a 'wave' through the grid. Each cell in the wave can be processed independently. Shortest path wins, put your trace there. That's what I'm using the GPU for, and the CPU for everything else. Yeah, it's faster, but it's not _great_. Don't trust the autorouter, but at least this one is fast.
+
+### Why OrthoRoute is Great on a GPU.
+
+But the entire point of this project isn't to build a general autorouter. I built this to route _one_ board. And I'm doing it with 'Manhattan routing'. Manhattan routing is embarrassingly parallel because it's geometrically constrained. I have 16 identical parts, each with 1100 SMD pads, arranged in a regular grid. That's 17,600 pads that need to connect to each other in very predictable patterns.
+
+PUT A PICTURE OF ORTHOGINAL ROUTING HERE
+
+Instead of the "route anything anywhere" problem of general autorouting, I have layers with dedicated directions: horizontal traces on one layer, vertical on the next, horizontal again, and so on. When a net needs to change direction, it drops a via and moves to the appropriate layer. No complex pathfinding required, just geometric moves on a regular grid.
+
+_This_ is why it's called OrthoRoute. It's just routing through a grid of traces. There's no DRC needed, because drawing the grid of traces is defined by DRC.
+
+
+
+
+
+2025-10-03 10:49:54 - orthoroute.presentation.gui.main_window - INFO - DEBUG: board._kicad_bounds = (169.8, 45.5975, 242.9, 238.0925)
+2025-10-03 10:49:54 - orthoroute.algorithms.manhattan.unified_pathfinder - INFO - ================================================================================
+2025-10-03 10:49:54 - orthoroute.algorithms.manhattan.unified_pathfinder - INFO - PATHFINDER NEGOTIATED CONGESTION ROUTER - RUNTIME CONFIGURATION
+2025-10-03 10:49:54 - orthoroute.algorithms.manhattan.unified_pathfinder - INFO - ================================================================================
+2025-10-03 10:49:54 - orthoroute.algorithms.manhattan.unified_pathfinder - INFO - [CONFIG] pres_fac_init    = 1.0
+2025-10-03 10:49:54 - orthoroute.algorithms.manhattan.unified_pathfinder - INFO - [CONFIG] pres_fac_mult    = 1.8
+2025-10-03 10:49:54 - orthoroute.algorithms.manhattan.unified_pathfinder - INFO - [CONFIG] pres_fac_max     = 1000.0
+2025-10-03 10:49:54 - orthoroute.algorithms.manhattan.unified_pathfinder - INFO - [CONFIG] hist_gain        = 2.5
+2025-10-03 10:49:54 - orthoroute.algorithms.manhattan.unified_pathfinder - INFO - [CONFIG] via_cost         = 8.0
+2025-10-03 10:49:54 - orthoroute.algorithms.manhattan.unified_pathfinder - INFO - [CONFIG] grid_pitch       = 0.4 mm
+2025-10-03 10:49:54 - orthoroute.algorithms.manhattan.unified_pathfinder - INFO - [CONFIG] max_iterations   = 30
+2025-10-03 10:49:54 - orthoroute.algorithms.manhattan.unified_pathfinder - INFO - [CONFIG] stagnation_patience = 5
+2025-10-03 10:49:54 - orthoroute.algorithms.manhattan.unified_pathfinder - INFO - ================================================================================
+2025-10-03 10:49:54 - orthoroute.algorithms.manhattan.unified_pathfinder - INFO - Using 18 layers from board
+2025-10-03 10:49:54 - orthoroute.algorithms.manhattan.unified_pathfinder - INFO - Lattice: 183×482×18 = 1,587,708 nodes
 
 <code>
 I started this project thinking I would just take PathFinder, the old FPGA routing algorithm, and brute force it onto a GPU. PathFinder works like this: you run shortest-path expansion (Dijkstra or Δ-stepping) across every net, you adjust costs, you do it again, and eventually congestion sorts itself out. It’s iterative, it’s predictable, and it’s been around for thirty years. In theory, it should map well to CUDA. In practice, it was a disaster. My naïve GPU implementation took a full minute per net. That wasn’t a batching problem or a memory problem or a penalty-calculation problem — it was the kernel itself. The GPU was choking on irregular buckets, sparse memory access, and watchdog stalls. That’s the first real insight: the bottleneck wasn’t where you’d expect, it was the shortest-path kernel itself. That’s not an “optimize the loop” moment, that’s an algorithmic diagnosis.
