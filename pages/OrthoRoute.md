@@ -127,10 +127,21 @@ To route a trace through this lattice, I first take a signal or airwire off a pa
 
 The algorithm I'm using is the eminently ungooglable [PathFinder algorithm](https://ieeexplore.ieee.org/document/1377269). This is an algorithm designed for routing FPGA fabric. The algorithm assumes an orthogonal grid and routes points to point in an iterative process. The first pass is lazy and greedy so there's a lot of congestion on certain edges of a graph. For a PCB, this means multiple nets run over the same physical trace. After each iteration, this congestion is measured and routing begins again. Eventually the algorithm converges on a solution that's close to ideal.
 
+The first step of that is the [pad escape planner](https://github.com/bbenchoff/OrthoRoute/blob/main/orthoroute/algorithms/manhattan/pad_escape_planner.py) that pre-computes the escape routing of all the pads. Because the entire Manhattan Routing Engine is designed for a backplane, we can make some assumptions: All of the components are going to be SMD, because THT parts would kill the efficiency of a routing lattice. The components are going to be arranged on a grid, and just to be nice I'd like some 'randomization' in where it puts the vias punching down into the grid. Here's what the escape planning looks like:
+
 ![The escape path planning for individual pads](/images/ConnM/EscapePlanning.png)
 
+After that, it's time for PathFinder. What this is, effectively, is a _gigantic_ graph. Assume the 'grid of traces' is going to have a 0.4mm pitch. The intersections -- where vias can transition to other layers -- are nodes. The space between these nodes are edges. 
 
+For a 100mm x 100mm board with four routing layers and a 0.4mm pitch, we're looking at approximately 250 nodes in each direction, which is 62,500 nodes per layer. Multiply that by four layers and we have 250,000 nodes in our graph. Each node can connect to up to six neighbors (four in-plane directions plus up and down through vias), giving us roughly 1.5 million edges. This is where the GPU comes in handy.
 
+PathFinder works in iterations. In the first pass, each net routes itself greedily through the lattice, completely ignoring every other net. This is fast and gets everything connected, but results in massive congestion – dozens of nets might be sharing the same physical trace segment. After the first iteration, we calculate a cost function for every edge in the graph. Edges with more congestion get higher costs. In the next iteration, nets route themselves again, but this time they avoid the expensive (congested) edges when possible. Nets that caused the most problems get "ripped up" and re-routed first, forcing them to find alternative paths. 
+
+This process repeats. With each iteration, congestion decreases as nets find less contested paths through the lattice. The algorithm typically converges to a valid, uncontested solution within 5-10 iterations for most boards. For that massive 17,600 pad backplane? It routes in _minutes_ on an RTX 5080.
+
+[[[[[[IMAGES OF PATHFINDER ITERATIONS GO HERE]]]]]]
+
+[[[[[Wrapping up something about the PahtFinder Implementation]]]]]
 
 
 ### The Non-Orthogonal Router
