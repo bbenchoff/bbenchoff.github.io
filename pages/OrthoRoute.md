@@ -17,7 +17,7 @@ image: "/images/ConnM/OrthorouteCard.png"
     </td>
     <td align="left">
       <h2>OrthoRoute - GPU Accelerated Autorouting for KiCad</h2>
-      <p><em>You shouldn't trust the autorouter, but at least this one is faster</em></p>
+      <p><em>Never trust the autorouter, but at least this one is faster</em></p>
     </td>
   </tr>
 </table>
@@ -64,13 +64,13 @@ image: "/images/ConnM/OrthorouteCard.png"
 }
 </style>
 
-#### This document is a compliment to the README in [the Github repository](https://github.com/bbenchoff/OrthoRoute). The README provides information about performance, capabilities, and tests. This document reflects more on the why and how.
+#### This document is a complement to the README in [the Github repository](https://github.com/bbenchoff/OrthoRoute). The README provides information about performance, capabilities, and tests. This document reflects more on the why and how.
 
 ## Project Overview
 
 **OrthoRoute** is a GPU-accelerated PCB autorouter, designed for parallel routing of massive circuit boards. Unlike most autorouters such as [Altium Situs](https://www.altium.com/documentation/altium-designer/automated-board-layout-situs-topological-autorouter), [FreeRouting](https://freerouting.org/), and a dozen EE-focused B2B SaaS startups, OrthoRoute uses GPUs for parallelizing the task of connecting pads with traces.
 
-OrthoRoute uses a unique routing technique borrowed from FPGA fabric routers. Instead of drawing individual traces, it first creates a 3-dimensional lattice of traces on multiple layers. Algorithms borrowed from the FPGA and VLSI world are used to connect individual pads. This is unlike any other autorouter you've ever seen.
+OrthoRoute uses a unique routing technique borrowed from FPGA fabric routers. Instead of drawing individual traces, it first creates a 3-dimensional lattice of traces on multiple layers. Algorithms borrowed from the FPGA and VLSI world are used to connect individual pads. Unlike push-and-shove routers, OrthoRoute pre-lays a Manhattan lattice and uses a negotiated-congestion FPGA router (PathFinder) to converge.
 
 OrthoRoute is designed as a KiCad plugin, and heavily leverages the new [KiCad IPC API](https://dev-docs.kicad.org/en/apis-and-binding/ipc-api/) and [kicad-python](https://docs.kicad.org/kicad-python-main/index.html) bindings for the IPC API.
 
@@ -86,7 +86,7 @@ OrthoRoute is designed as a KiCad plugin, and heavily leverages the new [KiCad I
 
 ## But Why?
 
-This is a project born out of necessity. Another thing I was working on needed an _enormous_ backplane. A PCB with sixteen connectors, with 1,100 pins on each connector. That's 17,600 individual pads, and 8,192 airwires that need to be routed  Here, just take a look:
+This is a project born out of necessity. Another thing I was working on needed an _enormous_ backplane. A PCB with sixteen connectors, with 1,100 pins on each connector. That's 17,600 individual pads, and 8,192 airwires that need to be routed. Here, just take a look:
 
 ![a view of the backplane, before routing the PCB](/images/ConnM/unroutedbackplane.png)
 
@@ -105,11 +105,9 @@ When confronted with a task that will take months, always choose the more intere
 
 ## The Why and How of OrthoRoute
 
-With the explanation of _what_ OrthoRoute is out of the way, I'd like to dive into the How and Why of what this is.
+With the explanation of _what_ OrthoRoute is out of the way, I'd like to dive into the How and Why of what this is. The following are the implementation details of OrthoRoute. How I built it, and why I made the decisions I did.
 
 ### A New KiCad API and Implementation
-
-The following are the implementation details of OrthoRoute. How I built it, and why I made the decisions I did.
 
 KiCad, Pre-version 9.0, had a SWIG-based plugin system. There are serious deficits with this SWIG-based system compared to the new IPC plugin system released with KiCad 9. The SWIG-based system was locked to the Python environment bundled with KiCad. Process isolation, threading, and performance constraints abound. Doing GPU programming with CuPy or PyTorch, while not impossible, is difficult.
 
@@ -117,7 +115,7 @@ The new IPC plugin system for KiCad is a godsend. The basic structure of the Ort
 
 ![Orthoroute architecture](/images/ConnM/OrthorouteArch.png)
 
-The OrthoRoute plugin communicates with KiCad via the IPC API over a Unix socket. This API is basically a bunch of C++ classes that gives me access to board data – nets, pads, copper pour geometry, airwires, and everything else. This allows me to build a second model of a PCB inside a Python script and model it however I want.
+The OrthoRoute plugin communicates with KiCad via the IPC API over a unixey socket. This API is basically a bunch of C++ classes that gives me access to board data – nets, pads, copper pour geometry, airwires, and everything else. This allows me to build a second model of a PCB inside a Python script and model it however I want.
 
 ### Development of the Manhattan Routing Engine
 
@@ -141,7 +139,7 @@ This process repeats. With each iteration, congestion decreases as nets find les
 
 [[[[[[IMAGES OF PATHFINDER ITERATIONS GO HERE]]]]]]
 
-[[[[[Wrapping up something about the PahtFinder Implementation]]]]]
+[[[[[Wrapping up something about the PathFinder Implementation]]]]]
 
 
 ### The Non-Orthogonal Router
