@@ -9,7 +9,8 @@ last_modified_at: 2022-06-04
 image: "/images/Firebird/HeroRender.png"
 ---
 
-![The hero shot](/images/Firebird/HeroRender.png)
+![The hero shot](/images/Firebird/HeroBig.png)
+
 
 # Fuck you. Print the neck too.
 
@@ -30,6 +31,8 @@ The slight innovation here is a double-action truss rod, with carbon fiber neck 
 With this, the entire guitar body, the fretboard, and even the fretboard inlays are 3D printed. The 'sides' or 'wings' are bolted on with a 'tongue and groove' joint.
 
 ![The end of the guitar, showing the 'tongue and groove' construction for the body wings](/images/Firebird/end.png)
+
+![another hero shot](/images/Firebird/HeroRender.png)
 
 
 
