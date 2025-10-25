@@ -96,6 +96,12 @@ a.btn-download:focus-visible{
 }
 </style>
 
+<div class="btn-row">
+  <a class="btn-download" href="https://github.com/bbenchoff/OrthoRoute" target="_blank" rel="noopener">
+    Download OrthoRoute (GitHub)
+  </a>
+</div>
+
 #### This document is a complement to the README in [the Github repository](https://github.com/bbenchoff/OrthoRoute). The README provides information about performance, capabilities, and tests. This document reflects more on the why and how.
 
 ## Project Overview
@@ -136,7 +142,7 @@ When confronted with a task that will take months, always choose the more intere
 
 <div class="btn-row">
   <a class="btn-download" href="https://github.com/bbenchoff/OrthoRoute" target="_blank" rel="noopener">
-    ⬇️ Download OrthoRoute (GitHub)
+    Download OrthoRoute (GitHub)
   </a>
 </div>
 
