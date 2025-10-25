@@ -199,6 +199,79 @@ Pathfinding wasn't the issue. There are standard algorithms for that. What reall
 If there are any KiCad devs out there reading this, please implement a `get_free_routing_space(int copper_layer)` function in the next iteration kicad-python. Something that returns the polygon of a copper pour on boards that don't have a copper pour, for each layer of copper.
 
 
+SOMETHING IMPORTANT HERE:
+
+Yep—“maybe we shouldn’t do it in parallel” is not just something, it’s the root of a very specific failure mode.
+
+PathFinder’s negotiation assumes asynchrony inside each iteration: later nets see the pain (raised costs) created by earlier nets. When you route a giant batch against a frozen cost snapshot, every net makes the same greedy choice at the same time. Next iteration the costs jump… but the snapshot is frozen again, so they all repeat the same mistake. That’s the limit-cycle you’re seeing (same subset wins every iter, everyone else stuck).
+
+Here’s the tight fix that keeps the GPU wins without giving up negotiation:
+
+What to change
+
+Mini-batch scheduling (restore asynchrony).
+Route nets in small batches (e.g., 32–256). After each batch:
+
+recompute present/history on CPU/GPU,
+
+rebuild weights (base + pres_fac*(present- cap)+hist),
+
+upload weights to device,
+
+shuffle the next batch’s net order (deterministic seed is fine).
+
+That alone breaks the herd behavior.
+
+Never let ROI fall back to full graph.
+If roi_size == N_global, you’ve erased locality and invited a traffic jam. Enforce:
+
+corridor+bbox ROI with hard caps,
+
+anisotropic growth (widen perpendicular first),
+
+escalate ROI only on failure.
+Log percentiles: min/median/95% of ROI size and “% full-graph”. Target ≪10% full-graph.
+
+Cost pipeline sanity.
+Make it impossible for stale weights to sneak in:
+
+after each mini-batch, log (sum, max) of the host weights vector and the device weights vector (checksum after cudaMemcpy).
+
+pick one hot edge e* and log its (present, history, weight) across mini-batches—you should see it climb within the same iteration.
+
+Scheduling that avoids collisions.
+Easy wins before anything fancy:
+
+bucket by x-column and round-robin choose from different buckets when forming a batch, so you don’t pack spatial neighbors together;
+
+or sort by estimated difficulty and interleave easy/hard nets.
+
+Freeze policy.
+After a batch, don’t rip-up stable nets in empty regions. Only reconsider nets touching overused edges. Rotate the frozen set each iteration to avoid ossification.
+
+Minimal code-shape (pseudocode)
+for t in range(max_iters):
+    order = shuffle(nets, seed=t)
+    for chunk in chunks(order, B):      # B = 64/128
+        routes = route_on_gpu(chunk, weights_dev, roi=roi_for(chunk))
+        present.update(routes)           # device or host
+        history = gamma*history + present_overuse
+        weights_host = base + pres_fac[t]*(present_overuse) + hist_weight*history
+        weights_dev.copy_from(weights_host)   # re-upload
+
+How to prove this is it (quick checks)
+
+Run 1–2 iterations with B=1 (or 8/16) on the big board. If routed count rises and overuse drops vs. your monolithic batch, you’ve confirmed the diagnosis.
+
+Print overuse delta per mini-batch; you should see it improve mid-iteration.
+
+Track % full-graph ROI; if it’s high, fix ROI first.
+
+Why not “just go global”?
+
+Your large-board test already answered that: max_roi_size == N_global + big parallel batches ⇒ zero negotiation and total stagnation. Global search increases contention and compute while removing the very mechanism that spreads traffic.
+
+END SOMETHING IMPORTANT
 
 <<< Image of PathFinder routed board>>>
 
