@@ -20,6 +20,41 @@ image: "/images/ConnM/OrthorouteCard.png"
 
 
 <style>
+
+/* Center the button row */
+.btn-row{
+  display:flex;
+  justify-content:center;
+  margin:1rem 0;
+}
+
+/* High-contrast button */
+a.btn-download{
+  display:inline-flex;
+  align-items:center;
+  gap:.5rem;
+  padding:.85rem 1.2rem;
+  border-radius:.75rem;
+  border:1px solid rgba(0,0,0,.15);
+  background:#2563eb;
+  color:#fff !important;
+  font-weight:700;
+  text-decoration:none;
+  line-height:1.1;
+  box-shadow:0 2px 8px rgba(0,0,0,.2);
+}
+
+a.btn-download:hover{
+  filter:brightness(1.05);
+  transform:translateY(-1px);
+  box-shadow:0 6px 16px rgba(0,0,0,.25);
+}
+
+a.btn-download:focus-visible{
+  outline:2px solid #fff;
+  outline-offset:2px;
+}
+
 .side-image {
   display: flex;
   flex-direction: column-reverse;
@@ -99,18 +134,11 @@ When confronted with a task that will take months, always choose the more intere
 
 ![Screenshot 1, showing an Arduino clone](/images/ConnM/OrthorouteScreenshot1.png)
 
-
-<p>
-  <a class="btn" href="https://github.com/bbenchoff/OrthoRoute" target="_blank" rel="noopener">
+<div class="btn-row">
+  <a class="btn-download" href="https://github.com/bbenchoff/OrthoRoute" target="_blank" rel="noopener">
     ⬇️ Download OrthoRoute (GitHub)
   </a>
-</p>
-<style>
-.btn { display:inline-block; padding:.75rem 1rem; border-radius:.75rem; text-decoration:none;
-       box-shadow:0 2px 8px rgba(0,0,0,.15); }
-@media (prefers-color-scheme: dark){ .btn { background:#1f6feb; color:#fff; } }
-@media (prefers-color-scheme: light){ .btn { background:#2563eb; color:#fff; } }
-</style>
+</div>
 
 
 ## The Why and How of OrthoRoute
@@ -135,9 +163,7 @@ Autorouters are an inherently unparallizable problem. Instead of mapping an enti
 
 <div class="side-image">
   <div class="side-text">
-    <p>GPUs are really good at parallel problems. And you would think autorouting is a very parallel problem. It's just finding a path between two points on a graph. There are algorithms that are embarrassingly parallel that just do this. This is true, but there's a lot you're not considering.</p>
-    <p>Instead of mapping an entire (blank) PCB into a GPU's memory and drawing traces around obstacles, an autorouter is about finding a path _under constraints that are always changing_.</p>
-    <p>Instead of mapping an entire (blank) PCB into a GPU's memory and drawing traces around obstacles, an autorouter is about finding a path _under constraints that are always changing_.</p>
+    <p>It's _like_ the traveling salesman problem, but all the salesmen can't take the same road. Also there are thousands of salesmen. Should net (A→B) be higher priority than (C→D)? GPUs hate branching logic. You can't route (C→D) until you've routed (A→B), so that embarrassingly parallel problem is actually pretty small. Now deal with Design Rules. If you don't want a trace to intersect another trace of a different net, you apply the design rules. But this changes when you go to the next net! You're constantly redefining whatever area you can route in because of Design Rules, which kills any GPU efficiency.</p>
   </div>
   <div class="side-image-container">
     <figure>
@@ -146,8 +172,6 @@ Autorouters are an inherently unparallizable problem. Instead of mapping an enti
     </figure>
   </div>
 </div>
-
-It's _like_ the traveling salesman problem, but all the salesmen can't take the same road. Also there are thousands of salesmen. Should net (A→B) be higher priority than (C→D)? GPUs hate branching logic. You can't route (C→D) until you've routed (A→B), so that embarrassingly parallel problem is actually pretty small. Now deal with Design Rules. If you don't want a trace to intersect another trace of a different net, you apply the design rules. But this changes when you go to the next net! You're constantly redefining whatever area you can route in because of Design Rules, which kills any GPU efficiency.
 
 But all is not lost. There's exactly one part of autorouting that's actually parallel, and a useful case to deploy a GPU. Lee's Wavefront expansion. You route your traces on a fine-pitch grid, and propagate a 'wave' through the grid. Each cell in the wave can be processed independently. Shortest path wins, put your trace there. That's what I'm using the GPU for, and the CPU for everything else. Yeah, it's faster, but it's not _great_. Don't trust the autorouter, but at least this one is fast.
 
@@ -185,7 +209,7 @@ Pathfinding wasn't the issue. There are standard algorithms for that. What reall
 
 If there are any KiCad devs out there reading this, please implement a `get_free_routing_space(int copper_layer)` function in the next iteration kicad-python. Something that returns the polygon of a copper pour on boards that don't have a copper pour, for each layer of copper.
 
-### But a traditional autorouter isn't the point, here
+### But a traditional autorouter isn't the point here
 
 Development of this traditional autorouter stalled. Primarily for a good reason: my initial attempts at building this 'non-orthogonal' router were plagued by intersecting traces. The routing appeared to be not DRC aware. This was fixed when I realized what the problem was. Because I was routing in parallel batches (I'm using a GPU, so why not), routing one net did not take into account the other nets that were being routed at the same time. This resulted in different nets with intersecting traces and would fail DRC if it was ever pulled into KiCad.
 
@@ -195,7 +219,7 @@ The solution to this was to route the nets sequentially. I could still use the G
 
 With the ability to _read_ and _write_ board information to and from KiCad, and some GPU autorouting experience under my belt, I had to figure out a way to route this stupidly complex backplane. A non-orthogonal autorouter is a good starting point, but I simply used that as an exercise to wrap my head around the KiCad IPC API. The real build is a 'Manhattan Orthogonal Routing Engine', the tool needed to route my mess of a backplane. 
 
-Obviously a traditional push-and-shove autorouter wouldn't work well, and I wanted something _fast_. The solution to both of these problems is to pre-define a 'grid' or 'lattice' of traces, with _only_ vertical traces on the top-most layer, _only_ horizontal traces on the next layer down, vertical traces on the layer below that, and continuing the pattern for the entire board stack.
+Obviously a traditional push-and-shove autorouter wouldn't work well, and I wanted something _fast_. The solution to both of these problems is to pre-define a 'grid' or 'lattice' of traces, with _only_ vertical traces on the top-most layer, _only_ horizontal traces on the next layer down. This would continue vertical traces on the layer below that, alternating horzontal and vertical for the entire board stack.
 
 To route a trace through this lattice, I first take a signal or airwire off a pad, and design a 'pad escape route' that ends in a via and 'punches down' into the grid. From here, it's routing through a Manhattan-like grid; a well-studied problem in computer science.
 
@@ -225,21 +249,14 @@ And here's a GIF of the pathfinder iterations:
 
 ## The Future of OrthoRoute
 
-I built this for one reason: to route my pathologically large backplane. Now that's done. I've written an autorouter that works. But this is _too good_ for it to be just a one-off project. To that end, I've open sourced everything and [It's up on GitHub](https://github.com/bbenchoff/OrthoRoute).
+I built this for one reason: to route my pathologically large backplane. Mission accomplished. But along the way, I accidentally built something more useful than I expected.
 
-This is a fairly well-designed piece of software, and it wouldn't be hard to add additional routing engines. So I guess I'm the KiCad autorouter plugin guy now. PRs welcome, and contributors too. 
+OrthoRoute proves that GPU-accelerated routing isn't just theoretical. It actually works for real boards, and it's fast. The Manhattan lattice approach handles high-density designs that make traditional autorouters choke. And the PathFinder implementation converges in minutes on boards that would take hours with CPU-based approaches.
 
-<p>
-  <a class="btn" href="https://github.com/bbenchoff/OrthoRoute" target="_blank" rel="noopener">
-    ⬇️ Download OrthoRoute (GitHub)
-  </a>
-</p>
-<style>
-.btn { display:inline-block; padding:.75rem 1rem; border-radius:.75rem; text-decoration:none;
-       box-shadow:0 2px 8px rgba(0,0,0,.15); }
-@media (prefers-color-scheme: dark){ .btn { background:#1f6feb; color:#fff; } }
-@media (prefers-color-scheme: light){ .btn { background:#2563eb; color:#fff; } }
-</style>
+More importantly, the architecture is modular. The hard parts—KiCad IPC integration, GPU acceleration framework, DRC-aware routing space generation are done. Adding new routing strategies on top of this foundation is straightforward. Someone could implement different algorithms, optimize for specific board types, or extend it to handle flex PCBs.
+
+The code is [up on GitHub](https://github.com/bbenchoff/OrthoRoute), and I'm genuinely curious what other people will do with it. PRs welcome. Contributors welcome. Let's make KiCad autorouting actually good.
+
 
 <script type="application/ld+json">
 {
