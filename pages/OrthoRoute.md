@@ -14,6 +14,7 @@ image: "/images/ConnM/OrthorouteCard.png"
   <img src="/images/icon200.png" alt="OrthoRoute Logo" width="200" height="200" loading="lazy" />
   <div>
     <h2 style="margin:0;">OrthoRoute — GPU-Accelerated Autorouting for KiCad</h2>
+    <p><b>OrthoRoute is a GPU-accelerated PCB autorouter that uses a Manhattan lattice and the PathFinder algorithm to route high-density boards. Built as a KiCad plugin using the IPC API, it handles complex designs with thousands of nets that make traditional push-and-shove routers give up.</b></p>
     <p><em>Never trust the autorouter, but at least this one is faster.</em></p>
   </div>
 </div>
