@@ -8,18 +8,6 @@ date: 2025-06-04
 last_modified_at: 2022-06-04
 image: "/images/ConnM/OrthorouteCard.png"
 ---
-
-
-<div class="or-header" style="display:flex;gap:1rem;align-items:center;margin-bottom:1rem;">
-  <img src="/images/icon200.png" alt="OrthoRoute Logo" width="200" height="200" loading="lazy" />
-  <div>
-    <h2 style="margin:0;">OrthoRoute — GPU-Accelerated Autorouting for KiCad</h2>
-    <p><b>OrthoRoute is a GPU-accelerated PCB autorouter that uses a Manhattan lattice and the PathFinder algorithm to route high-density boards. Built as a KiCad plugin using the IPC API, it handles complex designs with thousands of nets that make traditional push-and-shove routers give up.</b></p>
-    <p><em>Never trust the autorouter, but at least this one is faster.</em></p>
-  </div>
-</div>
-
-
 <style>
 
 /* Center the button row */
@@ -97,13 +85,22 @@ a.btn-download:focus-visible{
 }
 </style>
 
+<div class="or-header" style="display:flex;gap:1rem;align-items:center;margin-bottom:1rem;">
+  <img src="/images/icon200.png" alt="OrthoRoute Logo" width="200" height="200" loading="lazy" />
+  <div>
+    <h2 style="margin:0;">OrthoRoute — GPU-Accelerated Autorouting for KiCad</h2>
+    <p><b>OrthoRoute is a GPU-accelerated PCB autorouter that uses a Manhattan lattice and the PathFinder algorithm to route high-density boards. Built as a KiCad plugin using the IPC API, it handles complex designs with thousands of nets that make traditional push-and-shove routers give up.</b></p>
+    <p><em>Never trust the autorouter, but at least this one is fast.</em></p>
+  </div>
+</div>
+
+#### This document is a complement to the README in [the Github repository](https://github.com/bbenchoff/OrthoRoute). The README provides information about performance, capabilities, and tests. This document reflects more on the why and how OrthoRoute was developed.
+
 <div class="btn-row">
   <a class="btn-download" href="https://github.com/bbenchoff/OrthoRoute" target="_blank" rel="noopener">
     Download OrthoRoute (GitHub)
   </a>
 </div>
-
-#### This document is a complement to the README in [the Github repository](https://github.com/bbenchoff/OrthoRoute). The README provides information about performance, capabilities, and tests. This document reflects more on the why and how.
 
 ## Project Overview
 
@@ -133,7 +130,7 @@ Look at that shit. Hand routing this would take months. For a laugh, I tried [Fr
 
 - I could route the board by hand. This would be painful and take months, but I would get a good-looking board at the end.
 - I could YOLO everything and just let the FreeRouting autorouter handle it. It would take weeks, because the first traces are easy, the last traces take the longest. This would result in an ugly board.
-- I could spend a month or two building my own autorouter plugin for KiCad. I have a fairly powerful GPU and routing a PCB is a very parallel problem. I could also implement my own routing algorithms to make the finished product look good.
+- I could spend a month or two building my own autorouter plugin for KiCad. I have a fairly powerful GPU and _I thought_ routing a PCB is a very parallel problem. I could also implement my own routing algorithms to make the finished product look good.
 
 When confronted with a task that will take months, always choose the more interesting path.
 
@@ -180,23 +177,7 @@ Autorouters are an inherently unparallizable problem. Instead of mapping an enti
   </div>
 </div>
 
-But all is not lost. There's exactly one part of autorouting that's actually parallel, and a useful case to deploy a GPU. Lee's Wavefront expansion. You route your traces on a fine-pitch grid, and propagate a 'wave' through the grid. Each cell in the wave can be processed independently. Shortest path wins, put your trace there. That's what I'm using the GPU for, and the CPU for everything else. Yeah, it's faster, but it's not _great_. Don't trust the autorouter, but at least this one is fast.
-
-### The Non-Orthogonal Router
-
-With that said, it's time to show off what the KiCad IPC API can do. I chose to build a general purpose autorouter. Nothing fancy; just something that would route a few microcontroller breakout boards and a mechanical keyboard PCB. That's exactly what I did. I built an autorouter that only uses wavefront expansion. And I quickly hit the fundamental limit of how useful this autorouter could be:
-
-![A poorly routed RP2040 board](/images/ConnM/OrthorouteScreenshot2.png)
-
-Above is a screenshot of the OrthoRoute plugin, attempting to route a board with an RP2040 microcontroller. This is the standard RP2040 breakout taken off of Raspberry Pi's FTP server. I deleted the traces that put the GPIOs onto pin headers and pressed 'Route Now'. The results were terrible.
-
-This is routing with DRC awareness if you look really close. The routed traces aren't interfering with each other, but not many traces are routed. Airwires are still there, and the routing isn't quite as good as it could be.
-
-For a single pass, this is fine! But autorouters don't do a single pass. There are other techniques not implemented in this plugin like:
-
-- Push-and-Shove routing. This technique moves existing traces to make room for new ones. It's found in all real autorouters, but not implemented here
-- Rip-up and retry. Right now we have single-pass routing. If a route fails, it's done. Rip-up is the ability to remove 'blocking' or conflicting routes and try alternate paths.
-- A global routing plan. When a person looks at a circuit board full of airwires, they might see 'busses' -- a bunch of traces that all go from one component to another. It would be really smart to route these together, and route these first. I'm not doing that with my OrthoRoute. I'm just grabbing the first net from a list of unrouted nets and routing that.
+But all is not lost. There's exactly one part of autorouting that's actually parallel, and a useful case to deploy a GPU. Lee's Wavefront expansion. You route your traces on a fine-pitch grid, and propagate a 'wave' through the grid. Each cell in the wave can be processed independently. Shortest path wins, put your trace there. That's what I'm using the GPU for, and the CPU for everything else. Yeah, it's faster, but it's not _great_. Never trust the autorouter, but at least this one is fast.
 
 ### Bug-finding and Path-finding.
 
@@ -215,6 +196,23 @@ That's exactly what I did. First I learned how to extract the copper pour from a
 Pathfinding wasn't the issue. There are standard algorithms for that. What really gave me a lot of trouble is figuring out where the pathfinding was valid. I'm sure someone else would have spent months going through IPC specifications to figure out where an autorouter _should_ route traces. But I leveraged the simple fact that this data is already generated by KiCad -- the copper pour itself -- and just replicated it.
 
 If there are any KiCad devs out there reading this, please implement a `get_free_routing_space(int copper_layer)` function in the next iteration kicad-python. Something that returns the polygon of a copper pour on boards that don't have a copper pour, for each layer of copper.
+
+### The Non-Orthogonal Router
+
+With that said, it's time to show off what the KiCad IPC API can do. I chose to build a general purpose autorouter. Nothing fancy; just something that would route a few microcontroller breakout boards and a mechanical keyboard PCB. That's exactly what I did. I built an autorouter that only uses wavefront expansion. And I quickly hit the fundamental limit of how useful this autorouter could be:
+
+![A poorly routed RP2040 board](/images/ConnM/OrthorouteScreenshot2.png)
+
+Above is a screenshot of the OrthoRoute plugin, attempting to route a board with an RP2040 microcontroller. This is the standard RP2040 breakout taken off of Raspberry Pi's FTP server. I deleted the traces that put the GPIOs onto pin headers and pressed 'Route Now'. The results were terrible.
+
+This is routing with DRC awareness if you look really close. The routed traces aren't interfering with each other, but not many traces are routed. Airwires are still there, and the routing isn't quite as good as it could be.
+
+For a single pass, this is fine! But autorouters don't do a single pass. There are other techniques not implemented in this plugin like:
+
+- Push-and-Shove routing. This technique moves existing traces to make room for new ones. It's found in all real autorouters, but not implemented here
+- Rip-up and retry. Right now we have single-pass routing. If a route fails, it's done. Rip-up is the ability to remove 'blocking' or conflicting routes and try alternate paths.
+- A global routing plan. When a person looks at a circuit board full of airwires, they might see 'busses' -- a bunch of traces that all go from one component to another. It would be really smart to route these together, and route these first. I'm not doing that with my OrthoRoute. I'm just grabbing the first net from a list of unrouted nets and routing that.
+
 
 ### But a traditional autorouter isn't the point here
 
@@ -244,21 +242,49 @@ This process repeats. With each iteration, congestion decreases as nets find les
 
 [[[[[[IMAGES OF PATHFINDER ITERATIONS GO HERE]]]]]]
 
-After a few months of work, I was hitting a wall. I could route through this grid, traces were appearing, but it just couldn't finish routing. On a small test board, about 270 out of 512 nets would route; the rest would be inexplicably trapped, somehow. That's when I remembered by problems with the traditional push-and-shove router. Because I was routing nets in parallel, they would self-intersect and thus fail the checks for different nets overlapping. Thus was the case here -- my PathFinder implementation routed nets in batches, in parallel. Because these nets committed their position to the graph at the same time, they would always fail. PathFinder is, at its heart, a sequential algorithm. There aren't many tricks you can use to parallelize a PathFinder autorouter.
+After a few months of work, I was hitting a wall. I could route through this grid, traces were appearing, but it just couldn't finish routing. On a small test board, about 270 out of 512 nets would route; the rest would be inexplicably trapped, somehow. That's when I remembered by problems with the traditional push-and-shove router. Because I was routing nets in parallel, they would self-intersect and thus fail the checks for different nets overlapping. My PathFinder implementation routed nets in batches, in parallel. Because these nets committed their position to the graph at the same time, they would always fail. PathFinder is, at its heart, a sequential algorithm. There aren't many tricks you can use to parallelize a PathFinder autorouter.
+
+The same bug hit me again -- autorouting is an inherently sequential algorithm. Lesson learned.
 
 But with that fixed, I got iterations of PathFinder eventually converging, giving me these DRC-correct board layouts:
 
 [[[[[[IMAGES OF FINISHED BOARD GO HERE]]]]]]
 
-And here's a GIF of the pathfinder iterations:
+And here's a GIF of the pathfinder iterations:f
 
 [[[[[[IMAGES OF PathFinding GO HERE]]]]]]
 
+### Why PathFinder Kinda Sucks for PCBs
+
+The original PathFinder paper was, <em>"A Negotiation-Based Performance-Driven Router for FPGAs"</em> and from 1995, this meant early FPGAs like the Xilinx 3000 series and others manufactured by Tryptych. These devices were simple, and to get a good idea of how they worked, [check out Ken Shirriff's blog](https://www.righto.com/2020/09/reverse-engineering-first-fpga-chip.html). Here's what the inside of a Xilinx XC2064 looks like:
+
+![How FPGAs are laid out](/images/ConnM/FPGALayout.png)
+
+The basic idea behind this FPGA is that there are blocks, and you route between them with an orthogonal grid. The PathFinder algorithm works something like this:
+
+```
+total_cost = base_cost + pres_fac × current_congestion + hist_weight × historical_congestion
+```
+
+The PathFinder algorithm is extremely sensitive to these history costs, pressure factors, congestion, and a dozen other parameters that control how aggressively the route negotiates between competing nets and between iterations of the algorithm. 
+
+For FPGAs, this isn't a problem, because you can tune the parameters in the lab and every other routing task <em>for that specific FPGA</em> will also converge. You're routing within a fixed, well characterized architecture. But everyone can make a PCB. Will the same parameters used on a 4-layer Arduino clone work on a 24-layer backplane? No. 
+
+<strong>When PathFinding an FPGA, you know the constraints of that specific FPGA's fabric. When PathFinding a circuit board, all the constraints must be derived</strong>.
+
+While developing OrthoRoute, I found every failure mode possible. Change one variable and a board went from 9000 edges placed on the graph in iteration 1 to 40,000 in iteration 3. My first real success was routing a 30-layer board, but trying the same layout with 12 layers was a complete failure. For every board, parameters have to be tuned.
+
+### How I made PathFinder not suck
+
+So that's what I did. Right now I'm using Board-adaptive parameters for the Manhattan router. Before beginning the PathFinder algorithm it analyzes the board in KiCad for the number of signal layers, how many nets will be routed, and how dense the set of nets are. It's clunky, but it kinda works.
+
+Where PathFinder was tuned once for each family of FPGAs, I'm auto-tuning it for the entire class of circuit boards. A huge backplane gets careful routing and an Arduino clone gets fast, aggressive routing. The hope is that both will converge -- produce a valid routing solution -- and maybe that works. Maybe it doesn't. There's still more work to do.
+
 ## The Future of OrthoRoute
 
-I built this for one reason: to route my pathologically large backplane. Mission accomplished. But along the way, I accidentally built something more useful than I expected.
+I built this for one reason: to route my pathologically large backplane. Mission accomplished. And along the way, I accidentally built something more useful than I expected.
 
-OrthoRoute proves that GPU-accelerated routing isn't just theoretical. It actually works for real boards, and it's fast. The Manhattan lattice approach handles high-density designs that make traditional autorouters choke. And the PathFinder implementation converges in minutes on boards that would take hours with CPU-based approaches.
+OrthoRoute proves that GPU-accelerated routing isn't just theoretical. It actually works for real boards, and it's fast. The Manhattan lattice approach handles high-density designs that make traditional autorouters choke. And the PathFinder implementation converges in minutes on boards that would take hours or days with CPU-based approaches.
 
 More importantly, the architecture is modular. The hard parts—KiCad IPC integration, GPU acceleration framework, DRC-aware routing space generation are done. Adding new routing strategies on top of this foundation is straightforward. Someone could implement different algorithms, optimize for specific board types, or extend it to handle flex PCBs.
 
