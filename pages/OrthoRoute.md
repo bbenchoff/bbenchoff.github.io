@@ -102,6 +102,21 @@ a.btn-download:focus-visible{
   </a>
 </div>
 
+## Video Intro
+
+<!-- Drop this right under the front matter, before the .or-header -->
+<div style="position:relative;padding-bottom:56.25%;height:0;overflow:hidden;border-radius:8px;box-shadow:0 0 8px rgba(0,0,0,0.2);margin:0 0 1rem 0;">
+  <iframe
+    src="https://www.youtube-nocookie.com/embed/KXxxNQPTagA?rel=0"
+    title="OrthoRoute video"
+    loading="lazy"
+    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+    allowfullscreen
+    style="position:absolute;top:0;left:0;width:100%;height:100%;border:0;">
+  </iframe>
+</div>
+
+
 ## Project Overview
 
 **OrthoRoute** is a GPU-accelerated PCB autorouter, designed for parallel routing of massive circuit boards. Unlike most autorouters such as [Altium Situs](https://www.altium.com/documentation/altium-designer/automated-board-layout-situs-topological-autorouter), [FreeRouting](https://freerouting.org/), and a dozen EE-focused B2B SaaS startups, OrthoRoute uses GPUs for parallelizing the task of connecting pads with traces.
@@ -272,11 +287,23 @@ For FPGAs, this isn't a problem, because you can tune the parameters in the lab 
 
 <strong>When PathFinding an FPGA, you know the constraints of that specific FPGA's fabric. When PathFinding a circuit board, all the constraints must be derived</strong>.
 
-While developing OrthoRoute, I found every failure mode possible. Change one variable and a board went from 9000 edges placed on the graph in iteration 1 to 40,000 in iteration 3. My first real success was routing a 30-layer board, but trying the same layout with 12 layers was a complete failure. For every board, parameters have to be tuned.
+### How PathFinder Almost Killed Me
+
+While developing OrthoRoute, I found every failure mode possible. The router would start fine with 9,495 edges with congestion in iteration 1. Then iteration 2: 18,636 edges. Iteration 3: 36,998 edges. The overuse was *growing* by 3× per iteration instead of converging. Something was fundamentally broken.
+
+The culprit? History costs were *decaying* instead of accumulating. The algorithm needs to remember which edges were problematic in past iterations, but my implementation had `history_decay=0.995`, so it was forgetting 0.5% of the problem every iteration. By iteration 10, it had forgotten everything. No memory = no learning = explosion.
+
+With the history fixed, I ran another test. I got *oscillation*. The algorithm would improve for 12 iterations (9,495 → 5,527, a 42% improvement!), then spike back to 11,817, then drop to 7,252, then spike to 14,000. The pattern repeated forever. The problem was "adaptive hotset sizing"—when progress slowed, the algorithm would enlarge the set of nets being rerouted from 150 to 225, causing massive disruption. Fixing the hotset at 100 nets eliminated the oscillation.
+
+Even with fixed hotsets, late-stage oscillation returned after iteration 15. Why? The present cost factor escalates exponentially: `pres_fac = 1.15^iteration`. By iteration 19, present cost was 12.4× stronger than iteration 1, completely overwhelming history (which grows linearly). The solution: cap `pres_fac_max=8.0` to keep history competitive throughout convergence.
+
+With all fixes in place, a 30-layer board with 512 nets converged to zero overuse at iteration 21. Success!
+
+Then I tested a 12-layer board. Complete failure: 493/512 nets routed, 14,300 overuse across 4,648 edges, stalled at iteration 40. Same code, same parameters, different board.
 
 ### How I made PathFinder not suck
 
-So that's what I did. Right now I'm using Board-adaptive parameters for the Manhattan router. Before beginning the PathFinder algorithm it analyzes the board in KiCad for the number of signal layers, how many nets will be routed, and how dense the set of nets are. It's clunky, but it kinda works.
+PathFinder is designed for FPGAs, and each and every Xilinx XC3000 chip is the same as every other XC3000 chip. Every single PCB is different from every other PCB. What I had to do was figure out these paramaters on the fly. So that's what I did. Right now I'm using Board-adaptive parameters for the Manhattan router. Before beginning the PathFinder algorithm it analyzes the board in KiCad for the number of signal layers, how many nets will be routed, and how dense the set of nets are. It's clunky, but it kinda works.
 
 Where PathFinder was tuned once for each family of FPGAs, I'm auto-tuning it for the entire class of circuit boards. A huge backplane gets careful routing and an Arduino clone gets fast, aggressive routing. The hope is that both will converge -- produce a valid routing solution -- and maybe that works. Maybe it doesn't. There's still more work to do.
 
@@ -284,12 +311,15 @@ Where PathFinder was tuned once for each family of FPGAs, I'm auto-tuning it for
 
 I built this for one reason: to route my pathologically large backplane. Mission accomplished. And along the way, I accidentally built something more useful than I expected.
 
-OrthoRoute proves that GPU-accelerated routing isn't just theoretical. It actually works for real boards, and it's fast. The Manhattan lattice approach handles high-density designs that make traditional autorouters choke. And the PathFinder implementation converges in minutes on boards that would take hours or days with CPU-based approaches.
+OrthoRoute proves that GPU-accelerated routing isn't just theoretical, and that algorithms designed for routing FPGAs can be adapted to the more general class of circuit boards. It's fast, too. The Manhattan lattice approach handles high-density designs that make traditional autorouters choke. And the PathFinder implementation converges in minutes on boards that would take hours or days with CPU-based approaches.
 
 More importantly, the architecture is modular. The hard parts—KiCad IPC integration, GPU acceleration framework, DRC-aware routing space generation are done. Adding new routing strategies on top of this foundation is straightforward. Someone could implement different algorithms, optimize for specific board types, or extend it to handle flex PCBs.
 
-The code is [up on GitHub](https://github.com/bbenchoff/OrthoRoute), and I'm genuinely curious what other people will do with it. PRs welcome. Contributors welcome. Let's make KiCad autorouting actually good.
+The code is [up on GitHub](https://github.com/bbenchoff/OrthoRoute). I'm genuinely curious what other people will do with it. Want to add different routing strategies? Optimize for RF boards? Extend it to flex PCBs? PRs welcome, contributors welcome.
 
+And yes, you should still manually route critical signals. But for dense digital boards with hundreds of mundane power and data nets? Let the GPU handle it while you grab coffee. That's what autorouters are for.
+
+**Never trust the autorouter. But at least this one is fast.**
 
 <script type="application/ld+json">
 {
