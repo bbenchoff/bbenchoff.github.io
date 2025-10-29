@@ -31,6 +31,7 @@ I design, build, and reverse-engineer **hardware, embedded systems, and unconven
 ## ** Featured Projects**
 
 ### **Coding**
+🔹**[OrthoRoute](https://bbenchoff.github.io/pages/OrthoRoute.html)** -- **GPU accelerated autorouting** and it's a KiCad plugin<br>
 🔹**[Babelscope](https://bbenchoff.github.io/pages/Babelscope.html)** -- A **massively parallel emulation framework** that found absolutely nothing<br>
 🔹**[Finding Atari Games in Randomly Generated Data](https://bbenchoff.github.io/pages/FiniteAtari.html)** -- 30 billion ROM files **and only one broken game**<br>
 🔹**[A port of Mbed-TLS for the Classic Macintosh OS 7/8/9](https://bbenchoff.github.io/pages/MacSSL.html)** -- SSL/TLS **for something that was never meant to have it**<br>
