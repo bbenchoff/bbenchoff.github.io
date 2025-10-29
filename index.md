@@ -38,6 +38,7 @@ I design, build, and reverse-engineer **hardware, embedded systems, and unconven
 🔹**[Embedded SSL and GZIP](https://bbenchoff.github.io/pages/BusTideDisplay.html)** -- Because **you don't need to run everything in Linux**<br>
 
 ### **Embedded & Open Hardware**
+🔹 **[Exaluminal](https://www.exaluminal.com/)** -- An IoT device to detect supernovas **up to an hour before the Earth is destroyed**<br>
 🔹 **[Multi-Stop Bus Tracker](https://bbenchoff.github.io/pages/BusTideDisplay.html)** -- When is the next bus coming **to many different bus stops**<br>
 🔹 **[The $15 Linux Machine](https://bbenchoff.github.io/pages/LinuxDevice.html)** -- A fully functional **Linux handheld** for under $15<br>
 🔹 **[Isolated Thermocouple Reader](https://bbenchoff.github.io/pages/IsoTherm.html)** -- A **low-cost alternative** to a $2,000 industrial module<br>
