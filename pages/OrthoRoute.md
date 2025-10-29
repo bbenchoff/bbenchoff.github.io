@@ -5,7 +5,7 @@ description: "OrthoRoute: GPU-Accelerated PCB Autorouter"
 keywords: ["hardware engineering", "PCB design", "autorouting", "autorouter", "CUDA", "CuPy", "electronics"]
 author: "Brian Benchoff"
 date: 2025-06-04
-last_modified_at: 2022-06-04
+last_modified_at: 2025-10-28
 image: "/images/ConnM/OrthorouteCard.png"
 ---
 <style>
@@ -255,19 +255,13 @@ PathFinder works in iterations. In the first pass, each net routes itself greedi
 
 This process repeats. With each iteration, congestion decreases as nets find less contested paths through the lattice. The algorithm typically converges to a valid, uncontested solution within 5-10 iterations for most boards. For that massive 17,600 pad backplane? It routes in _minutes_ on an RTX 5080.
 
-[[[[[[IMAGES OF PATHFINDER ITERATIONS GO HERE]]]]]]
-
 After a few months of work, I was hitting a wall. I could route through this grid, traces were appearing, but it just couldn't finish routing. On a small test board, about 270 out of 512 nets would route; the rest would be inexplicably trapped, somehow. That's when I remembered by problems with the traditional push-and-shove router. Because I was routing nets in parallel, they would self-intersect and thus fail the checks for different nets overlapping. My PathFinder implementation routed nets in batches, in parallel. Because these nets committed their position to the graph at the same time, they would always fail. PathFinder is, at its heart, a sequential algorithm. There aren't many tricks you can use to parallelize a PathFinder autorouter.
 
 The same bug hit me again -- autorouting is an inherently sequential algorithm. Lesson learned.
 
 But with that fixed, I got iterations of PathFinder eventually converging, giving me these DRC-correct board layouts:
 
-[[[[[[IMAGES OF FINISHED BOARD GO HERE]]]]]]
-
-And here's a GIF of the pathfinder iterations:f
-
-[[[[[[IMAGES OF PathFinding GO HERE]]]]]]
+![A converged board](/images/ConnM/TestBackplane.png)
 
 ### Why PathFinder Kinda Sucks for PCBs
 
@@ -275,11 +269,7 @@ The original PathFinder paper was, <em>"A Negotiation-Based Performance-Driven R
 
 ![How FPGAs are laid out](/images/ConnM/FPGALayout.png)
 
-The basic idea behind this FPGA is that there are blocks, and you route between them with an orthogonal grid. The PathFinder algorithm works something like this:
-
-```
-total_cost = base_cost + pres_fac × current_congestion + hist_weight × historical_congestion
-```
+The basic idea behind this FPGA is that there are blocks, and you route between them with an orthogonal grid. The PathFinder algorithm works something like this: `total_cost = base_cost + pres_fac × current_congestion + hist_weight × historical_congestion`
 
 The PathFinder algorithm is extremely sensitive to these history costs, pressure factors, congestion, and a dozen other parameters that control how aggressively the route negotiates between competing nets and between iterations of the algorithm. 
 
