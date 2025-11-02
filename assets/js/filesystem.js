@@ -8,6 +8,11 @@ const fileSystem = {
                 type: 'folder',
                 icon: 'folder-icon.png',
                 contents: {
+                    'OrthoRoute': {
+                        type: 'document',
+                        icon: 'orthoroute.png',
+                        file: 'OrthoRoute'
+                    },
                     'Finite Atari Machine': {
                         type: 'document',
                         icon: 'Stella.png',
@@ -297,6 +302,7 @@ function initializeDesktop() {
 
     // Add aliases to main projects
     const projects = [
+        { name: 'OrthoRoute', icon: 'orthoroute.png' },
         { name: 'Bus Tracker Display', icon: 'muni.png' },
         { name: 'Isolated Thermocouple', icon: 'deltasig.png' },
         { name: 'Citicar', icon: 'redcar.png' },
