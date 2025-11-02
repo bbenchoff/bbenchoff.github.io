@@ -153,6 +153,8 @@ When confronted with a task that will take months, always choose the more intere
 
 ![Screenshot 1, showing an Arduino clone](/images/ConnM/OrthorouteScreenshot1.png)
 
+![A converged solution, imported into KiCad](/images/ConnM/smallboardtestrender.png)
+
 <div class="btn-row">
   <a class="btn-download" href="https://github.com/bbenchoff/OrthoRoute" target="_blank" rel="noopener">
     Download OrthoRoute (GitHub)
