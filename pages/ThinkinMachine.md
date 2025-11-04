@@ -565,5 +565,23 @@ You can run OrthoRoute yourself [by downloading it from the repo](https://github
 ## The RISC-V Boards
 
 
+## Contextualizing the build
+
+There's a few thoughts I've been ruminating about for a while with regards to design and technological progress. The thesis of this idea is that design is a product of technological capability.
+
+Take, for example, mid-century modern furniture. Eames chairs and molded plywood end tables were only possible after the development of phenolic resins during World War II. Without those, the plywood would delaminate. Technology enabled bending plywood, which enabled mid-century modern furniture. This was even noticed in the New York Times during one of the first Eames' exhibitions, with the headline, "War-Time Developed Techniques of Construction Demonstrated at Modern Museum".
+
+In fashion, there was an explosion of colors in the 1860s, brought about purely from the development of aniline dyes in 1856. Now you could have purple without tens of thousands of sea snails. The dutch masters painted in a flax-growing region, giving them high-quality linseed oil for their paints. McMansions, with their disastrous roof lines came about only a few years after the nail plates and pre-fabbed roof trusses; those roofs would be uneconomical with hand-cut rafters and skilled carpenters. Raymond Loewy created Streamline Moderne because welding became practically possible in the 1920s and 30s. The Mannesmann seamless tube process was invented in 1885, leading to steel framed bicycles very quickly and once the process was inexpensive enough, applied the Wassily chair, a Bauhaus masterpiece, in 1925. 
+
+The point is, technology enables design. And this Thinking Machine could not have been built any earlier.
+
+The original Connection Machine CM-1 was built in 1985 thanks to advances in VLSI design, probably peeling a few guys off from the DEC mill, and a need for three-letter agencies to have a terrifically fast computer. My machine had different factors that led to its existence.
+
+The ten-cent microcontrollers that enabled this build were only available for about a year before I began the design. The backplane itself is a realization of two technologies -- the CUDA pipeline that would make generating the backplane (and testing the code that created the backplane) take only minutes. Routing the backplane with a KiCad plugin would have been impossible without the IPC API, released only months before I began this project. The LED driver could have only been created because of my earlier work with the RP2040 PIOs and the IS31FL3741 LED drivers saved from an earlier project. And of course fabbing the PCBs would have cost a hundred times more if I ordered them in 2005 instead of 2025.
+
+I couldn't have built this in 2020, because I would be looking at four thousand dollars in microcontrollers instead of four hundred. I couldn't have made this in 2015 because I bought the first reel of IS31FL3741s from Mouser in 2017. In 2010, the PCB costs alone would have been prohibitive.
+
+The earliest this Thinking Machine could have been built is the end of 2025 or the beginning of 2026, and I think I did alright. The trick wasn't knowing _how_ to build it, it's knowing that it _could_ be built. This is probably the best thing I'll ever build, but it certainly won't be the most advanced. For those builds, the technology hasn't even been invented yet and the parts are, as of yet, unavailable.
+
 [back](../)
 
