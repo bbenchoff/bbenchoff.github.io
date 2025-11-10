@@ -125,7 +125,20 @@ Each IS31FL3741 is controlling a **32x8** matrix of LEDs over I2C. These chips h
 
 Why did I build my own 64x64 LED array, instead of using an off-the-shelf HUB75 LED panel? It would have certainly been cheaper -- a 64x64 LED panel can be bought on Amazon for under $50. Basically, I wanted some practice with high-density design before diving into routing a 12-dimension hypercube. It's also a quick win, giving me something to look at while routing hundreds of thousands of connections.
 
-[[[[[VIDEO OF BLINKY GOES HERE]]]]]
+<div style="position:relative;padding-bottom:56.25%;height:0;overflow:hidden;border-radius:8px;box-shadow:0 0 8px rgba(0,0,0,0.2);margin:0 0 1rem 0;">
+  <iframe
+    src="https://www.youtube-nocookie.com/embed/oIQOIeG_9m4?rel=0"
+    title="Random and Pleasing pattern"
+    loading="lazy"
+    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+    allowfullscreen
+    style="position:absolute;top:0;left:0;width:100%;height:100%;border:0;">
+  </iframe>
+</div>
+
+There are a few pre-programmed modes for this panel. Of course I had to implement Conway's Game of Life, but the real showstopper is the "Random and Pleasing" mode. This is the mode shown in Jurassic Park, and it's the mode MOMA turns on when they light up their machine.
+
+There are several sources _describing_ this mode, but no actual details on how it's _implemented_. I went for a 4094-bit LFSR, and divided the display up into four columns of 1x16 'cells'. These cells are randomly assigned to shift left or shift right, and 256 unique taps are assigned to a particular 1x16 cell.
 
 # Connection Machine, High-Level Design
 

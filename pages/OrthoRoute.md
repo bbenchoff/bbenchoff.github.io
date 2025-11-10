@@ -116,8 +116,6 @@ a.btn-download:focus-visible{
   </iframe>
 </div>
 
-
-
 <div style="position:relative;padding-bottom:56.25%;height:0;overflow:hidden;border-radius:8px;box-shadow:0 0 8px rgba(0,0,0,0.2);margin:0 0 1rem 0;">
   <iframe
     src="https://www.youtube-nocookie.com/embed/P8Wsej71XAQ?rel=0"
