@@ -154,23 +154,17 @@ The first step of that is the [pad escape planner](https://github.com/bbenchoff/
 
 ![The escape path planning for individual pads](/images/ConnM/EscapePlanning.png)
 
-### How PathFinder Almost Killed Me
+### How PathFinder Almost Killed Me, and How I made PathFinder not suck
 
-While developing OrthoRoute, I found every failure mode possible. The router would start fine with 9,495 edges with congestion in iteration 1. Then iteration 2: 18,636 edges. Iteration 3: 36,998 edges. The overuse was *growing* by 3× per iteration instead of converging. Something was fundamentally broken.
-
-The culprit? History costs were *decaying* instead of accumulating. The algorithm needs to remember which edges were problematic in past iterations, but my implementation had `history_decay=0.995`, so it was forgetting 0.5% of the problem every iteration. By iteration 10, it had forgotten everything. No memory = no learning = explosion.
+I found every bug imaginable while developing OrthoRoute. For one, congestion of nets would grow each iterations. The router would start fine with 9,495 edges with congestion in iteration 1. Then iteration 2: 18,636 edges. Iteration 3: 36,998 edges. The overuse was *growing* by 3× per iteration instead of converging. Something was fundamentally broken. The culprit? History costs were *decaying* instead of accumulating. The algorithm needs to remember which edges were problematic in past iterations, but my implementation had `history_decay=0.995`, so it was forgetting 0.5% of the problem every iteration. By iteration 10, it had forgotten everything. No memory = no learning = explosion.
 
 With the history fixed, I ran another test. I got *oscillation*. The algorithm would improve for 12 iterations (9,495 → 5,527, a 42% improvement!), then spike back to 11,817, then drop to 7,252, then spike to 14,000. The pattern repeated forever. The problem was "adaptive hotset sizing"—when progress slowed, the algorithm would enlarge the set of nets being rerouted from 150 to 225, causing massive disruption. Fixing the hotset at 100 nets eliminated the oscillation.
 
 Even with fixed hotsets, late-stage oscillation returned after iteration 15. Why? The present cost factor escalates exponentially: `pres_fac = 1.15^iteration`. By iteration 19, present cost was 12.4× stronger than iteration 1, completely overwhelming history (which grows linearly). The solution: cap `pres_fac_max=8.0` to keep history competitive throughout convergence.
 
-With all fixes in place, a 30-layer board with 512 nets converged to zero overuse at iteration 21. Success!
+PathFinder is designed for FPGAs, and each and every Xilinx XC3000 chip is the same as every other XC3000 chip. Configuring the parameters for an old Xilinx chip means every routing problem will _probably_ converge on that particular chip. PCBs are different; every single PCB is different from every other PCB. There is no single set of history, pressure, and decay parameters that will work on every single PCB.
 
-Then I tested a 12-layer board. Complete failure: 493/512 nets routed, 14,300 overuse across 4,648 edges, stalled at iteration 40. Same code, same parameters, different board.
-
-### How I made PathFinder not suck
-
-PathFinder is designed for FPGAs, and each and every Xilinx XC3000 chip is the same as every other XC3000 chip. Every single PCB is different from every other PCB. What I had to do was figure out these paramaters on the fly. So that's what I did. Right now I'm using Board-adaptive parameters for the Manhattan router. Before beginning the PathFinder algorithm it analyzes the board in KiCad for the number of signal layers, how many nets will be routed, and how dense the set of nets are. It's clunky, but it kinda works.
+What I had to do was figure out these paramaters on the fly. So that's what I did. Right now I'm using Board-adaptive parameters for the Manhattan router. Before beginning the PathFinder algorithm it analyzes the board in KiCad for the number of signal layers, how many nets will be routed, and how dense the set of nets are. It's clunky, but it kinda works.
 
 Where PathFinder was tuned once for each family of FPGAs, I'm auto-tuning it for the entire class of circuit boards. A huge backplane gets careful routing and an Arduino clone gets fast, aggressive routing. The hope is that both will converge -- produce a valid routing solution -- and maybe that works. Maybe it doesn't. There's still more work to do.
 
@@ -182,15 +176,38 @@ This led me to develop a 'cloud routing solution'. It boils down to extracting a
 
 Here's the result:
 
-![image of the finished board](/images/ConnM/OrthoRouteLarge.png)
-![image of the finished board](/images/ConnM/OrthorouteRouted.png)
-![image of the finished board](/images/ConnM/OrthoRouteKiCad.png)
+<figure style="margin: 2rem 0; text-align: center;">
+  <img src="/images/ConnM/OrthoRouteLarge.png" 
+       alt="Full backplane view showing completed routing" 
+       style="width: 100%; max-width: 1000px; height: auto; border-radius: 4px; box-shadow: 0 0 8px rgba(0,0,0,0.2);">
+  <figcaption style="margin-top: 0.5rem; font-style: italic; color: #666; font-size: 0.95rem;">
+    The full backplane view: 8,192 nets routed through 32 layers, in OrthoRoute
+  </figcaption>
+</figure>
+
+<figure style="margin: 2rem 0; text-align: center;">
+  <img src="/images/ConnM/OrthorouteRouted.png" 
+       alt="Zoomed detail of Manhattan lattice routing" 
+       style="width: 100%; max-width: 1000px; height: auto; border-radius: 4px; box-shadow: 0 0 8px rgba(0,0,0,0.2);">
+  <figcaption style="margin-top: 0.5rem; font-style: italic; color: #666; font-size: 0.95rem;">
+    Zoomed detail showing Manhattan lattice routing density
+  </figcaption>
+</figure>
+
+<figure style="margin: 2rem 0; text-align: center;">
+  <img src="/images/ConnM/OrthoRouteKiCad.png" 
+       alt="Routed board imported into KiCad" 
+       style="width: 100%; max-width: 1000px; height: auto; border-radius: 4px; box-shadow: 0 0 8px rgba(0,0,0,0.2);">
+  <figcaption style="margin-top: 0.5rem; font-style: italic; color: #666; font-size: 0.95rem;">
+    The routed board imported back into KiCad for final cleanup
+  </figcaption>
+</figure>
 
 That's it, that's the finished board. A few specs:
 
 - 44,233 blind and buried vias. 68,975 track segments.
 - Routed on an 80GB A100 GPU, rented on vast.io. The total VRAM required to route this board was 33.5 GB, so close to being under 32GB and allowing me to rent a cheaper GPU
-- Total time to route this board to completion was nearly 60 hours. This is far better than the months it would have taken FreeRouting to route this board, but it's still not fast.
+- Total time to route this board to completion was 41 hours. This is far better than the months it would have taken FreeRouting to route this board, but it's still not fast.
 - The routing result is _good_ but not _great_. A big problem is the DRC-awareness of the escape pad planning. There are traces that don't quite overlap, but because of the geometry generated by the escape route planner they don't pass a strict DRC. This could be fixed in future versions. There are also some overlapping traces in what PathFinder generated. Not many, but a few.
 
 While the output from my autorouter isn't perfect, no one would expect an autorouter to produce a _perfect_ result, ready for production. It's an autorouter, something you shouldn't trust. Turning the result for OrthoRoute into a DRC-compliant board took a few days, but it was far easier than the intractable problem of eight thousand airwires I had at the beginning.
