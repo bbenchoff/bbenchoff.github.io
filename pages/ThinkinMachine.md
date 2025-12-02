@@ -152,9 +152,36 @@ The Connection Machine settled on a hypercube layout, where in a network of 8 no
 
 The advantages to this layout are that routing algorithms for passing messages between nodes are simple, and there are redundant paths between nodes. If you want to build a hypercluster of tiny computers, you build it as a hypercube.
 
-## My Machine
+# My Machine
 
-Disregarding the architecture of a 12-dimensional hypercube, the layout of this machine is shockingly simple:
+This machine is split up into segments of various sizes. Each segment is 1/16th as large as the next. These are:
+
+- **The Node** This is simply a CH32V203 RISC-V microcontroller. Specifically, I am using the CH32V203G6U6, a QFN28 part with around 20 GPIOs. In the machine, 12 of these pins will be used for hypercube connections, with other pins reserved for UART connections to a local microcontroller, the `/BOOT` pin, and `NRST` pin.
+- **The Slice** This is 16 individual nodes, connected as a 4-dimension hypercube. In the Slice, a seventeenth microcontroller the initialization and control of each individual node. This means providing the means to program and read out memory from each node individually. I'm doing this through the UART bootloader for the CH32V203. Controlling the `/BOOT` and `NRST` of each node allows me to restart each node either collectively or individually
+- **The Plane**  This is 16 Slices. In this segment, 256 CH32V203 microcontrollers are connected via an 8-dimension hypercube. With 16 CH32V203 microcontrollers per Slice plus one additional microcontroller, this means each plane consists of 272 microcontrollers, _plus an additional control layer_ for summing UARTs and routing messages to each Slice. In total there are 273 microcontrollers in each Plane.
+- **The Machine** Sixteen Planes make a Machine. The architecture follows the growth we've seen up to now, with 4096 CH32V203 microcontrollers connected as a 12-dimensional hypercube. There are 4368 microcontrollers in The Machine, all controlled with a rather large SoC.
+
+## 1 Node, or 'The Node'
+
+As stated above, the node is a CH32V203 RISC-V microcontroller. Although not the cheapest microcontroller available -- that would be the $0.13 CH32V003 -- The '203 has significant benefits that make construction simpler and more performant:
+
+- The CH32V003 is programmed over a _strange_ one-wire serial connection that cannot be repurposed for local control. The CH32V203 can be programmed over serial, and this connection can be repurposed to get data into and out of a specific node.
+- The CH32V003 is based on a QingKe RISC-V2A core, without hardware multiply and divide. The CH32V203 is based on a RISC-V4B core, that has hardware multiply and divide.
+- The CH32V003 is $0.13 in quantity, the CH32V203 is $0.37 in quantity. If I'm going this far, I'll spend the extra thousand dollars to get a machine that's a hundred times better.
+
+## 16 Nodes, or, 'The Slice'
+
+![Block diagram of 16 nodes, showing a 16-node hypercube controlled via UART](/images/ConnM/SliceControl.png)
+
+## 256 Nodes, or, 'The Plane'
+
+
+## 4096 Nodes, or, 'The Machine'
+
+
+
+/*
+Disregarding the architecture of a 12-dimensional hypercube, the high-level layout of this machine is shockingly simple:
 
 ![Block diagram of the Connection Machine](/images/ConnM/BlockDiagram.png)
 
@@ -163,6 +190,7 @@ As discussed above, the LED array is controlled by an RP2040 microcontroller ove
 The 4096 nodes in the Connection Machine are connected to the 'local coordinators' of the hypercube array. 16 of these controllers handle Single Wire Debug for 256 RISC-V chips, allowing for programming each individual node in the hypercube, as well as providing input and output to each individual node. Each of these coordinators handle a single 8-dimensional hypercube, sixteen of these 8-dimension cubes comprise the entire 12-dimensional hypercube array. 
 
 These coordinators communicate with the main controller over a bidirectional serial link. The main controller is responsible for communicating with the local coordinators, both to write software to the RISC-V nodes, and to read the state of the RISC-V nodes. Input and output to the rest of the universe is through the main controller over an Ethernet connection provided by a WIZnet W5500 controller.
+*/
 
 ### The Backplane -- Theory
 
