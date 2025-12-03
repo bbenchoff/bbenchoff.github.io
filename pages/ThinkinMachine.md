@@ -161,22 +161,43 @@ This machine is split up into segments of various sizes. Each segment is 1/16th 
 - **The Plane**  This is 16 Slices. In this segment, 256 CH32V203 microcontrollers are connected via an 8-dimension hypercube. With 16 CH32V203 microcontrollers per Slice plus one additional microcontroller, this means each plane consists of 272 microcontrollers, _plus an additional control layer_ for summing UARTs and routing messages to each Slice. In total there are 273 microcontrollers in each Plane.
 - **The Machine** Sixteen Planes make a Machine. The architecture follows the growth we've seen up to now, with 4096 CH32V203 microcontrollers connected as a 12-dimensional hypercube. There are 4368 microcontrollers in The Machine, all controlled with a rather large SoC.
 
+Somewhat like the original Connection Machine, there are two 'modes' of connection between the nodes in the array. The first is the hypercube connection, which we'll get to later (link to backplane). The second is effectively a tree. Each node in the machine is connected to a 'Slice' microcontroller via UART. This Slice microcontroller handles reset, boot, programming, and loading data into each node. Above the Slice is the Plane, a master controller for each group of 256 nodes. And above that is the master controller.
+
+This "hypercube and tree" is extremely similar to the original Connection Machine. <<<blah blah blah something something describing the CM>>> This shouldn't be a surprise; Danny was building at the very edge of what was possible in the 80s. I'm building at the very edge of what's possible forty years later. Convergent evolution and all that.
+
 ## 1 Node, or 'The Node'
 
 As stated above, the node is a CH32V203 RISC-V microcontroller. Although not the cheapest microcontroller available -- that would be the $0.13 CH32V003 -- The '203 has significant benefits that make construction simpler and more performant:
 
 - The CH32V003 is programmed over a _strange_ one-wire serial connection that cannot be repurposed for local control. The CH32V203 can be programmed over serial, and this connection can be repurposed to get data into and out of a specific node.
 - The CH32V003 is based on a QingKe RISC-V2A core, without hardware multiply and divide. The CH32V203 is based on a RISC-V4B core, that has hardware multiply and divide.
-- The CH32V003 is $0.13 in quantity, the CH32V203 is $0.37 in quantity. If I'm going this far, I'll spend the extra thousand dollars to get a machine that's a hundred times better.
+- The CH32V003 is \$0.13 in quantity, the CH32V203 is \$0.37 in quantity. If I'm going this far, I'll spend the extra thousand dollars to get a machine that's a hundred times better.
 
 ## 16 Nodes, or, 'The Slice'
+
+The Slice is a 4-dimensional hypercube, or 16 CH32V203 microcontrollers, each connected to 4 others. These 16 nodes are controlled by a dedicated microcontroller, programming each node over serial, toggling the reset circuit, and loading data into and out of each node.
 
 ![Block diagram of 16 nodes, showing a 16-node hypercube controlled via UART](/images/ConnM/SliceControl.png)
 
 ## 256 Nodes, or, 'The Plane'
 
+![Block diagram of 16 Slices, showing the architecture of a Plane](/images/ConnM/PanelControl.png)
 
 ## 4096 Nodes, or, 'The Machine'
+
+This is where the magic happens. The original CM-1 was controlled via a DEC VAX or Lisp machine that acted as a front-end processor. The front-end would broadcast instructions to the array, collect results, and handle I/O with the outside world. My machine needs something similar. At the top of the hierarchy sits a Zynq SoC - an FPGA with ARM cores bolted on. This is the easiest way to get 
+
+This handles:
+
+- **Instruction broadcast**: In SIMD mode, the Zynq sends opcodes down the tree to all 4,096 nodes simultaneously
+- **Result aggregation**: Data flows up through the Planes, gets collected, and presents to the outside world
+- **Network interface**: Ethernet to everything else, USB, and HDMI simply because the Zynq support it. It's a Lin
+- **LED coordination**: Someone has to tell that 64x64 array what to display
+
+The Zynq talks to 16 Plane controllers. Each Plane controller talks to 16 Slice controllers. Each Slice controller talks to 16 nodes. It's trees all the way down.
+
+
+## Two Networks, One Machine
 
 
 
