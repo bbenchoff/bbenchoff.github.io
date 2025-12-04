@@ -91,13 +91,15 @@ image: "/images/ConnM/CMSocialCard.png"
 
 # Thinkin' Machine Supercomputer
 
-#### Or: I made a supercomputer out of a bunch of smartphone connectors, a chip from RGB mechanical keyboards, and four thousand tiny microcontrollers.
+#### Or: I made a supercomputer out of a bunch of smartphone connectors, a chip from RGB mechanical keyboards, and four thousand RISC-V microcontrollers.
 
-This project is a reproduction and modern recreation of the Thinking Machines [Connection Machine CM-1](https://en.wikipedia.org/wiki/Connection_Machine). The Connection Machine was a massively parallel computer from 1985, containing 65,536 individual processors arranged at the vertexes of a 16-dimension hypercube. This means each processor in the machine is connected to 16 adjacent processors.
+This project is a reproduction and modern recreation of the Thinking Machines [Connection Machine CM-1](https://en.wikipedia.org/wiki/Connection_Machine). The Connection Machine was a massively parallel computer from 1985, containing 65,536 individual processors arranged at the vertexes of a 16-dimension hypercube. This means each processor in the machine is connected to 16 adjacent processors. While the Connection Machine was the fastest computer on the planet in the late 1980s ([Top500](https://top500.org/) only goes back to 1993), the company died during the second AI winter.
 
 This project is effectively identical to the lowest-spec Connection Machine built. It contains 4,096 individual RISC-V processors, each connected to 12 neighbors in a 12-dimensional hypercube.
 
-The Connection Machine was an early experiment in massive parallelism. The individual processors in the CM-1 couldn't do much -- they could only operate on a single bit at a time, and their computational capability isn't much more than an ALU. This project leverages 40 years of Moore's law to put small, cheap computers into a parallel array. Not only does this allow me to emulate the ALU-like processors in the original CM-1, but I can also run actual programs at the corners of a 12-dimensional hypercube.
+The Connection Machine was an early experiment in massive parallelism. Today, a 'massively parallel computer' means wiring up a bunch of machines running Linux to an Ethernet switch. The topology of this network is whatever the switch is. The Connection Machine is different. Every node is connected to 16 other nodes in a machine with 65,536 processors. In my machine, every node is connected to 12 of the 4,096 processors. For _n_ total processors, each node connects to exactly $\log_2(n)$ neighbors. This topology makes the machine extremely interesting with regard to what it can calculate efficiently, namely matrix operations, which is the basis of the third AI boom.
+
+The individual processors in the CM-1 couldn't do much -- they could only operate on a single bit at a time, and their computational capability isn't much more than an ALU. This project leverages 40 years of Moore's law to put small, cheap computers into a parallel array. Not only does this allow me to emulate the ALU-like processors in the original CM-1, but I can also run actual programs at the corners of a 12-dimensional hypercube.
 
 This is a faithful reproduction of the original, 1985-era Connection Machine, plus 40 years of Moore's law and very poor impulse control. In 1985, this was the cutting edge of parallel computing. In 2025, it's a weird art project with better chips.
 
@@ -138,6 +140,8 @@ There are a few pre-programmed modes for this panel. Of course I had to implemen
 
 There are several sources _describing_ this mode, but no actual details on how it's _implemented_. I went for a 4094-bit LFSR (256 taps), and divided the display up into four columns of 1x16 'cells'. These cells are randomly assigned to shift left or shift right, and 256 unique taps are assigned to a particular 1x16 cell.
 
+Mechanically, the LED panel is a piece of FR4 screwed to the chassis of the machine. The front acrylic is [Chemcast Black LED plastic sheet](https://www.tapplastics.com/product/plastics/cut_to_size_plastic/black_led_sheet/668) from TAP Plastics, secured to the PCB with magnets epoxied to the back side of the acrylic into milled slots. These magnets attach to magnets epoxied to the frame, behind the PCB. This Chemcast plastic is apparently the same material as the [Adafruit Black LED Diffusion Acrylic](https://www.adafruit.com/product/4594), and it works exactly as advertised. _Somehow_, the Chemcast plastic turns the point source of an LED into a square at the surface of the machine. You can't photograph it, but in person it's _spectacular_.
+
 # Connection Machine, High-Level Design
 
 ![Unfolding a 4-dimensional tesseract](/images/ConnM/UnfoldingHoriz.png)
@@ -157,20 +161,20 @@ The advantages to this layout are that routing algorithms for passing messages b
 This machine is split up into segments of various sizes. Each segment is 1/16th as large as the next. These are:
 
 - **The Node** This is simply a CH32V203 RISC-V microcontroller. Specifically, I am using the CH32V203G6U6, a QFN28 part with around 20 GPIOs. In the machine, 12 of these pins will be used for hypercube connections, with other pins reserved for UART connections to a local microcontroller, the `/BOOT` pin, and `NRST` pin.
-- **The Slice** This is 16 individual nodes, connected as a 4-dimension hypercube. In the Slice, a seventeenth microcontroller the initialization and control of each individual node. This means providing the means to program and read out memory from each node individually. I'm doing this through the UART bootloader for the CH32V203. Controlling the `/BOOT` and `NRST` of each node allows me to restart each node either collectively or individually
+- **The Slice** This is 16 individual nodes, connected as a 4-dimension hypercube. In the Slice, a seventeenth microcontroller the initialization and control of each individual node. This means providing the means to program and read out memory from each node individually. I'm doing this through the UART bootloader for the CH32V203. Controlling the `/BOOT` and `NRST` pins of each node allows me to restart each node either collectively or individually
 - **The Plane**  This is 16 Slices. In this segment, 256 CH32V203 microcontrollers are connected via an 8-dimension hypercube. With 16 CH32V203 microcontrollers per Slice plus one additional microcontroller, this means each plane consists of 272 microcontrollers, _plus an additional control layer_ for summing UARTs and routing messages to each Slice. In total there are 273 microcontrollers in each Plane.
 - **The Machine** Sixteen Planes make a Machine. The architecture follows the growth we've seen up to now, with 4096 CH32V203 microcontrollers connected as a 12-dimensional hypercube. There are 4368 microcontrollers in The Machine, all controlled with a rather large SoC.
 
-Somewhat like the original Connection Machine, there are two 'modes' of connection between the nodes in the array. The first is the hypercube connection, which we'll get to later (link to backplane). The second is effectively a tree. Each node in the machine is connected to a 'Slice' microcontroller via UART. This Slice microcontroller handles reset, boot, programming, and loading data into each node. Above the Slice is the Plane, a master controller for each group of 256 nodes. And above that is the master controller.
+Like the original Connection Machine, there are two 'modes' of connection between the nodes in the array. The first is the hypercube connection, where each node connects to other nodes. The second is a tree. Each node in the machine is connected to a 'Slice' microcontroller via UART. This Slice microcontroller handles reset, boot, programming, and loading data into each node. Above the Slice is the Plane, a master controller for each group of 256 nodes. And above that is the master controller.
 
-This "hypercube and tree" is extremely similar to the original Connection Machine. <<<blah blah blah something something describing the CM>>> This shouldn't be a surprise; Danny was building at the very edge of what was possible in the 80s. I'm building at the very edge of what's possible forty years later. Convergent evolution and all that.
+This "hypercube and tree" is identical to the original hypercube machines of the 1980s. The [Cosmic Cube](https://en.wikipedia.org/wiki/Caltech_Cosmic_Cube) at Caltech split the connections with individual links between nodes and a tree structure to a 'master' unit. The [Intel iPSC](https://en.wikipedia.org/wiki/Intel_iPSC) used a similar layout, but routing subsets of the hypercube through MUXes and Ethernet, with a separate connection to a 'cube manager'. Likewise, the Connection Machine could only function when connected to a VAX that handled the program loading and getting data out of the hypercube.
 
 ## 1 Node, or 'The Node'
 
-As stated above, the node is a CH32V203 RISC-V microcontroller. Although not the cheapest microcontroller available -- that would be the $0.13 CH32V003 -- The '203 has significant benefits that make construction simpler and more performant:
+As stated above, the node is a CH32V203 RISC-V microcontroller. Although not the cheapest microcontroller available -- that would be the \$0.13 CH32V003 -- The '203 has significant benefits that make construction simpler and more performant:
 
 - The CH32V003 is programmed over a _strange_ one-wire serial connection that cannot be repurposed for local control. The CH32V203 can be programmed over serial, and this connection can be repurposed to get data into and out of a specific node.
-- The CH32V003 is based on a QingKe RISC-V2A core, without hardware multiply and divide. The CH32V203 is based on a RISC-V4B core, that has hardware multiply and divide.
+- The CH32V003 is based on a QingKe RISC-V2A core, without hardware multiply and divide. The CH32V203 is based on a RISC-V4B core, that has one-cycle hardware multiply.
 - The CH32V003 is \$0.13 in quantity, the CH32V203 is \$0.37 in quantity. If I'm going this far, I'll spend the extra thousand dollars to get a machine that's a hundred times better.
 
 ## 16 Nodes, or, 'The Slice'
@@ -625,6 +629,23 @@ You can run OrthoRoute yourself [by downloading it from the repo](https://github
 ## The RISC-V Boards
 
 
+
+## Mechanics - Chassis & Enclosure
+
+The entire thing is made out of machined aluminum plate. The largest single piece is the front -- this holds the LED array, diffuser, and backplane. It attaches to the outer enclosure on all four sides with twelve screws. Attached to the front frame is the 'base plate' and the back side of the machine, forming one U-shaped enclosure. On the sides of the base plate are Delrin runners which slide into rabbets in the outer enclosure. This forms the machine's chassis. This chassis slides into the outer enclosure.
+
+![2-view of the chassis, showing the LED panel, ports, and backplane](/images/ConnM/Chassis.png)
+
+The outer enclosure is composed of four aluminum plates, open on the front and back. The top panel is just a plate, and the bottom panel has a circular plinth to slightly levitate the entire machine a few millimeters above the surface it's sitting on. The left and right panels have a grid pattern machined into them that is reminiscent of the original Connection Machine. These panels are made of 8mm plate, and were first screwed together, welded, then the screw holes plug welded. Finally, the enclosure was bead blasted and anodized matte black.
+
+![3-view of the enclosure, showing the structure, purposeful flaw, and the plinth on the bottom panel](/images/ConnM/Enclosure.png)
+
+There is a small error in the grid pattern of one of the side pieces. Where most of the grid is 4mm squares, there is one opening that is irregular, offset by a few millimeters up and to the right. Somebody influential in the building of the Connection Machine once looked at the Yomeimon gate at Nikkō, noting that of all the figures carved in the gate, there was one tiny figure carved upside-down. The local mythology around this says it was done this way, 'so the gods would not be jealous of the perfection of man'.
+
+While my machine is _really good_, and even my guilt-addled upbringing doesn't prevent me from taking some pride in it, I have to point out that I didn't add this flaw to keep gods from being offended. I know this is not perfect. There is documentation on the original Connection Machine that I would have loved to reference, and there are implementations I would have loved to explore were time, space, and money not a consideration. The purposeful and obvious defect in my machine is simply saying that I know it's not perfect. And this isn't a one-to-one clone of the Connection Machine, anyway. It's a little wabi-sabi saying forty years and Moore's Law result in something that's different, even if the influence is obvious.
+
+## Parallel C (StarC)
+
 ## Contextualizing the build
 
 There's a few thoughts I've been ruminating about for a while with regards to design and technological progress. The thesis of this idea is that design is a product of technological capability.
@@ -642,6 +663,30 @@ The ten-cent microcontrollers that enabled this build were only available for ab
 I couldn't have built this in 2020, because I would be looking at four thousand dollars in microcontrollers instead of four hundred. I couldn't have made this in 2015 because I bought the first reel of IS31FL3741s from Mouser in 2017. In 2010, the PCB costs alone would have been prohibitive.
 
 The earliest this Thinking Machine could have been built is the end of 2025 or the beginning of 2026, and I think I did alright. The trick wasn't knowing _how_ to build it, it's knowing that it _could_ be built. This is probably the best thing I'll ever build, but it certainly won't be the most advanced. For those builds, the technology hasn't even been invented yet and the parts are, as of yet, unavailable.
+
+
+### Related Works And Suggested Reading
+
+- **bitluni, “[CH32V003-based Cheap RISC-V Supercluster for $2](https://www.youtube.com/watch?v=lh93FayWHqw)” (2024).**  
+  A 256-node RISC-V “supercluster” built from CH32V003 microcontrollers. This was _it_, the project that pulled me down the path of building a Connection Machine. Bitluni’s project uses an 8-bit bus across segments of 16 nodes and ties everything together with a tree structure. Being historically aware, I spent most of the time watching this video yelling, “you’re so close!” at YouTube. And now we’re here.
+
+- **W. Daniel Hillis, “The Connection Machine” (Ph.D. dissertation, MIT, 1985; MIT Press, 1985).**  
+  Hillis’ thesis lays out the philosophy, architecture, and programming model of the original CM-1: 65,536 1-bit processors arranged in a hypercube, with routing, memory, and SIMD control all treated as one unified machine design. My machine is basically that document filtered through 40 years of Moore’s law and PCB fab: the overall hypercube topology, the idea of a separate “front-end” host, and the notion that the interconnect *is* the computer all trace back directly here.
+
+- **Charles L. Seitz, “The Cosmic Cube,” *Communications of the ACM*, 28(1), 22–33, 1985.**  
+  Seitz describes the Caltech Cosmic Cube, a message-passing multicomputer built from off-the-shelf microprocessors wired into a hypercube network. Where Hillis pushes toward a purpose-built SIMD supercomputer, Seitz shows how far you can get by wiring lots of small nodes together with careful routing and deadlock-free message channels. This project sits very much in that Cosmic Cube lineage: commodity microcontrollers, hypercube links, and a big bet that the network fabric is the interesting part.
+
+- **W. Daniel Hillis, “Richard Feynman and The Connection Machine,” _Physics Today_ 42(2), 78–84 (February 1989).**  
+  Hillis’ account of working with Feynman on the CM-1, including Feynman’s back-of-the-envelope router analysis, his lattice QCD prototype code, and his conclusion that the CM-1 would beat the Cosmic Cube in QCD calculations.
+
+- **C. Y. Lee, “An Algorithm for Path Connections and Its Applications,” *IRE Transactions on Electronic Computers*, 1961.**  
+  The original maze-routing / wavefront paper: grid-based shortest paths around obstacles. Every “flood the board and backtrack” router is spiritually doing Lee; OrthoRoute is that idea scaled up and fired through a GPU.
+
+- **Larry McMurchie and Carl Ebeling, “PathFinder: A Negotiation-Based Performance-Driven Router for FPGAs,” in *Proceedings of the Third International ACM Symposium on Field-Programmable Gate Arrays (FPGA ’95)*.**  
+  PathFinder introduces the negotiated-congestion routing scheme that basically every serious FPGA router still builds on. The OrthoRoute autorouter used to design the backplane borrows this idea wholesale: routes compete for overused resources, costs get updated, and the system iterates toward a legal routing. The difference is that PathFinder works on configurable switch matrices inside an FPGA; here, the same logic is being applied to a 32-layer Manhattan lattice on a 17,000-pad PCB and run on a GPU.
+  
+- **The Associated Press. _The Associated Press Stylebook._ New York: The Associated Press.**
+    Fuck you, Associated Press. Your entire style guide is predicated on conservation of text length. That was great when we were etaoin shrdluing all over the place but now we have a means of distribution where text length does not matter, you do not control how text is formatted, and distribution is free. I dedicate this to your unrelenting mediocrity, your destruction, and the Oxford comma. I have 200-line Python scripts inline with the text in this page. That's what CSS is for, you fucks.
 
 [back](../)
 
