@@ -138,7 +138,7 @@ image: "/images/ConnM/CMSocialCard.png"
 }
 
 .tm-toc-nav li.tm-toc-indent {
-  margin-left: 1rem;
+  margin-left: 2rem;
 }
 
 .tm-toc-nav a {
@@ -809,8 +809,8 @@ document.addEventListener("DOMContentLoaded", function () {
   const tocList = document.getElementById("tm-toc");
   if (!article || !tocList) return;
 
-  // Use H2 and H3 as ToC entries
-  const headings = article.querySelectorAll("h2, h3");
+  // Now include H1 as well
+  const headings = article.querySelectorAll("h1, h2, h3");
   if (!headings.length) {
     const toc = document.querySelector(".tm-toc");
     if (toc) toc.style.display = "none";
@@ -818,7 +818,6 @@ document.addEventListener("DOMContentLoaded", function () {
   }
 
   headings.forEach(function (h) {
-    // Ensure each heading has an id
     if (!h.id) {
       h.id = h.textContent
         .trim()
@@ -828,8 +827,12 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     const li = document.createElement("li");
-    if (h.tagName.toLowerCase() === "h3") {
+
+    const tag = h.tagName.toLowerCase();
+    if (tag === "h2") {
       li.classList.add("tm-toc-indent");
+    } else if (tag === "h3") {
+      li.classList.add("tm-toc-indent-2");
     }
 
     const a = document.createElement("a");
@@ -839,8 +842,8 @@ document.addEventListener("DOMContentLoaded", function () {
     tocList.appendChild(li);
   });
 
-  // --- custom scrolling with offset ---
-  const OFFSET = 32; // pixels from top of viewport; tweak (20–30ish) to taste
+  // Custom scrolling with offset
+  const OFFSET = 32; // tweak as needed
 
   tocList.addEventListener("click", function (event) {
     const link = event.target.closest("a");
@@ -850,7 +853,7 @@ document.addEventListener("DOMContentLoaded", function () {
     const target = document.getElementById(id);
     if (!target) return;
 
-    event.preventDefault(); // stop the browser's default jump
+    event.preventDefault();
 
     const rect = target.getBoundingClientRect();
     const absoluteTop = rect.top + window.pageYOffset;
@@ -860,11 +863,11 @@ document.addEventListener("DOMContentLoaded", function () {
       behavior: "smooth"
     });
 
-    // Update URL hash without re-scrolling
     if (history.replaceState) {
       history.replaceState(null, "", "#" + id);
     }
   });
 });
 </script>
+
 
