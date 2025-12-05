@@ -112,9 +112,8 @@ image: "/images/ConnM/CMSocialCard.png"
   order: 2;  /* ToC on the right */
 }
 
-
 .tm-toc-inner {
-  padding: 0.75rem 1rem;
+  padding: 0.75rem 0.75rem 0.75rem 0.5rem;  /* smaller left padding */
   border-radius: 6px;
   border: 1px solid rgba(255,255,255,0.15);
   background: rgba(0,0,0,0.15);
@@ -129,8 +128,8 @@ image: "/images/ConnM/CMSocialCard.png"
 
 .tm-toc-nav {
   margin: 0;
-  padding: 0;
-  list-style: none;   /* we'll draw our own bullets */
+  padding: 0;           /* no extra left indent from the <ul> */
+  list-style: none;     /* we'll draw our own bullets */
 }
 
 .tm-toc-nav li {
@@ -375,7 +374,7 @@ Instead of trying to route a 12-dimensional hypercube as one massive board, I'm 
 
 This means I only have to design one processor board and manufacture it 16 times. Each board handles 2,048 internal connections between its 256 chips, and exposes 1,024 connections to the backplane. The backplane does all the heavy lifting. It's where the real routing complexity lives, implementing the inter-board connections that make 16 separate 8D cubes behave like one unified 12D hypercube. The boards are segmented like this:
 
-<h3>Board-to-Board Connection Matrix</h3>
+#### Board-to-Board Connection Matrix
 <p><em>Rows = Source Board, Columns = Destination Board, Values = Number of connections</em></p>
 <div class="table-wrap">
 <table class="matrix-table">
@@ -878,7 +877,7 @@ document.addEventListener("DOMContentLoaded", function () {
   });
 
   // Custom scrolling with offset
-  const OFFSET = 45; // tweak as needed
+  const OFFSET = 60; // tweak as needed
 
   tocList.addEventListener("click", function (event) {
     const link = event.target.closest("a");
