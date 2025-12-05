@@ -162,6 +162,26 @@ image: "/images/ConnM/CMSocialCard.png"
   }
 }
 
+/* On wide screens, keep the main column full-width
+   and float the ToC out in the right margin */
+@media (min-width: 1024px) {
+  .tm-layout {
+    display: block;        /* stop sharing width with the ToC */
+    position: relative;    /* anchor for absolute children if needed */
+  }
+
+  .tm-toc {
+    position: fixed;       /* detach from document flow */
+    right: 2rem;           /* nudge into the page's right margin */
+    top: 5rem;             /* adjust so it clears your top nav */
+    width: 260px;          /* same-ish as before */
+    max-height: calc(100vh - 6rem);
+    overflow-y: auto;
+    /* flex/order no longer matter once it’s fixed */
+  }
+}
+
+
 </style>
 
 <div class="tm-layout">
@@ -789,17 +809,15 @@ document.addEventListener("DOMContentLoaded", function () {
   const tocList = document.getElementById("tm-toc");
   if (!article || !tocList) return;
 
-  // Use H1, H2, and H3 as ToC entries
-  const headings = article.querySelectorAll("h1, h2, h3");
-
+  // Use H2 and H3 as ToC entries
+  const headings = article.querySelectorAll("h2, h3");
   if (!headings.length) {
-    // no headings, hide ToC
     const toc = document.querySelector(".tm-toc");
     if (toc) toc.style.display = "none";
     return;
   }
 
-  headings.forEach(h => {
+  headings.forEach(function (h) {
     // Ensure each heading has an id
     if (!h.id) {
       h.id = h.textContent
@@ -820,5 +838,33 @@ document.addEventListener("DOMContentLoaded", function () {
     li.appendChild(a);
     tocList.appendChild(li);
   });
+
+  // --- custom scrolling with offset ---
+  const OFFSET = 32; // pixels from top of viewport; tweak (20–30ish) to taste
+
+  tocList.addEventListener("click", function (event) {
+    const link = event.target.closest("a");
+    if (!link) return;
+
+    const id = link.getAttribute("href").slice(1);
+    const target = document.getElementById(id);
+    if (!target) return;
+
+    event.preventDefault(); // stop the browser's default jump
+
+    const rect = target.getBoundingClientRect();
+    const absoluteTop = rect.top + window.pageYOffset;
+
+    window.scrollTo({
+      top: absoluteTop - OFFSET,
+      behavior: "smooth"
+    });
+
+    // Update URL hash without re-scrolling
+    if (history.replaceState) {
+      history.replaceState(null, "", "#" + id);
+    }
+  });
 });
 </script>
+
