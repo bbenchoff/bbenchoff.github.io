@@ -181,7 +181,27 @@ image: "/images/ConnM/CMSocialCard.png"
   }
 }
 
+  /* Make sure the main column never forces the page wider than the viewport */
+  .tm-layout,
+  .tm-article {
+    max-width: 100%;
+  }
 
+  /* On mobile, absolutely forbid horizontal layout expansion */
+  @media (max-width: 900px) {
+    .tm-layout,
+    .tm-article {
+      overflow-x: hidden;
+    }
+  }
+
+  /* Code blocks: scroll horizontally instead of widening the page */
+  .tm-article pre {
+    width: 100%;
+    max-width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
 </style>
 
 <div class="tm-layout">
@@ -202,6 +222,8 @@ image: "/images/ConnM/CMSocialCard.png"
 
 #### Or: I made a supercomputer out of a bunch of smartphone connectors, a chip from RGB mechanical keyboards, and four thousand RISC-V microcontrollers.
 
+## Introduction
+
 This project is a reproduction and modern recreation of the Thinking Machines [Connection Machine CM-1](https://en.wikipedia.org/wiki/Connection_Machine). The Connection Machine was a massively parallel computer from 1985, containing 65,536 individual processors arranged at the vertexes of a 16-dimension hypercube. This means each processor in the machine is connected to 16 adjacent processors. While the Connection Machine was the fastest computer on the planet in the late 1980s ([Top500](https://top500.org/) only goes back to 1993), the company died during the second AI winter.
 
 This project is effectively identical to the lowest-spec Connection Machine built. It contains 4,096 individual RISC-V processors, each connected to 12 neighbors in a 12-dimensional hypercube.
@@ -212,7 +234,7 @@ The individual processors in the CM-1 couldn't do much -- they could only operat
 
 This is a faithful reproduction of the original, 1985-era Connection Machine, plus 40 years of Moore's law and very poor impulse control. In 1985, this was the cutting edge of parallel computing. In 2025, it's a weird art project with better chips.
 
-# The LED Panel
+## The LED Panel
 
 Listen, we all know why you're reading this, so I'm going to start off with the LED array before digging into massively parallel hypercube supercomputer. 
 
@@ -224,7 +246,7 @@ The LED board is built around the **IS31FL3741**, an I2C LED matrix driver osten
 
 Each IS31FL3741 is controlling a **32x8** matrix of LEDs over I2C. These chips have an I2C address pin with four possible values, allowing me to control a **32x32 array** over a single I2C bus. Four of these arrays are combined onto a single PCB, along with an RP2040 (a Raspberry Pi Pico) microcontroller to run the whole thing.
 
-### **Architecture:**
+### Hardware Architecture
 
 - The **RP2040 drives 16 IS31FL3741 chips** over **four I²C buses**.  
 - It uses **PIO-based I²C with DMA transfers** to blast out pixel data fast enough for real-time updates.  
@@ -245,13 +267,15 @@ Why did I build my own 64x64 LED array, instead of using an off-the-shelf HUB75 
   </iframe>
 </div>
 
+### Blinky Software
+
 There are a few pre-programmed modes for this panel. Of course I had to implement Conway's Game of Life, but the real showstopper is the "Random and Pleasing" mode. This is the mode shown in Jurassic Park, and it's what MoMA turns on when they light up their machine.
 
 There are several sources _describing_ this mode, but no actual details on how it's _implemented_. I went for a 4094-bit LFSR (256 taps), and divided the display up into four columns of 1x16 'cells'. These cells are randomly assigned to shift left or shift right, and 256 unique taps are assigned to a particular 1x16 cell.
 
 Mechanically, the LED panel is a piece of FR4 screwed to the chassis of the machine. The front acrylic is [Chemcast Black LED plastic sheet](https://www.tapplastics.com/product/plastics/cut_to_size_plastic/black_led_sheet/668) from TAP Plastics, secured to the PCB with magnets epoxied to the back side of the acrylic into milled slots. These magnets attach to magnets epoxied to the frame, behind the PCB. This Chemcast plastic is apparently the same material as the [Adafruit Black LED Diffusion Acrylic](https://www.adafruit.com/product/4594), and it works exactly as advertised. _Somehow_, the Chemcast plastic turns the point source of an LED into a square at the surface of the machine. You can't photograph it, but in person it's _spectacular_.
 
-# Connection Machine, High-Level Design
+## Building My Thinking Machine
 
 ![Unfolding a 4-dimensional tesseract](/images/ConnM/UnfoldingHoriz.png)
 
@@ -265,7 +289,7 @@ The Connection Machine settled on a hypercube layout, where in a network of 8 no
 
 The advantages to this layout are that routing algorithms for passing messages between nodes are simple, and there are redundant paths between nodes. If you want to build a hypercluster of tiny computers, you build it as a hypercube.
 
-# My Machine
+### Hardware Architecture
 
 This machine is split up into segments of various sizes. Each segment is 1/16th as large as the next. These are:
 
@@ -278,7 +302,7 @@ Like the original Connection Machine, there are two 'modes' of connection betwee
 
 This "hypercube and tree" is identical to the original hypercube machines of the 1980s. The [Cosmic Cube](https://en.wikipedia.org/wiki/Caltech_Cosmic_Cube) at Caltech split the connections with individual links between nodes and a tree structure to a 'master' unit. The [Intel iPSC](https://en.wikipedia.org/wiki/Intel_iPSC) used a similar layout, but routing subsets of the hypercube through MUXes and Ethernet, with a separate connection to a 'cube manager'. Likewise, the Connection Machine could only function when connected to a VAX that handled the program loading and getting data out of the hypercube.
 
-## 1 Node, or 'The Node'
+#### 1 Node, or 'The Node'
 
 As stated above, the node is a CH32V203 RISC-V microcontroller. Although not the cheapest microcontroller available -- that would be the \$0.13 CH32V003 -- The '203 has significant benefits that make construction simpler and more performant:
 
@@ -286,17 +310,17 @@ As stated above, the node is a CH32V203 RISC-V microcontroller. Although not the
 - The CH32V003 is based on a QingKe RISC-V2A core, without hardware multiply and divide. The CH32V203 is based on a RISC-V4B core, that has one-cycle hardware multiply.
 - The CH32V003 is \$0.13 in quantity, the CH32V203 is \$0.37 in quantity. If I'm going this far, I'll spend the extra thousand dollars to get a machine that's a hundred times better.
 
-## 16 Nodes, or, 'The Slice'
+#### 16 Nodes, or, 'The Slice'
 
 The Slice is a 4-dimensional hypercube, or 16 CH32V203 microcontrollers, each connected to 4 others. These 16 nodes are controlled by a dedicated microcontroller, programming each node over serial, toggling the reset circuit, and loading data into and out of each node.
 
 ![Block diagram of 16 nodes, showing a 16-node hypercube controlled via UART](/images/ConnM/SliceControl.png)
 
-## 256 Nodes, or, 'The Plane'
+#### 256 Nodes, or, 'The Plane'
 
 ![Block diagram of 16 Slices, showing the architecture of a Plane](/images/ConnM/PanelControl.png)
 
-## 4096 Nodes, or, 'The Machine'
+#### 4096 Nodes, or, 'The Machine'
 
 This is where the magic happens. The original CM-1 was controlled via a DEC VAX or Lisp machine that acted as a front-end processor. The front-end would broadcast instructions to the array, collect results, and handle I/O with the outside world. My machine needs something similar. At the top of the hierarchy sits a Zynq SoC - an FPGA with ARM cores bolted on. This is the easiest way to get 
 
@@ -308,10 +332,6 @@ This handles:
 - **LED coordination**: Someone has to tell that 64x64 array what to display
 
 The Zynq talks to 16 Plane controllers. Each Plane controller talks to 16 Slice controllers. Each Slice controller talks to 16 nodes. It's trees all the way down.
-
-
-## Two Networks, One Machine
-
 
 
 /*
@@ -326,7 +346,7 @@ The 4096 nodes in the Connection Machine are connected to the 'local coordinator
 These coordinators communicate with the main controller over a bidirectional serial link. The main controller is responsible for communicating with the local coordinators, both to write software to the RISC-V nodes, and to read the state of the RISC-V nodes. Input and output to the rest of the universe is through the main controller over an Ethernet connection provided by a WIZnet W5500 controller.
 */
 
-### The Backplane -- Theory
+## The Backplane
 
 First off, I'd like to mention that the Connection Machine isn't best visualized as a multidimensional tesseract, or something Nolan consulted Kip Thorne to get _just right_. It's not a hypercube. Because it exists in three dimensions. Like you. It's actually a 12-bit Hamming-distance-1 graph. Or a bit-flip adjacency graph. Or it's a bunch of processors, each connected to 12 other processors. Each processor has a 12-bit address, and by changing one bit I can go to an adjacent processor. But sure, we'll call it a hypercube if it makes you feel wicked smaht or whatever. 
 
@@ -368,7 +388,7 @@ Incidentally, this would be an _excellent_ application of wire-wrap technology. 
 
 This is not how the Connection Machine solved the massive interconnect problem. The OG CM used multiple back planes and twisted-pair connections between these back planes. I'm solving this simply with modern high-density interconnects and a very, very expensive circuit board.
 
-### The Backplane -- Implementation
+### The Backplane Implementation
 
 Mechanically, this device is very simple. The LED panel is screwed into a frame that also holds the back plane on the opposite side. The back side has USB-C and Ethernet connections to the outside world. This is attached to the backplane through a ribbon cable.
 
@@ -394,7 +414,7 @@ Above is a render of the machine showing the scale and density of what's going o
 
 It's _tight_, but it's possible. The rest is only a routing problem.
 
-### The Backplane -- Routing, And Why I Had To Write An Autorouter
+## Why I Had To Write An Autorouter
 
 And oh what a routing problem it is! 
 
@@ -706,7 +726,7 @@ _These were the easy traces, too_. It would have taken hundreds or thousands of 
 
 The obvious solution, therefore, is to build my own autorouter. Or at least spend a week or two on writing an autorouter. Building an autorouter for circuit boards is _the_ hardest problem in computer science; the smartest people on the planet have been working on this problem for sixty years and all autorouters still suck. 
 
-## A Quick Aside - A GPU-Accelerated Autorouter
+### A GPU-Accelerated Autorouter
 
 **[This is OrthoRoute](https://github.com/bbenchoff/OrthoRoute)**, a GPU-accelerated autorouter for KiCad. There's very little that's actually _new_ here; I'm just leafing through some of the VLSI books in my basement and stealing some ideas that look like they might work. If you throw enough compute at a problem, you might get something that works.
 
@@ -733,9 +753,6 @@ It's a GPU-accelerated autorouting plugin for KiCad, probably the first of its k
 ![OrthoRoute screencap 3](/images/ConnM/Orthoroute/3.png)
 
 You can run OrthoRoute yourself [by downloading it from the repo](https://github.com/bbenchoff/OrthoRoute). Install the .zip file via the package manager. A somewhat beefy Nvidia GPU is highly suggested but not required; there's CPU fallback. If you want a deeper dive on how I built OrthoRoute, [there's also a page in my portfolio about it](http://bbenchoff.github.io/pages/OrthoRoute.html). There's also benchmarks of different pathfinding algorithms there.
-
-
-## The RISC-V Boards
 
 
 
@@ -775,7 +792,7 @@ I couldn't have built this in 2020, because I would be looking at four thousand 
 The earliest this Thinking Machine could have been built is the end of 2025 or the beginning of 2026, and I think I did alright. The trick wasn't knowing _how_ to build it, it's knowing that it _could_ be built. This is probably the best thing I'll ever build, but it certainly won't be the most advanced. For those builds, the technology hasn't even been invented yet and the parts are, as of yet, unavailable.
 
 
-### Related Works And Suggested Reading
+## Related Works And Suggested Reading
 
 - **bitluni, “[CH32V003-based Cheap RISC-V Supercluster for $2](https://www.youtube.com/watch?v=lh93FayWHqw)” (2024).**  
   A 256-node RISC-V “supercluster” built from CH32V003 microcontrollers. This was _it_, the project that pulled me down the path of building a Connection Machine. Bitluni’s project uses an 8-bit bus across segments of 16 nodes and ties everything together with a tree structure. Being historically aware, I spent most of the time watching this video yelling, “you’re so close!” at YouTube. And now we’re here.
@@ -809,8 +826,8 @@ document.addEventListener("DOMContentLoaded", function () {
   const tocList = document.getElementById("tm-toc");
   if (!article || !tocList) return;
 
-  // Now include H1 as well
-  const headings = article.querySelectorAll("h1, h2, h3");
+  // Only H2 + H3
+  const headings = article.querySelectorAll("h2, h3");
   if (!headings.length) {
     const toc = document.querySelector(".tm-toc");
     if (toc) toc.style.display = "none";
@@ -827,17 +844,19 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     const li = document.createElement("li");
-
     const tag = h.tagName.toLowerCase();
+
+    // H2 = top-level, H3 = indented
     if (tag === "h2") {
-      li.classList.add("tm-toc-indent");
+      li.classList.add("tm-toc-level-2");
     } else if (tag === "h3") {
-      li.classList.add("tm-toc-indent-2");
+      li.classList.add("tm-toc-level-3");
     }
 
     const a = document.createElement("a");
     a.href = "#" + h.id;
     a.textContent = h.textContent;
+
     li.appendChild(a);
     tocList.appendChild(li);
   });
