@@ -85,7 +85,91 @@ image: "/images/ConnM/CMSocialCard.png"
     margin-left: 1rem;
   }
 }
+
+
+.tm-layout {
+  display: flex;
+  align-items: flex-start;
+  gap: 2rem;
+}
+
+/* Main article column */
+.tm-article {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+/* ToC sidebar */
+.tm-toc {
+  flex: 0 0 240px;
+  font-size: 0.9rem;
+  line-height: 1.4;
+  position: sticky;
+  top: 4rem; /* adjust if your header is taller */
+  max-height: calc(100vh - 5rem);
+  overflow-y: auto;
+}
+
+.tm-toc-inner {
+  padding: 0.75rem 1rem;
+  border-radius: 6px;
+  border: 1px solid rgba(255,255,255,0.15);
+  background: rgba(0,0,0,0.15);
+}
+
+.tm-toc-inner h3 {
+  margin: 0 0 0.5rem 0;
+  font-size: 0.9rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.tm-toc-nav {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.tm-toc-nav li {
+  margin: 0.15rem 0;
+}
+
+.tm-toc-nav li.tm-toc-indent {
+  margin-left: 1rem;
+}
+
+.tm-toc-nav a {
+  text-decoration: none;
+  font-size: 0.9rem;
+}
+
+.tm-toc-nav a:hover {
+  text-decoration: underline;
+}
+
+/* Mobile: stack ToC above article, no sticky */
+@media (max-width: 900px) {
+  .tm-layout {
+    flex-direction: column;
+  }
+  .tm-toc {
+    position: static;
+    max-height: none;
+    order: -1; /* ToC appears above content */
+  }
+}
 </style>
+
+<div class="tm-layout">
+  <aside class="tm-toc">
+    <div class="tm-toc-inner">
+      <h3>Contents</h3>
+      <ul class="tm-toc-nav" id="tm-toc"></ul>
+    </div>
+  </aside>
+
+  <div class="tm-article">
+
 
 ![Render of the machine](/images/ConnM/CMSocialCard.png)
 
@@ -632,9 +716,10 @@ You can run OrthoRoute yourself [by downloading it from the repo](https://github
 
 ## Mechanics - Chassis & Enclosure
 
-The entire thing is made out of machined aluminum plate. The largest single piece is the front -- this holds the LED array, diffuser, and backplane. It attaches to the outer enclosure on all four sides with twelve screws. Attached to the front frame is the 'base plate' and the back side of the machine, forming one U-shaped enclosure. On the sides of the base plate are Delrin runners which slide into rabbets in the outer enclosure. This forms the machine's chassis. This chassis slides into the outer enclosure.
+The entire thing is made out of machined aluminum plate. The largest and most complex single piece is the front -- this holds the LED array, diffuser, and backplane. It attaches to the outer enclosure on all four sides with twelve screws. Attached to the front frame is the 'base plate' and the back side of the machine, forming one U-shaped enclosure. On the sides of the base plate are Delrin runners which slide into rabbets in the outer enclosure. This forms the machine's chassis. This chassis slides into the outer enclosure.
 
 ![2-view of the chassis, showing the LED panel, ports, and backplane](/images/ConnM/Chassis.png)
+![2-view of the chassis, loaded with boards and fans](/images/ConnM/ChassisLoaded.png)
 
 The outer enclosure is composed of four aluminum plates, open on the front and back. The top panel is just a plate, and the bottom panel has a circular plinth to slightly levitate the entire machine a few millimeters above the surface it's sitting on. The left and right panels have a grid pattern machined into them that is reminiscent of the original Connection Machine. These panels are made of 8mm plate, and were first screwed together, welded, then the screw holes plug welded. Finally, the enclosure was bead blasted and anodized matte black.
 
@@ -690,3 +775,44 @@ The earliest this Thinking Machine could have been built is the end of 2025 or t
 
 [back](../)
 
+  </div><!-- /.tm-article -->
+</div><!-- /.tm-layout -->
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+  const article = document.querySelector(".tm-article");
+  const tocList = document.getElementById("tm-toc");
+  if (!article || !tocList) return;
+
+  // Use H2 and H3 as ToC entries
+  const headings = article.querySelectorAll("h2, h3");
+  if (!headings.length) {
+    // no headings, hide ToC
+    const toc = document.querySelector(".tm-toc");
+    if (toc) toc.style.display = "none";
+    return;
+  }
+
+  headings.forEach(h => {
+    // Ensure each heading has an id
+    if (!h.id) {
+      h.id = h.textContent
+        .trim()
+        .toLowerCase()
+        .replace(/[^\w\- ]+/g, "")
+        .replace(/\s+/g, "-");
+    }
+
+    const li = document.createElement("li");
+    if (h.tagName.toLowerCase() === "h3") {
+      li.classList.add("tm-toc-indent");
+    }
+
+    const a = document.createElement("a");
+    a.href = "#" + h.id;
+    a.textContent = h.textContent;
+    li.appendChild(a);
+    tocList.appendChild(li);
+  });
+});
+</script>
