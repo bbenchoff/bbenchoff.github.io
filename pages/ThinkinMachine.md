@@ -154,7 +154,7 @@ image: "/images/ConnM/CMSocialCard.png"
   margin-left: 1.5rem;
 }
 .tm-toc-nav li.tm-toc-level-3::before {
-  content: "○";
+  content: "◦";
   position: absolute;
   left: 0;
 }
@@ -878,7 +878,7 @@ document.addEventListener("DOMContentLoaded", function () {
   });
 
   // Custom scrolling with offset
-  const OFFSET = 32; // tweak as needed
+  const OFFSET = 45; // tweak as needed
 
   tocList.addEventListener("click", function (event) {
     const link = event.target.closest("a");
