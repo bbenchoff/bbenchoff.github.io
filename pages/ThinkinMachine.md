@@ -130,15 +130,33 @@ image: "/images/ConnM/CMSocialCard.png"
 .tm-toc-nav {
   margin: 0;
   padding: 0;
-  list-style: none;
+  list-style: none;   /* we'll draw our own bullets */
 }
 
 .tm-toc-nav li {
   margin: 0.15rem 0;
+  padding-left: 1.2rem;   /* room for bullet */
+  position: relative;
 }
 
-.tm-toc-nav li.tm-toc-indent {
-  margin-left: 2rem;
+/* H2 — top level, solid bullet */
+.tm-toc-nav li.tm-toc-level-2 {
+  margin-left: 0;
+}
+.tm-toc-nav li.tm-toc-level-2::before {
+  content: "•";
+  position: absolute;
+  left: 0;
+}
+
+/* H3 — indented, open bullet */
+.tm-toc-nav li.tm-toc-level-3 {
+  margin-left: 1.5rem;
+}
+.tm-toc-nav li.tm-toc-level-3::before {
+  content: "○";
+  position: absolute;
+  left: 0;
 }
 
 .tm-toc-nav a {
@@ -149,6 +167,7 @@ image: "/images/ConnM/CMSocialCard.png"
 .tm-toc-nav a:hover {
   text-decoration: underline;
 }
+
 
 /* Mobile: stack ToC above article, no sticky */
 @media (max-width: 900px) {
@@ -811,9 +830,6 @@ The earliest this Thinking Machine could have been built is the end of 2025 or t
 
 - **Larry McMurchie and Carl Ebeling, “PathFinder: A Negotiation-Based Performance-Driven Router for FPGAs,” in *Proceedings of the Third International ACM Symposium on Field-Programmable Gate Arrays (FPGA ’95)*.**  
   PathFinder introduces the negotiated-congestion routing scheme that basically every serious FPGA router still builds on. The OrthoRoute autorouter used to design the backplane borrows this idea wholesale: routes compete for overused resources, costs get updated, and the system iterates toward a legal routing. The difference is that PathFinder works on configurable switch matrices inside an FPGA; here, the same logic is being applied to a 32-layer Manhattan lattice on a 17,000-pad PCB and run on a GPU.
-  
-- **The Associated Press. _The Associated Press Stylebook._ New York: The Associated Press.**
-    Fuck you, Associated Press. Your entire style guide is predicated on conservation of text length. That was great when we were etaoin shrdluing all over the place but now we have a means of distribution where text length does not matter, you do not control how text is formatted, and distribution is free. I dedicate this to your unrelenting mediocrity, your destruction, and the Oxford comma. I have 200-line Python scripts inline with the text in this page. That's what CSS is for, you fucks.
 
 [back](../)
 
