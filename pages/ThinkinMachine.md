@@ -285,15 +285,16 @@ Why did I build my own 64x64 LED array, instead of using an off-the-shelf HUB75 
   </iframe>
 </div>
 
+Mechanically, the LED panel is a piece of FR4 screwed to the chassis of the machine. The front acrylic is [Chemcast Black LED plastic sheet](https://www.tapplastics.com/product/plastics/cut_to_size_plastic/black_led_sheet/668) from TAP Plastics, secured to the PCB with magnets epoxied to the back side of the acrylic into milled slots. These magnets attach to magnets epoxied to the frame, behind the PCB. This Chemcast plastic is apparently the same material as the [Adafruit Black LED Diffusion Acrylic](https://www.adafruit.com/product/4594), and it works exactly as advertised. _Somehow_, the Chemcast plastic turns the point source of an LED into a square at the surface of the machine. You can't photograph it, but in person it's _spectacular_.
+
 ### Blinky Software
 
 There are a few pre-programmed modes for this panel. Of course I had to implement Conway's Game of Life, but the real showstopper is the "Random and Pleasing" mode. This is the mode shown in Jurassic Park, and it's what MoMA turns on when they light up their machine.
 
 There are several sources _describing_ this mode, but no actual details on how it's _implemented_. I went for a 4094-bit LFSR (256 taps), and divided the display up into four columns of 1x16 'cells'. These cells are randomly assigned to shift left or shift right, and 256 unique taps are assigned to a particular 1x16 cell.
 
-Mechanically, the LED panel is a piece of FR4 screwed to the chassis of the machine. The front acrylic is [Chemcast Black LED plastic sheet](https://www.tapplastics.com/product/plastics/cut_to_size_plastic/black_led_sheet/668) from TAP Plastics, secured to the PCB with magnets epoxied to the back side of the acrylic into milled slots. These magnets attach to magnets epoxied to the frame, behind the PCB. This Chemcast plastic is apparently the same material as the [Adafruit Black LED Diffusion Acrylic](https://www.adafruit.com/product/4594), and it works exactly as advertised. _Somehow_, the Chemcast plastic turns the point source of an LED into a square at the surface of the machine. You can't photograph it, but in person it's _spectacular_.
 
-## Building My Thinking Machine
+## Homebrew Thinking Machine
 
 ![Unfolding a 4-dimensional tesseract](/images/ConnM/UnfoldingHoriz.png)
 
@@ -307,7 +308,7 @@ The Connection Machine settled on a hypercube layout, where in a network of 8 no
 
 The advantages to this layout are that routing algorithms for passing messages between nodes are simple, and there are redundant paths between nodes. If you want to build a hypercluster of tiny computers, you build it as a hypercube.
 
-### Hardware Architecture
+## My Machine, Hardware Architecture
 
 This machine is split up into segments of various sizes. Each segment is 1/16th as large as the next. These are:
 
@@ -320,7 +321,7 @@ Like the original Connection Machine, there are two 'modes' of connection betwee
 
 This "hypercube and tree" is identical to the original hypercube machines of the 1980s. The [Cosmic Cube](https://en.wikipedia.org/wiki/Caltech_Cosmic_Cube) at Caltech split the connections with individual links between nodes and a tree structure to a 'master' unit. The [Intel iPSC](https://en.wikipedia.org/wiki/Intel_iPSC) used a similar layout, but routing subsets of the hypercube through MUXes and Ethernet, with a separate connection to a 'cube manager'. Likewise, the Connection Machine could only function when connected to a VAX that handled the program loading and getting data out of the hypercube.
 
-#### 1 Node, or 'The Node'
+### 1 Node
 
 As stated above, the node is a CH32V203 RISC-V microcontroller. Although not the cheapest microcontroller available -- that would be the \$0.13 CH32V003 -- The '203 has significant benefits that make construction simpler and more performant:
 
@@ -328,17 +329,17 @@ As stated above, the node is a CH32V203 RISC-V microcontroller. Although not the
 - The CH32V003 is based on a QingKe RISC-V2A core, without hardware multiply and divide. The CH32V203 is based on a RISC-V4B core, that has one-cycle hardware multiply.
 - The CH32V003 is \$0.13 in quantity, the CH32V203 is \$0.37 in quantity. If I'm going this far, I'll spend the extra thousand dollars to get a machine that's a hundred times better.
 
-#### 16 Nodes, or, 'The Slice'
+### 16 Nodes, The Slice
 
 The Slice is a 4-dimensional hypercube, or 16 CH32V203 microcontrollers, each connected to 4 others. These 16 nodes are controlled by a dedicated microcontroller, programming each node over serial, toggling the reset circuit, and loading data into and out of each node.
 
 ![Block diagram of 16 nodes, showing a 16-node hypercube controlled via UART](/images/ConnM/SliceControl.png)
 
-#### 256 Nodes, or, 'The Plane'
+### 256 Nodes, The Plane
 
 ![Block diagram of 16 Slices, showing the architecture of a Plane](/images/ConnM/PanelControl.png)
 
-#### 4096 Nodes, or, 'The Machine'
+### 4096 Nodes, The Machine
 
 This is where the magic happens. The original CM-1 was controlled via a DEC VAX or Lisp machine that acted as a front-end processor. The front-end would broadcast instructions to the array, collect results, and handle I/O with the outside world. My machine needs something similar. At the top of the hierarchy sits a Zynq SoC - an FPGA with ARM cores bolted on. This is the easiest way to get 
 
@@ -350,6 +351,9 @@ This handles:
 - **LED coordination**: Someone has to tell that 64x64 array what to display
 
 The Zynq talks to 16 Plane controllers. Each Plane controller talks to 16 Slice controllers. Each Slice controller talks to 16 nodes. It's trees all the way down.
+
+
+## Software Architecture
 
 
 /*
@@ -877,7 +881,7 @@ document.addEventListener("DOMContentLoaded", function () {
   });
 
   // Custom scrolling with offset
-  const OFFSET = 60; // tweak as needed
+  const OFFSET = 90;
 
   tocList.addEventListener("click", function (event) {
     const link = event.target.closest("a");
