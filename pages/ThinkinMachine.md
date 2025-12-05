@@ -97,6 +97,7 @@ image: "/images/ConnM/CMSocialCard.png"
 .tm-article {
   flex: 1 1 auto;
   min-width: 0;
+  order: 1;  /* article on the left */
 }
 
 /* ToC sidebar */
@@ -108,7 +109,9 @@ image: "/images/ConnM/CMSocialCard.png"
   top: 4rem; /* adjust if your header is taller */
   max-height: calc(100vh - 5rem);
   overflow-y: auto;
+  order: 2;  /* ToC on the right */
 }
+
 
 .tm-toc-inner {
   padding: 0.75rem 1rem;
@@ -155,9 +158,10 @@ image: "/images/ConnM/CMSocialCard.png"
   .tm-toc {
     position: static;
     max-height: none;
-    order: -1; /* ToC appears above content */
+    order: -1; /* ToC appears above content on mobile */
   }
 }
+
 </style>
 
 <div class="tm-layout">
@@ -168,7 +172,8 @@ image: "/images/ConnM/CMSocialCard.png"
     </div>
   </aside>
 
-  <div class="tm-article">
+  <div class="tm-article" markdown="1">
+
 
 
 ![Render of the machine](/images/ConnM/CMSocialCard.png)
@@ -784,8 +789,9 @@ document.addEventListener("DOMContentLoaded", function () {
   const tocList = document.getElementById("tm-toc");
   if (!article || !tocList) return;
 
-  // Use H2 and H3 as ToC entries
-  const headings = article.querySelectorAll("h2, h3");
+  // Use H1, H2, and H3 as ToC entries
+  const headings = article.querySelectorAll("h1, h2, h3");
+
   if (!headings.length) {
     // no headings, hide ToC
     const toc = document.querySelector(".tm-toc");
