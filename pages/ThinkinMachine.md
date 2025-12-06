@@ -242,15 +242,17 @@ image: "/images/ConnM/CMSocialCard.png"
 
 ## Introduction
 
-This project is a reproduction and modern recreation of the Thinking Machines [Connection Machine CM-1](https://en.wikipedia.org/wiki/Connection_Machine). The Connection Machine was a massively parallel computer from 1985, containing 65,536 individual processors arranged at the vertexes of a 16-dimension hypercube. This means each processor in the machine is connected to 16 adjacent processors. While the Connection Machine was the fastest computer on the planet in the late 1980s ([Top500](https://top500.org/) only goes back to 1993), the company died during the second AI winter.
+This project is a reproduction and modern recreation of the Thinking Machines [Connection Machine CM-1](https://en.wikipedia.org/wiki/Connection_Machine). The Connection Machine was a massively parallel computer from 1985, containing 65,536 individual processors arranged at the vertexes of a 16-dimension hypercube. This means each processor in the machine is connected to 16 adjacent processors. 
 
-This project is effectively identical to the lowest-spec Connection Machine built. It contains 4,096 individual RISC-V processors, each connected to 12 neighbors in a 12-dimensional hypercube.
+The Connection Machine was the fastest computer on the planet in the late 1980s (The [Top500](https://top500.org/) list of supercomputers only goes back to 1993), and was purchased by various three-letter agencies, NASA, and a few well-funded universities. Like most tech companies, Thinking Machines was a defense contractor pretending to be a cool and exciting business. When the Cold War ended, DARPA cut their funding and the company officially died in 1994. By this time, Moore's Law had kicked in and workstations from Sun (and others) made the idea of a five million dollar machine that only spoke Lisp untenable for most companies. Call the reason Gorbachev or the second AI winter, by the mid 1990s the Connection Machine was dead. 
+
+This project is a modern recreation of the lowest-spec Connection Machine built. It contains 4,096 individual RISC-V processors, each connected to 12 neighbors in a 12-dimensional hypercube.
 
 The Connection Machine was an early experiment in massive parallelism. Today, a 'massively parallel computer' means wiring up a bunch of machines running Linux to an Ethernet switch. The topology of this network is whatever the switch is. The Connection Machine is different. Every node is connected to 16 other nodes in a machine with 65,536 processors. In my machine, every node is connected to 12 of the 4,096 processors. For _n_ total processors, each node connects to exactly $\log_2(n)$ neighbors. This topology makes the machine extremely interesting with regard to what it can calculate efficiently, namely matrix operations, which is the basis of the third AI boom.
 
 The individual processors in the CM-1 couldn't do much -- they could only operate on a single bit at a time, and their computational capability isn't much more than an ALU. This project leverages 40 years of Moore's law to put small, cheap computers into a parallel array. Not only does this allow me to emulate the ALU-like processors in the original CM-1, but I can also run actual programs at the corners of a 12-dimensional hypercube.
 
-This is a faithful reproduction of the original, 1985-era Connection Machine, plus 40 years of Moore's law and very poor impulse control. In 1985, this was the cutting edge of parallel computing. In 2025, it's a weird art project with better chips.
+This is a reproduction of the original, 1985-era Connection Machine, plus 40 years of Moore's law and very poor impulse control. In 1985, this was the cutting edge of parallel computing. In 2025, it's a weird art project with better chips.
 
 ## The LED Panel
 
@@ -264,7 +266,7 @@ The LED board is built around the **IS31FL3741**, an I2C LED matrix driver osten
 
 Each IS31FL3741 is controlling a **32x8** matrix of LEDs over I2C. These chips have an I2C address pin with four possible values, allowing me to control a **32x32 array** over a single I2C bus. Four of these arrays are combined onto a single PCB, along with an RP2040 (a Raspberry Pi Pico) microcontroller to run the whole thing.
 
-### Hardware Architecture
+### LED Hardware
 
 - The **RP2040 drives 16 IS31FL3741 chips** over **four I²C buses**.  
 - It uses **PIO-based I²C with DMA transfers** to blast out pixel data fast enough for real-time updates.  
@@ -287,16 +289,13 @@ Why did I build my own 64x64 LED array, instead of using an off-the-shelf HUB75 
 
 Mechanically, the LED panel is a piece of FR4 screwed to the chassis of the machine. The front acrylic is [Chemcast Black LED plastic sheet](https://www.tapplastics.com/product/plastics/cut_to_size_plastic/black_led_sheet/668) from TAP Plastics, secured to the PCB with magnets epoxied to the back side of the acrylic into milled slots. These magnets attach to magnets epoxied to the frame, behind the PCB. This Chemcast plastic is apparently the same material as the [Adafruit Black LED Diffusion Acrylic](https://www.adafruit.com/product/4594), and it works exactly as advertised. _Somehow_, the Chemcast plastic turns the point source of an LED into a square at the surface of the machine. You can't photograph it, but in person it's _spectacular_.
 
-### Blinky Software
+### LED Software
 
 There are a few pre-programmed modes for this panel. Of course I had to implement Conway's Game of Life, but the real showstopper is the "Random and Pleasing" mode. This is the mode shown in Jurassic Park, and it's what MoMA turns on when they light up their machine.
 
 There are several sources _describing_ this mode, but no actual details on how it's _implemented_. I went for a 4094-bit LFSR (256 taps), and divided the display up into four columns of 1x16 'cells'. These cells are randomly assigned to shift left or shift right, and 256 unique taps are assigned to a particular 1x16 cell.
 
-
-## Homebrew Thinking Machine
-
-![Unfolding a 4-dimensional tesseract](/images/ConnM/UnfoldingHoriz.png)
+## My Machine, Overview
 
 This post has already gone on far too long without a proper explanation of what I'm building. 
 
@@ -306,6 +305,8 @@ The nodes -- the tiny processors that make up the cluster -- could have been arr
 
 The Connection Machine settled on a hypercube layout, where in a network of 8 nodes (a 3D cube), each node would be connected to 3 adjacent nodes. In a network of 16 nodes (4D, a tesseract), each node would have 4 connections. A network of 4,096 nodes would have 12 connections per node, and a network of 65,536 nodes would have 16 connections per node.
 
+![Unfolding a 4-dimensional tesseract](/images/ConnM/UnfoldingHoriz.png)
+
 The advantages to this layout are that routing algorithms for passing messages between nodes are simple, and there are redundant paths between nodes. If you want to build a hypercluster of tiny computers, you build it as a hypercube.
 
 ## My Machine, Hardware Architecture
@@ -314,12 +315,12 @@ This machine is split up into segments of various sizes. Each segment is 1/16th 
 
 - **The Node** This is simply a CH32V203 RISC-V microcontroller. Specifically, I am using the CH32V203G6U6, a QFN28 part with around 20 GPIOs. In the machine, 12 of these pins will be used for hypercube connections, with other pins reserved for UART connections to a local microcontroller, the `/BOOT` pin, and `NRST` pin.
 - **The Slice** This is 16 individual nodes, connected as a 4-dimension hypercube. In the Slice, a seventeenth microcontroller the initialization and control of each individual node. This means providing the means to program and read out memory from each node individually. I'm doing this through the UART bootloader for the CH32V203. Controlling the `/BOOT` and `NRST` pins of each node allows me to restart each node either collectively or individually
-- **The Plane**  This is 16 Slices. In this segment, 256 CH32V203 microcontrollers are connected via an 8-dimension hypercube. With 16 CH32V203 microcontrollers per Slice plus one additional microcontroller, this means each plane consists of 272 microcontrollers, _plus an additional control layer_ for summing UARTs and routing messages to each Slice. In total there are 273 microcontrollers in each Plane.
+- **The Plane**  16 Slices. The Plane is 256 CH32V203 microcontrollers are connected as an 8-dimension hypercube. With 16 CH32V203 microcontrollers per Slice plus one additional microcontroller, this means each plane consists of 272 microcontrollers, _plus an additional control layer_ for summing UARTs and routing messages to each Slice. In total there are 273 microcontrollers in each Plane.
 - **The Machine** Sixteen Planes make a Machine. The architecture follows the growth we've seen up to now, with 4096 CH32V203 microcontrollers connected as a 12-dimensional hypercube. There are 4368 microcontrollers in The Machine, all controlled with a rather large SoC.
 
 Like the original Connection Machine, there are two 'modes' of connection between the nodes in the array. The first is the hypercube connection, where each node connects to other nodes. The second is a tree. Each node in the machine is connected to a 'Slice' microcontroller via UART. This Slice microcontroller handles reset, boot, programming, and loading data into each node. Above the Slice is the Plane, a master controller for each group of 256 nodes. And above that is the master controller.
 
-This "hypercube and tree" is identical to the original hypercube machines of the 1980s. The [Cosmic Cube](https://en.wikipedia.org/wiki/Caltech_Cosmic_Cube) at Caltech split the connections with individual links between nodes and a tree structure to a 'master' unit. The [Intel iPSC](https://en.wikipedia.org/wiki/Intel_iPSC) used a similar layout, but routing subsets of the hypercube through MUXes and Ethernet, with a separate connection to a 'cube manager'. Likewise, the Connection Machine could only function when connected to a VAX that handled the program loading and getting data out of the hypercube.
+This "hypercube and tree" is seen in other massively parallel machines of the 1980s. The [Cosmic Cube](https://en.wikipedia.org/wiki/Caltech_Cosmic_Cube) at Caltech split the connections with individual links between nodes and a tree structure to a 'master' unit. The [Intel iPSC](https://en.wikipedia.org/wiki/Intel_iPSC) used a similar layout, but routing subsets of the hypercube through MUXes and Ethernet, with a separate connection to a 'cube manager'. Likewise, the Connection Machine could only function when connected to a VAX that handled the program loading and getting data out of the hypercube.
 
 ### 1 Node
 
@@ -329,17 +330,41 @@ As stated above, the node is a CH32V203 RISC-V microcontroller. Although not the
 - The CH32V003 is based on a QingKe RISC-V2A core, without hardware multiply and divide. The CH32V203 is based on a RISC-V4B core, that has one-cycle hardware multiply.
 - The CH32V003 is \$0.13 in quantity, the CH32V203 is \$0.37 in quantity. If I'm going this far, I'll spend the extra thousand dollars to get a machine that's a hundred times better.
 
+The build began by prototyping a single node for verification of the UART bootloader and that the CH32V203 can be clocked via an external source. This is a [CH32V203C8T6 on a generic board](https://www.amazon.com/dp/B0G194PP1M), programmed and controlled by a Raspberry Pi Pico:
+
+/*Pic of 1 node build*/
+
+This part of the build was simply to validate the idea of using multiple RISC-V microcontrollers, programmed, clocked, and reset by an external microcontroller.
+
+/* Some more about what the 1-node build does */
+
 ### 16 Nodes, The Slice
+
+This is where the build starts getting serious. The purpose of the 16-node prototype is to verify the previous work of the 1-node build (programming via UART, external clocking) as well as defining the links between nodes, synchronization, and message passing between nodes. This is _hard_, and it's a good idea to do this on a prototype board before scaling up to larger builds.
 
 The Slice is a 4-dimensional hypercube, or 16 CH32V203 microcontrollers, each connected to 4 others. These 16 nodes are controlled by a dedicated microcontroller, programming each node over serial, toggling the reset circuit, and loading data into and out of each node.
 
 ![Block diagram of 16 nodes, showing a 16-node hypercube controlled via UART](/images/ConnM/SliceControl.png)
 
+The dedicated microcontroller used for this board is the RP2350. I'm using this chip for a few reasons. First, the PIOs. The PIOs in the RP2040 and RP2350 are small state machines that have access to GPIOs and memory via DMA that run independently of the core. [I have used this functionality before](https://bbenchoff.github.io/pages/IsoTherm.html) to generate clock signals and read data directly into memory, as well as controlling the I2C lines in the LED panel. The PIOs are fantastic little peripherals that enable me to program a clock sent to all of the 'Slice' microcontrollers and read serial output. It's a lot easier and cheaper than finding a microcontroller with 16 independent UARTs, too.
+
+![Render of the 16-node board](/images/ConnM/SlicePrototype.png)
+
+#### The Hypercube Links
+
+The 16-node board is also the first experiment with the hypercube links between nodes. Simply because I don't want double the work and density of wires in the full machine, I'm using a single wire, connecting one GPIO pin of a node to another GPIO pin of another node. These are single-wire half-duplex links, not a TX/RX pair. Because the CH32V203 only has two hardware UARTs, and one is dedicated to the Slice controller, these are links are bitbanged in software with external interrupts.
+
+In each node, the links between nodes are configured as open-drain inputs with a 10k pullup, so the idle state is High. Adjacent chips share a link, so arbitration -- which chip actually gets to use the link -- is done by carrier sense. If a node wants to send data, it first checks if the line is high for some number of microseconds, and if so, it begins transmitting. [CSMA](https://en.wikipedia.org/wiki/Carrier-sense_multiple_access) exists.
+
 ### 256 Nodes, The Plane
+
+The 256 node prototype builds on the progress made with the 1-node and 16-node boards. It is effectively sixteen copies of the 16-node board, with an additional Plane controller chip talking to each of the 16 Slice controllers. This prototype is effectively also the first 'production' circuit; in the full machine, I'm splitting up 4096 nodes over 16 individual boards of 256 nodes. This means the 256 node prototype is also the first revision of the main processor boards that will go into the machine.
 
 ![Block diagram of 16 Slices, showing the architecture of a Plane](/images/ConnM/PanelControl.png)
 
-### 4096 Nodes, The Machine
+The 256 node board is also the first one prototype where things get really hairy and interesting. Each chip is connected to eight other chips in the hypercube array. For 256 chips, this means there are 2048 inter-node links. If the chips can handle this, they're _probably_ good for the entire 4096-node full machine.
+
+### 4096 Nodes
 
 This is where the magic happens. The original CM-1 was controlled via a DEC VAX or Lisp machine that acted as a front-end processor. The front-end would broadcast instructions to the array, collect results, and handle I/O with the outside world. My machine needs something similar. At the top of the hierarchy sits a Zynq SoC - an FPGA with ARM cores bolted on. This is the easiest way to get 
 
@@ -356,27 +381,116 @@ The Zynq talks to 16 Plane controllers. Each Plane controller talks to 16 Slice 
 ## Software Architecture
 
 
+### CSMA vs TDMA
+
 /*
-Disregarding the architecture of a 12-dimensional hypercube, the high-level layout of this machine is shockingly simple:
 
-![Block diagram of the Connection Machine](/images/ConnM/BlockDiagram.png)
-
-As discussed above, the LED array is controlled by an RP2040 microcontroller over I2C. Data for the LEDs is received from the 'master' controller over a serial link. The hypercube of RISC-V chips are not directly connected to the LEDs, so fidelity and accuracy of what is actually happening in the computer suffers _somewhat_, but not really enough to notice.
-
-The 4096 nodes in the Connection Machine are connected to the 'local coordinators' of the hypercube array. 16 of these controllers handle Single Wire Debug for 256 RISC-V chips, allowing for programming each individual node in the hypercube, as well as providing input and output to each individual node. Each of these coordinators handle a single 8-dimensional hypercube, sixteen of these 8-dimension cubes comprise the entire 12-dimensional hypercube array. 
-
-These coordinators communicate with the main controller over a bidirectional serial link. The main controller is responsible for communicating with the local coordinators, both to write software to the RISC-V nodes, and to read the state of the RISC-V nodes. Input and output to the rest of the universe is through the main controller over an Ethernet connection provided by a WIZnet W5500 controller.
+The obvious approach to arbitration on a shared wire is CSMA: check if the line is idle, then transmit. This works fine for two nodes occasionally exchanging messages. It falls apart when you have 4,096 nodes, each with 12 links, all trying to do parallel algorithms. You rediscover congestion collapse. You add backoff timers. You add collision detection. You add retries. Suddenly you're implementing Ethernet in hell, and your "simple" single-wire link has a 200-line state machine.
+There's a better way, and it falls directly out of the topology.
+Every node in a hypercube has a binary address. In a 12-dimensional hypercube, that's a 12-bit number. The key property: every neighbor is exactly one bit flip away. Node 0x2A3 is connected to node 0x2A2 (bit 0 flipped), node 0x2A1 (bit 1 flipped), node 0x2AB (bit 3 flipped), and so on. Each of the 12 links corresponds to a specific bit position - a specific dimension of the hypercube.
+This means the address bits can determine who talks and when.
+Define a global tick counter, synchronized across all nodes via the shared clock from the slice controllers. The phase is just tick mod 24 - twelve dimensions, two directions each. In phase d, only dimension d links are active. All other links stay idle. Within that phase, the node with addr[d] == 0 transmits first, then the node with addr[d] == 1 transmits in the second half.
+That's it. Zero collisions. No CSMA. No backoff. No randomness. The topology is the schedule.
+The hierarchy makes this even cleaner. Bits 0-7 of the address encode position within a 256-node board (dimensions 0-7, on-board links). Bits 8-11 encode which of the 16 boards (dimensions 8-11, backplane links). During any backplane phase, each board is talking to exactly one other board - 256 parallel transfers through the same connector pair, all in the same direction. The connection matrix I generated earlier isn't just a routing table; it's a timing diagram.
+This is how hypercube machines were always meant to work. Classic CM-style algorithms are written as dimension-ordered passes: in step d, everybody exchanges data with the neighbor that differs in bit d. My TDMA scheme is literally "dimension-ordered routing in hardware." Deterministic latency. No probabilistic nonsense. A message that needs k bit flips takes exactly k dimension phases to arrive.
+The 16-node prototype exists specifically to validate this. Four dimensions, four links per node, simple enough to debug with a logic analyzer. If the TDMA scheme works at 16 nodes, it works at 4,096 - the math doesn't change, only the phase count.
 */
+
+/*
+Techniques That Fall Out of This Architecture
+
+1. Subset-Lattice Computing
+Your 4,096 nodes are literally the vertices of a 12-element subset lattice. Node 0x2A3 represents the subset {0,1,5,7,9}. Every subset of {0..11} has a physical home.
+This makes certain algorithms native to the hardware:
+
+Zeta transform: F(S) = Σ_{T⊆S} f(T) — runs in 12 TDMA phases
+Möbius transform: inclusion-exclusion inverse — same
+Walsh-Hadamard transforms on Boolean functions
+Subset DP: any dynamic programming indexed by bitmask (TSP variants, set cover)
+
+Each phase is "if my bit d is 1, pull value from neighbor, combine." The outer loop is your TDMA schedule. The machine is the algorithm's state space.
+
+2. Dimension-Phased Microcode (Wave ISA)
+Take TDMA further: treat the 12-phase cycle as a global microinstruction pointer.
+cfor (;;) {
+    for (int d = 0; d < 12; d++) {
+        wait_for_phase(d);
+        microstep[d]();  // per-node code, may use dim-d link
+    }
+}
+Compile high-level kernels into 12-entry choreography tables. "In phase 3, exchange X with dim-3 neighbor and add. In phase 7, reduce Y along dim-7."
+The ISA isn't opcodes—it's a 12-slot waveform of neighbor operations. Halfway between SIMD and cellular automata, but on real CPUs.
+
+3. Hardware Content-Addressable Memory / Distributed Hash Table
+Store value V at node hash(key) mod 4096. Lookup is routing: at most 12 hops, exactly popcount(my_addr XOR target_addr) hops. Deterministic latency.
+The CM couldn't do this—nodes couldn't think. Yours can handle collisions locally, respond to queries, cache hot keys. The hypercube becomes a 4,096-way associative memory where routing is lookup.
+
+4. Cellular Automata on Hypercube Topology
+Every cellular automaton ever studied assumes a grid. 4 neighbors. 8 neighbors. Maybe 6 in hex.
+What happens with 12 neighbors arranged as a hypercube? Different state space. Different emergent behavior. Different rules for interesting dynamics. Literally unexplored—the hardware to run it didn't exist.
+"Cellular Automata on Hypercube Topologies" is a paper waiting to be written, with your machine as the experimental platform.
+
+5. Deterministic Gossip with Exact Convergence Bounds
+Traditional gossip: randomly pick a neighbor, exchange state, converge "eventually" with high probability.
+Your TDMA makes it structured. Dimension-ordered gossip visits every dimension in lockstep. After 12 phases, every node has distance-1 information. After 24, distance-2. You can derive exact convergence bounds: "This distributed average converges in exactly 144 phases."
+That's not how gossip protocols work anywhere else. New primitive.
+
+6. Soft Topologies Over Hard Cube
+Old hypercubes were married to the physical topology. Your nodes have RAM and can route.
+Present different topologies to different programs:
+
+"This kernel sees a 2D torus"
+"This one sees a fat tree"
+"This one sees a ring with long chords"
+
+Each node maintains virtual neighbor tables, forwards via hypercube paths. Flip topologies dynamically without moving cables. Use TDMA dimension subsets to partition: "dimensions 0-3 for subgraph A, 4-7 for subgraph B."
+Dynamically reconfigurable interconnect, in software, on $0.37 chips.
+
+7. Multi-Scale Algorithms Mapped to Bit Ranges
+Treat the 12 bits as hierarchy levels:
+
+Bits 0-3: fine scale (on-board, local interactions)
+Bits 4-7: medium scale (cross-slice)
+Bits 8-11: coarse scale (backplane, global corrections)
+
+Multigrid-style algorithms where each scale lives in different bit ranges. Fine nodes run CFD/CA updates. Coarse nodes run slow global aggregations. Inter-scale patterns are perfectly regular: a dimension flip takes you from fine to corresponding coarse parent.
+Physical realization of multigrid on a Boolean lattice.
+
+8. Reversible Debugging / Time-Travel on 4,096 Cores
+Deterministic TDMA means you know exactly what messages were sent when. Each node has 20KB—enough to journal state transitions.
+Rewind the entire machine to a previous tick. Step backwards through parallel computation. Debugging parallel systems is hellish because of nondeterminism. You've built one where execution is fully deterministic and replayable.
+Time-travel debugging as a first-class architectural feature, not an afterthought.
+
+9. Hypercube as Physical Constraint Graph
+Each node is a variable. Each link is a constraint. The topology defines the constraint graph.
+Iterate: "given my neighbors' values, update mine to satisfy constraints." TDMA phases are "propagate constraints along dimension d."
+Hardware constraint satisfaction solver for problems whose graphs embed into 12-regular hypercubes.
+
+10. Locality-Sensitive Hashing in Hardware
+Interpret the 12-bit address as coordinates in a binary feature space. Nodes close in Hamming distance are topologically close.
+Feed vectors in. Each routes to its "nearest" node by Hamming distance. Similar vectors cluster at nearby nodes. Hardware approximate nearest-neighbor search.
+
+11. Self-Tuning Fabric
+You have a tree for monitoring, LEDs for visualization, 4,096 nodes that can all report stats.
+Each node tracks: packets forwarded per link, latency, error counts. Controllers pull stats, run meta-algorithms: adjust TDMA weights, change routing policies, push new parameters down.
+Classical machines treat interconnect as fixed, software as dynamic. Yours can make the interconnect algorithmic. Evolve different TDMA schedules and visualize fitness on the LED panel as you go.
+
+12. Self-Organizing Data Placement
+Nodes can notice "I'm forwarding a lot of traffic for key X" and cache it locally. Migrate data toward where it's accessed. The hypercube provides routing substrate, data placement becomes dynamic.
+Distributed systems study this on commodity networks with unpredictable latency. You have deterministic routing. Different optimization landscape.
+
+The Meta-Point
+The CM-1 was dumb SIMD with smart routing.
+You built smart MIMD with smart routing.
+That combination hasn't been explored because it was economically insane until $0.37 microcontrollers existed.
+*/
+
 
 ## The Backplane
 
-First off, I'd like to mention that the Connection Machine isn't best visualized as a multidimensional tesseract, or something Nolan consulted Kip Thorne to get _just right_. It's not a hypercube. Because it exists in three dimensions. Like you. It's actually a 12-bit Hamming-distance-1 graph. Or a bit-flip adjacency graph. Or it's a bunch of processors, each connected to 12 other processors. Each processor has a 12-bit address, and by changing one bit I can go to an adjacent processor. But sure, we'll call it a hypercube if it makes you feel wicked smaht or whatever. 
+The backplane is the key to the entire machine. This is historically true for big, old machines. I've been inside a PDP Straight-8, and the entire computer is composed of small cards containing just a few circuits. Plug them into the backplane -- a gigantic wire-wrapped monstrosity -- and the computer _appears_ out of these simple single-circuit cards. Similar architectures are seen in computers built into the early 1990s. This machine is no exception.
 
-That being said, Danny had some good ideas in his thesis about why it's better to refer to this computer as a hypercube. The key insight that makes this buildable is exploiting a really cool property of hypercubes: __you can divide them up into identical segments.__
-
-Instead of trying to route a 12-dimensional hypercube as one massive board, I'm breaking the 4,096 processors into 16 completely identical processor boards, each containing exactly 256 RISC-V chips. Think of it like this: each board is its own 8-dimensional hypercube (since 256 = 2⁸), and the backplane connects those 16 sub-cubes into a full 12-dimensional hypercube (because 16 = 2⁴, and 8 + 4 = 12).
-
-This means I only have to design one processor board and manufacture it 16 times. Each board handles 2,048 internal connections between its 256 chips, and exposes 1,024 connections to the backplane. The backplane does all the heavy lifting. It's where the real routing complexity lives, implementing the inter-board connections that make 16 separate 8D cubes behave like one unified 12D hypercube. The boards are segmented like this:
+The modular nature of my machine means I only have to design one processor board and manufacture it 16 times. Each board handles 2,048 internal connections between its 256 chips, and exposes 1,024 connections to the backplane. The backplane does all the heavy lifting. It's where the real routing complexity lives, implementing the inter-board connections that make 16 separate 8D cubes behave like one unified 12D hypercube. The boards are segmented like this:
 
 #### Board-to-Board Connection Matrix
 <p><em>Rows = Source Board, Columns = Destination Board, Values = Number of connections</em></p>
@@ -409,6 +523,16 @@ This means I only have to design one processor board and manufacture it 16 times
 Incidentally, this would be an _excellent_ application of wire-wrap technology. Wire-wrap uses thin wire and a special tool to spiral the bare wire around square posts of a connector. It’s mechanically solid, electrically excellent, and looks like spaghetti in practice. This is how the first computers were made (like the Straight Eight PDP-8), and was how the back plane in the Connection Machine was made.
 
 This is not how the Connection Machine solved the massive interconnect problem. The OG CM used multiple back planes and twisted-pair connections between these back planes. I'm solving this simply with modern high-density interconnects and a very, very expensive circuit board.
+
+
+/* Move this to some other place, I've already done this */
+I'd like to mention that the Connection Machine isn't best visualized as a multidimensional tesseract, or something Nolan consulted Kip Thorne to get _just right_. It's not a hypercube. Because it exists in three dimensions. Like you. It's actually a 12-bit Hamming-distance-1 graph. Or a bit-flip adjacency graph. Or it's a bunch of processors, each connected to 12 other processors. Each processor has a 12-bit address, and by changing one bit I can go to an adjacent processor. But sure, we'll call it a hypercube if it makes you feel wicked smaht or whatever. 
+
+That being said, Danny had some good ideas in his thesis about why it's better to refer to this computer as a hypercube. The key insight that makes this buildable is exploiting a really cool property of hypercubes: __you can divide them up into identical segments.__
+
+Instead of trying to route a 12-dimensional hypercube as one massive board, I'm breaking the 4,096 processors into 16 completely identical processor boards, each containing exactly 256 RISC-V chips. Think of it like this: each board is its own 8-dimensional hypercube (since 256 = 2⁸), and the backplane connects those 16 sub-cubes into a full 12-dimensional hypercube (because 16 = 2⁴, and 8 + 4 = 12).
+*/
+
 
 ### The Backplane Implementation
 
@@ -774,7 +898,13 @@ It's a GPU-accelerated autorouting plugin for KiCad, probably the first of its k
 
 ![OrthoRoute screencap 3](/images/ConnM/Orthoroute/3.png)
 
+This board feels pain. You get mental damage from just looking at it. Every other board you've ever seen comes with the assumption that a human played some part in it. This does not; it's purely an algorithm grinding away. It's the worst board that you've ever seen.
+
+![This computer is actually AM from I Have No Mouth But I must Scream](/images/ConnM/nomouth.png)
+
 You can run OrthoRoute yourself [by downloading it from the repo](https://github.com/bbenchoff/OrthoRoute). Install the .zip file via the package manager. A somewhat beefy Nvidia GPU is highly suggested but not required; there's CPU fallback. If you want a deeper dive on how I built OrthoRoute, [there's also a page in my portfolio about it](http://bbenchoff.github.io/pages/OrthoRoute.html). There's also benchmarks of different pathfinding algorithms there.
+
+
 
 
 
@@ -822,6 +952,9 @@ The earliest this Thinking Machine could have been built is the end of 2025 or t
 - **W. Daniel Hillis, “The Connection Machine” (Ph.D. dissertation, MIT, 1985; MIT Press, 1985).**  
   Hillis’ thesis lays out the philosophy, architecture, and programming model of the original CM-1: 65,536 1-bit processors arranged in a hypercube, with routing, memory, and SIMD control all treated as one unified machine design. My machine is basically that document filtered through 40 years of Moore’s law and PCB fab: the overall hypercube topology, the idea of a separate “front-end” host, and the notion that the interconnect *is* the computer all trace back directly here.
 
+- **Thinking Machines Corporation, *Connection Machine Model CM-2 Technical Summary*, Version 6.0 (November 1990).**  
+  The official technical reference for the CM-2, covering everything from the virtual processor model to the function of the routers. The CM-2 was the production version of Hillis's thesis; this manual is how they shipped it.
+
 - **Charles L. Seitz, “The Cosmic Cube,” *Communications of the ACM*, 28(1), 22–33, 1985.**  
   Seitz describes the Caltech Cosmic Cube, a message-passing multicomputer built from off-the-shelf microprocessors wired into a hypercube network. Where Hillis pushes toward a purpose-built SIMD supercomputer, Seitz shows how far you can get by wiring lots of small nodes together with careful routing and deadlock-free message channels. This project sits very much in that Cosmic Cube lineage: commodity microcontrollers, hypercube links, and a big bet that the network fabric is the interesting part.
 
@@ -833,6 +966,9 @@ The earliest this Thinking Machine could have been built is the end of 2025 or t
 
 - **Larry McMurchie and Carl Ebeling, “PathFinder: A Negotiation-Based Performance-Driven Router for FPGAs,” in *Proceedings of the Third International ACM Symposium on Field-Programmable Gate Arrays (FPGA ’95)*.**  
   PathFinder introduces the negotiated-congestion routing scheme that basically every serious FPGA router still builds on. The OrthoRoute autorouter used to design the backplane borrows this idea wholesale: routes compete for overused resources, costs get updated, and the system iterates toward a legal routing. The difference is that PathFinder works on configurable switch matrices inside an FPGA; here, the same logic is being applied to a 32-layer Manhattan lattice on a 17,000-pad PCB and run on a GPU.
+
+- **G. Peter Lepage, "[Lattice QCD for Novices](https://arxiv.org/abs/hep-lat/0506036)," *Proceedings of HUGS 98*, edited by J.L. Goity, World Scientific (2000); arXiv:hep-lat/0506036.**  
+  A practical introduction to lattice QCD with working code. Feynman's original Connection Machine QCD program—written in a parallel Basic dialect he invented and hand-simulated—doesn't survive, but the algorithm is standard Wilson action lattice gauge theory. Lepage's paper provides the actual implementation. This is the benchmark: if my machine can run a simplified version of what Feynman was trying to do in 1985, it's not just a replica.
 
 [back](../)
 
