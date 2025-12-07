@@ -158,6 +158,17 @@ image: "/images/ConnM/CMSocialCard.png"
   left: 0;
 }
 
+.tm-toc-nav li.tm-toc-level-4 {
+  margin-left: 3rem;          /* deeper indent than H3 */
+}
+
+.tm-toc-nav li.tm-toc-level-4::before {
+  content: "◦";
+  position: absolute;
+  left: 0;
+  opacity: 0.8;
+}
+
 .tm-toc-nav a {
   text-decoration: none;
   font-size: 0.9rem;
@@ -238,7 +249,7 @@ image: "/images/ConnM/CMSocialCard.png"
 
 # Thinkin' Machine Supercomputer
 
-#### Or: I made a supercomputer out of a bunch of smartphone connectors, a chip from RGB mechanical keyboards, and four thousand RISC-V microcontrollers.
+##### Or: I made a supercomputer out of a bunch of smartphone connectors, a chip from RGB mechanical keyboards, and four thousand RISC-V microcontrollers.
 
 ## Introduction
 
@@ -350,11 +361,33 @@ The dedicated microcontroller used for this board is the RP2350. I'm using this 
 
 ![Render of the 16-node board](/images/ConnM/SlicePrototype.png)
 
-#### The Hypercube Links
+#### Hypercube Communication
 
 The 16-node board is also the first experiment with the hypercube links between nodes. Simply because I don't want double the work and density of wires in the full machine, I'm using a single wire, connecting one GPIO pin of a node to another GPIO pin of another node. These are single-wire half-duplex links, not a TX/RX pair. Because the CH32V203 only has two hardware UARTs, and one is dedicated to the Slice controller, these are links are bitbanged in software with external interrupts.
 
-In each node, the links between nodes are configured as open-drain inputs with a 10k pullup, so the idle state is High. Adjacent chips share a link, so arbitration -- which chip actually gets to use the link -- is done by carrier sense. If a node wants to send data, it first checks if the line is high for some number of microseconds, and if so, it begins transmitting. [CSMA](https://en.wikipedia.org/wiki/Carrier-sense_multiple_access) exists.
+The astute reader will notice many problems with twelve bit-banged UARTs over a single-wire open-drain connection between microcontrollers. Those are electrical engineering terms, so here's automotive terms: it's like doing the Baja 1000 in a stock 1993 Ford Taurus. Yeah, you can finish it, but you're not making it easy on yourself. Back to electrical terms, you should _really_ have two wires between chips, either as a Tx/Rx pair, or a data clock line pair, and it would be really cool if you could use hardware UARTs if only to make programming simpler. But this is a hypercube computer, far too many wires is a given so doubling the number of connections is out of the question, and I can't find a single microcontroller with twelve UARTs. So we're doing it this way. 
+
+To actually pass messages back and forth between nodes through the hypercube array, we need a way to arbitrate the connections -- which node actually gets to use the connection. There are several ways to do this.
+
+#### CSMA vs TDMA
+
+The naive way to arbitrate message passing between nodes is carrier-sense multiple access, or [CSMA](https://en.wikipedia.org/wiki/Carrier-sense_multiple_access). Consider two nodes. At rest, the line is pulled high, because of the pullup. For node Alice to talk to node Bob, Alice first pulls the line low for some number of microseconds. Bob detects the line is low, and starts listening. Then Alice starts sending data.
+
+/// CSMA timing diagram
+
+This has significant drawbacks. There _will_ be collisions, where both nodes want to talk at the same time. I would have to add backoff timers and retries, and god forbid acknowledgements. The code to do this is gnarly, and I simply don't want to do it. Because there's a better way.
+
+Consider the actual topology of what's communicating here. All nodes are assigned a 12-bit number. Each connection is to a processor that is a _single_ bit flip away. Node 0x2A3 is connected to node 0x2A2 (bit 0 flipped), node 0x2A1 (bit 1 flipped), node 0x2AB (bit 3 flipped), and so on.
+
+Now define a global tick counter, synchronized across all nodes via the shared clock from the slice controllers. The phase is just tick mod 24 - twelve dimensions, two directions each. In phase d, only dimension d links are active. All other links stay idle. Within that phase, the node with addr[d] == 0 transmits first, then the node with addr[d] == 1 transmits in the second half. This is time-division multiple access, or [TDMA](https://en.wikipedia.org/wiki/Time-division_multiple_access).
+
+/// TDMA timing diagram
+
+The message passing protocol _just falls out of the topology of the machine_. Instead of a furball of code trying to get rid of problems with carrier sense, TDMA based on the address of the node solves the problem elegantly. In fairness, I'm not the first to discover this; the Connection Machine, iPSC, and Cosmic Cube either did something similar, or the technique would have been obvious to their creators.
+
+This should be your first realization that the hypercube architecture is recursively elegant. If you construct a parallel computer with a hypercube architecture, cool stuff just appears. 
+
+The 16-node prototype exists specifically to validate this TDMA scheme. If the TDMA scheme works at 16 nodes, it works with 4096. The math doesn't change, only the phase count.
 
 ### 256 Nodes, The Plane
 
@@ -381,22 +414,6 @@ The Zynq talks to 16 Plane controllers. Each Plane controller talks to 16 Slice 
 ## Software Architecture
 
 
-### CSMA vs TDMA
-
-/*
-
-The obvious approach to arbitration on a shared wire is CSMA: check if the line is idle, then transmit. This works fine for two nodes occasionally exchanging messages. It falls apart when you have 4,096 nodes, each with 12 links, all trying to do parallel algorithms. You rediscover congestion collapse. You add backoff timers. You add collision detection. You add retries. Suddenly you're implementing Ethernet in hell, and your "simple" single-wire link has a 200-line state machine.
-There's a better way, and it falls directly out of the topology.
-Every node in a hypercube has a binary address. In a 12-dimensional hypercube, that's a 12-bit number. The key property: every neighbor is exactly one bit flip away. Node 0x2A3 is connected to node 0x2A2 (bit 0 flipped), node 0x2A1 (bit 1 flipped), node 0x2AB (bit 3 flipped), and so on. Each of the 12 links corresponds to a specific bit position - a specific dimension of the hypercube.
-This means the address bits can determine who talks and when.
-Define a global tick counter, synchronized across all nodes via the shared clock from the slice controllers. The phase is just tick mod 24 - twelve dimensions, two directions each. In phase d, only dimension d links are active. All other links stay idle. Within that phase, the node with addr[d] == 0 transmits first, then the node with addr[d] == 1 transmits in the second half.
-That's it. Zero collisions. No CSMA. No backoff. No randomness. The topology is the schedule.
-The hierarchy makes this even cleaner. Bits 0-7 of the address encode position within a 256-node board (dimensions 0-7, on-board links). Bits 8-11 encode which of the 16 boards (dimensions 8-11, backplane links). During any backplane phase, each board is talking to exactly one other board - 256 parallel transfers through the same connector pair, all in the same direction. The connection matrix I generated earlier isn't just a routing table; it's a timing diagram.
-This is how hypercube machines were always meant to work. Classic CM-style algorithms are written as dimension-ordered passes: in step d, everybody exchanges data with the neighbor that differs in bit d. My TDMA scheme is literally "dimension-ordered routing in hardware." Deterministic latency. No probabilistic nonsense. A message that needs k bit flips takes exactly k dimension phases to arrive.
-The 16-node prototype exists specifically to validate this. Four dimensions, four links per node, simple enough to debug with a logic analyzer. If the TDMA scheme works at 16 nodes, it works at 4,096 - the math doesn't change, only the phase count.
-*/
-
-/*
 Techniques That Fall Out of This Architecture
 
 1. Subset-Lattice Computing
@@ -488,11 +505,11 @@ That combination hasn't been explored because it was economically insane until $
 
 ## The Backplane
 
-The backplane is the key to the entire machine. This is historically true for big, old machines. I've been inside a PDP Straight-8, and the entire computer is composed of small cards containing just a few circuits. Plug them into the backplane -- a gigantic wire-wrapped monstrosity -- and the computer _appears_ out of these simple single-circuit cards. Similar architectures are seen in computers built into the early 1990s. This machine is no exception.
+The backplane is the key to the entire machine. This is historically true for big, old machines. I've been inside a PDP Straight-8, and the entire computer is composed of small cards containing just a few circuits. Plug them into the backplane -- a gigantic wire-wrapped monstrosity -- and the computer _appears_ out of these simple single-circuit cards. The Cray Couch, despite vastly more complicated modules, _appears_ when you add miles of wire in between these modules. This machine is no exception.
 
 The modular nature of my machine means I only have to design one processor board and manufacture it 16 times. Each board handles 2,048 internal connections between its 256 chips, and exposes 1,024 connections to the backplane. The backplane does all the heavy lifting. It's where the real routing complexity lives, implementing the inter-board connections that make 16 separate 8D cubes behave like one unified 12D hypercube. The boards are segmented like this:
 
-#### Board-to-Board Connection Matrix
+##### Board-to-Board Connection Matrix
 <p><em>Rows = Source Board, Columns = Destination Board, Values = Number of connections</em></p>
 <div class="table-wrap">
 <table class="matrix-table">
@@ -520,9 +537,7 @@ The modular nature of my machine means I only have to design one processor board
 </table>
 </div>
 
-Incidentally, this would be an _excellent_ application of wire-wrap technology. Wire-wrap uses thin wire and a special tool to spiral the bare wire around square posts of a connector. It’s mechanically solid, electrically excellent, and looks like spaghetti in practice. This is how the first computers were made (like the Straight Eight PDP-8), and was how the back plane in the Connection Machine was made.
-
-This is not how the Connection Machine solved the massive interconnect problem. The OG CM used multiple back planes and twisted-pair connections between these back planes. I'm solving this simply with modern high-density interconnects and a very, very expensive circuit board.
+This would be an _excellent_ application of wire-wrap technology. Wire-wrap uses thin wire and a special tool to spiral the bare wire around square posts of a connector. It’s mechanically solid, electrically excellent, and looks like spaghetti in practice. This is how the first computers were made (like the Straight Eight PDP-8), and was how the back plane in the Connection Machine was made. But wire-wrap is too big and I have yet to program a robot arm to actually do it. I'm solving this simply with modern high-density interconnects and a very, very expensive circuit board.
 
 
 /* Move this to some other place, I've already done this */
@@ -982,7 +997,7 @@ document.addEventListener("DOMContentLoaded", function () {
   if (!article || !tocList) return;
 
   // Only H2 + H3
-  const headings = article.querySelectorAll("h2, h3");
+  const headings = article.querySelectorAll("h2, h3, h4");
   if (!headings.length) {
     const toc = document.querySelector(".tm-toc");
     if (toc) toc.style.display = "none";
@@ -1001,11 +1016,13 @@ document.addEventListener("DOMContentLoaded", function () {
     const li = document.createElement("li");
     const tag = h.tagName.toLowerCase();
 
-    // H2 = top-level, H3 = indented
+    // H2 = top-level, H3 = indented, H4 = further indented
     if (tag === "h2") {
       li.classList.add("tm-toc-level-2");
     } else if (tag === "h3") {
       li.classList.add("tm-toc-level-3");
+    } else if (tag === "h4") {
+      li.classList.add("tm-toc-level-4");
     }
 
     const a = document.createElement("a");
