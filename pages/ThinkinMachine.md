@@ -249,7 +249,7 @@ image: "/images/ConnM/CMSocialCard.png"
 
 # Thinkin' Machine Supercomputer
 
-##### Or: I made a supercomputer out of a bunch of smartphone connectors, a chip from RGB mechanical keyboards, and four thousand RISC-V microcontrollers.
+<b>Or: I made a supercomputer out of a bunch of smartphone connectors, a chip from RGB mechanical keyboards, and four thousand RISC-V microcontrollers.</b>
 
 ## Introduction
 
@@ -320,7 +320,7 @@ The Connection Machine settled on a hypercube layout, where in a network of 8 no
 
 The advantages to this layout are that routing algorithms for passing messages between nodes are simple, and there are redundant paths between nodes. If you want to build a hypercluster of tiny computers, you build it as a hypercube.
 
-## My Machine, Hardware Architecture
+## Hardware Architecture
 
 This machine is split up into segments of various sizes. Each segment is 1/16th as large as the next. These are:
 
@@ -410,106 +410,13 @@ This handles:
 
 The Zynq talks to 16 Plane controllers. Each Plane controller talks to 16 Slice controllers. Each Slice controller talks to 16 nodes. It's trees all the way down.
 
-
-## Software Architecture
-
-
-Techniques That Fall Out of This Architecture
-
-1. Subset-Lattice Computing
-Your 4,096 nodes are literally the vertices of a 12-element subset lattice. Node 0x2A3 represents the subset {0,1,5,7,9}. Every subset of {0..11} has a physical home.
-This makes certain algorithms native to the hardware:
-
-Zeta transform: F(S) = Σ_{T⊆S} f(T) — runs in 12 TDMA phases
-Möbius transform: inclusion-exclusion inverse — same
-Walsh-Hadamard transforms on Boolean functions
-Subset DP: any dynamic programming indexed by bitmask (TSP variants, set cover)
-
-Each phase is "if my bit d is 1, pull value from neighbor, combine." The outer loop is your TDMA schedule. The machine is the algorithm's state space.
-
-2. Dimension-Phased Microcode (Wave ISA)
-Take TDMA further: treat the 12-phase cycle as a global microinstruction pointer.
-cfor (;;) {
-    for (int d = 0; d < 12; d++) {
-        wait_for_phase(d);
-        microstep[d]();  // per-node code, may use dim-d link
-    }
-}
-Compile high-level kernels into 12-entry choreography tables. "In phase 3, exchange X with dim-3 neighbor and add. In phase 7, reduce Y along dim-7."
-The ISA isn't opcodes—it's a 12-slot waveform of neighbor operations. Halfway between SIMD and cellular automata, but on real CPUs.
-
-3. Hardware Content-Addressable Memory / Distributed Hash Table
-Store value V at node hash(key) mod 4096. Lookup is routing: at most 12 hops, exactly popcount(my_addr XOR target_addr) hops. Deterministic latency.
-The CM couldn't do this—nodes couldn't think. Yours can handle collisions locally, respond to queries, cache hot keys. The hypercube becomes a 4,096-way associative memory where routing is lookup.
-
-4. Cellular Automata on Hypercube Topology
-Every cellular automaton ever studied assumes a grid. 4 neighbors. 8 neighbors. Maybe 6 in hex.
-What happens with 12 neighbors arranged as a hypercube? Different state space. Different emergent behavior. Different rules for interesting dynamics. Literally unexplored—the hardware to run it didn't exist.
-"Cellular Automata on Hypercube Topologies" is a paper waiting to be written, with your machine as the experimental platform.
-
-5. Deterministic Gossip with Exact Convergence Bounds
-Traditional gossip: randomly pick a neighbor, exchange state, converge "eventually" with high probability.
-Your TDMA makes it structured. Dimension-ordered gossip visits every dimension in lockstep. After 12 phases, every node has distance-1 information. After 24, distance-2. You can derive exact convergence bounds: "This distributed average converges in exactly 144 phases."
-That's not how gossip protocols work anywhere else. New primitive.
-
-6. Soft Topologies Over Hard Cube
-Old hypercubes were married to the physical topology. Your nodes have RAM and can route.
-Present different topologies to different programs:
-
-"This kernel sees a 2D torus"
-"This one sees a fat tree"
-"This one sees a ring with long chords"
-
-Each node maintains virtual neighbor tables, forwards via hypercube paths. Flip topologies dynamically without moving cables. Use TDMA dimension subsets to partition: "dimensions 0-3 for subgraph A, 4-7 for subgraph B."
-Dynamically reconfigurable interconnect, in software, on $0.37 chips.
-
-7. Multi-Scale Algorithms Mapped to Bit Ranges
-Treat the 12 bits as hierarchy levels:
-
-Bits 0-3: fine scale (on-board, local interactions)
-Bits 4-7: medium scale (cross-slice)
-Bits 8-11: coarse scale (backplane, global corrections)
-
-Multigrid-style algorithms where each scale lives in different bit ranges. Fine nodes run CFD/CA updates. Coarse nodes run slow global aggregations. Inter-scale patterns are perfectly regular: a dimension flip takes you from fine to corresponding coarse parent.
-Physical realization of multigrid on a Boolean lattice.
-
-8. Reversible Debugging / Time-Travel on 4,096 Cores
-Deterministic TDMA means you know exactly what messages were sent when. Each node has 20KB—enough to journal state transitions.
-Rewind the entire machine to a previous tick. Step backwards through parallel computation. Debugging parallel systems is hellish because of nondeterminism. You've built one where execution is fully deterministic and replayable.
-Time-travel debugging as a first-class architectural feature, not an afterthought.
-
-9. Hypercube as Physical Constraint Graph
-Each node is a variable. Each link is a constraint. The topology defines the constraint graph.
-Iterate: "given my neighbors' values, update mine to satisfy constraints." TDMA phases are "propagate constraints along dimension d."
-Hardware constraint satisfaction solver for problems whose graphs embed into 12-regular hypercubes.
-
-10. Locality-Sensitive Hashing in Hardware
-Interpret the 12-bit address as coordinates in a binary feature space. Nodes close in Hamming distance are topologically close.
-Feed vectors in. Each routes to its "nearest" node by Hamming distance. Similar vectors cluster at nearby nodes. Hardware approximate nearest-neighbor search.
-
-11. Self-Tuning Fabric
-You have a tree for monitoring, LEDs for visualization, 4,096 nodes that can all report stats.
-Each node tracks: packets forwarded per link, latency, error counts. Controllers pull stats, run meta-algorithms: adjust TDMA weights, change routing policies, push new parameters down.
-Classical machines treat interconnect as fixed, software as dynamic. Yours can make the interconnect algorithmic. Evolve different TDMA schedules and visualize fitness on the LED panel as you go.
-
-12. Self-Organizing Data Placement
-Nodes can notice "I'm forwarding a lot of traffic for key X" and cache it locally. Migrate data toward where it's accessed. The hypercube provides routing substrate, data placement becomes dynamic.
-Distributed systems study this on commodity networks with unpredictable latency. You have deterministic routing. Different optimization landscape.
-
-The Meta-Point
-The CM-1 was dumb SIMD with smart routing.
-You built smart MIMD with smart routing.
-That combination hasn't been explored because it was economically insane until $0.37 microcontrollers existed.
-*/
-
-
 ## The Backplane
 
 The backplane is the key to the entire machine. This is historically true for big, old machines. I've been inside a PDP Straight-8, and the entire computer is composed of small cards containing just a few circuits. Plug them into the backplane -- a gigantic wire-wrapped monstrosity -- and the computer _appears_ out of these simple single-circuit cards. The Cray Couch, despite vastly more complicated modules, _appears_ when you add miles of wire in between these modules. This machine is no exception.
 
 The modular nature of my machine means I only have to design one processor board and manufacture it 16 times. Each board handles 2,048 internal connections between its 256 chips, and exposes 1,024 connections to the backplane. The backplane does all the heavy lifting. It's where the real routing complexity lives, implementing the inter-board connections that make 16 separate 8D cubes behave like one unified 12D hypercube. The boards are segmented like this:
 
-##### Board-to-Board Connection Matrix
+<b>Board-to-Board Connection Matrix</b>
 <p><em>Rows = Source Board, Columns = Destination Board, Values = Number of connections</em></p>
 <div class="table-wrap">
 <table class="matrix-table">
@@ -539,29 +446,17 @@ The modular nature of my machine means I only have to design one processor board
 
 This would be an _excellent_ application of wire-wrap technology. Wire-wrap uses thin wire and a special tool to spiral the bare wire around square posts of a connector. It’s mechanically solid, electrically excellent, and looks like spaghetti in practice. This is how the first computers were made (like the Straight Eight PDP-8), and was how the back plane in the Connection Machine was made. But wire-wrap is too big and I have yet to program a robot arm to actually do it. I'm solving this simply with modern high-density interconnects and a very, very expensive circuit board.
 
+### The Backplane Connectors
 
-/* Move this to some other place, I've already done this */
-I'd like to mention that the Connection Machine isn't best visualized as a multidimensional tesseract, or something Nolan consulted Kip Thorne to get _just right_. It's not a hypercube. Because it exists in three dimensions. Like you. It's actually a 12-bit Hamming-distance-1 graph. Or a bit-flip adjacency graph. Or it's a bunch of processors, each connected to 12 other processors. Each processor has a 12-bit address, and by changing one bit I can go to an adjacent processor. But sure, we'll call it a hypercube if it makes you feel wicked smaht or whatever. 
-
-That being said, Danny had some good ideas in his thesis about why it's better to refer to this computer as a hypercube. The key insight that makes this buildable is exploiting a really cool property of hypercubes: __you can divide them up into identical segments.__
-
-Instead of trying to route a 12-dimensional hypercube as one massive board, I'm breaking the 4,096 processors into 16 completely identical processor boards, each containing exactly 256 RISC-V chips. Think of it like this: each board is its own 8-dimensional hypercube (since 256 = 2⁸), and the backplane connects those 16 sub-cubes into a full 12-dimensional hypercube (because 16 = 2⁴, and 8 + 4 = 12).
-*/
-
-
-### The Backplane Implementation
-
-Mechanically, this device is very simple. The LED panel is screwed into a frame that also holds the back plane on the opposite side. The back side has USB-C and Ethernet connections to the outside world. This is attached to the backplane through a ribbon cable.
-
-Internally, there's a bunch of crap. A Mean Well power supply provides the box with 350 Watts of 12V power. Since 4096 RISC-V chips will draw _hundreds_ of Watts, cooling is also a necessity. This is handled by a 200mm fan. 
+Mechanically, this device is _tight_. The LED panel is screwed into a frame that also holds the back plane on the opposite side. The back side has USB-C and Ethernet connections to the outside world. Internally, there's a bunch of crap. A Mean Well power supply provides the box with 12V power. Since 4096 RISC-V chips will draw _hundreds_ of Watts, cooling is also a necessity. A quartet of fans are bolted to the back panel of the device. Noctua on that thang.
 
 There's a lot of stuff in this box, and not a lot of places to put 16 boards. Here's a graphic showing the internals of the device, with the area for the RISC-V boards highlighted in pink:
 
 ![An internal view of the device, showing where the RISC-V boards will go](/images/ConnM/HighlightedBoardArea.png)
 
-Even though the full enclosure is 262 mm cubed, only about 190 mm cubed is allocated to the 16 RISC-V boards. This means for each of the 16 boards in this device, I need to fit at least 1024 connections onto the backplane, where the connectors can only take up 190mm, in a height of about 10mm. _This is hard_. There are no edge connectors that do this. There's nothing in the Samtec or Amphenol catalogs that allow me to put over a thousand board-to-board connections in just 190mm of length and 10mm in height.
+There isn't much space to put the connectors for sixteen boards, especially connectors with 1100 pins. Dividing 1100 pins by the available length of 200mm gives us a pin pitch of 0.2mm. The pins for the connectors would have to be 0.2mm apart. This just doesn't exist.
 
-So how do you physically connect 1024 signals per board, in 190mm, with 10mm of height to work with? You don’t, because the connector you need doesn’t exist. After an evening spent crawling Samtec, Amphenol, Hirose, and Molex catalogs, I landed on this solution:
+So how do you physically connect 1024 signals per board, in 200mm, with 10mm of height to work with? You don’t, because the connector you need doesn’t exist. After an evening spent crawling Samtec, Amphenol, Hirose, and Molex catalogs, I landed on this solution:
 
 ![Three views of the chosen connector, cutaway to show how the attach to the boards](/images/ConnM/ConnectorCutaway.png)
 
@@ -575,11 +470,9 @@ Above is a render of the machine showing the scale and density of what's going o
 
 It's _tight_, but it's possible. The rest is only a routing problem.
 
-## Why I Had To Write An Autorouter
+### The Backplane Schematic
 
-And oh what a routing problem it is! 
-
-A human mind cannot route a 12-dimensional hypercube, but getting back to the interesting properties of hypercube network topology, every node on the graph can be defined as a binary number and importantly, when defined as a binary number _every neighbor is a single bit flip away_. Defining the network of nodes and links is then pretty easy. It can be done in a few dozen lines of Python. This script defines the links between nodes in a 12D hypercube, broken up into 16 8D cubes:
+This script defines the links between nodes in a 12D hypercube, broken up into 16 8D cubes:
 
 ```python
 import sys
@@ -885,13 +778,11 @@ Yeah, it's the most complex PCB I've ever designed. Doing this by hand would tak
 
 _These were the easy traces, too_. It would have taken hundreds or thousands of hours for the autorouter to do everything, and it would still look like shit.
 
-The obvious solution, therefore, is to build my own autorouter. Or at least spend a week or two on writing an autorouter. Building an autorouter for circuit boards is _the_ hardest problem in computer science; the smartest people on the planet have been working on this problem for sixty years and all autorouters still suck. 
+The obvious solution, therefore, is to build my own autorouter. Or at least spend a week or two on writing an autorouter.
 
-### A GPU-Accelerated Autorouter
+#### OrthoRoute
 
 **[This is OrthoRoute](https://github.com/bbenchoff/OrthoRoute)**, a GPU-accelerated autorouter for KiCad. There's very little that's actually _new_ here; I'm just leafing through some of the VLSI books in my basement and stealing some ideas that look like they might work. If you throw enough compute at a problem, you might get something that works.
-
-**[HEY CHRIS CAN YOU PRINT SOME MORE OF THESE SHIRTS?](https://contextualelectronics.com/product/never-trust-the-autorouter-t-shirt/)**
 
 OrthoRoute is written for the new IPC plugin system for KiCad 9.0. This has several advantages over the old SWIG-based plugin system. IPC allows me to run code outside of KiCad's Python environment. That's important, since I'll be using CuPy for CUDA acceleration and Qt to make the plugin look good. The basic structure of the OrthoRoute plugin looks something like this:
 
@@ -899,13 +790,21 @@ OrthoRoute is written for the new IPC plugin system for KiCad 9.0. This has seve
 
 The OrthoRoute plugin communicates with KiCad via the IPC API over a Unix socket. This API is basically a bunch of C++ classes that gives me access to board data -- nets, pads, copper pour geometry, airwires, and everything else. This allows me to build a second model of a PCB inside a Python script and model it however I want.
 
-From there, OrthoRoute reads the airwires and nets and figures out what pads are connected together. This is the basis of any autorouter. OrthoRoute then runs another Python script written with [CuPy](https://cupy.dev/), that performs routing algorithms on a GPU. I'm using [Lee's Algorithm](https://en.wikipedia.org/wiki/Lee_algorithm) and [Wavefront expansion](https://en.wikipedia.org/wiki/Wavefront_expansion_algorithm) -- the 'standard' autorouting algorithms, all done on a GPU. _But that's not all..._
+From there, OrthoRoute reads the airwires and nets and figures out what pads are connected together. This is the basis of any autorouter. OrthoRoute then uses [CuPy](https://cupy.dev/) and interesting algorithms ripped from the world of FPGA routing to turn a mess of airwires into a routed board.
 
-### A Manhattan Router
+The algorithm used for this autorouter is [PathFinder: a negotiation-based performance-driven router for FPGAs](https://dl.acm.org/doi/10.1145/201310.201328). My implementation of PathFinder treats the PCB as a graph: nodes are intersections on an x–y grid where vias can go, and edges are the segments between intersections where copper traces can run. Each edge and node is treated as a shared resource.
 
-The domain-specific algorithm for this backplane is [Manhattan routing](https://resources.pcb.cadence.com/blog/2020-pcb-manhattan-routing-techniques), where one layer is _only_ vertical, and another layer is _only_ horizontal. It's a common technique if you've seen enough old computer motherboards, but for the life of me I couldn't find an autorouter that actually did Manhattan routing. So I built one. It's called OrthoRoute.
+PathFinder is iterative. In the first iteration, all nets (airwires) are routed _greedily_, without accounting for overuse of nodes or edges. Subsequent iterations account for congestion, increasing the “cost” of overused edges and ripping up the worst offenders to re-route them. Over time, the algorithm _converges_ to a PCB layout where no edge or node is over-subscribed by multiple nets.
 
-It's a GPU-accelerated autorouting plugin for KiCad, probably the first of its kind. But this isn't smart. I probably could have put this board up on Fiverr and gotten results in a week or two. This yak is fuckin bald now. But I think the screencaps speak for themselves:
+With this architecture -- the PathFinder algorithm on a very large graph, within the same order of magnitude of the largest FPGAs -- it makes sense to run the algorithm with GPU acceleration. There are a few factors that went into this decision:
+
+1. Everyone who's routing giant backplanes probably has a gaming PC. Or you can rent a GPU from whatever company is advertising on MUNI bus stops this month.
+2. The PathFinder algorithm requires hundreds of billions of calculations for every iteration, making single-core CPU computation glacially slow. 
+3. With CUDA, I can implement a SSSP (parallel Dijkstra) to find a path through a weighted graph very fast. 
+
+Note this is _not_ a fully parallel autorouter; in OrthoRoute, nets are still routed in sequence on a shared congestion map. The parallelism lives inside the shortest-path search: a CUDA SSSP (“parallel Dijkstra”) kernel makes each individual net’s pathfinding fast, but it doesn’t route many nets simultaneously.
+
+This yak is fuckin bald now. But I think the screencaps speak for themselves:
 
 ![OrthoRoute screencap 1](/images/ConnM/Orthoroute/1.png)
 
@@ -917,10 +816,7 @@ This board feels pain. You get mental damage from just looking at it. Every othe
 
 ![This computer is actually AM from I Have No Mouth But I must Scream](/images/ConnM/nomouth.png)
 
-You can run OrthoRoute yourself [by downloading it from the repo](https://github.com/bbenchoff/OrthoRoute). Install the .zip file via the package manager. A somewhat beefy Nvidia GPU is highly suggested but not required; there's CPU fallback. If you want a deeper dive on how I built OrthoRoute, [there's also a page in my portfolio about it](http://bbenchoff.github.io/pages/OrthoRoute.html). There's also benchmarks of different pathfinding algorithms there.
-
-
-
+You can run OrthoRoute yourself [by downloading it from the repo](https://github.com/bbenchoff/OrthoRoute). Install the .zip file via the package manager. A somewhat beefy Nvidia GPU is highly suggested but not required; there's CPU fallback. If you want a deeper dive on how I built OrthoRoute, [there's also a page in my portfolio about it](http://bbenchoff.github.io/pages/OrthoRoute.html).
 
 
 ## Mechanics - Chassis & Enclosure
@@ -938,7 +834,9 @@ There is a small error in the grid pattern of one of the side pieces. Where most
 
 While my machine is _really good_, and even my guilt-addled upbringing doesn't prevent me from taking some pride in it, I have to point out that I didn't add this flaw to keep gods from being offended. I know this is not perfect. There is documentation on the original Connection Machine that I would have loved to reference, and there are implementations I would have loved to explore were time, space, and money not a consideration. The purposeful and obvious defect in my machine is simply saying that I know it's not perfect. And this isn't a one-to-one clone of the Connection Machine, anyway. It's a little wabi-sabi saying forty years and Moore's Law result in something that's different, even if the influence is obvious.
 
-## Parallel C (StarC)
+## Software Architecture
+
+### Parallel C (StarC)
 
 ## Contextualizing the build
 
@@ -946,13 +844,15 @@ There's a few thoughts I've been ruminating about for a while with regards to de
 
 Take, for example, mid-century modern furniture. Eames chairs and molded plywood end tables were only possible after the development of phenolic resins during World War II. Without those, the plywood would delaminate. Technology enabled bending plywood, which enabled mid-century modern furniture. This was even noticed in the New York Times during one of the first Eames' exhibitions, with the headline, "War-Time Developed Techniques of Construction Demonstrated at Modern Museum".
 
-In fashion, there was an explosion of colors in the 1860s, brought about purely from the development of aniline dyes in 1856. Now you could have purple without tens of thousands of sea snails. The dutch masters painted in a flax-growing region, giving them high-quality linseed oil for their paints. McMansions, with their disastrous roof lines came about only a few years after the nail plates and pre-fabbed roof trusses; those roofs would be uneconomical with hand-cut rafters and skilled carpenters. Raymond Loewy created Streamline Moderne because modern welding processes became practically possible in the 1920s and 30s. The Mannesmann seamless tube process was invented in 1885, leading to steel framed bicycles very quickly and once the process was inexpensive enough, applied the Wassily chair, a Bauhaus masterpiece, in 1925. 
+In fashion, there was an explosion of colors in the 1860s, brought about purely from the development of aniline dyes in 1856. Now you could have purple without tens of thousands of sea snails. McMansions, with their disastrous roof lines, came about only a few years after the nail plates and pre-fabbed roof trusses; those roofs would be uneconomical with hand-cut rafters and skilled carpenters. Raymond Loewy created Streamline Moderne because modern welding processes became practically possible in the 1920s and 30s. The Mannesmann seamless tube process was invented in 1885, leading to steel framed bicycles very quickly and once the process was inexpensive enough, applied to the Wassily chair, a Bauhaus masterpiece, in 1925.
+
+The Great Wave off Kanagawa was printed in 1831, and it couldn't have been created much earlier. A shipment of Prussian Blue arrived in Japan in 1747, but it was sent back for some reason. Prussian Blue wasn't used in Japan until 1752. Give that a few decades for fashion to catch on, and by 1831 Hokusai was carving the Great Wave. Two decades before the black ships arrived to force Japan to open its ports to the world. The most famous piece of Japanese art exists because of European imports.
 
 The point is, technology enables design. And this Thinking Machine could not have been built any earlier.
 
-The original Connection Machine CM-1 was built in 1985 thanks to advances in VLSI design, peeling a few guys off from the DEC mill, and a need for three-letter agencies to have a terrifically fast computer. My machine had different factors that led to its existence.
+The original Connection Machine CM-1 was built in 1985 thanks to advances in VLSI design, peeling a few guys off from the DEC mill, and a need for three-letter agencies to have a terrifically fast computer. It could only have been built in the 1980s, when VLSI fabs had spare capacity, DARPA had a budget to turn Moscow into glass, and the second AI boom made massively parallel anything look fundable. My machine had different factors that led to its existence.
 
-The ten-cent microcontrollers that enabled this build were only available for about a year before I began the design. The backplane itself is a realization of two technologies -- the CUDA pipeline that would make generating the backplane (and testing the code that created the backplane) take only minutes. Routing the backplane with a KiCad plugin would have been impossible without the IPC API, released only months before I began this project. The LED driver could have only been created because of my earlier work with the RP2040 PIOs and the IS31FL3741 LED drivers saved from an earlier project. And of course fabbing the PCBs would have cost a hundred times more if I ordered them in 2005 instead of 2025.
+The ten-cent microcontrollers that enabled this build were only available for about a year before I began the design. The backplane itself is a realization of two technologies -- the CUDA pipeline that would make generating the backplane (and testing the code that created the backplane) take hours instead of months. Routing the backplane with a KiCad plugin would have been impossible without the IPC API, released only months before I began this project. The LED driver could have only been created because of my earlier work with the RP2040 PIOs and the IS31FL3741 LED drivers saved from an earlier project. And of course fabbing the PCBs would have cost a hundred times more if I ordered them in 2005 instead of 2025.
 
 I couldn't have built this in 2020, because I would be looking at four thousand dollars in microcontrollers instead of four hundred. I couldn't have made this in 2015 because I bought the first reel of IS31FL3741s from Mouser in 2017. In 2010, the PCB costs alone would have been prohibitive.
 
@@ -1062,3 +962,103 @@ document.addEventListener("DOMContentLoaded", function () {
 </script>
 
 
+/// EVERYTHING BELOW THIS IS EXTRA:
+
+
+
+/* Move this to some other place, I've already done this */
+I'd like to mention that the Connection Machine isn't best visualized as a multidimensional tesseract, or something Nolan consulted Kip Thorne to get _just right_. It's not a hypercube. Because it exists in three dimensions. Like you. It's actually a 12-bit Hamming-distance-1 graph. Or a bit-flip adjacency graph. Or it's a bunch of processors, each connected to 12 other processors. Each processor has a 12-bit address, and by changing one bit I can go to an adjacent processor. But sure, we'll call it a hypercube if it makes you feel wicked smaht or whatever. 
+
+That being said, Danny had some good ideas in his thesis about why it's better to refer to this computer as a hypercube. The key insight that makes this buildable is exploiting a really cool property of hypercubes: __you can divide them up into identical segments.__
+
+Instead of trying to route a 12-dimensional hypercube as one massive board, I'm breaking the 4,096 processors into 16 completely identical processor boards, each containing exactly 256 RISC-V chips. Think of it like this: each board is its own 8-dimensional hypercube (since 256 = 2⁸), and the backplane connects those 16 sub-cubes into a full 12-dimensional hypercube (because 16 = 2⁴, and 8 + 4 = 12).
+*/
+
+
+Techniques That Fall Out of This Architecture
+
+1. Subset-Lattice Computing
+Your 4,096 nodes are literally the vertices of a 12-element subset lattice. Node 0x2A3 represents the subset {0,1,5,7,9}. Every subset of {0..11} has a physical home.
+This makes certain algorithms native to the hardware:
+
+Zeta transform: F(S) = Σ_{T⊆S} f(T) — runs in 12 TDMA phases
+Möbius transform: inclusion-exclusion inverse — same
+Walsh-Hadamard transforms on Boolean functions
+Subset DP: any dynamic programming indexed by bitmask (TSP variants, set cover)
+
+Each phase is "if my bit d is 1, pull value from neighbor, combine." The outer loop is your TDMA schedule. The machine is the algorithm's state space.
+
+2. Dimension-Phased Microcode (Wave ISA)
+Take TDMA further: treat the 12-phase cycle as a global microinstruction pointer.
+cfor (;;) {
+    for (int d = 0; d < 12; d++) {
+        wait_for_phase(d);
+        microstep[d]();  // per-node code, may use dim-d link
+    }
+}
+Compile high-level kernels into 12-entry choreography tables. "In phase 3, exchange X with dim-3 neighbor and add. In phase 7, reduce Y along dim-7."
+The ISA isn't opcodes—it's a 12-slot waveform of neighbor operations. Halfway between SIMD and cellular automata, but on real CPUs.
+
+3. Hardware Content-Addressable Memory / Distributed Hash Table
+Store value V at node hash(key) mod 4096. Lookup is routing: at most 12 hops, exactly popcount(my_addr XOR target_addr) hops. Deterministic latency.
+The CM couldn't do this—nodes couldn't think. Yours can handle collisions locally, respond to queries, cache hot keys. The hypercube becomes a 4,096-way associative memory where routing is lookup.
+
+4. Cellular Automata on Hypercube Topology
+Every cellular automaton ever studied assumes a grid. 4 neighbors. 8 neighbors. Maybe 6 in hex.
+What happens with 12 neighbors arranged as a hypercube? Different state space. Different emergent behavior. Different rules for interesting dynamics. Literally unexplored—the hardware to run it didn't exist.
+"Cellular Automata on Hypercube Topologies" is a paper waiting to be written, with your machine as the experimental platform.
+
+5. Deterministic Gossip with Exact Convergence Bounds
+Traditional gossip: randomly pick a neighbor, exchange state, converge "eventually" with high probability.
+Your TDMA makes it structured. Dimension-ordered gossip visits every dimension in lockstep. After 12 phases, every node has distance-1 information. After 24, distance-2. You can derive exact convergence bounds: "This distributed average converges in exactly 144 phases."
+That's not how gossip protocols work anywhere else. New primitive.
+
+6. Soft Topologies Over Hard Cube
+Old hypercubes were married to the physical topology. Your nodes have RAM and can route.
+Present different topologies to different programs:
+
+"This kernel sees a 2D torus"
+"This one sees a fat tree"
+"This one sees a ring with long chords"
+
+Each node maintains virtual neighbor tables, forwards via hypercube paths. Flip topologies dynamically without moving cables. Use TDMA dimension subsets to partition: "dimensions 0-3 for subgraph A, 4-7 for subgraph B."
+Dynamically reconfigurable interconnect, in software, on $0.37 chips.
+
+7. Multi-Scale Algorithms Mapped to Bit Ranges
+Treat the 12 bits as hierarchy levels:
+
+Bits 0-3: fine scale (on-board, local interactions)
+Bits 4-7: medium scale (cross-slice)
+Bits 8-11: coarse scale (backplane, global corrections)
+
+Multigrid-style algorithms where each scale lives in different bit ranges. Fine nodes run CFD/CA updates. Coarse nodes run slow global aggregations. Inter-scale patterns are perfectly regular: a dimension flip takes you from fine to corresponding coarse parent.
+Physical realization of multigrid on a Boolean lattice.
+
+8. Reversible Debugging / Time-Travel on 4,096 Cores
+Deterministic TDMA means you know exactly what messages were sent when. Each node has 20KB—enough to journal state transitions.
+Rewind the entire machine to a previous tick. Step backwards through parallel computation. Debugging parallel systems is hellish because of nondeterminism. You've built one where execution is fully deterministic and replayable.
+Time-travel debugging as a first-class architectural feature, not an afterthought.
+
+9. Hypercube as Physical Constraint Graph
+Each node is a variable. Each link is a constraint. The topology defines the constraint graph.
+Iterate: "given my neighbors' values, update mine to satisfy constraints." TDMA phases are "propagate constraints along dimension d."
+Hardware constraint satisfaction solver for problems whose graphs embed into 12-regular hypercubes.
+
+10. Locality-Sensitive Hashing in Hardware
+Interpret the 12-bit address as coordinates in a binary feature space. Nodes close in Hamming distance are topologically close.
+Feed vectors in. Each routes to its "nearest" node by Hamming distance. Similar vectors cluster at nearby nodes. Hardware approximate nearest-neighbor search.
+
+11. Self-Tuning Fabric
+You have a tree for monitoring, LEDs for visualization, 4,096 nodes that can all report stats.
+Each node tracks: packets forwarded per link, latency, error counts. Controllers pull stats, run meta-algorithms: adjust TDMA weights, change routing policies, push new parameters down.
+Classical machines treat interconnect as fixed, software as dynamic. Yours can make the interconnect algorithmic. Evolve different TDMA schedules and visualize fitness on the LED panel as you go.
+
+12. Self-Organizing Data Placement
+Nodes can notice "I'm forwarding a lot of traffic for key X" and cache it locally. Migrate data toward where it's accessed. The hypercube provides routing substrate, data placement becomes dynamic.
+Distributed systems study this on commodity networks with unpredictable latency. You have deterministic routing. Different optimization landscape.
+
+The Meta-Point
+The CM-1 was dumb SIMD with smart routing.
+You built smart MIMD with smart routing.
+That combination hasn't been explored because it was economically insane until $0.37 microcontrollers existed.
+*/
