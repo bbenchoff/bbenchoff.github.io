@@ -373,7 +373,7 @@ To actually pass messages back and forth between nodes through the hypercube arr
 
 The naive way to arbitrate message passing between nodes is carrier-sense multiple access, or [CSMA](https://en.wikipedia.org/wiki/Carrier-sense_multiple_access). Consider two nodes. At rest, the line is pulled high, because of the pullup. For node Alice to talk to node Bob, Alice first pulls the line low for some number of microseconds. Bob detects the line is low, and starts listening. Then Alice starts sending data.
 
-/// CSMA timing diagram
+![CSMA timing diagram and explination](/images/ConnM/CDMA.png)
 
 This has significant drawbacks. There _will_ be collisions, where both nodes want to talk at the same time. I would have to add backoff timers and retries, and god forbid acknowledgements. The code to do this is gnarly, and I simply don't want to do it. Because there's a better way.
 
@@ -381,9 +381,41 @@ Consider the actual topology of what's communicating here. All nodes are assigne
 
 Now define a global tick counter, synchronized across all nodes via the shared clock from the slice controllers. The phase is just tick mod 24 - twelve dimensions, two directions each. In phase d, only dimension d links are active. All other links stay idle. Within that phase, the node with addr[d] == 0 transmits first, then the node with addr[d] == 1 transmits in the second half. This is time-division multiple access, or [TDMA](https://en.wikipedia.org/wiki/Time-division_multiple_access).
 
-/// TDMA timing diagram
+![TDMA timing diagram and explination](/images/ConnM/TDMA.png)
 
-The message passing protocol _just falls out of the topology of the machine_. Instead of a furball of code trying to get rid of problems with carrier sense, TDMA based on the address of the node solves the problem elegantly. In fairness, I'm not the first to discover this; the Connection Machine, iPSC, and Cosmic Cube either did something similar, or the technique would have been obvious to their creators.
+Or, if you prefer text form:
+
+- **Phase 0**: Nodes with address `xxxx xxxx xxx0` sends → Nodes `xxxx xxxx xxx1` receives
+- **Phase 1**: Nodes with address `xxxx xxxx xxx1` sends → Nodes `xxxx xxxx xxx0` receives
+- **Phase 2**: Nodes with address `xxxx xxxx xx0x` sends → Nodes `xxxx xxxx xx1x` receives
+- **Phase 3**: Nodes with address `xxxx xxxx xx1x` sends → Nodes `xxxx xxxx xx0x` receives
+- **Phase 4**: Nodes with address `xxxx xxxx x0xx` sends → Nodes `xxxx xxxx x1xx` receives
+- **Phase 5**: Nodes with address `xxxx xxxx x1xx` sends → Nodes `xxxx xxxx x0xx` receives
+- And so on for 24 phases...
+
+The brilliant part about this is that no node ever talks to its neighbor at the same time. Collisions are impossible, _and_ this scheme vastly simplifies the UART code for each node. In fact, because only dimension connection is active at any one time, **I CAN USE THE HARDWARE UARTS**, reconfigured for different pins for each phase with AFIO pin remapping. This means no bit-banging pins to push data across nodes and _drastically_ reduces the complexity of the UART code. It's also _fast_:
+
+**Throughput at various baud rates:**
+
+| Baud Rate | Per-Link BW | Per-Node BW | Machine Aggregate |
+|-----------|-------------|-------------|-------------------|
+| 115.2 kbps | 4.8 kbps | 115.2 kbps | 236 Mbps |
+| 500 kbps | 20.8 kbps | 500 kbps | 1.02 Gbps |
+| 1 Mbps | 41.7 kbps | 1 Mbps | 2.05 Gbps |
+| 2 Mbps | 83.3 kbps | 2 Mbps | 4.1 Gbps |
+
+**Latency at various phase rates** (worst case: 12 hops across the hypercube):
+
+| Phase Rate | Phase Duration | Bits per Phase @ 1Mbps | 12-Hop Latency |
+|------------|----------------|------------------------|----------------|
+| 1 kHz | 1 ms | 1000 bits | 144 ms |
+| 10 kHz | 100 µs | 100 bits | 14.4 ms |
+| 100 kHz | 10 µs | 10 bits | 1.44 ms |
+| 1 MHz | 1 µs | 1 bit | 144 µs |
+
+The CH32V203 UARTs can reliably send and receive data at 1-2 Mbps. At 10 bits per UART frame (8N1), that's 100-200 KB/s per node. The practical sweet spot is probably a 10 kHz phase rate with 1 Mbps baud, or 100 bits per phase (enough for a 10-byte packet), 14ms worst-case latency, and over 2 Gbps of aggregate machine bandwidth.
+
+I want to take a step back here and just point out I'm designing a machine that can move a gigabit or more per second around its memory, does this with a single hardware UART, and is built out of thirty cent RISC-V microcontrollers. All of this _just falls out of the topology of the machine_. Instead of a furball of code trying to get rid of problems with carrier sense, TDMA based on the address of the node solves the problem elegantly.
 
 This should be your first realization that the hypercube architecture is recursively elegant. If you construct a parallel computer with a hypercube architecture, cool stuff just appears. 
 
@@ -405,7 +437,7 @@ This handles:
 
 - **Instruction broadcast**: In SIMD mode, the Zynq sends opcodes down the tree to all 4,096 nodes simultaneously
 - **Result aggregation**: Data flows up through the Planes, gets collected, and presents to the outside world
-- **Network interface**: Ethernet to everything else, USB, and HDMI simply because the Zynq support it. It's a Lin
+- **Network interface**: Ethernet to everything else, USB, and HDMI simply because the Zynq support it. It's a Linux machine, after all.
 - **LED coordination**: Someone has to tell that 64x64 array what to display
 
 The Zynq talks to 16 Plane controllers. Each Plane controller talks to 16 Slice controllers. Each Slice controller talks to 16 nodes. It's trees all the way down.
@@ -443,8 +475,6 @@ The modular nature of my machine means I only have to design one processor board
 <tr><th>B15</th><td class="empty">0</td><td class="empty">0</td><td class="empty">0</td><td class="empty">0</td><td class="empty">0</td><td class="empty">0</td><td class="empty">0</td><td class="connected">256</td><td class="empty">0</td><td class="empty">0</td><td class="empty">0</td><td class="connected">256</td><td class="empty">0</td><td class="connected">256</td><td class="connected">256</td><td class="empty">0</td></tr>
 </table>
 </div>
-
-This would be an _excellent_ application of wire-wrap technology. Wire-wrap uses thin wire and a special tool to spiral the bare wire around square posts of a connector. It’s mechanically solid, electrically excellent, and looks like spaghetti in practice. This is how the first computers were made (like the Straight Eight PDP-8), and was how the back plane in the Connection Machine was made. But wire-wrap is too big and I have yet to program a robot arm to actually do it. I'm solving this simply with modern high-density interconnects and a very, very expensive circuit board.
 
 ### The Backplane Connectors
 
@@ -780,7 +810,7 @@ _These were the easy traces, too_. It would have taken hundreds or thousands of 
 
 The obvious solution, therefore, is to build my own autorouter. Or at least spend a week or two on writing an autorouter.
 
-#### OrthoRoute
+### OrthoRoute
 
 **[This is OrthoRoute](https://github.com/bbenchoff/OrthoRoute)**, a GPU-accelerated autorouter for KiCad. There's very little that's actually _new_ here; I'm just leafing through some of the VLSI books in my basement and stealing some ideas that look like they might work. If you throw enough compute at a problem, you might get something that works.
 
@@ -798,19 +828,40 @@ PathFinder is iterative. In the first iteration, all nets (airwires) are routed 
 
 With this architecture -- the PathFinder algorithm on a very large graph, within the same order of magnitude of the largest FPGAs -- it makes sense to run the algorithm with GPU acceleration. There are a few factors that went into this decision:
 
-1. Everyone who's routing giant backplanes probably has a gaming PC. Or you can rent a GPU from whatever company is advertising on MUNI bus stops this month.
-2. The PathFinder algorithm requires hundreds of billions of calculations for every iteration, making single-core CPU computation glacially slow. 
-3. With CUDA, I can implement a SSSP (parallel Dijkstra) to find a path through a weighted graph very fast. 
+- Everyone who's routing giant backplanes probably has a gaming PC. Or you can rent a GPU from whatever company is advertising on MUNI bus stops this month.
+- The PathFinder algorithm requires hundreds of billions of calculations for every iteration, making single-core CPU computation glacially slow. 
+- With CUDA, I can implement a SSSP (parallel Dijkstra) to find a path through a weighted graph very fast. 
 
 Note this is _not_ a fully parallel autorouter; in OrthoRoute, nets are still routed in sequence on a shared congestion map. The parallelism lives inside the shortest-path search: a CUDA SSSP (“parallel Dijkstra”) kernel makes each individual net’s pathfinding fast, but it doesn’t route many nets simultaneously.
 
 This yak is fuckin bald now. But I think the screencaps speak for themselves:
 
-![OrthoRoute screencap 1](/images/ConnM/Orthoroute/1.png)
+<figure style="margin: 2rem 0; text-align: center;">
+  <img src="/images/ConnM/OrthoRouteLarge.png" 
+       alt="Full backplane view showing completed routing" 
+       style="width: 100%; max-width: 1000px; height: auto; border-radius: 4px; box-shadow: 0 0 8px rgba(0,0,0,0.2);">
+  <figcaption style="margin-top: 0.5rem; font-style: italic; color: #666; font-size: 0.95rem;">
+    The full backplane view: 8,192 nets routed through 32 layers, in OrthoRoute
+  </figcaption>
+</figure>
 
-![OrthoRoute screencap 2](/images/ConnM/Orthoroute/2.png)
+<figure style="margin: 2rem 0; text-align: center;">
+  <img src="/images/ConnM/OrthorouteRouted.png" 
+       alt="Zoomed detail of Manhattan lattice routing" 
+       style="width: 100%; max-width: 1000px; height: auto; border-radius: 4px; box-shadow: 0 0 8px rgba(0,0,0,0.2);">
+  <figcaption style="margin-top: 0.5rem; font-style: italic; color: #666; font-size: 0.95rem;">
+    Zoomed detail showing Manhattan lattice routing density
+  </figcaption>
+</figure>
 
-![OrthoRoute screencap 3](/images/ConnM/Orthoroute/3.png)
+<figure style="margin: 2rem 0; text-align: center;">
+  <img src="/images/ConnM/OrthoRouteKiCad.png" 
+       alt="Routed board imported into KiCad" 
+       style="width: 100%; max-width: 1000px; height: auto; border-radius: 4px; box-shadow: 0 0 8px rgba(0,0,0,0.2);">
+  <figcaption style="margin-top: 0.5rem; font-style: italic; color: #666; font-size: 0.95rem;">
+    The routed board imported back into KiCad for final cleanup
+  </figcaption>
+</figure>
 
 This board feels pain. You get mental damage from just looking at it. Every other board you've ever seen comes with the assumption that a human played some part in it. This does not; it's purely an algorithm grinding away. It's the worst board that you've ever seen.
 
@@ -819,7 +870,7 @@ This board feels pain. You get mental damage from just looking at it. Every othe
 You can run OrthoRoute yourself [by downloading it from the repo](https://github.com/bbenchoff/OrthoRoute). Install the .zip file via the package manager. A somewhat beefy Nvidia GPU is highly suggested but not required; there's CPU fallback. If you want a deeper dive on how I built OrthoRoute, [there's also a page in my portfolio about it](http://bbenchoff.github.io/pages/OrthoRoute.html).
 
 
-## Mechanics - Chassis & Enclosure
+## Mechanical Design
 
 The entire thing is made out of machined aluminum plate. The largest and most complex single piece is the front -- this holds the LED array, diffuser, and backplane. It attaches to the outer enclosure on all four sides with twelve screws. Attached to the front frame is the 'base plate' and the back side of the machine, forming one U-shaped enclosure. On the sides of the base plate are Delrin runners which slide into rabbets in the outer enclosure. This forms the machine's chassis. This chassis slides into the outer enclosure.
 
@@ -857,7 +908,6 @@ The ten-cent microcontrollers that enabled this build were only available for ab
 I couldn't have built this in 2020, because I would be looking at four thousand dollars in microcontrollers instead of four hundred. I couldn't have made this in 2015 because I bought the first reel of IS31FL3741s from Mouser in 2017. In 2010, the PCB costs alone would have been prohibitive.
 
 The earliest this Thinking Machine could have been built is the end of 2025 or the beginning of 2026, and I think I did alright. The trick wasn't knowing _how_ to build it, it's knowing that it _could_ be built. This is probably the best thing I'll ever build, but it certainly won't be the most advanced. For those builds, the technology hasn't even been invented yet and the parts are, as of yet, unavailable.
-
 
 ## Related Works And Suggested Reading
 
