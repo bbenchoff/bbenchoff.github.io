@@ -363,19 +363,23 @@ The dedicated microcontroller used for this board is the RP2350. I'm using this 
 
 #### Hypercube Communication
 
-The 16-node board is also the first experiment with the hypercube links between nodes. Simply because I don't want double the work and density of wires in the full machine, I'm using a single wire, connecting one GPIO pin of a node to another GPIO pin of another node. These are single-wire half-duplex links, not a TX/RX pair. Because the CH32V203 only has two hardware UARTs, and one is dedicated to the Slice controller, these are links are bitbanged in software with external interrupts.
+The 16-node board is also the first experiment with the hypercube links between nodes. Simply because I don't want double the work and density of wires in the full machine, I'm using a single wire communication between the nodes, just connecting one GPIO pin of a node to another GPIO pin of another node. These are single-wire half-duplex links, not a TX/RX pair. The CH32V203 only has two hardware UARTs, and one is dedicated to the Slice controller. If I need twelve UARTs for the hypercube connections, I'll have to bitbang them in software.
 
-The astute reader will notice many problems with twelve bit-banged UARTs over a single-wire open-drain connection between microcontrollers. Those are electrical engineering terms, so here's automotive terms: it's like doing the Baja 1000 in a stock 1993 Ford Taurus. Yeah, you can finish it, but you're not making it easy on yourself. Back to electrical terms, you should _really_ have two wires between chips, either as a Tx/Rx pair, or a data clock line pair, and it would be really cool if you could use hardware UARTs if only to make programming simpler. But this is a hypercube computer, far too many wires is a given so doubling the number of connections is out of the question, and I can't find a single microcontroller with twelve UARTs. So we're doing it this way. 
+The astute reader will notice many problems with twelve bit-banged UARTs over a single-wire open-drain connection between microcontrollers. Those are electrical engineering terms, so here's automotive terms: it's like doing the Baja 1000 in a stock 1993 Ford Taurus. Yeah, you can finish it, but you're not making it easy on yourself. Back to electrical terms, you should _really_ have two wires between chips, either as a Tx/Rx pair, or a data clock line pair. It would be really cool if you could use hardware UARTs if only to make programming simpler. But this is a hypercube computer, a single-wire link between nodes already means there are too many wires on the PCB, and I can't find a single microcontroller with twelve UARTs.
 
 To actually pass messages back and forth between nodes through the hypercube array, we need a way to arbitrate the connections -- which node actually gets to use the connection. There are several ways to do this.
 
 #### CSMA vs TDMA
 
-The naive way to arbitrate message passing between nodes is carrier-sense multiple access, or [CSMA](https://en.wikipedia.org/wiki/Carrier-sense_multiple_access). Consider two nodes. At rest, the line is pulled high, because of the pullup. For node Alice to talk to node Bob, Alice first pulls the line low for some number of microseconds. Bob detects the line is low, and starts listening. Then Alice starts sending data.
+<b>CSMA:</b>
 
-![CSMA timing diagram and explination](/images/ConnM/CDMA.png)
+The naive way to arbitrate message passing between nodes is carrier-sense multiple access, or [CSMA](https://en.wikipedia.org/wiki/Carrier-sense_multiple_access). Consider two nodes. At rest, the line is pulled high, because of the pullup. For node Alice to talk to node Bob, Alice first pulls the line low for some number of microseconds. Bob detects the line is low, and starts listening. Then Alice starts sending data. If Bob wants to talk to Alice, Bob pulls the line low, waits, then sends data. Alice listens.
+
+![CSMA timing diagram and explination](/images/ConnM/CSMA.png)
 
 This has significant drawbacks. There _will_ be collisions, where both nodes want to talk at the same time. I would have to add backoff timers and retries, and god forbid acknowledgements. The code to do this is gnarly, and I simply don't want to do it. Because there's a better way.
+
+<b>TDMA:</b>
 
 Consider the actual topology of what's communicating here. All nodes are assigned a 12-bit number. Each connection is to a processor that is a _single_ bit flip away. Node 0x2A3 is connected to node 0x2A2 (bit 0 flipped), node 0x2A1 (bit 1 flipped), node 0x2AB (bit 3 flipped), and so on.
 
@@ -395,31 +399,87 @@ Or, if you prefer text form:
 
 The brilliant part about this is that no node ever talks to its neighbor at the same time. Collisions are impossible, _and_ this scheme vastly simplifies the UART code for each node. In fact, because only dimension connection is active at any one time, **I CAN USE THE HARDWARE UARTS**, reconfigured for different pins for each phase with AFIO pin remapping. This means no bit-banging pins to push data across nodes and _drastically_ reduces the complexity of the UART code. It's also _fast_:
 
-**Throughput at various baud rates:**
+<b>Throughput at various baud rates:</b>
+<div class="table-wrap">
+<table class="matrix-table">
+<tr>
+  <th>Baud Rate</th>
+  <th>Per-Link BW</th>
+  <th>Per-Node BW</th>
+  <th>Machine Aggregate</th>
+</tr>
+<tr>
+  <td>115.2 kbps</td>
+  <td>4.8 kbps</td>
+  <td>115.2 kbps</td>
+  <td>236 Mbps</td>
+</tr>
+<tr>
+  <td>500 kbps</td>
+  <td>20.8 kbps</td>
+  <td>500 kbps</td>
+  <td>1.02 Gbps</td>
+</tr>
+<tr>
+  <td>1 Mbps</td>
+  <td>41.7 kbps</td>
+  <td>1 Mbps</td>
+  <td>2.05 Gbps</td>
+</tr>
+<tr>
+  <td>2 Mbps</td>
+  <td>83.3 kbps</td>
+  <td>2 Mbps</td>
+  <td>4.1 Gbps</td>
+</tr>
+</table>
+</div>
 
-| Baud Rate | Per-Link BW | Per-Node BW | Machine Aggregate |
-|-----------|-------------|-------------|-------------------|
-| 115.2 kbps | 4.8 kbps | 115.2 kbps | 236 Mbps |
-| 500 kbps | 20.8 kbps | 500 kbps | 1.02 Gbps |
-| 1 Mbps | 41.7 kbps | 1 Mbps | 2.05 Gbps |
-| 2 Mbps | 83.3 kbps | 2 Mbps | 4.1 Gbps |
+<b>Latency at various phase rates</b> (worst case: 12 hops across the hypercube):
+<div class="table-wrap">
+<table class="matrix-table">
+<tr>
+  <th>Phase Rate</th>
+  <th>Phase Duration</th>
+  <th>Bits per Phase @ 1Mbps</th>
+  <th>12-Hop Latency</th>
+</tr>
+<tr>
+  <td>1 kHz</td>
+  <td>1 ms</td>
+  <td>1000 bits</td>
+  <td>144 ms</td>
+</tr>
+<tr>
+  <td>10 kHz</td>
+  <td>100 µs</td>
+  <td>100 bits</td>
+  <td>14.4 ms</td>
+</tr>
+<tr>
+  <td>100 kHz</td>
+  <td>10 µs</td>
+  <td>10 bits</td>
+  <td>1.44 ms</td>
+</tr>
+<tr>
+  <td>1 MHz</td>
+  <td>1 µs</td>
+  <td>1 bit</td>
+  <td>144 µs</td>
+</tr>
+</table>
+</div>
 
-**Latency at various phase rates** (worst case: 12 hops across the hypercube):
-
-| Phase Rate | Phase Duration | Bits per Phase @ 1Mbps | 12-Hop Latency |
-|------------|----------------|------------------------|----------------|
-| 1 kHz | 1 ms | 1000 bits | 144 ms |
-| 10 kHz | 100 µs | 100 bits | 14.4 ms |
-| 100 kHz | 10 µs | 10 bits | 1.44 ms |
-| 1 MHz | 1 µs | 1 bit | 144 µs |
-
-The CH32V203 UARTs can reliably send and receive data at 1-2 Mbps. At 10 bits per UART frame (8N1), that's 100-200 KB/s per node. The practical sweet spot is probably a 10 kHz phase rate with 1 Mbps baud, or 100 bits per phase (enough for a 10-byte packet), 14ms worst-case latency, and over 2 Gbps of aggregate machine bandwidth.
+The CH32V203 UARTs can reliably send and receive data at 1-2 Mbps. At 10 bits per UART frame (8N1), that's 100-200 KB/s per node. The practical sweet spot is probably a 10 kHz phase rate with 1 Mbps baud, or 100 bits per phase (enough for a 10-byte packet), 14ms worst-case latency, and over 2 Gbps of aggregate machine bandwidth. The TDMA scheme only requires a clock signal somewhere between 1 and 100 kHz, and the associated buffers to fan it out from where it's being generated.
 
 I want to take a step back here and just point out I'm designing a machine that can move a gigabit or more per second around its memory, does this with a single hardware UART, and is built out of thirty cent RISC-V microcontrollers. All of this _just falls out of the topology of the machine_. Instead of a furball of code trying to get rid of problems with carrier sense, TDMA based on the address of the node solves the problem elegantly.
 
 This should be your first realization that the hypercube architecture is recursively elegant. If you construct a parallel computer with a hypercube architecture, cool stuff just appears. 
 
 The 16-node prototype exists specifically to validate this TDMA scheme. If the TDMA scheme works at 16 nodes, it works with 4096. The math doesn't change, only the phase count.
+
+The bring-up and software for the 16 Node board is covered [in the Software Architecture section](https://bbenchoff.github.io/pages/ThinkinMachine.html#software-architecture).
 
 ### 256 Nodes, The Plane
 
@@ -888,6 +948,10 @@ While my machine is _really good_, and even my guilt-addled upbringing doesn't p
 ## Software Architecture
 
 ### Parallel C (StarC)
+
+### What this thing does
+
+"It’s elegant, beautiful, but it doesn’t really do anything useful. For many of us, that was an ex in our 20s. Now it’s a computer."
 
 ## Contextualizing the build
 
