@@ -263,7 +263,7 @@ The Connection Machine was an early experiment in massive parallelism. Today, a 
 
 The individual processors in the CM-1 couldn't do much -- they could only operate on a single bit at a time, and their computational capability isn't much more than an ALU. This project leverages 40 years of Moore's law to put small, cheap computers into a parallel array. Not only does this allow me to emulate the ALU-like processors in the original CM-1, but I can also run actual programs at the corners of a 12-dimensional hypercube.
 
-This is a reproduction of the original, 1985-era Connection Machine, plus 40 years of Moore's law and very poor impulse control. In 1985, this was the cutting edge of parallel computing. In 2025, it's a weird art project with better chips.
+If I were one of the weird 'build in public guys' this would be a startup. If I thought wearing shoes indoors was a strange affectation, I'd be sending this into Y Combinator. But I'm not. This is a reproduction, or a recreation, or an 'inspired by' build of the 1985-era Connection Machine, plus 40 years of Moore's law and very poor impulse control. In 1985, this was the cutting edge of parallel computing and AI. In 2025, it's a weird art project with better chips.
 
 ## The LED Panel
 
@@ -397,7 +397,7 @@ Or, if you prefer text form:
 - **Phase 5**: Nodes with address `xxxx xxxx x1xx` sends → Nodes `xxxx xxxx x0xx` receives
 - And so on for 24 phases...
 
-The brilliant part about this is that no node ever talks to its neighbor at the same time. Collisions are impossible, _and_ this scheme vastly simplifies the UART code for each node. In fact, because only dimension connection is active at any one time, **I CAN USE THE HARDWARE UARTS**, reconfigured for different pins for each phase with AFIO pin remapping. This means no bit-banging pins to push data across nodes and _drastically_ reduces the complexity of the UART code. It's also _fast_:
+The brilliant part about this is that no node ever talks to its neighbor at the same time. Collisions are impossible, _and_ this scheme vastly simplifies the UART code for each node. In fact, because only dimension connection is active at any one time, **I CAN USE THE HARDWARE UARTS**, reconfigured for different pins for each phase. This means no bit-banging pins to push data across nodes and _drastically_ reduces the complexity of the UART code. It's also _fast_:
 
 <b>Throughput at various baud rates:</b>
 <div class="table-wrap">
@@ -473,13 +473,23 @@ The brilliant part about this is that no node ever talks to its neighbor at the 
 
 The CH32V203 UARTs can reliably send and receive data at 1-2 Mbps. At 10 bits per UART frame (8N1), that's 100-200 KB/s per node. The practical sweet spot is probably a 10 kHz phase rate with 1 Mbps baud, or 100 bits per phase (enough for a 10-byte packet), 14ms worst-case latency, and over 2 Gbps of aggregate machine bandwidth. The TDMA scheme only requires a clock signal somewhere between 1 and 100 kHz, and the associated buffers to fan it out from where it's being generated.
 
+<b>There's a catch with this plan</b>
+
+Most chips, including the CH32V203, can not assign UART functions to any pin. The [NXP LPC804](https://www.nxp.com/docs/en/nxp/data-sheets/LPC804_DS.pdf) can because it has a 'switch matrix', NXP's term for a crossbar. The [Microchip PIC32MM](https://www.microchip.com/en-us/products/microcontrollers/32-bit-mcus/pic32m/pic32mm) can, because Microchip calls a crossbar a 'peripheral pin select'. If I used an RP2040 as a node microcontroller, I could simply use PIOs and map different pins to the same UART.
+
+The CH32V203 does not have this pin remapping function. Like the STM32 it's based on, The CH32 can not remap any pin to any arbitrary peripheral. There is, however, a tiny, cheap, RISC-V chip that can do this: the [AG32VF-ASIC](https://www.agm-micro.com/products.aspx?lang=&id=3118&p=37) from AGM Micro. This chip is a RV32IMAFC microcontroller bolted onto a CPLD with 2K LUTs. All peripheral functions can be mapped onto any pin, and this can be done dynamically. It's eighty cents a piece [on LCSC](https://www.lcsc.com/product-detail/C41397171.html?).
+
+<b>This is actually going to work</b>
+
+The 16-node prototype verifies everything needed for the full 4096-node machine. 
+
 I want to take a step back here and just point out I'm designing a machine that can move a gigabit or more per second around its memory, does this with a single hardware UART, and is built out of thirty cent RISC-V microcontrollers. All of this _just falls out of the topology of the machine_. Instead of a furball of code trying to get rid of problems with carrier sense, TDMA based on the address of the node solves the problem elegantly.
 
 This should be your first realization that the hypercube architecture is recursively elegant. If you construct a parallel computer with a hypercube architecture, cool stuff just appears. 
 
 The 16-node prototype exists specifically to validate this TDMA scheme. If the TDMA scheme works at 16 nodes, it works with 4096. The math doesn't change, only the phase count.
 
-The bring-up and software for the 16 Node board is covered [in the Software Architecture section](https://bbenchoff.github.io/pages/ThinkinMachine.html#software-architecture).
+The bring-up and software for the 16 Node board is covered [in an additional document](https://bbenchoff.github.io/pages/16NodeMachine.html) dedicated explicitly to this prototype.
 
 ### 256 Nodes, The Plane
 
@@ -953,17 +963,31 @@ While my machine is _really good_, and even my guilt-addled upbringing doesn't p
 
 "It’s elegant, beautiful, but it doesn’t really do anything useful. For many of us, that was an ex in our 20s. Now it’s a computer."
 
+
+
 ## Contextualizing the build
 
-There's a few thoughts I've been ruminating about for a while with regards to design and technological progress. The thesis of this idea is that design is a product of technological capability.
+This project was insane, probably due to the mental space I was in while building it. Desperate soil yields desperate fruit, or something like that. This project began on month five of a 2-year long streak of unemployment, and if you've never been in that situation, I can't convey how mentally taxing it is. Every day, for a few hours in the morning, I'd cruise LinkedIn, put in a few applications, and then spend the rest of my time working on this machine.
 
-Take, for example, mid-century modern furniture. Eames chairs and molded plywood end tables were only possible after the development of phenolic resins during World War II. Without those, the plywood would delaminate. Technology enabled bending plywood, which enabled mid-century modern furniture. This was even noticed in the New York Times during one of the first Eames' exhibitions, with the headline, "War-Time Developed Techniques of Construction Demonstrated at Modern Museum".
+I got a few callbacks. Once every two months I'd have a company interested in me, have a second call, a third call, an interview with the team, and everything seems to go well. They like me. They call my references. My references say they like me. Then nothing. I thought about getting a Ouija board just so I can get some feedback.
+
+Months of that - years of that - will tear you down. You become nothing. You are not useful. You are a burden to everyone else.
+
+This project was my escape. Here, at least, I had some control. I could write some firmware for passing messages along the edges of a hypercube and at least I had some feedback because I have a logic analyzer on my desk. I'm serious when I say that were it not for this machine, I would not be here.
+
+In previous roles that were heavily dependent on the engineering output of rogue garage tinkerers, I came up with the Bob Vila hypothesis. The idea goes something like this: In the mid-90s, someone asked Bob Vila why _This Old House_ became a mainstay of public television. His answer? It was a recession. During the recession of the late 70s, people simply couldn't afford to fix up old Victorians in Boston, so they did it themselves. They needed someone to show them how to remodel a kitchen, and which walls not to take out when renovating a room.
+
+This theory can be extended to the incredible rise of amateur EE and MechE, with Arduinos and 3D printers and Maker Faires that coincided with the 2008 financial crisis. The dot com bubble had some really great software work despite Java. Going even further back Hewlett Packard was founded at the tail end of the depression.
+
+So that's the material conditions that led to me building this. It exists because of the environment that surrounds it. Not to distance myself too much from the work, but I really didn't build this, I was just the conduit through which it was created. This is true for a lot of things; everything is a product of the environment it was created in.
+
+This is how everything gets made. Take, for example, mid-century modern furniture. Eames chairs and molded plywood end tables were only possible after the development of phenolic resins during World War II. Without those, the plywood would delaminate. Technology enabled bending plywood, which enabled mid-century modern furniture. This was even noticed in the New York Times during one of the first Eames' exhibitions, with the headline, "War-Time Developed Techniques of Construction Demonstrated at Modern Museum".
 
 In fashion, there was an explosion of colors in the 1860s, brought about purely from the development of aniline dyes in 1856. Now you could have purple without tens of thousands of sea snails. McMansions, with their disastrous roof lines, came about only a few years after the nail plates and pre-fabbed roof trusses; those roofs would be uneconomical with hand-cut rafters and skilled carpenters. Raymond Loewy created Streamline Moderne because modern welding processes became practically possible in the 1920s and 30s. The Mannesmann seamless tube process was invented in 1885, leading to steel framed bicycles very quickly and once the process was inexpensive enough, applied to the Wassily chair, a Bauhaus masterpiece, in 1925.
 
 The Great Wave off Kanagawa was printed in 1831, and it couldn't have been created much earlier. A shipment of Prussian Blue arrived in Japan in 1747, but it was sent back for some reason. Prussian Blue wasn't used in Japan until 1752. Give that a few decades for fashion to catch on, and by 1831 Hokusai was carving the Great Wave. Two decades before the black ships arrived to force Japan to open its ports to the world. The most famous piece of Japanese art exists because of European imports.
 
-The point is, technology enables design. And this Thinking Machine could not have been built any earlier.
+The point is, things exist because of the environment they were created in. And this Thinking Machine could not have been built any earlier.
 
 The original Connection Machine CM-1 was built in 1985 thanks to advances in VLSI design, peeling a few guys off from the DEC mill, and a need for three-letter agencies to have a terrifically fast computer. It could only have been built in the 1980s, when VLSI fabs had spare capacity, DARPA had a budget to turn Moscow into glass, and the second AI boom made massively parallel anything look fundable. My machine had different factors that led to its existence.
 
