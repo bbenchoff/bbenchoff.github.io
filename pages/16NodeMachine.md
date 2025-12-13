@@ -10,7 +10,45 @@ image: "/images/default.jpg"
 ---
 # 16 Node Prototype
 
-This document is a reference for a 16-node prototype of [this machine](https://bbenchoff.github.io/pages/ThinkinMachine.html). This page is an extension of that link, broken out here due to length considerations.
+The original inspiration for this build is bitluni's [CH32V003-based Cheap RISC-V Supercluster for $2](https://www.youtube.com/watch?v=lh93FayWHqw). This is a _fantastic_ build that uses ten cent microcontrollers as a parallel computer.
+
+The only problem with bitluni's build is that it is not historically literate. There are better ways to arrange a handful of really cheap microcontrollers than simply putting them on an 8-bit bus. A ten cent microcontroller might not have a lot of processing power, but there are different network topologies that are much more interesting than a big fat bus. Want a pseudo-token ring network? That's possible. A 4x4 mesh, like the early Intel Paragon? Easy. A torus, wrapping the mesh around so the edges connect? A few more wires. A binary tree, like the INMOS Transputer setups? Sure, if you're okay with the root being a bottleneck. A butterfly network for FFT-style computation? Doable. A systolic array, like a Google TPU? That's just a mesh with a rhythm.
+
+But no. There's one network topology that is the best choice for a pocketful of silicon in the form of RISC-V microcontrollers. A hypercube. Build a [Connection Machine](https://en.wikipedia.org/wiki/Connection_Machine). The original had 65,536 processors arranged in a 16-dimensional hypercube, with each processor connected to exactly 16 neighbors. It's in the New York MoMA. It's got blinkenlights. It's in _Jurassic Park_. You could only program it with Lisp. It's really, _really_ weird.
+
+...So that's what I'm doing. I'm building a Connection Machine out of a bunch of cheap RISC-V microcontrollers. This is the first step. Sixteen microcontrollers arranged as a hypercube.
+
+## Architectural Limitations
+
+The hypercube architecture of this is simple. Use single-wire serial links to connect dozens, hundreds, or thousands of microcontrollers together. This is, in theory, easy. But there are some caveats.
+
+- **Chips don't have UARTs on all pins** -- A hardware UART, where a specific bit of silicon handles the mechanics of sending and receiving data from other chips, would be _really_ helpful for this project. A hypercube architecture can be done without these hardware UARTs, specifically by 'bit banging' the serial connections between chips. But this is hard to code and won't perform as well as a hardware UART.
+- **How do I program these things?** -- These microcontrollers will have to be programmed externally by another chip. I could put programming headers next to each node in the hypercube, but with a few extra chips I could also use another, larger microcontroller to do this automatically
+- **A synchronous clock and reset** -- bitluni's supercluster used the internal clock for all nodes in his machine. While the internal clock in the CH32V003 is _nominally_ 48MHz, there's a small amount of drift. This means chips will eventually fall out of synchronization with each other. I can accomplish this with an external clock piped to all nodes in the supercluster. A reset signal can also be sent to all nodes simultaneously, so they all start at the same time.
+
+The second and third problems are solved relatively easily. For the 'control microcontroller', I'm using a Raspberry Pi Pico and can leverage the PIOs to generate clock signals. [I've done this before](https://bbenchoff.github.io/pages/IsoTherm.html), and it's a great way to generate clock signals from 32kHz to 4MHz. To toggle the Boot0 and Reset signals of the hypercube nodes, I can use a GPIO expander. They're cheap and will do the job. For serial, I can broadcast TX from the control microcontroller to every other chip and [use an analog mux](https://www.ti.com/product/CD74HC4067/part-details/CD74HC4067SM96) to read all the RX signals from the nodes in the hypercube. That means I can't read serial from _all_ the chips at the same time, but it's simple enough to be basically foolproof and cheap for a prototype.
+
+The problem of the node microcontrollers not having UARTs on all the pins is a big one. Ideally, we can use hardware UARTs in the hypercube nodes to speak to every other chip. The CH32V003 and the larger CH32V203 only have two hardware UARTs. One will be dedicated to the control microcontroller. The other? It's basically unusable in this instance. So if I use CH32V203 chips as the nodes in a hypercube, I'll have to bitbang the serial connections between all hypercube links.
+
+But there's another chip that makes this entire machine better. The [AG32 SoC has a RISC-V microcontroller core and a 2k LUT FPGA](https://www.agm-micro.com/products.aspx?lang=&id=3118&p=37) in a single package. It costs eighty cents in quantity. With the FPGA, I can create a small system that automatically routes data _anywhere_ despite the RISC-V microcontroller only having a handful of hardware UARTs. This is the ideal chip for this machine. It will _just work_ with the hypercube architecture.
+
+But the AG32 chip carries a significant amount of risk with Chinese docs, a weird toolchain, and the fact that I would be the first English-speaking person working with this chip. Most of that risk isn't related to the combination hypercube / tree architecture I'm planning. The plan is this: I'll build a 16-node prototype with the CH32 chips, verifying the clock distribution, independent programming, and play around with a bitbanged UART, just to see if it's possible. If that works, I'll do it again with the better AG32 chip. I'll create an FPGA implementation of a hypercube UART. If all goes well, I'll have two prototypes, one with a bitbanged hypercube UART, and another with FPGA hypercube connections.
+
+One of them will probably work. Let's dig in.
+
+## The CH32V203 Board
+
+![Render of the N4 Prototype](/images/ConnM/N4Prototype.png)
+![Kicad view of the N4 Prototype](/images/ConnM/N4PrototypeKiCad.png)
+
+## The Clock Tree
+
+## Boot0 and /RST
+
+## The Serial Mux
+
+
+[this machine](https://bbenchoff.github.io/pages/ThinkinMachine.html). This page is an extension of that link, broken out here due to length considerations.
 
 ![Render of the 16-node board](/images/ConnM/SlicePrototype.png)
 
@@ -24,8 +62,9 @@ This document is a reference for a 16-node prototype of [this machine](https://b
 
 AGM MICRO STUFF:
 
-![Render of the N4 Prototype](/images/ConnM/N4Prototype.png)
-![Kicad view of the N4 Prototype](/images/ConnM/N4PrototypeKiCad.png)
 
+## The AG32VF303 Board
+
+The AG32 SoC is offered in sizes ranging from a QFN32 to a huge LQFP100 package. Size is a constraint in this board, and I really only need a handful of GPIOs. I'm using the QFN32 part, the AG32VF303KCU6
 
 [back](../)
