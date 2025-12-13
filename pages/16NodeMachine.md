@@ -8,6 +8,46 @@ date: 2022-06-04
 last_modified_at: 2022-06-04
 image: "/images/default.jpg"
 ---
+<style>
+.matrix-table {
+    border-collapse: collapse;
+    font-family: monospace;
+    font-size: 14px;
+    margin: 0 auto;
+}
+
+.matrix-table th, .matrix-table td {
+    border: 1px solid #ddd;
+    padding: 6px 8px;
+    text-align: center;
+}
+
+.matrix-table th {
+    background-color: #f5f5f5;
+    font-weight: bold;
+}
+
+.matrix-table td.connected {
+    background-color: #ffebee;
+    font-weight: bold;
+}
+
+.matrix-table td.empty {
+    color: #666;
+}
+
+.table-wrap { 
+    overflow-x: auto; 
+    -webkit-overflow-scrolling: touch; 
+    margin: 1rem 0; 
+}
+
+@media (prefers-color-scheme: dark) {
+  .matrix-table th { background: #1e1e1e; }
+  .matrix-table td { border-color: #333; }
+}
+</style>
+
 # A 16 Node Microcontroller Hypercube
 
 ![Render of the N4 Prototype](/images/ConnM/N4Prototype.png)
@@ -50,6 +90,51 @@ The control microcontroller is the 'master' of the system. It's the hypercube's 
 
 The RP2040 requires an external Flash chip, I'm using the W25Q16JVSS for 16 Megabits or 2 Megabytes of storage. Power is provided through a USB C connector, stepped down to 3.3V for the entire system through a TPS560200 step-down regulator. Add buttons for boot and reset, and this is effectively a copy of the Raspberry Pi Pico.
 
+### The Node Microcontroller
+
+Each of the nodes in the hypercube are based on the CH32V203. I'm using this chip instead of the CH32V003 because it's more capable and easier to integrate into a full system; the `/RST` and `Boot0` pins are easier to ping on the CH32V203, and clocking is easier. The price difference between the chips isn't really significant, \$0.13 for the '003 and \$0.32 for the '203.
+
+![Schematic for each of the nodes in the hypercube](/images/ConnM/PrototypeNodeCH32.png)
+
+Each node uses PA9 and PA10 for the UART connection to the master microcontroller. The bootloader for this chip allows for code to be uploaded over this port. The 'dimension connections' are through PA2, PA3, PA4, and PA5. These pins connect to other dimensions in the hypercube. 
+
+A 4D hypercube has a specific topology. Node 0 connects to nodes 1, 2, 4, and 8. Node 5 connects to 4,7,1, and 13. Each dimension connection links to the node whose address differs by exactly one bit. D0 flips bit 0, D1 flips bit 1, and so on. A complete mapping is shown in this table:
+
+<div class="table-wrap">
+<table class="matrix-table">
+<tr>
+  <th>Node</th>
+  <th>Binary</th>
+  <th>D0 (PA2)</th>
+  <th>D1 (PA3)</th>
+  <th>D2 (PA4)</th>
+  <th>D3 (PA5)</th>
+</tr>
+<tr><td>0</td><td>0000</td><td>1</td><td>2</td><td>4</td><td>8</td></tr>
+<tr><td>1</td><td>0001</td><td>0</td><td>3</td><td>5</td><td>9</td></tr>
+<tr><td>2</td><td>0010</td><td>3</td><td>0</td><td>6</td><td>10</td></tr>
+<tr><td>3</td><td>0011</td><td>2</td><td>1</td><td>7</td><td>11</td></tr>
+<tr><td>4</td><td>0100</td><td>5</td><td>6</td><td>0</td><td>12</td></tr>
+<tr><td>5</td><td>0101</td><td>4</td><td>7</td><td>1</td><td>13</td></tr>
+<tr><td>6</td><td>0110</td><td>7</td><td>4</td><td>2</td><td>14</td></tr>
+<tr><td>7</td><td>0111</td><td>6</td><td>5</td><td>3</td><td>15</td></tr>
+<tr><td>8</td><td>1000</td><td>9</td><td>10</td><td>12</td><td>0</td></tr>
+<tr><td>9</td><td>1001</td><td>8</td><td>11</td><td>13</td><td>1</td></tr>
+<tr><td>10</td><td>1010</td><td>11</td><td>8</td><td>14</td><td>2</td></tr>
+<tr><td>11</td><td>1011</td><td>10</td><td>9</td><td>15</td><td>3</td></tr>
+<tr><td>12</td><td>1100</td><td>13</td><td>14</td><td>8</td><td>4</td></tr>
+<tr><td>13</td><td>1101</td><td>12</td><td>15</td><td>9</td><td>5</td></tr>
+<tr><td>14</td><td>1110</td><td>15</td><td>12</td><td>10</td><td>6</td></tr>
+<tr><td>15</td><td>1111</td><td>14</td><td>13</td><td>11</td><td>7</td></tr>
+</table>
+</div>
+
+<p style="text-align: center; font-style: italic; margin-top: 0.5rem;"></p>
+
+
+A 4k7 resistor pulls `Boot0` to ground per the datasheet, and PB7 is used for an LED. It's gotta have some blinky, right?
+
+
 ### The Clock Tree
 
 The microcontrollers in the hypercube need to run in lock step with each other. The CH32V203 supports running from an external oscillator, so the problem is just sending a ~4MHz clock to each chip. I'm doing this with a tree of [74LVC1G17](https://www.ti.com/product/SN74LVC1G17) Schmitt-trigger inputs, used as buffers. These are arranged in a tree. One 741G17 drives the clock for four different hypercube microcontrollers, and these are driven by another 741G17 coming from the RP2040. Each 741G17 only drives four other clock sinks.
@@ -80,7 +165,7 @@ The prototype board is 4 layers, 93mm by 47mm:
 
 ![Kicad view of the N4 Prototype](/images/ConnM/N4PrototypeKiCad.png)
 
-Routing this was a _pain_. Not too bad, because I used horizontal traces on layer 2 and vertical traces on layer 3, using the top and bottom for power and ground. This is exactly the idea I used [for Orthoroute](https://bbenchoff.github.io/pages/OrthoRoute.html), the 'GPU accelerated manhattan router` used to route the backplane for the full 4,096-node backplane.
+Routing this was a _pain_. But not too bad, because I used horizontal traces on layer 2 and vertical traces on layer 3, using the top and bottom for power and ground. This is exactly the idea I used [for OrthoRoute](https://bbenchoff.github.io/pages/OrthoRoute.html), the 'GPU accelerated Manhattan router' used to route the backplane for the full 4,096-node backplane.
 
 
 # RISC-V With A CPLD:
