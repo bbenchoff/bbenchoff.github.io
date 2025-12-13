@@ -66,24 +66,21 @@ To program the CH32V203 over a UART, the bootloader requires pulling the `Boot0`
 
 ### The Serial Mux
 
-Now we're getting into the fundamental limitations of modern silicon. The 'control microcontroller' is the master of the entire system, and connects to each node 
+Now we're getting into the fundamental limitations of modern silicon. The 'control microcontroller' is the master of the entire system, and connects to each node over a hardware UART. There are no microcontrollers with sixteen independent hardware UARTs, so we'll have to mux them somehow.
+
+The solution I came up with is to broadcast the TX from the RP2040 to all nodes in the hypercube at once. To receive data from each node on the RP2040, I'm using an analog mux, specifically the [74HC4067](https://www.ti.com/product/CD74HC4067). This device will take the TX from each of the nodes in the hypercube, with the common attached to the RX on the RP2040. This chip is controlled over GPIO, so it's simple enough to wire up.
+
+![Schematic of the serial mux, on the RX](/images/ConnM/PrototypeSerialMux.png)
+
+The drawback of this architecture is that the RP2040 can only communicate with one node chip at a time. That's fine; since I'm also controlling the `Boot0` and `/RST` lines independently, I can program all the nodes sequentially. It's not ideal, but it will work for a prototype.
 
 ### The Finished Board
 
+The prototype board is 4 layers, 93mm by 47mm:
+
 ![Kicad view of the N4 Prototype](/images/ConnM/N4PrototypeKiCad.png)
 
-## The Clock Tree
-
-
-
-
-
-
-[this machine](https://bbenchoff.github.io/pages/ThinkinMachine.html). This page is an extension of that link, broken out here due to length considerations.
-
-![Render of the 16-node board](/images/ConnM/SlicePrototype.png)
-
-![Block diagram of 16 nodes, showing a 16-node hypercube controlled via UART](/images/ConnM/SliceControl.png)
+Routing this was a _pain_. Not too bad, because I used horizontal traces on layer 2 and vertical traces on layer 3, using the top and bottom for power and ground. This is exactly the idea I used [for Orthoroute](https://bbenchoff.github.io/pages/OrthoRoute.html), the 'GPU accelerated manhattan router` used to route the backplane for the full 4,096-node backplane.
 
 
 # RISC-V With A CPLD:
