@@ -243,29 +243,27 @@ image: "/images/ConnM/CMSocialCard.png"
 
   <div class="tm-article" markdown="1">
 
-
-
 ![Render of the machine](/images/ConnM/CMSocialCard.png)
 
 # Thinkin' Machine Supercomputer
-
-## Summary
 
 <b>I made a supercomputer out of a bunch of smartphone connectors, chips from RGB mechanical keyboards, and four thousand RISC-V microcontrollers.</b> On paper, it has a combined clock rate over one Terahertz. The memory bandwidth is in the Gigabits per second range. It's faster than your laptop on some matrix operations. But that's on paper. In reality, it can't run Doom. But it _will_ do beautiful and cursed parallel math behind smoked acrylic studded with blinkenlights.
 
 ## Introduction
 
-This project is a modern recreation of the Thinking Machines [Connection Machine CM-1](https://en.wikipedia.org/wiki/Connection_Machine). The Connection Machine was a massively parallel computer from 1985, containing 65,536 individual processors arranged at the vertexes of a 16-dimension hypercube. This means each processor in the machine is connected to 16 adjacent processors. 
+In 1985, Thinking Machines built the [Connection Machine CM-1](https://en.wikipedia.org/wiki/Connection_Machine). This was a parallel computer with 65,536 individual processors arranged at the vertexes of a 16-dimension hypercube. This means each processor in the machine is connected to 16 adjacent processors. 
 
-The Connection Machine was the fastest computer on the planet in the late 1980s (The [Top500](https://top500.org/) list of supercomputers only goes back to 1993), and was purchased by various three-letter agencies, NASA, and a few well-funded universities. Like most tech companies, Thinking Machines was a defense contractor pretending to be a cool and exciting business. When the Cold War ended, DARPA cut their funding and the company officially died in 1994. By this time, Moore's Law had kicked in and workstations from Sun (and others) made the idea of a five million dollar machine that only spoke Lisp untenable for most companies. Call the reason Gorbachev or the second AI winter, by the mid 1990s the Connection Machine was dead. 
+The Connection Machine was the fastest computer on the planet in the late 1980s (The [Top500](https://top500.org/) list of supercomputers only goes back to 1993), and was purchased by various three-letter agencies, NASA, and a few well-funded universities. Like most tech companies, Thinking Machines was a defense contractor pretending to be a cool and exciting business. When the Cold War ended, DARPA cut their funding and the company officially died in 1994. By this time, Moore's Law had kicked in and workstations from Sun (and others) made the idea of a five million dollar machine that only spoke Lisp untenable for most companies. Blame Gorbachev or the second AI winter, by the mid 1990s the Connection Machine was dead. 
 
-This project is a modern recreation of the lowest-spec Connection Machine built. It contains 4,096 individual RISC-V processors, each connected to 12 neighbors in a 12-dimensional hypercube.
+This project is a modern recreation or reinterpretation of the lowest-spec Connection Machine built. It contains 4,096 individual RISC-V processors, each connected to 12 neighbors in a 12-dimensional hypercube.
 
 The Connection Machine was an early experiment in massive parallelism. Today, a 'massively parallel computer' means wiring up a bunch of machines running Linux to an Ethernet switch. The topology of this network is whatever the switch is. The Connection Machine is different. Every node is connected to 16 other nodes in a machine with 65,536 processors. In my machine, every node is connected to 12 of the 4,096 processors. For _n_ total processors, each node connects to exactly $\log_2(n)$ neighbors. This topology makes the machine extremely interesting with regard to what it can calculate efficiently, namely matrix operations, which is the basis of the third AI boom.
 
-The individual processors in the CM-1 couldn't do much -- they could only operate on a single bit at a time, and their computational capability isn't much more than an ALU. This project leverages 40 years of Moore's law to put small, cheap computers into a parallel array. Not only does this allow me to emulate the ALU-like processors in the original CM-1, but I can also run actual programs at the corners of a 12-dimensional hypercube.
+The individual processors in the CM-1 couldn't do much. These processors could only operate on a single bit at a time, and their computational capability isn't much more than an ALU. This project leverages 40 years of Moore's law to put small, cheap computers into a parallel array. Not only does this allow me to emulate the ALU-like processors in the original CM-1, but I can also run actual programs at the corners of a 12-dimensional hypercube.
 
-If I were one of the weird 'build in public guys' this would be a startup. If I thought wearing shoes indoors was a strange affectation, I'd be sending this into Y Combinator. But I'm not. This is a reproduction, or a recreation, or an 'inspired by' build of the 1985-era Connection Machine, plus 40 years of Moore's law and very poor impulse control. In 1985, this was the cutting edge of parallel computing and AI. In 2025, it's a weird art project with better chips.
+If I were one of the weird 'build in public guys' this would be a startup. If I thought wearing shoes indoors was a strange affectation, I'd be sending this into Y Combinator. But I'm not. This is a reproduction, or a recreation, or an 'inspired by' build of the 1985-era Connection Machine, plus 40 years of Moore's law and very poor impulse control.
+
+In 1986, this was the cutting edge of parallel computing and AI. In 2006, NASA would have used this machine for hypersonic computational fluid dynamics for the rocket that would put humans on the moon by the year 2020. In 2026, it's a weird art project with a lot of LEDs.
 
 ## The LED Panel
 
