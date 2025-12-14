@@ -249,11 +249,13 @@ image: "/images/ConnM/CMSocialCard.png"
 
 # Thinkin' Machine Supercomputer
 
-<b>Or: I made a supercomputer out of a bunch of smartphone connectors, a chip from RGB mechanical keyboards, and four thousand RISC-V microcontrollers.</b>
+## Summary
+
+<b>I made a supercomputer out of a bunch of smartphone connectors, chips from RGB mechanical keyboards, and four thousand RISC-V microcontrollers.</b> On paper, it has a combined clock rate over one Terahertz. The memory bandwidth is in the Gigabits per second range. It's faster than your laptop on some matrix operations. But that's on paper. In reality, it can't run Doom. But it _will_ do beautiful and cursed parallel math behind smoked acrylic studded with blinkenlights.
 
 ## Introduction
 
-This project is a reproduction and modern recreation of the Thinking Machines [Connection Machine CM-1](https://en.wikipedia.org/wiki/Connection_Machine). The Connection Machine was a massively parallel computer from 1985, containing 65,536 individual processors arranged at the vertexes of a 16-dimension hypercube. This means each processor in the machine is connected to 16 adjacent processors. 
+This project is a modern recreation of the Thinking Machines [Connection Machine CM-1](https://en.wikipedia.org/wiki/Connection_Machine). The Connection Machine was a massively parallel computer from 1985, containing 65,536 individual processors arranged at the vertexes of a 16-dimension hypercube. This means each processor in the machine is connected to 16 adjacent processors. 
 
 The Connection Machine was the fastest computer on the planet in the late 1980s (The [Top500](https://top500.org/) list of supercomputers only goes back to 1993), and was purchased by various three-letter agencies, NASA, and a few well-funded universities. Like most tech companies, Thinking Machines was a defense contractor pretending to be a cool and exciting business. When the Cold War ended, DARPA cut their funding and the company officially died in 1994. By this time, Moore's Law had kicked in and workstations from Sun (and others) made the idea of a five million dollar machine that only spoke Lisp untenable for most companies. Call the reason Gorbachev or the second AI winter, by the mid 1990s the Connection Machine was dead. 
 
@@ -985,7 +987,7 @@ This is how everything gets made. Take, for example, mid-century modern furnitur
 
 In fashion, there was an explosion of colors in the 1860s, brought about purely from the development of aniline dyes in 1856. Now you could have purple without tens of thousands of sea snails. McMansions, with their disastrous roof lines, came about only a few years after the nail plates and pre-fabbed roof trusses; those roofs would be uneconomical with hand-cut rafters and skilled carpenters. Raymond Loewy created Streamline Moderne because modern welding processes became practically possible in the 1920s and 30s. The Mannesmann seamless tube process was invented in 1885, leading to steel framed bicycles very quickly and once the process was inexpensive enough, applied to the Wassily chair, a Bauhaus masterpiece, in 1925.
 
-The Great Wave off Kanagawa was printed in 1831, and it couldn't have been created much earlier. A shipment of Prussian Blue arrived in Japan in 1747, but it was sent back for some reason. Prussian Blue wasn't used in Japan until 1752. Give that a few decades for fashion to catch on, and by 1831 Hokusai was carving the Great Wave. Two decades before the black ships arrived to force Japan to open its ports to the world. The most famous piece of Japanese art exists because of European imports.
+_The Great Wave off Kanagawa_ was printed in 1831, and it couldn't have been created much earlier. The blue of _The Great Wave_ is Prussian blue, a synthetic pigment that didn't exist before 1704. A shipment of Prussian Blue arrived in Japan in 1747, but it was sent back for some reason. Prussian Blue wasn't used in Japan until 1752. By the time Prussian blue was readily available to Japanese printmakers in large quantities, Hokusai was carving the Great Wave. Two decades before the black ships arrived and Japan opened its ports to the world. The most famous piece of Japanese art exists because of European imports.
 
 The point is, things exist because of the environment they were created in. And this Thinking Machine could not have been built any earlier.
 
