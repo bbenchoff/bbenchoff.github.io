@@ -1,6 +1,6 @@
 ---
 layout: default
-title: "Prototype 16 Node Hypercube Computer"
+title: "16 Node Hypercube Computer"
 description: "Reference for a 16-node prototype Hypercube computer"
 keywords: ["hardware engineering", "PCB design", "electronics", "reverse engineering"]
 author: "Brian Benchoff"
@@ -48,7 +48,7 @@ image: "/images/default.jpg"
 }
 </style>
 
-# A 16 Node Microcontroller Hypercube
+# A 16 Node Hypercube Microcontroller Cluster
 
 ![Render of the N4 Prototype](/images/ConnM/N4Prototype.png)
 
@@ -92,7 +92,7 @@ The RP2040 requires an external Flash chip, I'm using the W25Q16JVSS for 16 Mega
 
 ### The Node Microcontroller
 
-Each of the nodes in the hypercube are based on the CH32V203. I'm using this chip instead of the CH32V003 because it's more capable and easier to integrate into a full system; the `/RST` and `Boot0` pins are easier to ping on the CH32V203, and clocking is easier. The price difference between the chips isn't really significant, \$0.13 for the '003 and \$0.32 for the '203.
+Each of the nodes in the hypercube are based on the CH32V203. I'm using this chip instead of the CH32V003 because it's more capable and easier to integrate into a full system; the `/RST` and `Boot0` pins are easier to ping on the CH32V203, and clocking is easier. The price difference between the chips isn't really significant, thirteen cents for the '003 and thirty-two for the '203.
 
 ![Schematic for each of the nodes in the hypercube](/images/ConnM/PrototypeNodeCH32.png)
 
@@ -129,9 +129,6 @@ A 4D hypercube has a specific topology. Node 0 connects to nodes 1, 2, 4, and 8.
 </table>
 </div>
 
-<p style="text-align: center; font-style: italic; margin-top: 0.5rem;"></p>
-
-
 A 4k7 resistor pulls `Boot0` to ground per the datasheet, and PB7 is used for an LED. It's gotta have some blinky, right?
 
 
@@ -159,7 +156,7 @@ The solution I came up with is to broadcast the TX from the RP2040 to all nodes 
 
 The drawback of this architecture is that the RP2040 can only communicate with one node chip at a time. That's fine; since I'm also controlling the `Boot0` and `/RST` lines independently, I can program all the nodes sequentially. It's not ideal, but it will work for a prototype.
 
-### The Finished Board
+### The Finished CH32V203 Board
 
 The prototype board is 4 layers, 93mm by 47mm:
 
@@ -168,15 +165,12 @@ The prototype board is 4 layers, 93mm by 47mm:
 Routing this was a _pain_. But not too bad, because I used horizontal traces on layer 2 and vertical traces on layer 3, using the top and bottom for power and ground. This is exactly the idea I used [for OrthoRoute](https://bbenchoff.github.io/pages/OrthoRoute.html), the 'GPU accelerated Manhattan router' used to route the backplane for the full 4,096-node backplane.
 
 
-# RISC-V With A CPLD:
+## The AG32VF303 Board
 
 
 [link to eevblog](https://www.eevblog.com/forum/fpga/agm-cplds-fpgas/25/)
 
 AGM MICRO STUFF:
-
-
-## The AG32VF303 Board
 
 The AG32 SoC is offered in sizes ranging from a QFN32 to a huge LQFP100 package. Size is a constraint in this board, and I really only need a handful of GPIOs. I'm using the QFN32 part, the AG32VF303KCU6
 
