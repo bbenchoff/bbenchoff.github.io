@@ -261,7 +261,7 @@ The Connection Machine was an early experiment in massive parallelism. Today, a 
 
 The individual processors in the CM-1 couldn't do much. These processors could only operate on a single bit at a time, and their computational capability isn't much more than an ALU. This project leverages 40 years of Moore's law to put small, cheap computers into a parallel array. Not only does this allow me to emulate the ALU-like processors in the original CM-1, but I can also run actual programs at the corners of a 12-dimensional hypercube.
 
-If I were one of the weird 'build in public guys' this would be a startup. If I thought wearing shoes indoors was a strange affectation, I'd be sending this into Y Combinator. But I'm not. This is a reproduction, or a recreation, or an 'inspired by' build of the 1985-era Connection Machine, plus 40 years of Moore's law and very poor impulse control.
+If I were one of the weird 'build in public' guys this would be a startup. If I thought wearing shoes indoors was a strange affectation, I'd be sending this into Y Combinator. And if I wanted this thing on the front page of Hacker News for twelve hours I'd call this, 'a distraction-free computational platform' and stuff a box full of Raspberry Pis. But I'm not doing that. This is a reproduction, or a recreation, or an 'inspired by' build of the 1986-era Connection Machine, plus 40 years of Moore's law and very poor impulse control.
 
 In 1986, this was the cutting edge of parallel computing and AI. In 2006, NASA would have used this machine for hypersonic computational fluid dynamics for the rocket that would put humans on the moon by the year 2020. In 2026, it's a weird art project with a lot of LEDs.
 
@@ -963,7 +963,29 @@ While my machine is _really good_, and even my guilt-addled upbringing doesn't p
 
 "It’s elegant, beautiful, but it doesn’t really do anything useful. For many of us, that was an ex in our 20s. Now it’s a computer."
 
+## One More Thing
 
+When I began this project, I imagined I'd be building an array of four thousand tiny ten-cent microcontrollers. These plans changed slightly as I worked through the architecture of the machine, and I eventually landed on a RISC-V and FPGA combo as the nodes in this massive machine. There are definite benefits to using these chips. They're faster, they can _do_ floating point arithmetic, they have more memory, and they're the key to the [TDMA messaging scheme](https://bbenchoff.github.io/pages/ThinkinMachine.html#csma-vs-tdma) I came up with.
+
+But I'm really only using that FPGA portion of the chip as the communications interface for each chip. An FPGA can be _anything_. What if I used it to implement more processors?
+
+The original Connection Machine CM-1 used 65,536 individual processors, and my machine uses 4,096. That's a 16x difference. By implementing sixteen small cores in the FPGA of each node, I could extend my machine to match the number of processors in the original Connection Machine.
+
+It's a great idea. Because of how hypercubes partition, the sixteen new processors in each FPGA only need to talk to each other. The existing backplane handles everything between physical chips. And the original Connection Machine used very, very simple processors as the nodes -- they could only process one bit at a time, and not many instructions were supported. It's brilliant. Doing this, I'd have an _exact reproduction_ of the original Connection Machine. It could have the original specification for each processor, and it could run the same code as the original. I could have the only working Connection Machine on the planet.
+
+So that's what I did.
+
+<<something something about writing verilog for 16 bit-serial processors
+
+OUTLINE: HERE'S SOME VERILOG THAT DEMONSTRATES 16 SOFT CORES
+
+THEY COMMUNICATE AS A HYPERCUBE, WITH OUTSIDE LINKS
+
+I'VE REALLY ONLY TESTED THIS WITH THE 16-NODE DEVICE, BUT IT HOLDS UP
+
+THE ONLY THING LIMITING ME IS THE LACK OF ACTUAL SPECIFIC DOCUMENTATION FOR THE O.G. CONNECTION MACHINE, AND OF COURSE THE ORIGINAL MACHINE CODE.
+
+ANYONE KNOW WHERE I CAN FIND THIS???>>
 
 ## Contextualizing the build
 
@@ -1014,6 +1036,9 @@ The earliest this Thinking Machine could have been built is the end of 2025 or t
 - **W. Daniel Hillis, “Richard Feynman and The Connection Machine,” _Physics Today_ 42(2), 78–84 (February 1989).**  
   Hillis’ account of working with Feynman on the CM-1, including Feynman’s back-of-the-envelope router analysis, his lattice QCD prototype code, and his conclusion that the CM-1 would beat the Cosmic Cube in QCD calculations.
 
+- **Robert Schreiber, “An Assessment of the Connection Machine,” RIACS Technical Report 90.40 (June 1990)**
+  A clear-eyed, practitioner-y critique of the Connection Machine concept (specifically CM-2 as “a connection machine”): what it’s good at, where it hurts, and how its architectural/programming tradeoffs compare to contemporary MIMD multicomputers.
+
 - **C. Y. Lee, “An Algorithm for Path Connections and Its Applications,” *IRE Transactions on Electronic Computers*, 1961.**  
   The original maze-routing / wavefront paper: grid-based shortest paths around obstacles. Every “flood the board and backtrack” router is spiritually doing Lee; OrthoRoute is that idea scaled up and fired through a GPU.
 
@@ -1022,6 +1047,28 @@ The earliest this Thinking Machine could have been built is the end of 2025 or t
 
 - **G. Peter Lepage, "[Lattice QCD for Novices](https://arxiv.org/abs/hep-lat/0506036)," *Proceedings of HUGS 98*, edited by J.L. Goity, World Scientific (2000); arXiv:hep-lat/0506036.**  
   A practical introduction to lattice QCD with working code. Feynman's original Connection Machine QCD program—written in a parallel Basic dialect he invented and hand-simulated—doesn't survive, but the algorithm is standard Wilson action lattice gauge theory. Lepage's paper provides the actual implementation. This is the benchmark: if my machine can run a simplified version of what Feynman was trying to do in 1985, it's not just a replica.
+
+TDMA STUFF:
+Stout 1990 - "Intensive hypercube communication: Prearranged communication in link-bound machines"
+
+ScienceDirect: https://www.sciencedirect.com/science/article/abs/pii/074373159090026L
+Abstract page: https://web.eecs.umich.edu/~qstout/abs/JPDC90.html
+
+Bertsekas et al. 1991 - "Optimal Communication Algorithms for Hypercubes"
+
+Full PDF from MIT: https://web.mit.edu/dimitrib/www/OptimalCA.pdf
+
+Willem Zierhoff et al., “Time Triggered Communication on CAN (TTCAN)” — TTCAN is literally “put a TDMA schedule on top of CAN.”
+Link: https://www.can-cia.org/fileadmin/resources/documents/proceedings/1999_zierhoff.pdf 
+can-cia.org
+
+Meng Dong et al., “Dual-Plane Switch Architecture for Time-Triggered Ethernet” (GLSVLSI 2020) — time-triggered Ethernet framing + deterministic forwarding (the Ethernet-world cousin of what you’re doing).
+Link: https://www.ci-lab.net/uploads/paper/gvlsi20_tte.pdf 
+ci-lab.net
+
+Marc Boyer (ONERA), “A TSN Introduction” (2025) — TSN (Time-Sensitive Networking) is the “schedule traffic / bounded latency” umbrella in Ethernet land; this deck is a surprisingly useful map of the ecosystem and mechanisms (TAS, CBS, etc.).
+Link: https://wp.laas.fr/store/wp-content/uploads/sites/8/2025/04/TSN-STORE-compression.pdf 
+wp.laas.fr
 
 [back](../)
 
