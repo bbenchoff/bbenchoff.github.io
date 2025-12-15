@@ -564,7 +564,7 @@ For the card-to-backplane connections, I'm using Molex SlimStack connectors, 0.4
 
 With an array of 22 connectors per card -- 11 on both top and bottom -- I have 1100 electrical connections between the cards and backplane, enough for the 1024 hypercube connections, and enough left over for power, ground, and some sparse signalling. That's the _electrical_ connections sorted, but there's still a  slight mechanical issue. For interfacing and mating with the backplane, I'll be using Samtec's [GPSK guide post sockets](https://www.samtec.com/products/gpsk) and [GPPK guide posts](https://www.samtec.com/products/gppk). With that, I've effectively solved making the biggest backplane any one person has ever produced. 
 
-![Renders of the computer with the backplane unloaded, left, and loaded with 16 compute cards, right](/images/ConnM/BackplaneUnloadedLoaded.png)
+![Renders of the computer with the backplane unloaded, left, and loaded with 16 compute cards, right](/images/ConnM/ChassisUnloadedLoaded.png)
 
 Above is a render of the machine showing the scale and density of what's going on. Most of the front of the computer is the backplane, with the 'compute cards' -- sixteen of the 8-dimensional hypercube boards -- filling all the space. The cards, conveniently, are on a half-inch pitch, or 0.5 inches from card to card.
 
@@ -962,6 +962,18 @@ While my machine is _really good_, and even my guilt-addled upbringing doesn't p
 ### What this thing does
 
 "It’s elegant, beautiful, but it doesn’t really do anything useful. For many of us, that was an ex in our 20s. Now it’s a computer."
+
+## Calculating Something & Performance
+
+### Quantum Chromodynamics
+
+G. Peter Lepage, "[Lattice QCD for Novices](https://arxiv.org/abs/hep-lat/0506036),
+
+### Bitonic Sort
+
+### Neeural Network
+
+### Performance Vs. i7-12700K | RTX 5080
 
 ## One More Thing
 
