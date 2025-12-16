@@ -343,7 +343,7 @@ As stated above, the node is a CH32V203 RISC-V microcontroller. Although not the
 
 The build began by prototyping a single node for verification of the UART bootloader and that the CH32V203 can be clocked via an external source. This is a [CH32V203C8T6 on a generic board](https://www.amazon.com/dp/B0G194PP1M), programmed and controlled by a Raspberry Pi Pico:
 
-/*Pic of 1 node build*/
+![Two dev boards on a desk](/images/ConnM/1NodePrototype.png)
 
 This part of the build was simply to validate the idea of using multiple RISC-V microcontrollers, programmed, clocked, and reset by an external microcontroller.
 
