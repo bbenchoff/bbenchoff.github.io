@@ -367,24 +367,32 @@ The advantages to this layout are that routing algorithms for passing messages b
 
 This machine is split up into segments of various sizes. Each segment is 1/16th as large as the next. These are:
 
-- **The Node** This is just a small RISC-V microcontroller. Specifically, I am using the CH32V203G6U6, a QFN28 part with around 20 GPIOs. In the machine, 12 of these pins will be used for hypercube connections, with other pins reserved for UART connections to a local microcontroller, the `/BOOT` pin, and `NRST` pin.
-- **The Slice** This is 16 individual nodes, connected as a 4-dimension hypercube. In the Slice, a seventeenth microcontroller the initialization and control of each individual node. This means providing the means to program and read out memory from each node individually. I'm doing this through the UART bootloader for the CH32V203. Controlling the `/BOOT` and `NRST` pins of each node allows me to restart each node either collectively or individually
-- **The Plane**  16 Slices. The Plane is 256 CH32V203 microcontrollers are connected as an 8-dimension hypercube. With 16 CH32V203 microcontrollers per Slice plus one additional microcontroller, this means each plane consists of 272 microcontrollers, _plus an additional control layer_ for summing UARTs and routing messages to each Slice. In total there are 273 microcontrollers in each Plane.
-- **The Machine** Sixteen Planes make a Machine. The architecture follows the growth we've seen up to now, with 4096 CH32V203 microcontrollers connected as a 12-dimensional hypercube. There are 4368 microcontrollers in The Machine, all controlled with a rather large SoC.
+- **The Node** This is just a small RISC-V microcontroller, controlled by _another_ microcontroller.
+- **The Slice** This is 16 individual nodes, connected as a 4-dimension hypercube. In the Slice, a seventeenth microcontroller the initialization and control of each individual node. This means providing the means to program and read out memory from each node individually.
+- **The Plane**  16 Slices. The Plane is 256 microcontrollers are connected as an 8-dimension hypercube. There are sixteen 'slice controller' microcontrollers, plus one additional 'plane controller'. This means each plane consists of 273 individual chips.
+- **The Machine** Sixteen Planes make a Machine. The architecture follows the growth we've seen up to now, with 4096 'node' microcontrollers connected as a 12-dimensional hypercube. There are 4368 chips in The Machine, all controlled with a rather large SoC.
 
-Like the original Connection Machine, there are two 'modes' of connection between the nodes in the array. The first is the hypercube connection, where each node connects to other nodes. The second is a tree. Each node in the machine is connected to a 'Slice' microcontroller via UART. This Slice microcontroller handles reset, boot, programming, and loading data into each node. Above the Slice is the Plane, a master controller for each group of 256 nodes. And above that is the master controller.
+Like the original Connection Machine, there are two 'modes' of connection between the nodes in the array. The first is the hypercube connection, where each node connects to other nodes. The second is a tree. Each node in the machine is connected to the 'Slice controller' via UART. This Slice controller handles reset, boot, programming, and loading data into each node. Above the Slice is the Plane and a single 'plane controller' for each group of 256 nodes. And above that is the master controller.
 
 This "hypercube and tree" is seen in other massively parallel machines of the 1980s. The [Cosmic Cube](https://en.wikipedia.org/wiki/Caltech_Cosmic_Cube) at Caltech split the connections with individual links between nodes and a tree structure to a 'master' unit. The [Intel iPSC](https://en.wikipedia.org/wiki/Intel_iPSC) used a similar layout, but routing subsets of the hypercube through MUXes and Ethernet, with a separate connection to a 'cube manager'. Likewise, the Connection Machine could only function when connected to a VAX that handled the program loading and getting data out of the hypercube.
 
+### Which Microcontroller To Use
+
+The original inspiration for this build is bitluni's [CH32V003-based Cheap RISC-V Supercluster for $2](https://www.youtube.com/watch?v=lh93FayWHqw), and it would make sense to focus on something in the CH32V family. They're cheap, they're available on [LCSC](https://www.lcsc.com/), and they're reasonably well supported. The CH32V003 is _weird_ though; it only has one UART interface, and the 'hypercube and tree' architecture really needs two UARTs. Programming the '003 chip is just slightly more difficult than I would want.
+
+An alternative to the CH32V003 is the CH32V<b>203</b>. This is a faster, more capable chip based on a RISC-V4B core, that has one-cycle hardware multiply. It's easier to program with another microcontroller, and the CH32V003 is thirteen cents in quantity, the CH32V203 is thirty-seven cents in quantity. If I'm going this far, I'll spend the extra thousand dollars to get a machine that's a hundred times better.
+
+However, the CH32V203 is not ideal. A key consideration to chip selection is that the second (hypercube) UART must be capable of being assigned to any pin. The CH32V203 does not have this capability; the `USART1_TX` can only be mapped to pins `PA9` or `PB6`. The reason we need UART pins fully remapable are covered below, but it is a requirement for the full machine.
+
+There are several microcontrollers that do have fully remappable peripherals, where a UART can be attached to any pin. The [NXP LPC800 series](https://www.nxp.com/products/processors-and-microcontrollers/arm-microcontrollers/general-purpose-mcus/lpc800-arm-cortex-m0-plus-/lpc800-32-bit-arm-cortex-m0-plus-based-low-cost-mcu:LPC80X) has fully remappable pins, but it's a marginally expensive part and limited to a CPU frequency of 15MHz. The LPC80 is also an Arm Cortex-M0+ microcontroller, not a RISC-V part. This is a critical difference for the Twitter and Hacker News crowd. I gotta get eyeballs on this, after all. The [Cypress / Infineon PSOC](https://www.infineon.com/products/microcontroller/32-bit-psoc-arm-cortex) has remappable peripherals, but these parts are even more expensive than the LPC800. The [Microchip PIC32MM](https://www.microchip.com/en-us/products/microcontrollers/32-bit-mcus/pic32m/pic32mm) has a crossbar called a 'peripheral pin select'. The [Raspberry Pi Pico RP2350](https://www.raspberrypi.com/products/rp2350/) has PIOs, or small state machines that can assign any function to any pin. The RP2350 also has (optional) RISC-V cores, perfect for the people who will not read this page, don't understand what I'm doing, but appreciate tech YouTubers telling them what to think. The Pico an expensive part, though.
+
+There is a better option: The [AG32 SoC family](https://www.agm-micro.com/products.aspx?lang=&id=3118&p=37) from AGM Micro. This family combines a RISC-V microcontroller core with a small (2000 LUT) FPGA fabric. The chip is essentially a RISC-V core, with all pins broken out to an FPGA fabric. With this, I can remap UARTS dynamically and talk to the hypercube nodes without bogging down the RISC-V core. The smallest AG32 is available [for eighty cents in quantity](https://www.lcsc.com/product-detail/C41397171.html) from LCSC in a QFN32 package. This is the ideal chip.
+
+But the AG32 has one significant shortcoming: there is zero documentation in English. The plan, then, is to build up as much of the machine as I can using the CH32V203. In parallel, I'll work on getting a build system working for the AG32-series microcontrollers. Eventually, hopefully, the full machine will use thousands of these _really cool_ RISC-V + FPGA microcontrollers.
+
 ### 1 Node
 
-The goal of the 1-node prototype is to program a cheap RISC-V microcontroller with another microcontroller. This can be done with a dev/breakout board for any of the cheap RISC-V chips, so I found the WeAct Studio CH32V203C8T6. [The inspiration](https://www.youtube.com/watch?v=lh93FayWHqw) for this build used the ten cent CH32V003, but the '203 has significant benefits that make construction simpler and more performant:
-
-- The CH32V003 is programmed over a _strange_ one-wire serial connection that cannot be repurposed for local control. The CH32V203 can be programmed over serial, and this connection can be repurposed to get data into and out of a specific node.
-- The CH32V003 is based on a QingKe RISC-V2A core, without hardware multiply and divide. The CH32V203 is based on a RISC-V4B core, that has one-cycle hardware multiply.
-- The CH32V003 is thirteen cents in quantity, the CH32V203 is thirty-seven cents in quantity. If I'm going this far, I'll spend the extra thousand dollars to get a machine that's a hundred times better.
-
-After receiving the CH32V203 dev board, I wired it up to the closest Raspberry Pi Pico-shaped object within reach:
+The goal of the 1-node prototype is to program a cheap RISC-V microcontroller with another microcontroller. This can be done with a dev/breakout board for any of the cheap RISC-V chips, so I found the WeAct Studio CH32V203C8T6. After receiving the CH32V203 dev board, I wired it up to the closest Raspberry Pi Pico-shaped object within reach:
 
 ![Two dev boards on a desk](/images/ConnM/1NodePrototype.png)
 
@@ -804,13 +812,15 @@ After uploading the new firmware for the CH32 with a Pico, I have verification t
 
 ### 16 Nodes, The Slice
 
+**A more complete build log for the 16 node prototype is [available here](16NodeMachine.html)**
+
 This is where the build starts getting serious. The purpose of the 16-node prototype is to verify the previous work of the 1-node build (programming via UART, external clocking) as well as defining the links between nodes, synchronization, and message passing between nodes. This is _hard_, and it's a good idea to do this on a prototype board before scaling up to larger builds.
 
-The Slice is a 4-dimensional hypercube, or 16 CH32V203 microcontrollers, each connected to 4 others. These 16 nodes are controlled by a dedicated microcontroller, programming each node over serial, toggling the reset circuit, and loading data into and out of each node.
+The Slice is a 4-dimensional hypercube, or 16 microcontrollers, each connected to 4 others. These 16 nodes are controlled by a dedicated microcontroller, programming each node over serial, toggling the reset circuit, and loading data into and out of each node.
 
 ![Block diagram of 16 nodes, showing a 16-node hypercube controlled via UART](/images/ConnM/SliceControl.png)
 
-The dedicated microcontroller used for this board is the RP2350. I'm using this chip for a few reasons. First, the PIOs. The PIOs in the RP2040 and RP2350 are small state machines that have access to GPIOs and memory via DMA that run independently of the core. [I have used this functionality before](https://bbenchoff.github.io/pages/IsoTherm.html) to generate clock signals and read data directly into memory, as well as controlling the I2C lines in the LED panel. The PIOs are fantastic little peripherals that enable me to program a clock sent to all of the 'Slice' microcontrollers and read serial output. It's a lot easier and cheaper than finding a microcontroller with 16 independent UARTs, too.
+The dedicated microcontroller used for this board is the RP2040. I'm using this chip for a few reasons. First, the PIOs. The PIOs in the RP2040 are small state machines that have access to GPIOs and memory via DMA that run independently of the core. [I have used this functionality before](https://bbenchoff.github.io/pages/IsoTherm.html) to generate clock signals and read data directly into memory, as well as controlling the I2C lines in the LED panel. The PIOs are fantastic little peripherals that enable me to program a clock sent to all of the 'Slice' microcontrollers and read serial output. It's a lot easier and cheaper than finding a microcontroller with 16 independent UARTs, too.
 
 ![Render of the 16-node board](/images/ConnM/SlicePrototype.png)
 
@@ -834,6 +844,8 @@ This has significant drawbacks. There _will_ be collisions, where both nodes wan
 
 <b>TDMA:</b>
 
+**A more thorough explanation of the TDMA messaging scheme is [available here](HypercubeTDMA.html)**
+
 Consider the actual topology of what's communicating here. All nodes are assigned a 12-bit number. Each connection is to a processor that is a _single_ bit flip away. Node 0x2A3 is connected to node 0x2A2 (bit 0 flipped), node 0x2A1 (bit 1 flipped), node 0x2AB (bit 3 flipped), and so on.
 
 Now define a global tick counter, synchronized across all nodes via the shared clock from the slice controllers. The phase is just tick mod 24 - twelve dimensions, two directions each. In phase d, only dimension d links are active. All other links stay idle. Within that phase, the node with addr[d] == 0 transmits first, then the node with addr[d] == 1 transmits in the second half. This is time-division multiple access, or [TDMA](https://en.wikipedia.org/wiki/Time-division_multiple_access).
@@ -850,7 +862,7 @@ Or, if you prefer text form:
 - **Phase 5**: Nodes with address `xxxx xxxx x1xx` sends → Nodes `xxxx xxxx x0xx` receives
 - And so on for 24 phases...
 
-The brilliant part about this is that no node ever talks to its neighbor at the same time. Collisions are impossible, _and_ this scheme vastly simplifies the UART code for each node. In fact, because only dimension connection is active at any one time, **I CAN USE THE HARDWARE UARTS**, reconfigured for different pins for each phase. This means no bit-banging pins to push data across nodes and _drastically_ reduces the complexity of the UART code. It's also _fast_:
+The brilliant part about this is that no node ever talks to its neighbor at the same time. Collisions are impossible, _and_ this scheme vastly simplifies the UART code for each node. In fact, because only dimension connection is active at any one time, **I ONLY NEED ONE UART FOR THE HYPERCUBE**, reconfigured for different pins for each phase It's also _fast_:
 
 <b>Throughput at various baud rates:</b>
 <div class="table-wrap">
@@ -928,21 +940,18 @@ The CH32V203 UARTs can reliably send and receive data at 1-2 Mbps. At 10 bits pe
 
 <b>There's a catch with this plan</b>
 
-Most chips, including the CH32V203, can not assign UART functions to any pin. The [NXP LPC804](https://www.nxp.com/docs/en/nxp/data-sheets/LPC804_DS.pdf) can because it has a 'switch matrix', NXP's term for a crossbar. The [Microchip PIC32MM](https://www.microchip.com/en-us/products/microcontrollers/32-bit-mcus/pic32m/pic32mm) can, because Microchip calls a crossbar a 'peripheral pin select'. If I used an RP2040 as a node microcontroller, I could simply use PIOs and map different pins to the same UART.
+As discussed above, most chips, including the CH32V203, can not assign UART functions to any pin. The CH32V203 does not have this pin remapping function. The [AG32VF-ASIC](https://www.agm-micro.com/products.aspx?lang=&id=3118&p=37) from AGM Micro can do this. This chip is a RV32IMAFC microcontroller bolted onto a CPLD with 2K LUTs. All peripheral functions can be mapped onto any pin, and this can be done dynamically. It's eighty cents a piece [on LCSC](https://www.lcsc.com/product-detail/C41397171.html?).
 
-The CH32V203 does not have this pin remapping function. Like the STM32 it's based on, The CH32 can not remap any pin to any arbitrary peripheral. There is, however, a tiny, cheap, RISC-V chip that can do this: the [AG32VF-ASIC](https://www.agm-micro.com/products.aspx?lang=&id=3118&p=37) from AGM Micro. This chip is a RV32IMAFC microcontroller bolted onto a CPLD with 2K LUTs. All peripheral functions can be mapped onto any pin, and this can be done dynamically. It's eighty cents a piece [on LCSC](https://www.lcsc.com/product-detail/C41397171.html?).
-
-<b>This is actually going to work</b>
-
-The 16-node prototype verifies everything needed for the full 4096-node machine. 
+<b>This is actually going to work</b> And with TDMA, 16-node prototype verifies everything needed for the full 4096-node machine. If TDMA works with 16 nodes, it'll work with 4096.
 
 I want to take a step back here and just point out I'm designing a machine that can move a gigabit or more per second around its memory, does this with a single hardware UART, and is built out of thirty cent RISC-V microcontrollers. All of this _just falls out of the topology of the machine_. Instead of a furball of code trying to get rid of problems with carrier sense, TDMA based on the address of the node solves the problem elegantly.
 
-This should be your first realization that the hypercube architecture is recursively elegant. If you construct a parallel computer with a hypercube architecture, cool stuff just appears. 
+This should be your first realization that the hypercube architecture is recursively elegant. If you construct a parallel computer with a hypercube architecture, cool stuff just appears.
 
-The 16-node prototype exists specifically to validate this TDMA scheme. If the TDMA scheme works at 16 nodes, it works with 4096. The math doesn't change, only the phase count.
+Two documents were created to explain the 16 node prototype, linked here as related pages:
 
-The bring-up and software for the 16 Node board is covered [in an additional document](https://bbenchoff.github.io/pages/16NodeMachine.html) dedicated explicitly to this prototype.
+- **[TDMA Routing on a Hypercube](HypercubeTDMA.html)**
+- **[16 Node Hypercube Microcontroller Cluster](16NodeMachine.html)**
 
 ### 256 Nodes, The Plane
 

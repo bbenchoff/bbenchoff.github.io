@@ -309,6 +309,7 @@ $$\Delta = \texttt{0x2A3} \oplus \texttt{0x91C} = \texttt{0xB3F} = \texttt{1011 
 
 The set bits are: 0, 1, 2, 3, 4, 5, 8, 9, 11. That's 9 hops.
 
+<div class="tm-article">
 <div class="table-wrap">
   <table class="matrix-table">
     <tr>
@@ -329,6 +330,7 @@ The set bits are: 0, 1, 2, 3, 4, 5, 8, 9, 11. That's 9 hops.
     <tr><td>8</td><td>0x19C</td><td>9</td><td>1</td><td>19</td><td>0x11C</td></tr>
     <tr><td>9</td><td>0x11C</td><td>11</td><td>0</td><td>22</td><td>0x91C</td></tr>
   </table>
+</div>
 </div>
 
 Phase sequence: 1, 3, 4, 6, 8, 11, 16, 19, 22. Strictly increasing. Message delivered in one cycle.
@@ -365,7 +367,7 @@ Because the source starts with all bits = 1, every hop uses the **odd** phase fo
 </div>
 </div>
 
-Phase sequence: 1, 3, 5, 7, 9, 11, 13, 15, 17, 19, 21, 23. Strictly increasing. Message delivered in one cycle.
+Phase sequence: 1, 3, 5, 7, 9, 11, 13, 15, 17, 19, 21, 23. Strictly increasing. **Message delivered in one cycle**.
 
 Now route the opposite direction from node `0x000` (binary `0000 0000 000`) to node `0xFFF` (binary `1111 1111 1111`).
 
@@ -400,7 +402,7 @@ Because the source starts with all bits = 0, every hop uses the **even** phase f
 </div>
 </div>
 
-Phase sequence: 0, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22. Strictly increasing. Message delivered in one cycle.
+Phase sequence: 0, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22. Strictly increasing. **Message delivered in one cycle**.
 
 ### Bounded Latency
 
@@ -444,7 +446,7 @@ The TDMA scheme eliminates entire categories of complexity:
 
 **Trivial routing logic.** The algorithm at each node:
 
-```
+```c
 void route_message(uint16_t dest, uint8_t *payload) {
     uint16_t delta = my_addr ^ dest;
     for (int dim = 0; dim < 12; dim++) {

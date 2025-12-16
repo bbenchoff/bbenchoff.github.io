@@ -74,7 +74,9 @@ The problem of the node microcontrollers not having UARTs on all the pins is a b
 
 But there's another chip that makes this entire machine better. The [AG32 SoC has a RISC-V microcontroller core and a 2k LUT FPGA](https://www.agm-micro.com/products.aspx?lang=&id=3118&p=37) in a single package. It costs eighty cents in quantity. With the FPGA, I can create a small system that automatically routes data _anywhere_ despite the RISC-V microcontroller only having a handful of hardware UARTs. This is the ideal chip for this machine. It will _just work_ with the hypercube architecture.
 
-But the AG32 chip carries a significant amount of risk with Chinese docs, a weird toolchain, and the fact that I would be the first English-speaking person working with this chip. Most of that risk isn't related to the combination hypercube / tree architecture I'm planning. The plan is this: I'll build a 16-node prototype with the CH32 chips, verifying the clock distribution, independent programming, and play around with a bitbanged UART, just to see if it's possible. If that works, I'll do it again with the better AG32 chip. I'll create an FPGA implementation of a hypercube UART. If all goes well, I'll have two prototypes, one with a bitbanged hypercube UART, and another with FPGA hypercube connections.
+But the AG32 chip carries a significant amount of risk with Chinese docs, a weird toolchain, and the fact that I would be the first English-speaking person working with this chip. Most of that risk isn't related to the combination hypercube / tree architecture I'm planning. 
+
+The plan is this: I'll build a 16-node prototype with the CH32 chips, verifying the clock distribution, independent programming, and play around with a bitbanged UART, just to see if it's possible. If that works, I'll do it again with the better AG32 chip. I'll create an FPGA implementation of a hypercube UART. If all goes well, I'll have two prototypes, one with a bitbanged hypercube UART, and another with FPGA hypercube connections.
 
 One of them will probably work. Let's dig in.
 
@@ -164,6 +166,26 @@ The prototype board is 4 layers, 93mm by 47mm:
 
 Routing this was a _pain_. But not too bad, because I used horizontal traces on layer 2 and vertical traces on layer 3, using the top and bottom for power and ground. This is exactly the idea I used [for OrthoRoute](https://bbenchoff.github.io/pages/OrthoRoute.html), the 'GPU accelerated Manhattan router' used to route the backplane for the full 4,096-node backplane.
 
+I bought two of these boards, assembled, from JLCPCB. Total costs were:
+
+<div class="table-wrap">
+<table class="matrix-table">
+<tr>
+  <th>Line Item</th>
+  <th>Cost</th>
+</tr>
+<tr><td>Boards</td><td>4.20</td></tr>
+<tr><td>Assembly</td><td>116.07</td></tr>
+<tr><td>Shipping</td><td>50.81</td></tr>
+<tr><td>Import Taxes</td><td>50.08</td></tr>
+</table>
+</div>
+
+For a total cost of **Two hundred and twenty-six dollars**. This is all tariffs and Trump. This sucks, man, this really sucks.
+
+### Bringup of CH32V203 Board
+
+....something about the bringup, actual code...
 
 ## The AG32VF303 Board
 
