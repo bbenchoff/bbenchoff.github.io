@@ -174,4 +174,6 @@ AGM MICRO STUFF:
 
 The AG32 SoC is offered in sizes ranging from a QFN32 to a huge LQFP100 package. Size is a constraint in this board, and I really only need a handful of GPIOs. I'm using the QFN32 part, the AG32VF303KCU6
 
-[back](../)
+[back to main project page](ThinkinMachine.html)
+
+[main](../)

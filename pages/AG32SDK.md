@@ -666,5 +666,6 @@ A 'kinda fast RISC-V microcontroller + small FPGA' _needs_ example projects. Her
 - **A Fucking Connection Machine** - The reason I'm doing this
 
 
+[back to main project page](ThinkinMachine.html)
 
-[back](../)
+[main](../)

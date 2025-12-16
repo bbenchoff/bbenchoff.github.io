@@ -101,6 +101,42 @@ image: "/images/ConnM/CMSocialCard.png"
 }
 
 /* ToC sidebar */
+/* Sidebar divider between Contents and Related pages */
+.tm-toc-sep {
+  margin: 0.75rem 0;
+  border: 0;
+  border-top: 1px solid rgba(255,255,255,0.15);
+}
+
+/* Related pages list (manual) */
+.tm-related-nav {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.tm-related-nav li {
+  margin: 0.15rem 0;
+  padding-left: 1.2rem;
+  position: relative;
+}
+
+.tm-related-nav li::before {
+  content: "•";
+  position: absolute;
+  left: 0;
+}
+
+.tm-related-nav a {
+  text-decoration: none;
+  font-size: 0.9rem;
+}
+
+.tm-related-nav a:hover {
+  text-decoration: underline;
+}
+
+
 .tm-toc {
   flex: 0 0 240px;
   font-size: 0.9rem;
@@ -235,11 +271,18 @@ image: "/images/ConnM/CMSocialCard.png"
 
 <div class="tm-layout">
   <aside class="tm-toc">
-    <div class="tm-toc-inner">
-      <h3>Contents</h3>
-      <ul class="tm-toc-nav" id="tm-toc"></ul>
-    </div>
-  </aside>
+  <div class="tm-toc-inner">
+    <h3>Contents</h3>
+    <ul class="tm-toc-nav" id="tm-toc"></ul>
+    <hr class="tm-toc-sep" />
+    <h3>Related pages</h3>
+    <ul class="tm-related-nav">
+      <li><a href="16NodeMachine.html">16 Node Prototypes</a></li>
+      <li><a href="HypercubeTDMA.html">Hypercube TDMA</a></li>
+      <li><a href="OrthoRoute.html">OrthoRoute</a></li>
+    </ul>
+  </div>
+</aside>
 
   <div class="tm-article" markdown="1">
 
@@ -247,7 +290,7 @@ image: "/images/ConnM/CMSocialCard.png"
 
 # Thinkin' Machine Supercomputer
 
-<b>I made a supercomputer out of a bunch of smartphone connectors, chips from RGB mechanical keyboards, and four thousand RISC-V microcontrollers.</b> On paper, it has a combined clock rate over one Terahertz. The memory bandwidth is in the Gigabits per second range. It's faster than your laptop on some matrix operations. But that's on paper. In reality, it can't run Doom. But it _will_ do beautiful and cursed parallel math behind smoked acrylic studded with blinkenlights.
+<b>I made a supercomputer out of a bunch of smartphone connectors, chips from RGB mechanical keyboards, and four thousand RISC-V microcontrollers.</b> On paper, it has a combined clock rate over one Terahertz. The memory bandwidth is several Gigabits per second. These are real numbers, because I remember old issues of PC Gamer and their ilk doing the same thing. It's faster than your laptop on some matrix operations. But that's on paper. In reality, it can't run Doom. But it _will_ do beautiful and cursed parallel math behind smoked acrylic studded with blinkenlights.
 
 ## Introduction
 

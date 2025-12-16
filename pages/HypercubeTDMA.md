@@ -130,7 +130,7 @@ The TDMA scheme eliminates entire categories of complexity:
 
 **Trivial routing logic.** The algorithm at each node:
 
-```c
+```
 void route_message(uint16_t dest, uint8_t *payload) {
     uint16_t delta = my_addr ^ dest;
     for (int dim = 0; dim < 12; dim++) {
@@ -173,4 +173,5 @@ Different constraints yield different solutions. This one happens to be elegant.
 - M. Boyer, "A TSN Introduction," ONERA, 2025. [PDF](https://wp.laas.fr/store/wp-content/uploads/sites/8/2025/04/TSN-STORE-compression.pdf)
 
 [back to main project page](ThinkinMachine.html)
+
 [main](../)
