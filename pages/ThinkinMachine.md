@@ -339,7 +339,7 @@ The goal of the 1-node prototype is to program a cheap RISC-V microcontroller wi
 
 - The CH32V003 is programmed over a _strange_ one-wire serial connection that cannot be repurposed for local control. The CH32V203 can be programmed over serial, and this connection can be repurposed to get data into and out of a specific node.
 - The CH32V003 is based on a QingKe RISC-V2A core, without hardware multiply and divide. The CH32V203 is based on a RISC-V4B core, that has one-cycle hardware multiply.
-- The CH32V003 is \$0.13 in quantity, the CH32V203 is \$0.37 in quantity. If I'm going this far, I'll spend the extra thousand dollars to get a machine that's a hundred times better.
+- The CH32V003 is thirteen cents in quantity, the CH32V203 is thirty-seven cents in quantity. If I'm going this far, I'll spend the extra thousand dollars to get a machine that's a hundred times better.
 
 After receiving the CH32V203 dev board, I wired it up to the closest Raspberry Pi Pico-shaped object within reach:
 
@@ -349,7 +349,7 @@ It's just serial lines between two chips. The code is where things get fun.
 
 The CH32V203 can be programmed over a UART presented on pins `PA9` and `PA10`. This is easy enough to wire up, the problem comes when trying to _talk_ to the bootloader in the CH32V203.
 
-There's an [WCH RISC-V Microcontroller Web Serial ISP](https://www.stasisleak.uk/wchisp/) that will program these chips for you, provided you have a USB->UART converter and a a firmware file for the program you want to run on this chip. For a user, the process is pretty simple, you just hold down the `Boot0` pin and click upload. Underneath the hood things fall off the rails. Programming the chip works like this:
+There's an [WCH RISC-V Microcontroller Web Serial ISP](https://www.stasisleak.uk/wchisp/) that will program these chips for you, provided you have a USB to UART converter and a firmware file for the program you want to run on this chip. For a user, the process is pretty simple, you just hold down the `Boot0` pin and click upload. Underneath the hood things fall off the rails. Programming the chip works like this:
 
 - **Listen to the chip in bootloader mode** - the CH32 will send data over the serial connection, and this requires a "password", a fixed ASCII string that's `MCU ISP & WCH.CN`. The bootloader rejects everything if you don't send that exact string.
 - **Read the chip config** - the programmer sends a bitmask to read everything, and the CH32 sends back option bytes (can the Flash memory be programmed?), the bootloader version, and an 8-byte unique ID (UID)
@@ -360,9 +360,9 @@ There's an [WCH RISC-V Microcontroller Web Serial ISP](https://www.stasisleak.uk
 - **Verifies the flash with the new key**
 - **Resets the CH32**, letting it start up with the firmware you just wrote.
 
-Yes, this was a massive pain to figure out what was actually happening. The good news is I didn't have to do all the work. The [WCH-web-ISP code](https://github.com/basilhussain/wch-web-isp) is _right there_, so I just told the RP2040 to do whatever the Javascript on this page was doing.
+Yes, this was a massive pain to figure out what was actually happening. The good news is I didn't have to do all the work. The [WCH-web-ISP code](https://github.com/basilhussain/wch-web-isp) is _right there_, so I just told the RP2040 to do whatever the Javascript on that page was doing.
 
-The actual payload can be anything I want. I whipped up a slightly more sophisticated 'Hello World' and 'Blink a LED' program for the CH32, compiled it, and created a `firmware.h` file for the Pico uploader.
+The actual payload can be anything I want. I whipped up a slightly more sophisticated 'Hello World' and 'Blink a LED' program for the CH32, compiled it, and created a `firmware.h` file for the Pico uploader. The contents of this `.h` file is just a hex dump of the `.bin` file built by the compiler.
 
 The full code listing of the Pico uploader is available here:
 
@@ -1373,7 +1373,7 @@ While my machine is _really good_, and even my guilt-addled upbringing doesn't p
 
 "It’s elegant, beautiful, but it doesn’t really do anything useful. For many of us, that was an ex in our 20s. Now it’s a computer."
 
-## Calculating Something & Performance
+## Calculating & Performance
 
 ### Quantum Chromodynamics
 
