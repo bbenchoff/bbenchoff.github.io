@@ -48,6 +48,66 @@ image: "/images/default.jpg"
   background: var(--tm-wrap-bg);
 }
 
+/* Optional wrapper so wide tables don't explode your layout */
+.tm-article .table-wrap {
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Base table */
+.tm-article table.matrix-table {
+  border-collapse: collapse;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  font-size: 14px;
+  margin: 0 auto;
+  width: max-content;     /* don't stretch to full width if content is narrow */
+  max-width: 100%;
+}
+
+/* Cells */
+.tm-article .matrix-table th,
+.tm-article .matrix-table td {
+  border: 1px solid var(--tm-border);
+  padding: 6px 8px;
+  text-align: center;
+  vertical-align: middle;
+  white-space: nowrap;    /* keeps the matrix-y feel */
+}
+
+/* Header */
+.tm-article .matrix-table th {
+  background: var(--tm-head-bg);
+  font-weight: 700;
+}
+
+/* Let descriptive columns wrap when needed (so "Transmitting Nodes" isn't a one-mile row) */
+.tm-article .matrix-table td:last-child,
+.tm-article .matrix-table th:last-child {
+  text-align: left;
+  white-space: normal;
+  max-width: 48ch;        /* tweak: 40–70ch depending on your page width */
+}
+
+/* Connected cells (your existing pattern) */
+.tm-article .matrix-table td.connected {
+  background: var(--tm-connected-bg);
+  font-weight: 700;
+}
+
+/* "Empty" / elided cells like your … row */
+.tm-article .matrix-table td.empty,
+.tm-article .matrix-table th.empty {
+  color: var(--tm-empty);
+  font-style: italic;
+  background: #fafafa;    /* subtle contrast so it reads as "gap" */
+}
+
+/* Optional: subtle zebra striping for readability on long tables */
+.tm-article .matrix-table tbody tr:nth-child(even) td:not(.connected):not(.empty) {
+  background: #fcfcfc;
+}
+
 /* Slightly nicer scrollbar (WebKit) */
 .tm-article .table-wrap::-webkit-scrollbar{ height: 10px; }
 .tm-article .table-wrap::-webkit-scrollbar-thumb{
@@ -199,6 +259,7 @@ Divide that clock into $2n$ phases, where $n$ is the number of dimensions. Phase
 
 A single communication cycle consists of 24 phases:
 
+<div class="tm-article">
 <div class="table-wrap">
   <table class="matrix-table">
     <tr>
@@ -224,6 +285,7 @@ A single communication cycle consists of 24 phases:
     <tr><td>22</td><td>11</td><td>0→1</td><td>Nodes where bit 11 = 0</td></tr>
     <tr><td>23</td><td>11</td><td>1→0</td><td>Nodes where bit 11 = 1</td></tr>
   </table>
+</div>
 </div>
 
 In phase $2d$, nodes with address bit $d = 0$ transmit to their neighbor in dimension $d$. In phase $2d + 1$, nodes with address bit $d = 1$ transmit. Every link is active exactly twice per cycle — once in each direction — and there is never contention for a link.
@@ -276,7 +338,7 @@ Phase sequence: 1, 3, 4, 6, 8, 11, 16, 19, 22. Strictly increasing. Message deli
 $$\Delta = \texttt{0xFFF} \oplus \texttt{0x000} = \texttt{0xFFF} = \texttt{1111 1111 1111}_2$$
 
 Because the source starts with all bits = 1, every hop uses the **odd** phase for that dimension (the `1→0` direction): phase $2d+1$.
-
+<div class="tm-article">
 <div class="table-wrap">
   <table class="matrix-table">
     <tr>
@@ -301,15 +363,17 @@ Because the source starts with all bits = 1, every hop uses the **odd** phase fo
     <tr><td>12</td><td>0x800</td><td>11</td><td>1</td><td>23</td><td>0x000</td></tr>
   </table>
 </div>
+</div>
 
 Phase sequence: 1, 3, 5, 7, 9, 11, 13, 15, 17, 19, 21, 23. Strictly increasing. Message delivered in one cycle.
 
 Now route the opposite direction from node `0x000` (binary `0000 0000 000`) to node `0xFFF` (binary `1111 1111 1111`).
 
-$$\Delta = \texttt{0xFFF} \oplus \texttt{0x000} = \texttt{0xFFF} = = \texttt{1111 1111 1111}_2$$
+$$\Delta = \texttt{0xFFF} \oplus \texttt{0x000} = \texttt{0xFFF} = \texttt{1111 1111 1111}_2$$
 
 Because the source starts with all bits = 0, every hop uses the **even** phase for that dimension (the `0→1` direction): phase $2d$.
 
+<div class="tm-article">
 <div class="table-wrap">
   <table class="matrix-table">
     <tr>
@@ -334,6 +398,7 @@ Because the source starts with all bits = 0, every hop uses the **even** phase f
     <tr><td>12</td><td>0x7FF</td><td>11</td><td>0</td><td>22</td><td>0xFFF</td></tr>
   </table>
 </div>
+</div>
 
 Phase sequence: 0, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22. Strictly increasing. Message delivered in one cycle.
 
@@ -347,6 +412,7 @@ Latency stops being a statistical property and becomes a design constant. You ca
 
 Wall-clock latency depends on phase duration:
 
+<div class="tm-article">
 <div class="table-wrap">
   <table class="matrix-table">
     <tr>
@@ -359,6 +425,7 @@ Wall-clock latency depends on phase duration:
     <tr><td>10 kHz</td><td>100 µs</td><td>2.4 ms</td><td>2.4 ms</td></tr>
     <tr><td>100 kHz</td><td>10 µs</td><td>240 µs</td><td>240 µs</td></tr>
   </table>
+</div>
 </div>
 
 At 10 kHz phase rate with 1 Mbps baud, each phase carries ~100 bits — enough for a 10-byte payload plus header. The entire machine can exchange data at 2+ Gbps aggregate bandwidth with deterministic 2.4 ms latency.
