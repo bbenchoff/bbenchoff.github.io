@@ -10,59 +10,147 @@ image: "/images/default.jpg"
 ---
 
 <style>
-.tm-article table td,
-.tm-article table th {
-  text-align: center;
-}
-.tm-article table td:first-child,
-.tm-article table th:first-child {
-  text-align: left; /* first column is usually labels */
+/* =========================
+   TM Tables (paste-in block)
+   ========================= */
+
+/* Theme tokens (light by default) */
+.tm-article{
+  --tm-border: rgba(0,0,0,0.15);
+  --tm-header-bg: rgba(0,0,0,0.06);
+  --tm-zebra-bg: rgba(0,0,0,0.03);
+  --tm-muted: rgba(0,0,0,0.55);
+  --tm-connected-bg: rgba(255, 0, 0, 0.10);
+  --tm-wrap-bg: rgba(0,0,0,0.02);
+  --tm-wrap-shadow: 0 0 10px rgba(0,0,0,0.10);
 }
 
-.tm-article table {
-  width: 100%;
-  border-collapse: collapse;
+@media (prefers-color-scheme: dark){
+  .tm-article{
+    --tm-border: rgba(255,255,255,0.18);
+    --tm-header-bg: rgba(255,255,255,0.07);
+    --tm-zebra-bg: rgba(255,255,255,0.04);
+    --tm-muted: rgba(255,255,255,0.55);
+    --tm-connected-bg: rgba(255, 90, 90, 0.16);
+    --tm-wrap-bg: rgba(0,0,0,0.18);
+    --tm-wrap-shadow: 0 0 12px rgba(0,0,0,0.55);
+  }
+}
+
+/* Use this wrapper for any wide table */
+.tm-article .table-wrap{
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
   margin: 1rem 0;
-  font-size: 0.95rem;
+  border: 1px solid var(--tm-border);
+  border-radius: 10px;
+  box-shadow: var(--tm-wrap-shadow);
+  background: var(--tm-wrap-bg);
 }
 
-.tm-article th,
-.tm-article td {
-  border: 1px solid rgba(0,0,0,0.15);
-  padding: 6px 10px;
+/* Slightly nicer scrollbar (WebKit) */
+.tm-article .table-wrap::-webkit-scrollbar{ height: 10px; }
+.tm-article .table-wrap::-webkit-scrollbar-thumb{
+  background: rgba(0,0,0,0.25);
+  border-radius: 999px;
+}
+@media (prefers-color-scheme: dark){
+  .tm-article .table-wrap::-webkit-scrollbar-thumb{ background: rgba(255,255,255,0.22); }
+}
+
+/* ---------- Matrix tables (class="matrix-table") ---------- */
+.tm-article table.matrix-table{
+  width: 100%;
+  margin: 0;
+  border-collapse: separate;
+  border-spacing: 0;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  font-size: 14px;
+  line-height: 1.25;
+  background: transparent;
+}
+
+/* Optional caption styling */
+.tm-article table.matrix-table caption{
+  caption-side: top;
   text-align: left;
-  vertical-align: top;
+  font-weight: 650;
+  padding: .6rem .75rem .5rem .75rem;
 }
 
-.tm-article th {
-  background: rgba(0,0,0,0.05);
+/* Cells */
+.tm-article table.matrix-table th,
+.tm-article table.matrix-table td{
+  padding: 6px 10px;
+  border-right: 1px solid var(--tm-border);
+  border-bottom: 1px solid var(--tm-border);
+  text-align: center;
+  vertical-align: top;
+  white-space: nowrap; /* keeps phase tables readable */
+}
+
+/* Left-align label column */
+.tm-article table.matrix-table th:first-child,
+.tm-article table.matrix-table td:first-child{
+  text-align: left;
+}
+
+/* Remove outer-most borders (wrapper provides the frame) */
+.tm-article table.matrix-table tr > *:last-child{ border-right: 0; }
+.tm-article table.matrix-table tbody tr:last-child > *{ border-bottom: 0; }
+
+/* Header */
+.tm-article table.matrix-table thead th{
+  background: var(--tm-header-bg);
+  font-weight: 700;
+  position: sticky;  /* sticky header inside .table-wrap scroll */
+  top: 0;
+  z-index: 2;
+  backdrop-filter: blur(6px);
+}
+
+/* Zebra stripes */
+.tm-article table.matrix-table tbody tr:nth-child(even) td{
+  background: var(--tm-zebra-bg);
+}
+
+/* Semantic cells (you already use these) */
+.tm-article table.matrix-table td.connected{
+  background: var(--tm-connected-bg);
   font-weight: 700;
 }
-
-/* zebra stripes for readability */
-.tm-article tbody tr:nth-child(even) td {
-  background: rgba(0,0,0,0.03);
+.tm-article table.matrix-table td.empty{
+  color: var(--tm-muted);
 }
 
-/* keep code-y columns from wrapping into soup */
-.tm-article td code,
-.tm-article th code {
+/* Keep inline code sane in tables */
+.tm-article table.matrix-table code{
   white-space: nowrap;
 }
 
-/* --- Horizontal scroll for wide tables (works without extra wrapper) --- */
-.tm-article table {
-  display: block;
-  overflow-x: auto;
-  -webkit-overflow-scrolling: touch;
+/* ---------- Non-matrix tables fallback ---------- */
+.tm-article table:not(.matrix-table){
+  width: 100%;
+  border-collapse: collapse;
+  margin: 1rem 0;
 }
-
-/* Optional: make the scroll feel less gross */
-.tm-article table::-webkit-scrollbar {
-  height: 10px;
+.tm-article table:not(.matrix-table) th,
+.tm-article table:not(.matrix-table) td{
+  border: 1px solid var(--tm-border);
+  padding: 6px 10px;
+  vertical-align: top;
 }
+.tm-article table:not(.matrix-table) th{
+  background: var(--tm-header-bg);
+  font-weight: 700;
+}
+.tm-article table:not(.matrix-table) th:first-child,
+.tm-article table:not(.matrix-table) td:first-child{
+  text-align: left;
+}
+</style>
 
-</style>    
+ 
 # TDMA Routing on a Hypercube
 
 Somehow, I invented a better connection machine.
@@ -183,9 +271,9 @@ The set bits are: 0, 1, 2, 3, 4, 5, 8, 9, 11. That's 9 hops.
 
 Phase sequence: 1, 3, 4, 6, 8, 11, 16, 19, 22. Strictly increasing. Message delivered in one cycle.
 
-**Worst-Case Routing**: Route a message from node `0xFFF` (binary `1111 1111 1111`) to node `0x000` (binary `0000 0000 000`). This is the maximum possible Hammond distance on a 12-bit address space. Every bit differs.
+**Worst-Case Routing**: Route a message from node `0xFFF` (binary `1111 1111 1111`) to node `0x000` (binary `0000 0000 000`). This is the maximum possible Hamming distance on a 12-bit address space. Every bit differs.
 
-$$\Delta = \texttt{0xFFF} \oplus \texttt{0x000} = \texttt{0xFFF} = = \texttt{1111 1111 1111}_2$$
+$$\Delta = \texttt{0xFFF} \oplus \texttt{0x000} = \texttt{0xFFF} = \texttt{1111 1111 1111}_2$$
 
 Because the source starts with all bits = 1, every hop uses the **odd** phase for that dimension (the `1→0` direction): phase $2d+1$.
 
