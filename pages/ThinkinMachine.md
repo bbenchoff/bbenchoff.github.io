@@ -324,7 +324,7 @@ The advantages to this layout are that routing algorithms for passing messages b
 
 This machine is split up into segments of various sizes. Each segment is 1/16th as large as the next. These are:
 
-- **The Node** This is simply a CH32V203 RISC-V microcontroller. Specifically, I am using the CH32V203G6U6, a QFN28 part with around 20 GPIOs. In the machine, 12 of these pins will be used for hypercube connections, with other pins reserved for UART connections to a local microcontroller, the `/BOOT` pin, and `NRST` pin.
+- **The Node** This is just a small RISC-V microcontroller. Specifically, I am using the CH32V203G6U6, a QFN28 part with around 20 GPIOs. In the machine, 12 of these pins will be used for hypercube connections, with other pins reserved for UART connections to a local microcontroller, the `/BOOT` pin, and `NRST` pin.
 - **The Slice** This is 16 individual nodes, connected as a 4-dimension hypercube. In the Slice, a seventeenth microcontroller the initialization and control of each individual node. This means providing the means to program and read out memory from each node individually. I'm doing this through the UART bootloader for the CH32V203. Controlling the `/BOOT` and `NRST` pins of each node allows me to restart each node either collectively or individually
 - **The Plane**  16 Slices. The Plane is 256 CH32V203 microcontrollers are connected as an 8-dimension hypercube. With 16 CH32V203 microcontrollers per Slice plus one additional microcontroller, this means each plane consists of 272 microcontrollers, _plus an additional control layer_ for summing UARTs and routing messages to each Slice. In total there are 273 microcontrollers in each Plane.
 - **The Machine** Sixteen Planes make a Machine. The architecture follows the growth we've seen up to now, with 4096 CH32V203 microcontrollers connected as a 12-dimensional hypercube. There are 4368 microcontrollers in The Machine, all controlled with a rather large SoC.
@@ -335,19 +335,429 @@ This "hypercube and tree" is seen in other massively parallel machines of the 19
 
 ### 1 Node
 
-As stated above, the node is a CH32V203 RISC-V microcontroller. Although not the cheapest microcontroller available -- that would be the \$0.13 CH32V003 -- The '203 has significant benefits that make construction simpler and more performant:
+The goal of the 1-node prototype is to program a cheap RISC-V microcontroller with another microcontroller. This can be done with a dev/breakout board for any of the cheap RISC-V chips, so I found the WeAct Studio CH32V203C8T6. [The inspiration](https://www.youtube.com/watch?v=lh93FayWHqw) for this build used the ten cent CH32V003, but the '203 has significant benefits that make construction simpler and more performant:
 
 - The CH32V003 is programmed over a _strange_ one-wire serial connection that cannot be repurposed for local control. The CH32V203 can be programmed over serial, and this connection can be repurposed to get data into and out of a specific node.
 - The CH32V003 is based on a QingKe RISC-V2A core, without hardware multiply and divide. The CH32V203 is based on a RISC-V4B core, that has one-cycle hardware multiply.
 - The CH32V003 is \$0.13 in quantity, the CH32V203 is \$0.37 in quantity. If I'm going this far, I'll spend the extra thousand dollars to get a machine that's a hundred times better.
 
-The build began by prototyping a single node for verification of the UART bootloader and that the CH32V203 can be clocked via an external source. This is a [CH32V203C8T6 on a generic board](https://www.amazon.com/dp/B0G194PP1M), programmed and controlled by a Raspberry Pi Pico:
+After receiving the CH32V203 dev board, I wired it up to the closest Raspberry Pi Pico-shaped object within reach:
 
 ![Two dev boards on a desk](/images/ConnM/1NodePrototype.png)
 
-This part of the build was simply to validate the idea of using multiple RISC-V microcontrollers, programmed, clocked, and reset by an external microcontroller.
+It's just serial lines between two chips. The code is where things get fun.
 
-/* Some more about what the 1-node build does */
+The CH32V203 can be programmed over a UART presented on pins `PA9` and `PA10`. This is easy enough to wire up, the problem comes when trying to _talk_ to the bootloader in the CH32V203.
+
+There's an [WCH RISC-V Microcontroller Web Serial ISP](https://www.stasisleak.uk/wchisp/) that will program these chips for you, provided you have a USB->UART converter and a a firmware file for the program you want to run on this chip. For a user, the process is pretty simple, you just hold down the `Boot0` pin and click upload. Underneath the hood things fall off the rails. Programming the chip works like this:
+
+- **Listen to the chip in bootloader mode** - the CH32 will send data over the serial connection, and this requires a "password", a fixed ASCII string that's `MCU ISP & WCH.CN`. The bootloader rejects everything if you don't send that exact string.
+- **Read the chip config** - the programmer sends a bitmask to read everything, and the CH32 sends back option bytes (can the Flash memory be programmed?), the bootloader version, and an 8-byte unique ID (UID)
+- **Generate a Key** - creates a random seed length of 30 bytes, computes a 'seed' with the UID and random seed, computes an 8-byte key using specific indexes from that seed and XORs it with the UID checksum. This is sent to the bootloader, and the bootloader replies with a key checksum byte, that _should_ match what the programmer has. Why the hell it does this I have no idea. You already have physical access to the chip, what's the threat model here?
+- **Erases all the flash**
+- **Writes the new program** in chunks of 56 bytes, XORed with the key
+- **Generates a key _again**
+- **Verifies the flash with the new key**
+- **Resets the CH32**, letting it start up with the firmware you just wrote.
+
+Yes, this was a massive pain to figure out what was actually happening. The good news is I didn't have to do all the work. The [WCH-web-ISP code](https://github.com/basilhussain/wch-web-isp) is _right there_, so I just told the RP2040 to do whatever the Javascript on this page was doing.
+
+The actual payload can be anything I want. I whipped up a slightly more sophisticated 'Hello World' and 'Blink a LED' program for the CH32, compiled it, and created a `firmware.h` file for the Pico uploader.
+
+The full code listing of the Pico uploader is available here:
+
+```c
+#include <Arduino.h>
+
+// ---------- Embedded firmware ----------
+#include "firmware.h"   
+
+static const uint32_t HOST_BAUD   = 115200;
+static const uint32_t TARGET_BAUD = 115200;
+
+// Pico GPIOs -> CH32 pins
+static const int PIN_BOOT0   = -1;  // -> CH32 BOOT0 (active high)
+static const int PIN_NRST    = -1;  // -> CH32 NRST  (active low)
+static const int PIN_UART_TX = 4;  // Pico TX -> CH32 RX (PA10)
+static const int PIN_UART_RX = 5;  // Pico RX <- CH32 TX (PA9)
+
+
+static const uint8_t DEV_VARIANT_REQ = 0x31;
+static const uint8_t DEV_TYPE_REQ    = 0x19;
+
+
+static uint8_t g_dev_variant = DEV_VARIANT_REQ;
+static uint8_t g_dev_type    = DEV_TYPE_REQ;
+
+// Packet headers (packet.js)
+static const uint8_t HDR_CMD0 = 0x57, HDR_CMD1 = 0xAB;
+static const uint8_t HDR_RSP0 = 0x55, HDR_RSP1 = 0xAA;
+
+// Command codes (command.js)
+static const uint8_t CMD_IDENTIFY     = 0xA1;
+static const uint8_t CMD_END          = 0xA2;
+static const uint8_t CMD_KEY          = 0xA3;
+static const uint8_t CMD_FLASH_ERASE  = 0xA4;
+static const uint8_t CMD_FLASH_WRITE  = 0xA5;
+static const uint8_t CMD_FLASH_VERIFY = 0xA6;
+static const uint8_t CMD_CFG_READ     = 0xA7;
+
+static const size_t CHUNK_SIZE = 56;
+
+static bool readByteTimeout(Stream &s, uint8_t &out, uint32_t timeoutMs) {
+  uint32_t t0 = millis();
+  while (millis() - t0 < timeoutMs) {
+    int c = s.read();
+    if (c >= 0) { out = (uint8_t)c; return true; }
+    delay(1);
+  }
+  return false;
+}
+
+static bool readExactTimeout(Stream &s, uint8_t *dst, size_t n, uint32_t timeoutMs) {
+  for (size_t i = 0; i < n; i++) {
+    if (!readByteTimeout(s, dst[i], timeoutMs)) return false;
+  }
+  return true;
+}
+
+static uint8_t sum8(const uint8_t *p, size_t n) {
+  uint32_t s = 0;
+  for (size_t i = 0; i < n; i++) s += p[i];
+  return (uint8_t)(s & 0xFF);
+}
+
+static void hexDump(const uint8_t *p, size_t n) {
+  for (size_t i = 0; i < n; i++) {
+    if (p[i] < 16) Serial.print('0');
+    Serial.print(p[i], HEX);
+  }
+}
+
+static void enterBootloader() {
+  Serial.println("MANUAL STEP: Put CH32 into bootloader now (BOOT0=1, reset/power-cycle), then send command again.");
+}
+
+static void runUserApp() {
+  Serial.println("MANUAL STEP: Set BOOT0=0 and reset/power-cycle CH32 to run user app.");
+}
+
+// ---------- Packet TX/RX ----------
+struct Resp {
+  uint8_t  code = 0;
+  uint8_t  b1   = 0;
+  uint16_t len  = 0;
+  uint8_t  data[64];
+};
+
+static bool sendCommand(uint8_t cmd, const uint8_t *data, uint16_t len) {
+  const uint16_t payloadLen = (uint16_t)(3 + len);
+  uint8_t payload[3 + 256];
+  if (len > 256) return false;
+
+  payload[0] = cmd;
+  payload[1] = (uint8_t)(len & 0xFF);
+  payload[2] = (uint8_t)(len >> 8);
+  if (len) memcpy(&payload[3], data, len);
+
+  uint8_t chk = sum8(payload, payloadLen);
+
+  Serial1.write(HDR_CMD0);
+  Serial1.write(HDR_CMD1);
+  Serial1.write(payload, payloadLen);
+  Serial1.write(chk);
+  Serial1.flush();
+  return true;
+}
+
+static bool recvResponse(Resp &r, uint32_t timeoutMs = 3000) {
+  uint8_t b = 0;
+
+  // Hunt header 55 AA
+  while (true) {
+    if (!readByteTimeout(Serial1, b, timeoutMs)) return false;
+    if (b != HDR_RSP0) continue;
+    if (!readByteTimeout(Serial1, b, timeoutMs)) return false;
+    if (b == HDR_RSP1) break;
+  }
+
+  uint8_t p0, p1, lenLo, lenHi;
+  if (!readByteTimeout(Serial1, p0, timeoutMs)) return false;
+  if (!readByteTimeout(Serial1, p1, timeoutMs)) return false;
+  if (!readByteTimeout(Serial1, lenLo, timeoutMs)) return false;
+  if (!readByteTimeout(Serial1, lenHi, timeoutMs)) return false;
+
+  uint16_t len = (uint16_t)(lenLo | (lenHi << 8));
+  if (len > sizeof(r.data)) return false;
+
+  if (!readExactTimeout(Serial1, r.data, len, timeoutMs)) return false;
+
+  uint8_t chk = 0;
+  if (!readByteTimeout(Serial1, chk, timeoutMs)) return false;
+
+  // checksum over payload bytes only
+  uint8_t hdr[4] = { p0, p1, lenLo, lenHi };
+  uint32_t s = sum8(hdr, 4);
+  for (uint16_t i = 0; i < len; i++) s += r.data[i];
+  if (((uint8_t)s) != chk) return false;
+
+  r.code = p0;
+  r.b1   = p1;
+  r.len  = len;
+  return true;
+}
+
+static bool request(uint8_t cmd, const uint8_t *data, uint16_t len, Resp &r, uint32_t timeoutMs = 3000) {
+  if (!sendCommand(cmd, data, len)) return false;
+  if (!recvResponse(r, timeoutMs)) return false;
+  return (r.code == cmd);
+}
+
+// ---------- Device state ----------
+static uint8_t optBytes[8];
+static uint8_t chipUID[8];
+static uint8_t keyBytes[8];
+
+// ---------- Commands ----------
+static bool cmdIdentify() {
+  const char passwd[] = "MCU ISP & WCH.CN"; // 16 bytes
+  uint8_t data[2 + 16];
+  data[0] = DEV_VARIANT_REQ;
+  data[1] = DEV_TYPE_REQ;
+  memcpy(&data[2], passwd, 16);
+
+  Resp r;
+  if (!request(CMD_IDENTIFY, data, sizeof(data), r)) return false;
+  if (r.len != 2) return false;
+  if (r.data[0] >= 0xF0) return false; // bad password etc.
+
+  // IMPORTANT: save what it *reported*
+  g_dev_variant = r.data[0];
+  g_dev_type    = r.data[1];
+
+  Serial.print("IDENT OK. variant=0x"); Serial.print(g_dev_variant, HEX);
+  Serial.print(" type=0x");             Serial.println(g_dev_type, HEX);
+  return true;
+}
+
+static bool cmdConfigRead() {
+  uint8_t data[2] = { 0x1F, 0x00 };
+  Resp r;
+  if (!request(CMD_CFG_READ, data, sizeof(data), r)) return false;
+
+  if (r.len != 26) return false;
+  if (r.data[0] == 0x00) return false;
+
+  optBytes[0] = r.data[2];
+  optBytes[1] = r.data[4];
+  optBytes[2] = r.data[6];
+  optBytes[3] = r.data[8];
+  optBytes[4] = r.data[10];
+  optBytes[5] = r.data[11];
+  optBytes[6] = r.data[12];
+  optBytes[7] = r.data[13];
+
+  memcpy(chipUID, &r.data[18], 8);
+
+  Serial.print("CFG RDPR=0x"); Serial.print(optBytes[0], HEX);
+  Serial.print(" USER=0x");    Serial.print(optBytes[1], HEX);
+  Serial.print(" UID=");       hexDump(chipUID, 8);
+  Serial.println();
+  return true;
+}
+
+static uint32_t rngState = 0xA5A5A5A5;
+static uint8_t prng8() {
+  rngState ^= rngState << 13;
+  rngState ^= rngState >> 17;
+  rngState ^= rngState << 5;
+  return (uint8_t)(rngState & 0xFF);
+}
+
+static bool cmdKeyGenerate(uint8_t seedLen = 60) {
+  if (seedLen < 30) seedLen = 30;
+  if (seedLen > 60) seedLen = 60;
+
+  uint8_t seed[60];
+  for (uint8_t i = 0; i < seedLen; i++) seed[i] = prng8();
+
+  uint8_t uidChk = 0;
+  for (int i = 0; i < 8; i++) uidChk = (uint8_t)((uidChk + chipUID[i]) & 0xFF);
+
+  const uint8_t a = (uint8_t)(seedLen / 5);
+  const uint8_t b = (uint8_t)(seedLen / 7);
+
+  keyBytes[0] = uidChk ^ seed[b * 4];
+  keyBytes[1] = uidChk ^ seed[a];
+  keyBytes[2] = uidChk ^ seed[b];
+  keyBytes[3] = uidChk ^ seed[b * 6];
+  keyBytes[4] = uidChk ^ seed[b * 3];
+  keyBytes[5] = uidChk ^ seed[a * 3];
+  keyBytes[6] = uidChk ^ seed[b * 5];
+
+  keyBytes[7] = (uint8_t)((keyBytes[0] + g_dev_variant) & 0xFF);
+
+  uint8_t keyChk = 0;
+  for (int i = 0; i < 8; i++) keyChk = (uint8_t)((keyChk + keyBytes[i]) & 0xFF);
+
+  Resp r;
+  if (!request(CMD_KEY, seed, seedLen, r)) return false;
+  if (r.len != 2) return false;
+  if (r.data[0] == 0x00) return false;
+
+  if (r.data[0] != keyChk) {
+    Serial.print("KEYCHK mismatch: host=0x"); Serial.print(keyChk, HEX);
+    Serial.print(" boot=0x");                 Serial.println(r.data[0], HEX);
+    return false;
+  }
+
+  Serial.print("KEY OK key="); hexDump(keyBytes, 8); Serial.println();
+  return true;
+}
+
+static bool cmdFlashErase(uint32_t sectors1k) {
+  uint8_t data[4] = {
+    (uint8_t)(sectors1k & 0xFF),
+    (uint8_t)((sectors1k >> 8) & 0xFF),
+    (uint8_t)((sectors1k >> 16) & 0xFF),
+    (uint8_t)((sectors1k >> 24) & 0xFF),
+  };
+
+  Resp r;
+  if (!request(CMD_FLASH_ERASE, data, sizeof(data), r, 5000)) return false;
+  return (r.len == 2 && r.data[0] == 0x00);
+}
+
+static void xorEncrypt(uint8_t *dst, const uint8_t *src, size_t n) {
+  for (size_t i = 0; i < n; i++) dst[i] = (uint8_t)(src[i] ^ keyBytes[i % 8]);
+}
+
+static bool cmdFlashWriteChunk(uint32_t addr, const uint8_t *plain, uint16_t n) {
+  uint8_t data[5 + CHUNK_SIZE];
+  data[0] = (uint8_t)(addr & 0xFF);
+  data[1] = (uint8_t)((addr >> 8) & 0xFF);
+  data[2] = (uint8_t)((addr >> 16) & 0xFF);
+  data[3] = (uint8_t)((addr >> 24) & 0xFF);
+  data[4] = 0x00;
+
+  if (n > 0) xorEncrypt(&data[5], plain, n);
+
+  Resp r;
+  if (!request(CMD_FLASH_WRITE, data, (uint16_t)(5 + n), r, 3000)) return false;
+  return (r.len == 2 && r.data[0] == 0x00);
+}
+
+static bool cmdFlashWriteFinalize(uint32_t endAddr) {
+  return cmdFlashWriteChunk(endAddr, nullptr, 0);
+}
+
+static bool cmdFlashVerifyChunk(uint32_t addr, const uint8_t *plain, uint16_t n) {
+  uint8_t data[5 + CHUNK_SIZE];
+  data[0] = (uint8_t)(addr & 0xFF);
+  data[1] = (uint8_t)((addr >> 8) & 0xFF);
+  data[2] = (uint8_t)((addr >> 16) & 0xFF);
+  data[3] = (uint8_t)((addr >> 24) & 0xFF);
+  data[4] = 0x00;
+
+  if (n > 0) xorEncrypt(&data[5], plain, n);
+
+  Resp r;
+  if (!request(CMD_FLASH_VERIFY, data, (uint16_t)(5 + n), r, 3000)) return false;
+  return (r.len == 2 && r.data[0] == 0x00);
+}
+
+static bool cmdEnd(bool doReset) {
+  uint8_t data[1] = { (uint8_t)(doReset ? 0x01 : 0x00) };
+  Resp r;
+  if (!request(CMD_END, data, sizeof(data), r, 3000)) return false;
+  return (r.len == 2 && r.data[0] == 0x00);
+}
+
+static bool programEmbedded(bool verify) {
+  const uint8_t *fw = firmware_bin;
+  const uint32_t fwLen = (uint32_t)firmware_bin_len;
+
+  Serial.print("FW size: "); Serial.println(fwLen);
+
+  enterBootloader();
+
+  if (!cmdIdentify())   { Serial.println("FAIL identify"); return false; }
+  if (!cmdConfigRead()) { Serial.println("FAIL configRead"); return false; }
+
+  if (!cmdKeyGenerate(60)) { Serial.println("FAIL keygen"); return false; }
+
+  const uint32_t sectors = (fwLen + 1023u) / 1024u;
+  Serial.print("Erasing "); Serial.print(sectors); Serial.println(" sectors (1K)...");
+  if (!cmdFlashErase(sectors)) { Serial.println("FAIL erase"); return false; }
+
+  Serial.println("Writing...");
+  for (uint32_t off = 0; off < fwLen; off += (uint32_t)CHUNK_SIZE) {
+    uint16_t n = (uint16_t)min((uint32_t)CHUNK_SIZE, fwLen - off);
+    if (!cmdFlashWriteChunk(off, &fw[off], n)) {
+      Serial.print("FAIL write @"); Serial.println(off);
+      return false;
+    }
+  }
+  if (!cmdFlashWriteFinalize(fwLen)) { Serial.println("FAIL write finalize"); return false; }
+
+  if (verify) {
+    if (!cmdKeyGenerate(60)) { Serial.println("FAIL keygen2"); return false; }
+    Serial.println("Verifying...");
+    for (uint32_t off = 0; off < fwLen; off += (uint32_t)CHUNK_SIZE) {
+      uint16_t n = (uint16_t)min((uint32_t)CHUNK_SIZE, fwLen - off);
+      if (!cmdFlashVerifyChunk(off, &fw[off], n)) {
+        Serial.print("FAIL verify @"); Serial.println(off);
+        return false;
+      }
+    }
+  }
+
+  if (!cmdEnd(true)) { Serial.println("WARN end/reset failed"); }
+  Serial.println("DONE (resetting into user app)");
+  return true;
+}
+
+void setup() {
+  Serial.begin(HOST_BAUD);
+  delay(200);
+
+  pinMode(PIN_BOOT0, OUTPUT);
+  pinMode(PIN_NRST, OUTPUT);
+  digitalWrite(PIN_BOOT0, LOW);
+  digitalWrite(PIN_NRST, HIGH);
+
+  Serial1.setTX(PIN_UART_TX);
+  Serial1.setRX(PIN_UART_RX);
+  Serial1.begin(TARGET_BAUD);
+
+  rngState ^= micros();
+
+  Serial.println("Pico CH32 ISP ready.");
+  Serial.println("Commands: I=identify, C=config, F=flash+verify, f=flash, R=reset app");
+}
+
+void loop() {
+  if (!Serial.available()) return;
+  char c = (char)Serial.read();
+
+  if (c == 'I') {
+    Serial.println(cmdIdentify() ? "OK" : "FAIL");
+  } else if (c == 'C') {
+    bool ok = cmdIdentify() && cmdConfigRead();
+    Serial.println(ok ? "OK" : "FAIL");
+  } else if (c == 'F') {
+    (void)programEmbedded(true);
+  } else if (c == 'f') {
+    (void)programEmbedded(false);
+  } else if (c == 'R') {
+    runUserApp();
+    Serial.println("Reset into user app.");
+  }
+}
+
+```
+
+After uploading the new firmware for the CH32 with a Pico, I have verification that _this just might work_. I can program the microcontrollers of a hypercube, so it's time to build a hypercube.
 
 ### 16 Nodes, The Slice
 
