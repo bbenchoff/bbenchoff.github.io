@@ -285,7 +285,7 @@ image: "/images/ConnM/CMSocialCard.png"
   </div>
 </aside>
 
-  <div class="tm-article" markdown="1">
+<div class="tm-article" markdown="1">
 
 ![Render of the machine](/images/ConnM/CMSocialCard.png)
 
@@ -900,7 +900,7 @@ It's also _fast_:
   <td>2 Mbps</td>
   <td>83.3 kbps</td>
   <td>2 Mbps</td>
-  <td><b>4.1 Gbps<b></td>
+  <td><b>4.1 Gbps</b></td>
 </tr>
 </table>
 </div>
