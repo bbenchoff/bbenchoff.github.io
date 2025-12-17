@@ -1555,38 +1555,50 @@ wp.laas.fr
 
 <script>
 document.addEventListener("DOMContentLoaded", function () {
-  const article = document.querySelector(".tm-article");
   const tocList = document.getElementById("tm-toc");
-  if (!article || !tocList) return;
+  const layout  = document.querySelector(".tm-layout") || document.body;
+  const tocBox  = document.querySelector(".tm-toc");
+  if (!tocList) return;
 
-  // Only H2 + H3
-  const headings = article.querySelectorAll("h2, h3, h4");
+  // Reset (prevents duplicates if something re-runs)
+  tocList.innerHTML = "";
+
+  // Grab headings from the whole page content area, but never from the ToC sidebar itself
+  const headings = Array.from(layout.querySelectorAll("h2, h3, h4"))
+    .filter(h => !h.closest(".tm-toc"));
+
   if (!headings.length) {
-    const toc = document.querySelector(".tm-toc");
-    if (toc) toc.style.display = "none";
+    if (tocBox) tocBox.style.display = "none";
     return;
   }
 
-  headings.forEach(function (h) {
+  // Safer slugging + uniqueness (prevents duplicate IDs breaking links)
+  const slugify = (s) => (s || "")
+    .trim()
+    .toLowerCase()
+    .replace(/[^\w\- ]+/g, "")
+    .replace(/\s+/g, "-")
+    .replace(/\-+/g, "-")
+    .replace(/^\-|\-$/g, "");
+
+  const used = new Set();
+
+  headings.forEach((h) => {
     if (!h.id) {
-      h.id = h.textContent
-        .trim()
-        .toLowerCase()
-        .replace(/[^\w\- ]+/g, "")
-        .replace(/\s+/g, "-");
+      let base = slugify(h.textContent) || "section";
+      let id = base;
+      let n = 2;
+      while (used.has(id) || document.getElementById(id)) id = `${base}-${n++}`;
+      h.id = id;
     }
+    used.add(h.id);
 
     const li = document.createElement("li");
     const tag = h.tagName.toLowerCase();
-
-    // H2 = top-level, H3 = indented, H4 = further indented
-    if (tag === "h2") {
-      li.classList.add("tm-toc-level-2");
-    } else if (tag === "h3") {
-      li.classList.add("tm-toc-level-3");
-    } else if (tag === "h4") {
-      li.classList.add("tm-toc-level-4");
-    }
+    li.classList.add(
+      tag === "h2" ? "tm-toc-level-2" :
+      tag === "h3" ? "tm-toc-level-3" : "tm-toc-level-4"
+    );
 
     const a = document.createElement("a");
     a.href = "#" + h.id;
@@ -1596,7 +1608,7 @@ document.addEventListener("DOMContentLoaded", function () {
     tocList.appendChild(li);
   });
 
-  // Custom scrolling with offset
+  // Smooth scrolling with offset
   const OFFSET = 90;
 
   tocList.addEventListener("click", function (event) {
@@ -1623,6 +1635,7 @@ document.addEventListener("DOMContentLoaded", function () {
   });
 });
 </script>
+
 
 
 /// EVERYTHING BELOW THIS IS EXTRA:
