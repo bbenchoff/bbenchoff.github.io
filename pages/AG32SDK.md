@@ -91,8 +91,8 @@ For what you’re trying to do—being the unofficial English-language SDK and t
 
 [1]: https://www.agm-micro.com/upload/userfiles/files/AGRV2K_Rev_3_0.pdf "FEATURES"
 [2]: https://www.agm-micro.com/solutions.aspx?id=3110&lang=&p=2076 "Industrial Applications"
-[3]: https://www.wevolver.com/article/risc-v-vs-arm?utm_source=chatgpt.com "RISC-V vs ARM: A Comprehensive Comparison of ..."
-[4]: https://en.eeworld.com.cn/bbs/thread-1316984-1-1.html?utm_source=chatgpt.com "AG32 MCU+CPLD joint programming (case description)"
+[3]: https://www.wevolver.com/article/risc-v-vs-arm "RISC-V vs ARM: A Comprehensive Comparison of ..."
+[4]: https://en.eeworld.com.cn/bbs/thread-1316984-1-1.html "AG32 MCU+CPLD joint programming (case description)"
 [5]: https://www.agm-micro.com/solutions.aspx?id=3093&lang=en&p=2076 "AGM32 mcu, AGM Micro, Programmable ..."
 [6]: https://www.agm-micro.com/solutions.aspx?id=3104&lang=en&p=2077 "Audio and Video"
 

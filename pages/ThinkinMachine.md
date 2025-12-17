@@ -281,6 +281,7 @@ image: "/images/ConnM/CMSocialCard.png"
       <li><a href="HypercubeTDMA.html">Hypercube TDMA</a></li>
       <li><a href="OrthoRoute.html">OrthoRoute</a></li>
       <li><a href="AG32SDK.html">AG32 SDK</a></li>
+      <li><a href="CM1Implementation.html">CM-1 Implementation</a></li>
     </ul>
   </div>
 </aside>
@@ -1453,17 +1454,23 @@ It's a great idea. Because of how hypercubes partition, the sixteen new processo
 
 So that's what I did.
 
-<<something something about writing verilog for 16 bit-serial processors
+### Emulating the CM-1 on 4096 FPGAs
 
-OUTLINE: HERE'S SOME VERILOG THAT DEMONSTRATES 16 SOFT CORES
+After reading [Hillis' thesis](https://dspace.mit.edu/bitstream/handle/1721.1/14719/18524280-MIT.pdf), we get a pretty clear picture of what the individual nodes in the CM-1 actually are:
 
-THEY COMMUNICATE AS A HYPERCUBE, WITH OUTSIDE LINKS
+- 1-bit datapath (bit-serial)
+- 8 general-purpose flags + 8 special-purpose flags
+- 4K bits of external memory (12-bit address)
+- One instruction: read 2 memory bits + 1 flag, apply arbitrary 3-input boolean function (specified by 8-bit truth table), write 1 bit to memory + 1 bit to flag
+- Conditionalization: execute or skip based on any flag
 
-I'VE REALLY ONLY TESTED THIS WITH THE 16-NODE DEVICE, BUT IT HOLDS UP
+The 16 processors per chip in the original CM-1 were connected in a 4×4 NEWS grid AND via a daisy-chain. The 16 soft-cores per AG32 should form a 4D sub-hypercube (dimensions 0-3), with the physical AG32-to-AG32 connections handling dimensions 4-11.
 
-THE ONLY THING LIMITING ME IS THE LACK OF ACTUAL SPECIFIC DOCUMENTATION FOR THE O.G. CONNECTION MACHINE, AND OF COURSE THE ORIGINAL MACHINE CODE.
+**All of this is covered in [the CM-1 implementation page](CM1Implementation.md).**
 
-ANYONE KNOW WHERE I CAN FIND THIS???>>
+My "emulation" or "reimplementation" of the CM-1 -- I'm not sure exactly what this is -- has 65,536 1-bit processors all connected as a hypercube. The architecture is a bit different because the CM-1 used routers to pass messages around to the nodes, and I'm using a weird TDMA scheme so that each node is its own router. But still, this is the closest thing to a _working_ connection machine that's existed in the past two decades.
+
+Theoretically, this machine could run original code for the Connection Machine. Maybe it could. I don't actually know, because I can't find any original CM-1 code. But if Danny wants to meet me for a beer at Interval, I would love to talk to him about this.
 
 ## Contextualizing the build
 
