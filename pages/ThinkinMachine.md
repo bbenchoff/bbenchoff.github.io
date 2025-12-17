@@ -1,6 +1,6 @@
 ---
 layout: default
-title: "Thinkin Machine Supercomputer"
+title: "Recreating the Connection Machine: 4,096 RISC-V Cores in a Hypercube"
 description: "A modern recreation of the Connection Machines CM-1"
 keywords: ["hardware engineering", "PCB design", "electronics", "reverse engineering"]
 author: "Brian Benchoff"
@@ -280,6 +280,7 @@ image: "/images/ConnM/CMSocialCard.png"
       <li><a href="16NodeMachine.html">16 Node Prototypes</a></li>
       <li><a href="HypercubeTDMA.html">Hypercube TDMA</a></li>
       <li><a href="OrthoRoute.html">OrthoRoute</a></li>
+      <li><a href="AG32SDK.html">AG32 SDK</a></li>
     </ul>
   </div>
 </aside>
@@ -288,7 +289,7 @@ image: "/images/ConnM/CMSocialCard.png"
 
 ![Render of the machine](/images/ConnM/CMSocialCard.png)
 
-# Thinkin' Machine Supercomputer
+# Recreating the Connection Machine: 4,096 RISC-V Cores in a Hypercube
 
 <b>I made a supercomputer out of a bunch of smartphone connectors, chips from RGB mechanical keyboards, and four thousand RISC-V microcontrollers.</b> On paper, it has a combined clock rate over one Terahertz. The memory bandwidth is several Gigabits per second. These are real numbers, because I remember old issues of PC Gamer and their ilk doing the same thing. It's faster than your laptop on some matrix operations. But that's on paper. In reality, it can't run Doom. But it _will_ do beautiful and cursed parallel math behind smoked acrylic studded with blinkenlights.
 
@@ -304,7 +305,7 @@ The Connection Machine was an early experiment in massive parallelism. Today, a 
 
 The individual processors in the CM-1 couldn't do much. These processors could only operate on a single bit at a time, and their computational capability isn't much more than an ALU. This project leverages 40 years of Moore's law to put small, cheap computers into a parallel array. Not only does this allow me to emulate the ALU-like processors in the original CM-1, but I can also run actual programs at the corners of a 12-dimensional hypercube.
 
-If I were one of the weird 'build in public' guys this would be a startup. If I thought wearing shoes indoors was a strange affectation, I'd be sending this into Y Combinator. And if I wanted this thing on the front page of Hacker News for twelve hours I'd call this, 'a distraction-free computational platform' and stuff a box full of Raspberry Pis. But I'm not doing that. This is a reproduction, or a recreation, or an 'inspired by' build of the 1986-era Connection Machine, plus 40 years of Moore's law and very poor impulse control.
+If I were one of the weird 'build in public' guys this would be a startup. If I thought wearing shoes indoors was a strange affectation and hated poor people, I'd be sending this into Y Combinator. And if I wanted this thing on the front page of Hacker News for twelve hours I'd call this, 'a distraction-free computational platform' and stuff a box full of Raspberry Pis. But I'm not doing that. This is a reproduction, or a recreation, or an 'inspired by' build of the 1986-era Connection Machine, plus 40 years of Moore's law and very poor impulse control.
 
 In 1986, this was the cutting edge of parallel computing and AI. In 2006, NASA would have used this machine for hypersonic computational fluid dynamics for the rocket that would put humans on the moon by the year 2020. In 2026, it's a weird art project with a lot of LEDs.
 
@@ -365,10 +366,10 @@ The advantages to this layout are that routing algorithms for passing messages b
 
 ## Hardware Architecture
 
-This machine is split up into segments of various sizes. Each segment is 1/16th as large as the next. These are:
+This machine is split up into segments of various sizes. Each segment is 16× bigger than the previous. These are:
 
 - **The Node** This is just a small RISC-V microcontroller, controlled by _another_ microcontroller.
-- **The Slice** This is 16 individual nodes, connected as a 4-dimension hypercube. In the Slice, a seventeenth microcontroller the initialization and control of each individual node. This means providing the means to program and read out memory from each node individually.
+- **The Slice** This is 16 individual nodes, connected as a 4-dimension hypercube. In the Slice, a seventeenth microcontroller handles the initialization and control of each individual node. This means providing the means to program and read out memory from each node individually.
 - **The Plane**  16 Slices. The Plane is 256 microcontrollers are connected as an 8-dimension hypercube. There are sixteen 'slice controller' microcontrollers, plus one additional 'plane controller'. This means each plane consists of 273 individual chips.
 - **The Machine** Sixteen Planes make a Machine. The architecture follows the growth we've seen up to now, with 4096 'node' microcontrollers connected as a 12-dimensional hypercube. There are 4368 chips in The Machine, all controlled with a rather large SoC.
 
@@ -384,11 +385,11 @@ An alternative to the CH32V003 is the CH32V<b>203</b>. This is a faster, more ca
 
 However, the CH32V203 is not ideal. A key consideration to chip selection is that the second (hypercube) UART must be capable of being assigned to any pin. The CH32V203 does not have this capability; the `USART1_TX` can only be mapped to pins `PA9` or `PB6`. The reason we need UART pins fully remapable are covered below, but it is a requirement for the full machine.
 
-There are several microcontrollers that do have fully remappable peripherals, where a UART can be attached to any pin. The [NXP LPC800 series](https://www.nxp.com/products/processors-and-microcontrollers/arm-microcontrollers/general-purpose-mcus/lpc800-arm-cortex-m0-plus-/lpc800-32-bit-arm-cortex-m0-plus-based-low-cost-mcu:LPC80X) has fully remappable pins, but it's a marginally expensive part and limited to a CPU frequency of 15MHz. The LPC80 is also an Arm Cortex-M0+ microcontroller, not a RISC-V part. This is a critical difference for the Twitter and Hacker News crowd. I gotta get eyeballs on this, after all. The [Cypress / Infineon PSOC](https://www.infineon.com/products/microcontroller/32-bit-psoc-arm-cortex) has remappable peripherals, but these parts are even more expensive than the LPC800. The [Microchip PIC32MM](https://www.microchip.com/en-us/products/microcontrollers/32-bit-mcus/pic32m/pic32mm) has a crossbar called a 'peripheral pin select'. The [Raspberry Pi Pico RP2350](https://www.raspberrypi.com/products/rp2350/) has PIOs, or small state machines that can assign any function to any pin. The RP2350 also has (optional) RISC-V cores, perfect for the people who will not read this page, don't understand what I'm doing, but appreciate tech YouTubers telling them what to think. The Pico an expensive part, though.
+There are several microcontrollers that do have fully remappable peripherals, where a UART can be attached to any pin. The [NXP LPC800 series](https://www.nxp.com/products/processors-and-microcontrollers/arm-microcontrollers/general-purpose-mcus/lpc800-arm-cortex-m0-plus-/lpc800-32-bit-arm-cortex-m0-plus-based-low-cost-mcu:LPC80X) has fully remappable pins, but it's a marginally expensive part and limited to a CPU frequency of 15MHz. The LPC80 is also an Arm Cortex-M0+ microcontroller, not a RISC-V part. This is a critical difference for the Twitter and Hacker News crowd. I gotta get eyeballs on this, after all. The [Cypress / Infineon PSOC](https://www.infineon.com/products/microcontroller/32-bit-psoc-arm-cortex) has remappable peripherals, but these parts are even more expensive than the LPC800. The [Microchip PIC32MM](https://www.microchip.com/en-us/products/microcontrollers/32-bit-mcus/pic32m/pic32mm) has a crossbar called a 'peripheral pin select'. The [Raspberry Pi Pico RP2350](https://www.raspberrypi.com/products/rp2350/) has PIOs, or small state machines that can assign functions to any pin. The RP2350 also has (optional) RISC-V cores, perfect for the people who appreciate tech YouTubers telling them what to think. The Pico is an expensive part, though.
 
-There is a better option: The [AG32 SoC family](https://www.agm-micro.com/products.aspx?lang=&id=3118&p=37) from AGM Micro. This family combines a RISC-V microcontroller core with a small (2000 LUT) FPGA fabric. The chip is essentially a RISC-V core, with all pins broken out to an FPGA fabric. With this, I can remap UARTS dynamically and talk to the hypercube nodes without bogging down the RISC-V core. The smallest AG32 is available [for eighty cents in quantity](https://www.lcsc.com/product-detail/C41397171.html) from LCSC in a QFN32 package. This is the ideal chip.
+There is a better option: The [AG32 SoC family](https://www.agm-micro.com/products.aspx?lang=&id=3118&p=37) from AGM Micro. This family combines a RISC-V microcontroller core with a small (2000 LUT) FPGA fabric. The chip is essentially a RISC-V core, with all pins broken out to an FPGA fabric. With this, I can remap UARTS dynamically and talk to the hypercube nodes without bogging down the RISC-V core. The smallest AG32 is available [for eighty cents in quantity](https://www.lcsc.com/product-detail/C41397171.html) from LCSC in a QFN32 package. This is almost the ideal chip.
 
-But the AG32 has one significant shortcoming: there is zero documentation in English. The plan, then, is to build up as much of the machine as I can using the CH32V203. In parallel, I'll work on getting a build system working for the AG32-series microcontrollers. Eventually, hopefully, the full machine will use thousands of these _really cool_ RISC-V + FPGA microcontrollers.
+But the AG32 has one significant shortcoming: there is zero documentation in English. The plan is to build up as much of the machine as I can using the CH32V203. In parallel, I'll work on getting a build system working for the AG32-series microcontrollers. Eventually, hopefully, the full machine will use thousands of these _really cool_ RISC-V + FPGA microcontrollers.
 
 ### 1 Node
 
@@ -407,7 +408,7 @@ There's an [WCH RISC-V Microcontroller Web Serial ISP](https://www.stasisleak.uk
 - **Generate a Key** - creates a random seed length of 30 bytes, computes a 'seed' with the UID and random seed, computes an 8-byte key using specific indexes from that seed and XORs it with the UID checksum. This is sent to the bootloader, and the bootloader replies with a key checksum byte, that _should_ match what the programmer has. Why the hell it does this I have no idea. You already have physical access to the chip, what's the threat model here?
 - **Erases all the flash**
 - **Writes the new program** in chunks of 56 bytes, XORed with the key
-- **Generates a key _again**
+- **Generates a key** <b><i>again</i></b>
 - **Verifies the flash with the new key**
 - **Resets the CH32**, letting it start up with the firmware you just wrote.
 
@@ -862,7 +863,11 @@ Or, if you prefer text form:
 - **Phase 5**: Nodes with address `xxxx xxxx x1xx` sends → Nodes `xxxx xxxx x0xx` receives
 - And so on for 24 phases...
 
-The brilliant part about this is that no node ever talks to its neighbor at the same time. Collisions are impossible, _and_ this scheme vastly simplifies the UART code for each node. In fact, because only dimension connection is active at any one time, **I ONLY NEED ONE UART FOR THE HYPERCUBE**, reconfigured for different pins for each phase It's also _fast_:
+The brilliant part about this is that no node ever talks to its neighbor at the same time. Collisions are impossible, _and_ this scheme vastly simplifies the UART code for each node. In fact, because only dimension connection is active at any one time, **I ONLY NEED ONE UART FOR THE HYPERCUBE**, reconfigured for different pins for each phase.
+
+Since only one dimension is active per phase, each node only needs to speak on one physical link at a time. If the UART can be remapped fast enough, one hardware UART can time-multiplex across all 12 links. The hypercube unfolds into time. Twelve dimensions become twenty-four phases, and the topology is temporal as much as spatial. Now we have a counter to the redditor who will say, "well acktually it's not a true hypercube because we live in four dimensions, three spacial dimension plus time." We can now tell that loser to stuff it.
+
+It's also _fast_:
 
 <b>Throughput at various baud rates:</b>
 <div class="table-wrap">
@@ -895,12 +900,12 @@ The brilliant part about this is that no node ever talks to its neighbor at the 
   <td>2 Mbps</td>
   <td>83.3 kbps</td>
   <td>2 Mbps</td>
-  <td>4.1 Gbps</td>
+  <td><b>4.1 Gbps<b></td>
 </tr>
 </table>
 </div>
 
-<b>Latency at various phase rates</b> (worst case: 12 hops across the hypercube):
+<b>Latency at various phase rates:</b>
 <div class="table-wrap">
 <table class="matrix-table">
 <tr>
@@ -936,11 +941,9 @@ The brilliant part about this is that no node ever talks to its neighbor at the 
 </table>
 </div>
 
-The CH32V203 UARTs can reliably send and receive data at 1-2 Mbps. At 10 bits per UART frame (8N1), that's 100-200 KB/s per node. The practical sweet spot is probably a 10 kHz phase rate with 1 Mbps baud, or 100 bits per phase (enough for a 10-byte packet), 14ms worst-case latency, and over 2 Gbps of aggregate machine bandwidth. The TDMA scheme only requires a clock signal somewhere between 1 and 100 kHz, and the associated buffers to fan it out from where it's being generated.
-
 <b>There's a catch with this plan</b>
 
-As discussed above, most chips, including the CH32V203, can not assign UART functions to any pin. The CH32V203 does not have this pin remapping function. The [AG32VF-ASIC](https://www.agm-micro.com/products.aspx?lang=&id=3118&p=37) from AGM Micro can do this. This chip is a RV32IMAFC microcontroller bolted onto a CPLD with 2K LUTs. All peripheral functions can be mapped onto any pin, and this can be done dynamically. It's eighty cents a piece [on LCSC](https://www.lcsc.com/product-detail/C41397171.html?).
+As discussed above, most chips, including the CH32V203, can not assign UART functions to any pin. The CH32V203 does not have this pin remapping function. The [AG32VF-ASIC](https://www.agm-micro.com/products.aspx?lang=&id=3118&p=37) from AGM Micro can do this. This chip is a RISC-V RV32IMAFC microcontroller bolted onto a CPLD with 2K LUTs. All peripheral functions can be mapped onto any pin, and this can be done dynamically. It's eighty cents a piece [on LCSC](https://www.lcsc.com/product-detail/C41397171.html?).
 
 <b>This is actually going to work</b> And with TDMA, 16-node prototype verifies everything needed for the full 4096-node machine. If TDMA works with 16 nodes, it'll work with 4096.
 
@@ -948,8 +951,9 @@ I want to take a step back here and just point out I'm designing a machine that 
 
 This should be your first realization that the hypercube architecture is recursively elegant. If you construct a parallel computer with a hypercube architecture, cool stuff just appears.
 
-Two documents were created to explain the 16 node prototype, linked here as related pages:
+Two documents were created to explain the 16 node prototype, linked here:
 
+**Related pages:**
 - **[TDMA Routing on a Hypercube](HypercubeTDMA.html)**
 - **[16 Node Hypercube Microcontroller Cluster](16NodeMachine.html)**
 
