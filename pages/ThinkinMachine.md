@@ -312,7 +312,7 @@ In 1986, this was the cutting edge of parallel computing and AI. In 2006, NASA w
 
 ## The LED Panel
 
-Listen, we all know why you're reading this, so I'm going to start off with the LED array before digging into massively parallel hypercube supercomputer. 
+Listen, we all know why you're reading this, so I'm going to start off with the LED array before digging into massively parallel hypercube supercomputer. A million people will read this page, and all but a thousand will think _this_ is the coolest part. Such is life.
 
 The Connection Machine was _defined_ by a giant array of LEDs. It's the reason there's one of these in the MoMA, so I need 4,096 LEDs showing the state of every parallel processor in this machine. Also, blinky equals cool equals eyeballs, so there's that.
 
