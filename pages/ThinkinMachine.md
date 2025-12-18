@@ -290,7 +290,7 @@ image: "/images/ConnM/CMSocialCard.png"
 
 ![Render of the machine](/images/ConnM/CMSocialCard.png)
 
-# Recreating the Connection Machine: 4,096 RISC-V Cores in a Hypercube
+# Recreating the Connection Machine: 4,096 RISC-V Cores in a Hypercube 
 
 <b>I made a supercomputer out of a bunch of smartphone connectors, chips from RGB mechanical keyboards, and four thousand RISC-V microcontrollers.</b> On paper, it has a combined clock rate over one Terahertz. The memory bandwidth is several Gigabits per second. These are real numbers, because I remember old issues of PC Gamer and their ilk doing the same thing. It's faster than your laptop on some matrix operations. But that's on paper. In reality, it can't run Doom. But it _will_ do beautiful and cursed parallel math behind smoked acrylic studded with blinkenlights.
 
