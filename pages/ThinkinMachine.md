@@ -340,6 +340,33 @@ body.tm-lightbox-open {
   overflow: hidden;
 }
 
+/* Active section highlighting */
+.tm-toc-nav a.is-active {
+  font-weight: 700;
+  text-decoration: underline;
+}
+
+.tm-toc-nav li.is-active::before {
+  /* make the bullet feel “selected” without hardcoding colors */
+  opacity: 1;
+}
+
+.tm-toc-nav li::before {
+  opacity: 0.55;
+}
+
+.tm-toc-nav li.is-active {
+  background: rgba(0,0,0,0.08);
+  border-radius: 6px;
+  padding-top: 2px;
+  padding-bottom: 2px;
+}
+
+/* optional: if your ToC is scrollable, keep some breathing room */
+.tm-toc {
+  scroll-padding-top: 0.5rem;
+}
+
 </style>
 
 
@@ -1696,6 +1723,137 @@ document.addEventListener("DOMContentLoaded", function () {
     li.appendChild(a);
     tocList.appendChild(li);
   });
+
+    // --- Active section highlight (IntersectionObserver) ---
+  const tocLinks = Array.from(tocList.querySelectorAll("a"));
+  const linkById = new Map(
+    tocLinks
+      .map(a => [decodeURIComponent((a.getAttribute("href") || "").slice(1)), a])
+      .filter(([id, a]) => id)
+  );
+
+  function setActive(id) {
+    // Clear previous
+    tocLinks.forEach(a => {
+      a.classList.toggle("is-active", false);
+      const li = a.closest("li");
+      if (li) li.classList.toggle("is-active", false);
+    });
+
+    const a = linkById.get(id);
+    if (!a) return;
+
+    a.classList.add("is-active");
+    const li = a.closest("li");
+    if (li) li.classList.add("is-active");
+
+    // Keep active item visible in a scrollable ToC
+    if (tocEl && tocEl.classList.contains("is-open") || tocEl) {
+      a.scrollIntoView({ block: "nearest" });
+    }
+  }
+
+  // Pick the "best" heading: the one closest to the top, but not below it.
+  const visible = new Map(); // id -> top
+  const offsetPx = () => {
+    const v = parseFloat(getComputedStyle(root).getPropertyValue("--tm-scroll-offset"));
+    return Number.isFinite(v) ? v : 90;
+  };
+
+  const io = new IntersectionObserver((entries) => {
+    for (const entry of entries) {
+      const id = entry.target.id;
+      if (!id) continue;
+
+      if (entry.isIntersecting) {
+        // store the position so we can pick the top-most visible section
+        visible.set(id, entry.boundingClientRect.top);
+      } else {
+        visible.delete(id);
+      }
+    }
+
+    if (!visible.size) return;
+
+    // Choose the section whose top is closest to (but above) the nav offset,
+    // falling back to the smallest top if all are below.
+    const navLine = offsetPx() + 8;
+    let bestId = null;
+    let bestScore = -Infinity;
+
+    for (const [id, top] of visible.entries()) {
+      const score = (top <= navLine) ? (100000 + top) : (-top);
+      if (score > bestScore) {
+        bestScore = score;
+        bestId = id;
+      }
+    }
+
+    if (bestId) setActive(bestId);
+  }, {
+    root: null,
+    // Shift the "activation line" down by the navbar height so headings count as active
+    // when they pass under the fixed nav.
+    rootMargin: () => `-${Math.round(offsetPx())}px 0px -70% 0px`,
+    threshold: [0, 1.0]
+  });
+
+  // IntersectionObserver options can’t take a function for rootMargin in all browsers,
+  // so we rebuild it when layout changes:
+  function buildObserver() {
+    io.disconnect();
+
+    const rm = `-${Math.round(offsetPx())}px 0px -70% 0px`;
+    const observer = new IntersectionObserver((entries) => {
+      for (const entry of entries) {
+        const id = entry.target.id;
+        if (!id) continue;
+        if (entry.isIntersecting) visible.set(id, entry.boundingClientRect.top);
+        else visible.delete(id);
+      }
+
+      if (!visible.size) return;
+
+      const navLine = offsetPx() + 8;
+      let bestId = null;
+      let bestScore = -Infinity;
+
+      for (const [id, top] of visible.entries()) {
+        const score = (top <= navLine) ? (100000 + top) : (-top);
+        if (score > bestScore) {
+          bestScore = score;
+          bestId = id;
+        }
+      }
+      if (bestId) setActive(bestId);
+    }, { root: null, rootMargin: rm, threshold: [0, 1.0] });
+
+    headings.forEach(h => observer.observe(h));
+    return observer;
+  }
+
+  let activeObserver = buildObserver();
+
+  // Rebuild observer if navbar height/offset changes due to resize/fonts
+  const rebuild = () => {
+    visible.clear();
+    activeObserver.disconnect();
+    activeObserver = buildObserver();
+  };
+
+  window.addEventListener("resize", rebuild, { passive: true });
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(rebuild);
+
+  // Initialize based on current hash (if any)
+  if (location.hash) {
+    const id = decodeURIComponent(location.hash.slice(1));
+    if (document.getElementById(id)) setActive(id);
+  } else {
+    // default to first section
+    const first = headings.find(h => h.id);
+    if (first) setActive(first.id);
+  }
+
 
   // --- Bulletproof sizing + dynamic navbar offset ---
   const px = (n) => `${Math.max(0, Math.round(n))}px`;
