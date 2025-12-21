@@ -111,7 +111,7 @@ image: "/images/ConnM/CMSocialCard.png"
 :root {
   /* “Tunable but not brittle”: these are typographic constraints, not screen-size hacks */
   --tm-gap: 16px;              /* JS can read this, so keep it in px */
-  --tm-article-max: 78ch;      /* comfy line length */
+  --tm-article-max: 94ch;      /* comfy line length */
   --tm-article-min-ch: 52;     /* if we must go narrower than this, stack ToC */
 
   /* JS sets these dynamically */
@@ -1666,7 +1666,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
     // Set ToC max width proportional to viewport (bounded)
     const vw = document.documentElement.clientWidth;
-    const tocMax = Math.min(Math.max(220, Math.floor(vw * 0.32)), 520);
+    const tocMax = Math.min(Math.max(176, Math.floor(vw * 0.256)), 416); // -20%
     root.style.setProperty("--tm-toc-max-px", px(tocMax));
 
     // Important: To measure the fixed ToC correctly, ensure it's laid out first
