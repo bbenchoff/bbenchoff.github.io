@@ -10,6 +10,12 @@ image: "/images/ConnM/CMSocialCard.png"
 ---
 
 <style>
+:root {
+  --tm-toc-w: 260px;
+  --tm-gap: 2rem;
+  --tm-toc-top: 5rem; /* clears your top nav */
+}
+
 .matrix-table {
     border-collapse: collapse;
     font-family: monospace;
@@ -90,7 +96,7 @@ image: "/images/ConnM/CMSocialCard.png"
 .tm-layout {
   display: flex;
   align-items: flex-start;
-  gap: 2rem;
+  gap: var(--tm-gap);
 }
 
 /* Main article column */
@@ -138,14 +144,16 @@ image: "/images/ConnM/CMSocialCard.png"
 
 
 .tm-toc {
-  flex: 0 0 240px;
+  flex: 0 0 var(--tm-toc-w);
+  width: var(--tm-toc-w);
   font-size: 0.9rem;
   line-height: 1.4;
   position: sticky;
-  top: 4rem; /* adjust if your header is taller */
-  max-height: calc(100vh - 5rem);
+  top: var(--tm-toc-top);
+  max-height: calc(100dvh - (var(--tm-toc-top) + 1rem));
   overflow-y: auto;
   order: 2;  /* ToC on the right */
+  box-sizing: border-box;
 }
 
 .tm-toc-inner {
@@ -222,6 +230,7 @@ image: "/images/ConnM/CMSocialCard.png"
   }
   .tm-toc {
     position: static;
+    width: 100%;
     max-height: none;
     order: -1; /* ToC appears above content on mobile */
   }
@@ -229,20 +238,25 @@ image: "/images/ConnM/CMSocialCard.png"
 
 /* On wide screens, keep the main column full-width
    and float the ToC out in the right margin */
-@media (min-width: 1024px) {
+/* Wide desktops: float the ToC in the right margin WITHOUT overlap.
+   On medium desktops (e.g. 1280×1024), keep the ToC in-flow as a normal sticky sidebar. */
+@media (min-width: 1400px) {
   .tm-layout {
-    display: block;        /* stop sharing width with the ToC */
-    position: relative;    /* anchor for absolute children if needed */
+    display: block; /* stop sharing width with the ToC */
+  }
+
+  /* Reserve space so the fixed ToC can't sit on top of the article */
+  .tm-article {
+    padding-right: calc(var(--tm-toc-w) + var(--tm-gap));
   }
 
   .tm-toc {
-    position: fixed;       /* detach from document flow */
-    right: 2rem;           /* nudge into the page's right margin */
-    top: 5rem;             /* adjust so it clears your top nav */
-    width: 260px;          /* same-ish as before */
-    max-height: calc(100vh - 6rem);
+    position: fixed;
+    right: 2rem;
+    top: var(--tm-toc-top);
+    z-index: 10;
+    max-height: calc(100dvh - (var(--tm-toc-top) + 1rem));
     overflow-y: auto;
-    /* flex/order no longer matter once it’s fixed */
   }
 }
 
@@ -268,6 +282,8 @@ image: "/images/ConnM/CMSocialCard.png"
     -webkit-overflow-scrolling: touch;
   }
 </style>
+
+
 
 <div class="tm-layout">
   <aside class="tm-toc">
