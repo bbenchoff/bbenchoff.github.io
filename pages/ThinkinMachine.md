@@ -10,12 +10,6 @@ image: "/images/ConnM/CMSocialCard.png"
 ---
 
 <style>
-:root {
-  --tm-toc-w: 260px;
-  --tm-gap: 2rem;
-  --tm-toc-top: 5rem; /* clears your top nav */
-}
-
 .matrix-table {
     border-collapse: collapse;
     font-family: monospace;
@@ -92,21 +86,39 @@ image: "/images/ConnM/CMSocialCard.png"
   }
 }
 
+/* =========================
+   Layout (bulletproof-ish)
+   ========================= */
 
 .tm-layout {
+  /* Mobile-first: ToC above content */
   display: flex;
-  align-items: flex-start;
-  gap: var(--tm-gap);
+  flex-direction: column;
+  gap: 2rem;
+  align-items: stretch;
+  max-width: 100%;
 }
 
 /* Main article column */
 .tm-article {
-  flex: 1 1 auto;
   min-width: 0;
-  order: 1;  /* article on the left */
+  max-width: 100%;
 }
 
 /* ToC sidebar */
+.tm-toc {
+  /* Mobile-first: ToC flows with the page */
+  font-size: 0.9rem;
+  line-height: 1.4;
+  position: static;
+  max-height: none;
+  overflow: visible;
+
+  /* Let content decide width (desktop will constrain) */
+  width: 100%;
+  max-width: 100%;
+}
+
 /* Sidebar divider between Contents and Related pages */
 .tm-toc-sep {
   margin: 0.75rem 0;
@@ -117,62 +129,26 @@ image: "/images/ConnM/CMSocialCard.png"
 /* Related pages list (manual) */
 .tm-related-nav {
   margin: 0;
-  padding: 0;
-  list-style: none;
+  padding-left: 1.25rem;
 }
-
 .tm-related-nav li {
-  margin: 0.15rem 0;
-  padding-left: 1.2rem;
-  position: relative;
+  margin: 0.25rem 0;
 }
 
-.tm-related-nav li::before {
-  content: "•";
-  position: absolute;
-  left: 0;
-}
-
-.tm-related-nav a {
-  text-decoration: none;
-  font-size: 0.9rem;
-}
-
-.tm-related-nav a:hover {
-  text-decoration: underline;
-}
-
-
-.tm-toc {
-  flex: 0 0 var(--tm-toc-w);
-  width: var(--tm-toc-w);
-  font-size: 0.9rem;
-  line-height: 1.4;
-  position: sticky;
-  top: var(--tm-toc-top);
-  max-height: calc(100dvh - (var(--tm-toc-top) + 1rem));
-  overflow-y: auto;
-  order: 2;  /* ToC on the right */
-  box-sizing: border-box;
-}
-
+/* TOC container / styling */
 .tm-toc-inner {
   padding: 0.75rem 0.75rem 0.75rem 0.5rem;  /* smaller left padding */
-  border-radius: 6px;
-  border: 1px solid rgba(255,255,255,0.15);
-  background: rgba(0,0,0,0.15);
 }
 
-.tm-toc-inner h3 {
-  margin: 0 0 0.5rem 0;
-  font-size: 0.9rem;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
+.tm-toc h2 {
+  margin: 0 0 0.5rem;
+  font-size: 1rem;
+  letter-spacing: 0.04em;
 }
 
 .tm-toc-nav {
   margin: 0;
-  padding: 0;           /* no extra left indent from the <ul> */
+  padding-left: 0;     /* we'll indent per-level ourselves */
   list-style: none;     /* we'll draw our own bullets */
 }
 
@@ -222,67 +198,89 @@ image: "/images/ConnM/CMSocialCard.png"
   text-decoration: underline;
 }
 
-
-/* Mobile: stack ToC above article, no sticky */
-@media (max-width: 900px) {
-  .tm-layout {
-    flex-direction: column;
-  }
-  .tm-toc {
-    position: static;
-    width: 100%;
-    max-height: none;
-    order: -1; /* ToC appears above content on mobile */
-  }
+/* Code blocks: scroll horizontally instead of widening the page */
+.tm-article pre {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
-/* On wide screens, keep the main column full-width
-   and float the ToC out in the right margin */
-/* Wide desktops: float the ToC in the right margin WITHOUT overlap.
-   On medium desktops (e.g. 1280×1024), keep the ToC in-flow as a normal sticky sidebar. */
-@media (min-width: 1400px) {
+/* Make media and long content behave */
+.tm-article img,
+.tm-article video,
+.tm-article svg,
+.tm-article iframe {
+  max-width: 100%;
+  height: auto;
+}
+
+.tm-article pre,
+.tm-article code {
+  max-width: 100%;
+}
+
+/* Desktop layout: ToC pinned to the right edge, no overlap, no hard-coded pixel widths */
+:root {
+  --tm-article-max: 78ch;   /* readable line length */
+  --tm-gap: 2rem;
+  --tm-gutter-left: 1.5rem; /* left breathing room */
+  --tm-toc-top: 5rem;       /* clears the top nav */
+}
+
+@media (min-width: 60rem) {
   .tm-layout {
-    display: block; /* stop sharing width with the ToC */
+    /* Break out of any centered page wrapper to reach the viewport edges */
+    width: calc(100vw - (100vw - 100%));
+    margin-left: calc(50% - 50vw);
+    margin-right: calc(50% - 50vw);
+
+    display: grid;
+    grid-template-columns: 1fr minmax(0, var(--tm-article-max)) max-content;
+    column-gap: var(--tm-gap);
+    align-items: start;
+
+    padding-left: var(--tm-gutter-left);
+    padding-right: 0; /* ToC hits the right edge */
   }
 
-  /* Reserve space so the fixed ToC can't sit on top of the article */
   .tm-article {
-    padding-right: calc(var(--tm-toc-w) + var(--tm-gap));
+    grid-column: 2;
   }
 
   .tm-toc {
-    position: fixed;
-    right: 2rem;
+    grid-column: 3;
+    justify-self: end;
+
+    position: sticky;
     top: var(--tm-toc-top);
-    z-index: 10;
+
+    /* Size to contents, but don't let a long heading explode the layout */
+    width: fit-content;
+    max-width: min(42ch, 34vw);
+
     max-height: calc(100dvh - (var(--tm-toc-top) + 1rem));
-    overflow-y: auto;
+    overflow: auto;
+
+    overflow-wrap: anywhere;
+    word-break: break-word;
+  }
+
+  @supports (overflow: clip) {
+    .tm-layout { overflow-x: clip; }
+  }
+  @supports not (overflow: clip) {
+    .tm-layout { overflow-x: hidden; }
   }
 }
 
-  /* Make sure the main column never forces the page wider than the viewport */
-  .tm-layout,
-  .tm-article {
-    max-width: 100%;
-  }
-
-  /* On mobile, absolutely forbid horizontal layout expansion */
-  @media (max-width: 900px) {
-    .tm-layout,
-    .tm-article {
-      overflow-x: hidden;
-    }
-  }
-
-  /* Code blocks: scroll horizontally instead of widening the page */
-  .tm-article pre {
-    width: 100%;
-    max-width: 100%;
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
-  }
+/* Make anchor jumps land below the sticky top nav / ToC */
+.tm-article h2,
+.tm-article h3,
+.tm-article h4 {
+  scroll-margin-top: calc(var(--tm-toc-top) + 0.5rem);
+}
 </style>
-
 
 
 <div class="tm-layout">
@@ -308,19 +306,21 @@ image: "/images/ConnM/CMSocialCard.png"
 
 # Recreating the Connection Machine: 4,096 RISC-V Cores in a Hypercube 
 
-<b>I made a supercomputer out of a bunch of smartphone connectors, chips from RGB mechanical keyboards, and four thousand RISC-V microcontrollers.</b> On paper, it has a combined clock rate over one Terahertz. The memory bandwidth is several Gigabits per second. These are real numbers, because I remember old issues of PC Gamer and their ilk doing the same thing. It's faster than your laptop on some matrix operations. But that's on paper. In reality, it can't run Doom. But it _will_ do beautiful and cursed parallel math behind smoked acrylic studded with blinkenlights.
+<b>I made a supercomputer out of a bunch of smartphone connectors, chips from RGB mechanical keyboards, and four thousand RISC-V microcontrollers.</b> On paper, it has a combined clock rate over one Terahertz. The memory bandwidth is several Gigabits per second. These are real numbers, because I remember old issues of PC Gamer and their ilk doing the same thing. It's faster than your laptop on some matrix operations. But that's on paper. In reality, it can't run Doom. But it _will_ do beautiful and cursed parallel math behind a smoked acrylic panel studded with blinkenlights.
 
 ## Introduction
 
 In 1985, Thinking Machines built the [Connection Machine CM-1](https://en.wikipedia.org/wiki/Connection_Machine). This was a parallel computer with 65,536 individual processors arranged at the vertexes of a 16-dimension hypercube. This means each processor in the machine is connected to 16 adjacent processors. 
 
-The Connection Machine was the fastest computer on the planet in the late 1980s (The [Top500](https://top500.org/) list of supercomputers only goes back to 1993), and was purchased by various three-letter agencies, NASA, and a few well-funded universities. Like most tech companies, Thinking Machines was a defense contractor pretending to be a cool and exciting business. When the Cold War ended, DARPA cut their funding and the company officially died in 1994. By this time, Moore's Law had kicked in and workstations from Sun (and others) made the idea of a five million dollar machine that only spoke Lisp untenable for most companies. Blame Gorbachev or the second AI winter, by the mid 1990s the Connection Machine was dead. 
+The Connection Machine was the fastest computer on the planet in the late 1980s (The [Top500](https://top500.org/) list of supercomputers only goes back to 1993), and was purchased by various three-letter agencies, NASA, and a few well-funded universities.
+
+Like most tech companies, Thinking Machines was a defense contractor pretending to be a cool and exciting business. When the Cold War ended, DARPA cut their funding and the company officially died in 1994. By this time, Moore's Law had kicked in and workstations from Sun (and others) made the idea of a five million dollar machine that only spoke Lisp untenable for most companies. Blame Gorbachev or the second AI winter, by the mid 1990s the Connection Machine was dead. 
 
 This project is a modern recreation or reinterpretation of the lowest-spec Connection Machine built. It contains 4,096 individual RISC-V processors, each connected to 12 neighbors in a 12-dimensional hypercube.
 
-The Connection Machine was an early experiment in massive parallelism. Today, a 'massively parallel computer' means wiring up a bunch of machines running Linux to an Ethernet switch. The topology of this network is whatever the switch is. The Connection Machine is different. Every node is connected to 16 other nodes in a machine with 65,536 processors. In my machine, every node is connected to 12 of the 4,096 processors. For _n_ total processors, each node connects to exactly $\log_2(n)$ neighbors. This topology makes the machine extremely interesting with regard to what it can calculate efficiently, namely matrix operations, which is the basis of the third AI boom.
+The Connection Machine was an early experiment in massive parallelism. Today, a 'massively parallel computer' means wiring up a bunch of machines running Linux to an Ethernet switch. The Connection Machine is different. Every node is directly connected to 16 other nodes in a machine with 65,536 processors. In my machine, every node is connected to 12 of the 4,096 processors. For _n_ total processors, each node connects to exactly $\log_2(n)$ neighbors. This topology makes the machine extremely interesting with regard to what it can calculate efficiently, namely matrix operations, which is the basis of the third AI boom.
 
-The individual processors in the CM-1 couldn't do much. These processors could only operate on a single bit at a time, and their computational capability isn't much more than an ALU. This project leverages 40 years of Moore's law to put small, cheap computers into a parallel array. Not only does this allow me to emulate the ALU-like processors in the original CM-1, but I can also run actual programs at the corners of a 12-dimensional hypercube.
+The individual processors in the CM-1 couldn't do much. These processors could only operate on a single bit at a time, and their computational capability isn't much more than an ALU. This project leverages 40 years of Moore's law to put small, cheap microcontrollers into a parallel array. Not only does this allow me to emulate the ALU-like processors in the original CM-1, but I can also run actual programs at the corners of a 12-dimensional hypercube.
 
 If I were one of the weird 'build in public' guys this would be a startup. If I thought wearing shoes indoors was a strange affectation and hated poor people, I'd be sending this into Y Combinator. And if I wanted this thing on the front page of Hacker News for twelve hours I'd call this, 'a distraction-free computational platform' and stuff a box full of Raspberry Pis. But I'm not doing that. This is a reproduction, or a recreation, or an 'inspired by' build of the 1986-era Connection Machine, plus 40 years of Moore's law and very poor impulse control.
 
