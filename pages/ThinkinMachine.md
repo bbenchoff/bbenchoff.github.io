@@ -306,7 +306,7 @@ image: "/images/ConnM/CMSocialCard.png"
 
 ![Render of the machine](/images/ConnM/CMSocialCard.png)
 
-# Recreating the Connection Machine: 4,096 RISC-V Cores in a Hypercube
+# Recreating the Connection Machine: 4,096 RISC-V Cores in a Hypercube 
 
 <b>I made a supercomputer out of a bunch of smartphone connectors, chips from RGB mechanical keyboards, and four thousand RISC-V microcontrollers.</b> On paper, it has a combined clock rate over one Terahertz. The memory bandwidth is several Gigabits per second. These are real numbers, because I remember old issues of PC Gamer and their ilk doing the same thing. It's faster than your laptop on some matrix operations. But that's on paper. In reality, it can't run Doom. But it _will_ do beautiful and cursed parallel math behind smoked acrylic studded with blinkenlights.
 
@@ -328,7 +328,7 @@ In 1986, this was the cutting edge of parallel computing and AI. In 2006, NASA w
 
 ## The LED Panel
 
-Listen, we all know why you're reading this, so I'm going to start off with the LED array before digging into massively parallel hypercube supercomputer. 
+Listen, we all know why you're reading this, so I'm going to start off with the LED array before digging into massively parallel hypercube supercomputer. A million people will read this page, and all but a thousand will think _this_ is the coolest part. Such is life.
 
 The Connection Machine was _defined_ by a giant array of LEDs. It's the reason there's one of these in the MoMA, so I need 4,096 LEDs showing the state of every parallel processor in this machine. Also, blinky equals cool equals eyeballs, so there's that.
 
