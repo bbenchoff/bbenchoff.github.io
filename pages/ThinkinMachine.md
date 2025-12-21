@@ -10,31 +10,42 @@ image: "/images/ConnM/CMSocialCard.png"
 ---
 
 <style>
+/* =========================
+   General / existing styles
+   ========================= */
+
 .matrix-table {
-    border-collapse: collapse;
-    font-family: monospace;
-    font-size: 14px;
-    margin: 0 auto;
+  border-collapse: collapse;
+  font-family: monospace;
+  font-size: 14px;
+  margin: 0 auto;
 }
 
-.matrix-table th, .matrix-table td {
-    border: 1px solid #ddd;
-    padding: 6px 8px;
-    text-align: center;
+.matrix-table th,
+.matrix-table td {
+  border: 1px solid #ddd;
+  padding: 6px 8px;
+  text-align: center;
 }
 
 .matrix-table th {
-    background-color: #f5f5f5;
-    font-weight: bold;
+  background-color: #f5f5f5;
+  font-weight: bold;
 }
 
 .matrix-table td.connected {
-    background-color: #ffebee;
-    font-weight: bold;
+  background-color: #ffebee;
+  font-weight: bold;
 }
 
 .matrix-table td.empty {
-    color: #999;
+  color: #666;
+}
+
+.table-wrap {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  margin: 1rem 0;
 }
 
 .side-image {
@@ -61,114 +72,102 @@ image: "/images/ConnM/CMSocialCard.png"
   box-shadow: 0 0 8px rgba(0,0,0,0.2);
 }
 
-.table-wrap { overflow-x:auto; -webkit-overflow-scrolling: touch; margin: 1rem 0; }
-.matrix-table td.empty { color:#666; } /* #999 is low-contrast on light BG */
-.matrix-table caption { caption-side: top; font-weight:600; padding: .5rem 0; }
-@media (prefers-color-scheme: dark) {
-  .matrix-table th { background:#1e1e1e; }
-  .matrix-table td { border-color:#333; }
-}
-
 @media (min-width: 768px) {
   .side-image {
     flex-direction: row;
-    align-items: flex-start; /* Aligns tops of text and image */
+    align-items: flex-start;
   }
-
   .side-text {
-    flex: 1 1 0; /* Text takes up remaining space */
+    flex: 1 1 0;
   }
-
   .side-image-container {
-    flex: 0 0 300px; /* Image is fixed at 300px wide */
+    flex: 0 0 300px;
     max-width: 300px;
     margin-left: 1rem;
   }
 }
 
-/* =========================
-   Layout (bulletproof-ish)
-   ========================= */
-
-.tm-layout {
-  /* Mobile-first: ToC above content */
-  display: flex;
-  flex-direction: column;
-  gap: 2rem;
-  align-items: stretch;
+/* Media in article: never overflow */
+.tm-article img,
+.tm-article video,
+.tm-article svg,
+.tm-article iframe {
   max-width: 100%;
+  height: auto;
 }
 
-/* Main article column */
-.tm-article {
-  min-width: 0;
-  max-width: 100%;
-}
-
-/* ToC sidebar */
-.tm-toc {
-  /* Mobile-first: ToC flows with the page */
-  font-size: 0.9rem;
-  line-height: 1.4;
-  position: static;
-  max-height: none;
-  overflow: visible;
-
-  /* Let content decide width (desktop will constrain) */
+/* Code blocks: scroll instead of blowing layout wide */
+.tm-article pre {
   width: 100%;
   max-width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
-/* Sidebar divider between Contents and Related pages */
-.tm-toc-sep {
-  margin: 0.75rem 0;
-  border: 0;
-  border-top: 1px solid rgba(255,255,255,0.15);
+/* =========================
+   Bulletproof-ish layout
+   ========================= */
+
+:root {
+  /* “Tunable but not brittle”: these are typographic constraints, not screen-size hacks */
+  --tm-gap: 16px;              /* JS can read this, so keep it in px */
+  --tm-article-max: 78ch;      /* comfy line length */
+  --tm-article-min-ch: 52;     /* if we must go narrower than this, stack ToC */
+
+  /* JS sets these dynamically */
+  --tm-nav-h: 64px;
+  --tm-scroll-offset: 90px;
+  --tm-toc-max-px: 420px;
+  --tm-article-fit-px: 100000px;
 }
 
-/* Related pages list (manual) */
-.tm-related-nav {
-  margin: 0;
-  padding-left: 1.25rem;
-}
-.tm-related-nav li {
-  margin: 0.25rem 0;
+/* Base: ToC is just normal flow (mobile + fallback) */
+.tm-layout {
+  position: relative;
 }
 
-/* TOC container / styling */
+/* The article stays centered like a normal blog page */
+.tm-article {
+  margin-left: auto;
+  margin-right: auto;
+  min-width: 0;
+  max-width: min(var(--tm-article-max), var(--tm-article-fit-px));
+}
+
+/* ToC visual styling */
 .tm-toc-inner {
-  padding: 0.75rem 0.75rem 0.75rem 0.5rem;  /* smaller left padding */
+  padding: 0.75rem 0.9rem 0.9rem 0.7rem;
+  border-radius: 8px;
+  border: 1px solid rgba(0,0,0,0.12);
+  background: rgba(0,0,0,0.04);
 }
 
-.tm-toc h2 {
-  margin: 0 0 0.5rem;
-  font-size: 1rem;
-  letter-spacing: 0.04em;
+.tm-toc-inner h3 {
+  margin: 0 0 0.5rem 0;
+  font-size: 0.9rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
 }
 
+/* Contents list */
 .tm-toc-nav {
   margin: 0;
-  padding-left: 0;     /* we'll indent per-level ourselves */
-  list-style: none;     /* we'll draw our own bullets */
+  padding: 0;
+  list-style: none;
 }
 
 .tm-toc-nav li {
   margin: 0.15rem 0;
-  padding-left: 1.2rem;   /* room for bullet */
+  padding-left: 1.2rem;
   position: relative;
 }
 
-/* H2 — top level, solid bullet */
-.tm-toc-nav li.tm-toc-level-2 {
-  margin-left: 0;
-}
 .tm-toc-nav li.tm-toc-level-2::before {
   content: "•";
   position: absolute;
   left: 0;
 }
 
-/* H3 — indented, open bullet */
 .tm-toc-nav li.tm-toc-level-3 {
   margin-left: 1.5rem;
 }
@@ -179,9 +178,8 @@ image: "/images/ConnM/CMSocialCard.png"
 }
 
 .tm-toc-nav li.tm-toc-level-4 {
-  margin-left: 3rem;          /* deeper indent than H3 */
+  margin-left: 3rem;
 }
-
 .tm-toc-nav li.tm-toc-level-4::before {
   content: "◦";
   position: absolute;
@@ -193,94 +191,91 @@ image: "/images/ConnM/CMSocialCard.png"
   text-decoration: none;
   font-size: 0.9rem;
 }
-
 .tm-toc-nav a:hover {
   text-decoration: underline;
 }
 
-/* Code blocks: scroll horizontally instead of widening the page */
-.tm-article pre {
-  width: 100%;
-  max-width: 100%;
-  overflow-x: auto;
-  -webkit-overflow-scrolling: touch;
+/* Related pages */
+.tm-toc-sep {
+  margin: 0.75rem 0;
+  border: 0;
+  border-top: 1px solid rgba(0,0,0,0.12);
 }
 
-/* Make media and long content behave */
-.tm-article img,
-.tm-article video,
-.tm-article svg,
-.tm-article iframe {
-  max-width: 100%;
-  height: auto;
+.tm-related-nav {
+  margin: 0;
+  padding: 0;
+  list-style: none;
 }
 
-.tm-article pre,
-.tm-article code {
-  max-width: 100%;
+.tm-related-nav li {
+  margin: 0.15rem 0;
+  padding-left: 1.2rem;
+  position: relative;
 }
 
-/* Desktop layout: ToC pinned to the right edge, no overlap, no hard-coded pixel widths */
-:root {
-  --tm-article-max: 78ch;   /* readable line length */
-  --tm-gap: 2rem;
-  --tm-gutter-left: 1.5rem; /* left breathing room */
-  --tm-toc-top: 5rem;       /* clears the top nav */
+.tm-related-nav li::before {
+  content: "•";
+  position: absolute;
+  left: 0;
 }
 
-@media (min-width: 60rem) {
-  .tm-layout {
-    /* Break out of any centered page wrapper to reach the viewport edges */
-    width: calc(100vw - (100vw - 100%));
-    margin-left: calc(50% - 50vw);
-    margin-right: calc(50% - 50vw);
-
-    display: grid;
-    grid-template-columns: 1fr minmax(0, var(--tm-article-max)) max-content;
-    column-gap: var(--tm-gap);
-    align-items: start;
-
-    padding-left: var(--tm-gutter-left);
-    padding-right: 0; /* ToC hits the right edge */
-  }
-
-  .tm-article {
-    grid-column: 2;
-  }
-
-  .tm-toc {
-    grid-column: 3;
-    justify-self: end;
-
-    position: sticky;
-    top: var(--tm-toc-top);
-
-    /* Size to contents, but don't let a long heading explode the layout */
-    width: fit-content;
-    max-width: min(42ch, 34vw);
-
-    max-height: calc(100dvh - (var(--tm-toc-top) + 1rem));
-    overflow: auto;
-
-    overflow-wrap: anywhere;
-    word-break: break-word;
-  }
-
-  @supports (overflow: clip) {
-    .tm-layout { overflow-x: clip; }
-  }
-  @supports not (overflow: clip) {
-    .tm-layout { overflow-x: hidden; }
-  }
+.tm-related-nav a {
+  text-decoration: none;
+  font-size: 0.9rem;
+}
+.tm-related-nav a:hover {
+  text-decoration: underline;
 }
 
-/* Make anchor jumps land below the sticky top nav / ToC */
+/* Anchor jumps land below the fixed navbar */
 .tm-article h2,
 .tm-article h3,
 .tm-article h4 {
-  scroll-margin-top: calc(var(--tm-toc-top) + 0.5rem);
+  scroll-margin-top: calc(var(--tm-nav-h) + 12px);
+}
+
+/* Desktop behavior:
+   - ToC fixed to the right edge of the viewport
+   - Article remains centered
+   - JS sets --tm-article-fit-px to avoid overlap */
+@media (min-width: 900px) {
+  .tm-layout:not(.tm-stack) .tm-toc {
+    position: fixed;
+    right: 0; /* right edge flush to browser edge */
+    top: calc(var(--tm-nav-h) + 12px);
+    z-index: 50;
+
+    width: max-content;
+    max-width: min(var(--tm-toc-max-px), calc(100vw - 12px));
+    max-height: calc(100dvh - (var(--tm-nav-h) + 24px));
+    overflow: auto;
+    overscroll-behavior: contain;
+
+    /* Prevent a single long token from forcing insane width */
+    overflow-wrap: anywhere;
+    word-break: break-word;
+  }
+}
+
+/* “Stack mode” (auto-triggered by JS when space is too tight) */
+.tm-layout.tm-stack .tm-toc {
+  position: static;
+  width: auto;
+  max-width: 100%;
+  max-height: none;
+  overflow: visible;
+}
+
+/* Reduce the chance of accidental horizontal scrollbars */
+@supports (overflow: clip) {
+  .tm-layout { overflow-x: clip; }
+}
+@supports not (overflow: clip) {
+  .tm-layout { overflow-x: hidden; }
 }
 </style>
+
 
 
 <div class="tm-layout">
@@ -1579,19 +1574,23 @@ wp.laas.fr
 <script>
 document.addEventListener("DOMContentLoaded", function () {
   const tocList = document.getElementById("tm-toc");
-  const layout  = document.querySelector(".tm-layout") || document.body;
-  const tocBox  = document.querySelector(".tm-toc");
+  const layoutEl = document.querySelector(".tm-layout") || document.body;
+  const articleEl = document.querySelector(".tm-article") || layoutEl;
+  const tocEl = document.querySelector(".tm-toc");
+  const navEl = document.querySelector(".navbar");
+  const root = document.documentElement;
+
   if (!tocList) return;
 
   // Reset (prevents duplicates if something re-runs)
   tocList.innerHTML = "";
 
-  // Grab headings from the whole page content area, but never from the ToC sidebar itself
-  const headings = Array.from(layout.querySelectorAll("h2, h3, h4"))
+  // Grab headings from the article, but never from the ToC itself
+  const headings = Array.from(articleEl.querySelectorAll("h2, h3, h4"))
     .filter(h => !h.closest(".tm-toc"));
 
   if (!headings.length) {
-    if (tocBox) tocBox.style.display = "none";
+    if (tocEl) tocEl.style.display = "none";
     return;
   }
 
@@ -1606,6 +1605,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
   const used = new Set();
 
+  // Build ToC
   headings.forEach((h) => {
     if (!h.id) {
       let base = slugify(h.textContent) || "section";
@@ -1631,8 +1631,77 @@ document.addEventListener("DOMContentLoaded", function () {
     tocList.appendChild(li);
   });
 
+  // --- Bulletproof sizing + dynamic navbar offset ---
+  const px = (n) => `${Math.max(0, Math.round(n))}px`;
+
+  function measureChPx(el) {
+    const probe = document.createElement("span");
+    probe.textContent = "0";
+    probe.style.position = "absolute";
+    probe.style.visibility = "hidden";
+    probe.style.whiteSpace = "pre";
+    el.appendChild(probe);
+    const w = probe.getBoundingClientRect().width || 8;
+    probe.remove();
+    return w;
+  }
+
+  function syncLayout() {
+    if (!layoutEl || !articleEl || !tocEl) return;
+
+    // Navbar height -> drives fixed top + scroll offset
+    const navH = navEl ? navEl.getBoundingClientRect().height : 0;
+    root.style.setProperty("--tm-nav-h", px(navH));
+    root.style.setProperty("--tm-scroll-offset", px(navH + 12));
+
+    // Desktop mode only; otherwise stack
+    const desktop = window.matchMedia("(min-width: 900px)").matches;
+    if (!desktop) {
+      layoutEl.classList.add("tm-stack");
+      root.style.setProperty("--tm-article-fit-px", "100000px");
+      return;
+    }
+
+    layoutEl.classList.remove("tm-stack");
+
+    // Set ToC max width proportional to viewport (bounded)
+    const vw = document.documentElement.clientWidth;
+    const tocMax = Math.min(Math.max(220, Math.floor(vw * 0.32)), 520);
+    root.style.setProperty("--tm-toc-max-px", px(tocMax));
+
+    // Important: To measure the fixed ToC correctly, ensure it's laid out first
+    const tocRect = tocEl.getBoundingClientRect();
+    const articleRect = articleEl.getBoundingClientRect();
+
+    // Compute max article width that won't intrude into ToC, while staying centered
+    const gap = parseFloat(getComputedStyle(root).getPropertyValue("--tm-gap")) || 16;
+    const centerX = (articleRect.left + articleRect.right) / 2;
+    const fitPx = 2 * (tocRect.left - gap - centerX);
+
+    // If we'd have to squeeze too far, stack instead
+    const minCh = parseFloat(getComputedStyle(root).getPropertyValue("--tm-article-min-ch")) || 52;
+    const chPx = measureChPx(articleEl);
+    const minArticlePx = minCh * chPx;
+
+    if (!Number.isFinite(fitPx) || fitPx < minArticlePx) {
+      layoutEl.classList.add("tm-stack");
+      root.style.setProperty("--tm-article-fit-px", "100000px");
+    } else {
+      root.style.setProperty("--tm-article-fit-px", px(fitPx));
+    }
+  }
+
+  const scheduleSync = () => requestAnimationFrame(syncLayout);
+  window.addEventListener("resize", scheduleSync, { passive: true });
+  window.addEventListener("orientationchange", scheduleSync, { passive: true });
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(scheduleSync);
+  scheduleSync();
+
   // Smooth scrolling with offset
-  const OFFSET = 90;
+  const getOffset = () => {
+    const v = parseFloat(getComputedStyle(root).getPropertyValue("--tm-scroll-offset"));
+    return Number.isFinite(v) ? v : 90;
+  };
 
   tocList.addEventListener("click", function (event) {
     const link = event.target.closest("a");
@@ -1648,7 +1717,7 @@ document.addEventListener("DOMContentLoaded", function () {
     const absoluteTop = rect.top + window.pageYOffset;
 
     window.scrollTo({
-      top: absoluteTop - OFFSET,
+      top: absoluteTop - getOffset(),
       behavior: "smooth"
     });
 
@@ -1658,7 +1727,6 @@ document.addEventListener("DOMContentLoaded", function () {
   });
 });
 </script>
-
 
 
 /// EVERYTHING BELOW THIS IS EXTRA:
