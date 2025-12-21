@@ -281,6 +281,65 @@ image: "/images/ConnM/CMSocialCard.png"
 @supports not (overflow: clip) {
   .tm-layout { overflow-x: hidden; }
 }
+
+/* Lightbox */
+.tm-article img {
+  cursor: zoom-in;
+}
+
+/* Optional: don't zoom-in cursor on tiny inline icons */
+.tm-article img.tm-no-lightbox,
+.tm-article a img {
+  cursor: default;
+}
+
+.tm-lightbox {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  background: rgba(0,0,0,0.85);
+}
+
+.tm-lightbox.is-open {
+  display: flex;
+}
+
+.tm-lightbox img {
+  max-width: min(96vw, 1600px);
+  max-height: 92vh;
+  width: auto;
+  height: auto;
+  border-radius: 10px;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.6);
+  cursor: zoom-out;
+}
+
+.tm-lightbox-close {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  font-size: 28px;
+  line-height: 1;
+  border: 0;
+  border-radius: 10px;
+  padding: 10px 12px;
+  cursor: pointer;
+  background: rgba(255,255,255,0.15);
+  color: white;
+}
+
+.tm-lightbox-close:hover {
+  background: rgba(255,255,255,0.25);
+}
+
+body.tm-lightbox-open {
+  overflow: hidden;
+}
+
 </style>
 
 
@@ -1746,6 +1805,66 @@ document.addEventListener("DOMContentLoaded", function () {
     if (history.replaceState) {
       history.replaceState(null, "", "#" + id);
     }
+  });
+});
+
+document.addEventListener("DOMContentLoaded", function () {
+  // ---- Lightbox ----
+  const article = document.querySelector(".tm-article") || document.body;
+
+  // Build overlay once
+  const overlay = document.createElement("div");
+  overlay.className = "tm-lightbox";
+  overlay.setAttribute("role", "dialog");
+  overlay.setAttribute("aria-modal", "true");
+  overlay.innerHTML = `
+    <button class="tm-lightbox-close" aria-label="Close image">×</button>
+    <img alt="">
+  `;
+  document.body.appendChild(overlay);
+
+  const overlayImg = overlay.querySelector("img");
+  const closeBtn = overlay.querySelector(".tm-lightbox-close");
+
+  function openLightbox(src, alt) {
+    overlayImg.src = src;
+    overlayImg.alt = alt || "";
+    overlay.classList.add("is-open");
+    document.body.classList.add("tm-lightbox-open");
+  }
+
+  function closeLightbox() {
+    overlay.classList.remove("is-open");
+    document.body.classList.remove("tm-lightbox-open");
+    // Clear src so big images stop decoding / using memory
+    overlayImg.src = "";
+  }
+
+  // Click images in the article to open
+  article.addEventListener("click", (e) => {
+    const img = e.target.closest("img");
+    if (!img) return;
+
+    // Skip images you don't want clickable:
+    if (img.classList.contains("tm-no-lightbox")) return;
+    // Skip linked images (so normal links still work)
+    if (img.closest("a")) return;
+
+    // Use highest-quality source if present
+    const src = img.currentSrc || img.src;
+    if (!src) return;
+
+    openLightbox(src, img.alt);
+  });
+
+  // Close controls
+  closeBtn.addEventListener("click", closeLightbox);
+  overlay.addEventListener("click", (e) => {
+    // Click outside the image closes
+    if (e.target === overlay) closeLightbox();
+  });
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape" && overlay.classList.contains("is-open")) closeLightbox();
   });
 });
 </script>
