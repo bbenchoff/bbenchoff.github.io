@@ -156,6 +156,13 @@ image: "/images/ConnM/CMSocialCard.png"
   list-style: none;
 }
 
+.tm-toc-nav a {
+  white-space: normal;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+
 .tm-toc-nav li {
   margin: 0.15rem 0;
   padding-left: 1.2rem;
@@ -1692,10 +1699,25 @@ document.addEventListener("DOMContentLoaded", function () {
   }
 
   const scheduleSync = () => requestAnimationFrame(syncLayout);
+
   window.addEventListener("resize", scheduleSync, { passive: true });
   window.addEventListener("orientationchange", scheduleSync, { passive: true });
-  if (document.fonts && document.fonts.ready) document.fonts.ready.then(scheduleSync);
+
+  if (document.fonts && document.fonts.ready) {
+    document.fonts.ready.then(scheduleSync);
+  }
+
+  /* Recompute when ToC size changes (wrapping, font load, etc.) */
+  if (window.ResizeObserver && tocEl) {
+    const ro = new ResizeObserver(() => scheduleSync());
+    ro.observe(tocEl);
+
+    // Optional: also observe the article if images load and reflow things a lot
+    // ro.observe(articleEl);
+  }
+
   scheduleSync();
+
 
   // Smooth scrolling with offset
   const getOffset = () => {
