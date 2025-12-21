@@ -1665,29 +1665,29 @@ wp.laas.fr
 </div><!-- /.tm-layout -->
 
 <script>
-document.addEventListener("DOMContentLoaded", function () {
-  const tocList = document.getElementById("tm-toc");
+document.addEventListener("DOMContentLoaded", () => {
+  const root     = document.documentElement;
   const layoutEl = document.querySelector(".tm-layout") || document.body;
-  const articleEl = document.querySelector(".tm-article") || layoutEl;
-  const tocEl = document.querySelector(".tm-toc");
-  const navEl = document.querySelector(".navbar");
-  const root = document.documentElement;
+  const articleEl= document.querySelector(".tm-article") || layoutEl;
+  const tocEl    = document.querySelector(".tm-toc");
+  const tocList  = document.getElementById("tm-toc");     // the <ul> (or <ol>) that holds links
+  const navEl    = document.querySelector(".navbar");
 
-  if (!tocList) return;
+  if (!tocList || !tocEl) return;
 
-  // Reset (prevents duplicates if something re-runs)
+  // ---------- Build ToC ----------
   tocList.innerHTML = "";
 
-  // Grab headings from the article, but never from the ToC itself
   const headings = Array.from(articleEl.querySelectorAll("h2, h3, h4"))
     .filter(h => !h.closest(".tm-toc"));
 
   if (!headings.length) {
-    if (tocEl) tocEl.style.display = "none";
+    tocEl.style.display = "none";
     return;
+  } else {
+    tocEl.style.display = "";
   }
 
-  // Safer slugging + uniqueness (prevents duplicate IDs breaking links)
   const slugify = (s) => (s || "")
     .trim()
     .toLowerCase()
@@ -1698,12 +1698,10 @@ document.addEventListener("DOMContentLoaded", function () {
 
   const used = new Set();
 
-  // Build ToC
-  headings.forEach((h) => {
+  headings.forEach(h => {
     if (!h.id) {
       let base = slugify(h.textContent) || "section";
-      let id = base;
-      let n = 2;
+      let id = base, n = 2;
       while (used.has(id) || document.getElementById(id)) id = `${base}-${n++}`;
       h.id = id;
     }
@@ -1717,145 +1715,14 @@ document.addEventListener("DOMContentLoaded", function () {
     );
 
     const a = document.createElement("a");
-    a.href = "#" + h.id;
+    a.href = `#${h.id}`;
     a.textContent = h.textContent;
 
     li.appendChild(a);
     tocList.appendChild(li);
   });
 
-    // --- Active section highlight (IntersectionObserver) ---
-  const tocLinks = Array.from(tocList.querySelectorAll("a"));
-  const linkById = new Map(
-    tocLinks
-      .map(a => [decodeURIComponent((a.getAttribute("href") || "").slice(1)), a])
-      .filter(([id, a]) => id)
-  );
-
-  function setActive(id) {
-    // Clear previous
-    tocLinks.forEach(a => {
-      a.classList.toggle("is-active", false);
-      const li = a.closest("li");
-      if (li) li.classList.toggle("is-active", false);
-    });
-
-    const a = linkById.get(id);
-    if (!a) return;
-
-    a.classList.add("is-active");
-    const li = a.closest("li");
-    if (li) li.classList.add("is-active");
-
-    // Keep active item visible in a scrollable ToC
-    if (tocEl && tocEl.classList.contains("is-open") || tocEl) {
-      a.scrollIntoView({ block: "nearest" });
-    }
-  }
-
-  // Pick the "best" heading: the one closest to the top, but not below it.
-  const visible = new Map(); // id -> top
-  const offsetPx = () => {
-    const v = parseFloat(getComputedStyle(root).getPropertyValue("--tm-scroll-offset"));
-    return Number.isFinite(v) ? v : 90;
-  };
-
-  const io = new IntersectionObserver((entries) => {
-    for (const entry of entries) {
-      const id = entry.target.id;
-      if (!id) continue;
-
-      if (entry.isIntersecting) {
-        // store the position so we can pick the top-most visible section
-        visible.set(id, entry.boundingClientRect.top);
-      } else {
-        visible.delete(id);
-      }
-    }
-
-    if (!visible.size) return;
-
-    // Choose the section whose top is closest to (but above) the nav offset,
-    // falling back to the smallest top if all are below.
-    const navLine = offsetPx() + 8;
-    let bestId = null;
-    let bestScore = -Infinity;
-
-    for (const [id, top] of visible.entries()) {
-      const score = (top <= navLine) ? (100000 + top) : (-top);
-      if (score > bestScore) {
-        bestScore = score;
-        bestId = id;
-      }
-    }
-
-    if (bestId) setActive(bestId);
-  }, {
-    root: null,
-    // Shift the "activation line" down by the navbar height so headings count as active
-    // when they pass under the fixed nav.
-    rootMargin: () => `-${Math.round(offsetPx())}px 0px -70% 0px`,
-    threshold: [0, 1.0]
-  });
-
-  // IntersectionObserver options can’t take a function for rootMargin in all browsers,
-  // so we rebuild it when layout changes:
-  function buildObserver() {
-    io.disconnect();
-
-    const rm = `-${Math.round(offsetPx())}px 0px -70% 0px`;
-    const observer = new IntersectionObserver((entries) => {
-      for (const entry of entries) {
-        const id = entry.target.id;
-        if (!id) continue;
-        if (entry.isIntersecting) visible.set(id, entry.boundingClientRect.top);
-        else visible.delete(id);
-      }
-
-      if (!visible.size) return;
-
-      const navLine = offsetPx() + 8;
-      let bestId = null;
-      let bestScore = -Infinity;
-
-      for (const [id, top] of visible.entries()) {
-        const score = (top <= navLine) ? (100000 + top) : (-top);
-        if (score > bestScore) {
-          bestScore = score;
-          bestId = id;
-        }
-      }
-      if (bestId) setActive(bestId);
-    }, { root: null, rootMargin: rm, threshold: [0, 1.0] });
-
-    headings.forEach(h => observer.observe(h));
-    return observer;
-  }
-
-  let activeObserver = buildObserver();
-
-  // Rebuild observer if navbar height/offset changes due to resize/fonts
-  const rebuild = () => {
-    visible.clear();
-    activeObserver.disconnect();
-    activeObserver = buildObserver();
-  };
-
-  window.addEventListener("resize", rebuild, { passive: true });
-  if (document.fonts && document.fonts.ready) document.fonts.ready.then(rebuild);
-
-  // Initialize based on current hash (if any)
-  if (location.hash) {
-    const id = decodeURIComponent(location.hash.slice(1));
-    if (document.getElementById(id)) setActive(id);
-  } else {
-    // default to first section
-    const first = headings.find(h => h.id);
-    if (first) setActive(first.id);
-  }
-
-
-  // --- Bulletproof sizing + dynamic navbar offset ---
+  // ---------- Layout sync (fixed ToC + centered article; auto-stack if too tight) ----------
   const px = (n) => `${Math.max(0, Math.round(n))}px`;
 
   function measureChPx(el) {
@@ -1870,15 +1737,20 @@ document.addEventListener("DOMContentLoaded", function () {
     return w;
   }
 
-  function syncLayout() {
-    if (!layoutEl || !articleEl || !tocEl) return;
+  function getOffsetPx() {
+    const v = parseFloat(getComputedStyle(root).getPropertyValue("--tm-scroll-offset"));
+    if (Number.isFinite(v)) return v;
+    // fallback if vars aren’t set yet
+    const navH = navEl ? navEl.getBoundingClientRect().height : 0;
+    return navH ? (navH + 12) : 90;
+  }
 
-    // Navbar height -> drives fixed top + scroll offset
+  function syncLayout() {
+    // navbar height drives both ToC top and scroll offset
     const navH = navEl ? navEl.getBoundingClientRect().height : 0;
     root.style.setProperty("--tm-nav-h", px(navH));
     root.style.setProperty("--tm-scroll-offset", px(navH + 12));
 
-    // Desktop mode only; otherwise stack
     const desktop = window.matchMedia("(min-width: 900px)").matches;
     if (!desktop) {
       layoutEl.classList.add("tm-stack");
@@ -1888,21 +1760,20 @@ document.addEventListener("DOMContentLoaded", function () {
 
     layoutEl.classList.remove("tm-stack");
 
-    // Set ToC max width proportional to viewport (bounded)
+    // -20% ToC width budget
     const vw = document.documentElement.clientWidth;
-    const tocMax = Math.min(Math.max(176, Math.floor(vw * 0.256)), 416); // -20%
+    const tocMax = Math.min(Math.max(176, Math.floor(vw * 0.256)), 416);
     root.style.setProperty("--tm-toc-max-px", px(tocMax));
 
-    // Important: To measure the fixed ToC correctly, ensure it's laid out first
+    // Measure geometry
     const tocRect = tocEl.getBoundingClientRect();
     const articleRect = articleEl.getBoundingClientRect();
 
-    // Compute max article width that won't intrude into ToC, while staying centered
     const gap = parseFloat(getComputedStyle(root).getPropertyValue("--tm-gap")) || 16;
     const centerX = (articleRect.left + articleRect.right) / 2;
     const fitPx = 2 * (tocRect.left - gap - centerX);
 
-    // If we'd have to squeeze too far, stack instead
+    // Minimum readable article width (in ch)
     const minCh = parseFloat(getComputedStyle(root).getPropertyValue("--tm-article-min-ch")) || 52;
     const chPx = measureChPx(articleEl);
     const minArticlePx = minCh * chPx;
@@ -1915,38 +1786,29 @@ document.addEventListener("DOMContentLoaded", function () {
     }
   }
 
-  const scheduleSync = () => requestAnimationFrame(syncLayout);
+  const scheduleSync = () => requestAnimationFrame(() => {
+    syncLayout();
+    // rootMargin depends on offset; if it changes, rebuild observer
+    maybeRebuildActiveObserver();
+  });
 
   window.addEventListener("resize", scheduleSync, { passive: true });
   window.addEventListener("orientationchange", scheduleSync, { passive: true });
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(scheduleSync);
 
-  if (document.fonts && document.fonts.ready) {
-    document.fonts.ready.then(scheduleSync);
-  }
-
-  /* Recompute when ToC size changes (wrapping, font load, etc.) */
-  if (window.ResizeObserver && tocEl) {
+  // Recompute when ToC or navbar size changes (wrapping, responsive nav, etc.)
+  if (window.ResizeObserver) {
     const ro = new ResizeObserver(() => scheduleSync());
     ro.observe(tocEl);
-
-    // Optional: also observe the article if images load and reflow things a lot
-    // ro.observe(articleEl);
+    if (navEl) ro.observe(navEl);
   }
 
-  scheduleSync();
-
-
-  // Smooth scrolling with offset
-  const getOffset = () => {
-    const v = parseFloat(getComputedStyle(root).getPropertyValue("--tm-scroll-offset"));
-    return Number.isFinite(v) ? v : 90;
-  };
-
-  tocList.addEventListener("click", function (event) {
+  // ---------- Smooth scrolling ----------
+  tocList.addEventListener("click", (event) => {
     const link = event.target.closest("a");
     if (!link) return;
 
-    const id = link.getAttribute("href").slice(1);
+    const id = decodeURIComponent(link.getAttribute("href").slice(1));
     const target = document.getElementById(id);
     if (!target) return;
 
@@ -1956,30 +1818,105 @@ document.addEventListener("DOMContentLoaded", function () {
     const absoluteTop = rect.top + window.pageYOffset;
 
     window.scrollTo({
-      top: absoluteTop - getOffset(),
+      top: absoluteTop - getOffsetPx(),
       behavior: "smooth"
     });
 
-    if (history.replaceState) {
-      history.replaceState(null, "", "#" + id);
-    }
+    if (history.replaceState) history.replaceState(null, "", `#${id}`);
   });
-});
 
-document.addEventListener("DOMContentLoaded", function () {
-  // ---- Lightbox ----
-  const article = document.querySelector(".tm-article") || document.body;
+  // ---------- Active section highlight (IntersectionObserver) ----------
+  const tocLinks = Array.from(tocList.querySelectorAll("a"));
+  const linkById = new Map(
+    tocLinks.map(a => [decodeURIComponent(a.getAttribute("href").slice(1)), a])
+  );
 
-  // Build overlay once
-  const overlay = document.createElement("div");
-  overlay.className = "tm-lightbox";
-  overlay.setAttribute("role", "dialog");
-  overlay.setAttribute("aria-modal", "true");
-  overlay.innerHTML = `
-    <button class="tm-lightbox-close" aria-label="Close image">×</button>
-    <img alt="">
-  `;
-  document.body.appendChild(overlay);
+  function setActive(id) {
+    tocLinks.forEach(a => {
+      a.classList.toggle("is-active", false);
+      const li = a.closest("li");
+      if (li) li.classList.toggle("is-active", false);
+    });
+
+    const a = linkById.get(id);
+    if (!a) return;
+
+    a.classList.add("is-active");
+    const li = a.closest("li");
+    if (li) li.classList.add("is-active");
+
+    // Keep active item visible if ToC is scrollable
+    a.scrollIntoView({ block: "nearest", inline: "nearest" });
+  }
+
+  let activeObserver = null;
+  let lastRootMargin = "";
+
+  const visible = new Map(); // id -> top
+
+  function buildActiveObserver() {
+    if (activeObserver) activeObserver.disconnect();
+    visible.clear();
+
+    const rm = `-${Math.round(getOffsetPx())}px 0px -70% 0px`;
+    lastRootMargin = rm;
+
+    activeObserver = new IntersectionObserver((entries) => {
+      for (const entry of entries) {
+        const id = entry.target.id;
+        if (!id) continue;
+        if (entry.isIntersecting) visible.set(id, entry.boundingClientRect.top);
+        else visible.delete(id);
+      }
+      if (!visible.size) return;
+
+      // Choose heading closest to the nav line
+      const navLine = getOffsetPx() + 8;
+      let bestId = null;
+      let bestScore = -Infinity;
+
+      for (const [id, top] of visible.entries()) {
+        const score = (top <= navLine) ? (100000 + top) : (-top);
+        if (score > bestScore) {
+          bestScore = score;
+          bestId = id;
+        }
+      }
+      if (bestId) setActive(bestId);
+    }, { root: null, rootMargin: rm, threshold: [0, 1.0] });
+
+    headings.forEach(h => activeObserver.observe(h));
+  }
+
+  function maybeRebuildActiveObserver() {
+    const rm = `-${Math.round(getOffsetPx())}px 0px -70% 0px`;
+    if (!activeObserver || rm !== lastRootMargin) buildActiveObserver();
+  }
+
+  // init highlight
+  buildActiveObserver();
+  if (location.hash) {
+    const id = decodeURIComponent(location.hash.slice(1));
+    if (document.getElementById(id)) setActive(id);
+  } else {
+    const first = headings.find(h => h.id);
+    if (first) setActive(first.id);
+  }
+
+  // ---------- Lightbox ----------
+  // Prevent double overlays if something re-runs
+  let overlay = document.querySelector(".tm-lightbox");
+  if (!overlay) {
+    overlay = document.createElement("div");
+    overlay.className = "tm-lightbox";
+    overlay.setAttribute("role", "dialog");
+    overlay.setAttribute("aria-modal", "true");
+    overlay.innerHTML = `
+      <button class="tm-lightbox-close" aria-label="Close image">×</button>
+      <img alt="">
+    `;
+    document.body.appendChild(overlay);
+  }
 
   const overlayImg = overlay.querySelector("img");
   const closeBtn = overlay.querySelector(".tm-lightbox-close");
@@ -1994,39 +1931,30 @@ document.addEventListener("DOMContentLoaded", function () {
   function closeLightbox() {
     overlay.classList.remove("is-open");
     document.body.classList.remove("tm-lightbox-open");
-    // Clear src so big images stop decoding / using memory
     overlayImg.src = "";
   }
 
-  // Click images in the article to open
-  article.addEventListener("click", (e) => {
+  articleEl.addEventListener("click", (e) => {
     const img = e.target.closest("img");
     if (!img) return;
-
-    // Skip images you don't want clickable:
     if (img.classList.contains("tm-no-lightbox")) return;
-    // Skip linked images (so normal links still work)
     if (img.closest("a")) return;
 
-    // Use highest-quality source if present
     const src = img.currentSrc || img.src;
     if (!src) return;
-
     openLightbox(src, img.alt);
   });
 
-  // Close controls
   closeBtn.addEventListener("click", closeLightbox);
-  overlay.addEventListener("click", (e) => {
-    // Click outside the image closes
-    if (e.target === overlay) closeLightbox();
-  });
+  overlay.addEventListener("click", (e) => { if (e.target === overlay) closeLightbox(); });
   document.addEventListener("keydown", (e) => {
     if (e.key === "Escape" && overlay.classList.contains("is-open")) closeLightbox();
   });
+
+  // Final kick
+  scheduleSync();
 });
 </script>
-
 
 /// EVERYTHING BELOW THIS IS EXTRA:
 
