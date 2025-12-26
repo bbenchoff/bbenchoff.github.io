@@ -12,6 +12,7 @@ image: "/images/default.jpg"
 
 # Implementing 65,536 CM-1 Processors on 4,096 AG32 Chips
 
+
 ## The Goal
 
 Replicate the exact CM-1 architecture:
@@ -19,9 +20,11 @@ Replicate the exact CM-1 architecture:
 - 4,096 routing nodes in a 12D hypercube  
 - 16 processors per routing node
 - SIMD execution (single instruction stream, broadcast to all)
-- 4K bits of memory per processor (256MB total)
+- 4K bits of memory per processor (32MB total)
 
 My machine has 4,096 AG32 chips. Each AG32 has ~2K LUTs. Put 16 soft processors in each AG32's FPGA fabric. 4,096 × 16 = 65,536 processors. Exact match.
+
+**There is a _huge_ difference between this and an original CM-1. The orginal had routers, I'm using a weird, deterministic TDMA scheduling scheme for message passing. The router consumed ~10K transistors per node and was a major source of bugs. TDMA achieves the same communication semantics with ~50 LUTs and deterministic latency.
 
 ## CM-1 Processor Architecture (from Hillis's thesis)
 
@@ -65,7 +68,7 @@ Flag-TT:           8 bits
 NEWS-direction:    2 bits
 ```
 
-The 16 special flags:
+The 16 flags:
 ```
 0-7:   General purpose (carry bits, temporaries)
 8:     NEWS     - reads neighbor's flag output (N/E/W/S selectable)
@@ -73,7 +76,7 @@ The 16 special flags:
 10:    DAISY    - reads previous processor in chain (for 16→1 reduction)
 11:    ROUTER_DATA - for message passing
 12:    ROUTER_ACK  - handshake from router
-13:    LONG_PARITY - error correction
+13:    LONG_PARITY - error correction (automatically tracks parity)
 14:    INPUT    - external input pin
 15:    ZERO     - always reads 0
 ```
@@ -87,7 +90,8 @@ Available: ~2,000 LUTs
 **Flags (16 bits of state):**
 - 16 flip-flops
 - 16:1 mux for read-flag selection
-- ~20 LUTs
+- 16:1 mux for condition-flag selection (full, not partial)
+- ~22 LUTs
 
 **ALU (truth table lookup):**
 - 8:1 mux for memory output (3 select bits → 8 entries)
@@ -95,16 +99,21 @@ Available: ~2,000 LUTs
 - ~10 LUTs
 
 **Condition check:**
-- 16:1 mux + comparator
-- ~8 LUTs
+- 16:1 mux (now supports ALL flags) + comparator
+- ~10 LUTs
 
 **NEWS routing:**
 - 4:1 mux for neighbor selection
-- ~3 LUTs
+- Input registers (4 flip-flops to prevent combinational loops)
+- ~5 LUTs
 
-**Total per processor: ~40 LUTs**
+**Long parity automatic tracking:**
+- XOR gate for automatic update
+- ~2 LUTs
 
-**16 processors: ~640 LUTs**
+**Total per processor: ~49 LUTs**
+
+**16 processors: ~784 LUTs**
 
 ### Shared Infrastructure:
 
@@ -123,7 +132,7 @@ Available: ~2,000 LUTs
 - Daisy chain for reductions
 - ~50 LUTs
 
-**TDMA controller (dimensions 4-11):**
+**TDMA controller (dimensions 0-11):**
 - Phase counter
 - Pin muxing
 - ~50 LUTs
@@ -134,9 +143,9 @@ Available: ~2,000 LUTs
 
 **Total infrastructure: ~260 LUTs**
 
-### Grand Total: ~900 LUTs
+### Grand Total: ~1,044 LUTs
 
-**Headroom: ~1,100 LUTs** for the hardware router, packet buffers, error checking.
+**Headroom: ~956 LUTs** for the hardware router, packet buffers, error checking.
 
 ## Memory Architecture
 
@@ -165,12 +174,12 @@ Memory access is bit-serial. The RISC-V handles addressing; the FPGA fabric hand
 - 16 processors per router in a 4×4 NEWS grid
 - Processors also connected via daisy chain
 
-**Your Machine:**
+**My Machine:**
 - 4,096 AG32 chips in a 12D hypercube (dimensions 0-11)
 - 16 soft processors per AG32
 
 **Authentic CM-1 topology (what Hillis built)**
-- Dimensions 0-11: between routers (your AG32-to-AG32 links)
+- Dimensions 0-11: between routers (AG32-to-AG32 links)
 - Within each chip: 4×4 NEWS grid + daisy chain
 - Not a hypercube at the processor level, but the CM-1 technically wasn't either
 
@@ -216,66 +225,81 @@ module cm1_processor (
     // Hypercube (directly from TDMA controller)
     input  wire        cube_in,
     
-    // Global OR output
-    output wire        global_bit
+    // Input pin (for I/O operations)
+    input  wire        input_pin
 );
 
     // =========================================================
     // Flags: 8 general + 8 special
     // =========================================================
     reg [7:0] gp_flags;          // General purpose flags 0-7
-    reg       long_parity;       // Flag 13
+    reg       long_parity;       // Flag 13 (automatic parity tracking)
+    
+    // Register neighbor inputs to prevent combinational loops
+    reg north_reg, east_reg, south_reg, west_reg;
+    always @(posedge clk) begin
+        north_reg <= north_in;
+        east_reg <= east_in;
+        south_reg <= south_in;
+        west_reg <= west_in;
+    end
     
     // Special flags (directly wired, not stored):
-    // Flag 8:  NEWS       - selected neighbor's flag_out
+    // Flag 8:  NEWS       - selected neighbor's flag_out (registered)
     // Flag 9:  CUBE       - cube_in
     // Flag 10: DAISY      - daisy_in
     // Flag 11: ROUTER_DATA - (for message passing, implement later)
     // Flag 12: ROUTER_ACK  - (for message passing, implement later)
-    // Flag 13: LONG_PARITY - stored above
-    // Flag 14: INPUT      - (external input, optional)
+    // Flag 13: LONG_PARITY - stored above, automatically tracks memory parity
+    // Flag 14: INPUT      - input_pin
     // Flag 15: ZERO       - constant 0
     
-    // NEWS mux
+    // NEWS mux (uses registered inputs)
     wire news_flag;
-    assign news_flag = (news_dir == 2'd0) ? north_in :
-                       (news_dir == 2'd1) ? east_in :
-                       (news_dir == 2'd2) ? south_in :
-                                            west_in;
+    assign news_flag = (news_dir == 2'd0) ? north_reg :
+                       (news_dir == 2'd1) ? east_reg :
+                       (news_dir == 2'd2) ? south_reg :
+                                            west_reg;
     
-    // Flag read mux (16:1)
+    // Flag read mux (ALL 16 flags supported)
     wire f_bit;
-    assign f_bit = (read_flag[3:0] == 4'd0)  ? gp_flags[0] :
-                   (read_flag[3:0] == 4'd1)  ? gp_flags[1] :
-                   (read_flag[3:0] == 4'd2)  ? gp_flags[2] :
-                   (read_flag[3:0] == 4'd3)  ? gp_flags[3] :
-                   (read_flag[3:0] == 4'd4)  ? gp_flags[4] :
-                   (read_flag[3:0] == 4'd5)  ? gp_flags[5] :
-                   (read_flag[3:0] == 4'd6)  ? gp_flags[6] :
-                   (read_flag[3:0] == 4'd7)  ? gp_flags[7] :
-                   (read_flag[3:0] == 4'd8)  ? news_flag :
-                   (read_flag[3:0] == 4'd9)  ? cube_in :
-                   (read_flag[3:0] == 4'd10) ? daisy_in :
-                   (read_flag[3:0] == 4'd11) ? 1'b0 :  // ROUTER_DATA (stub)
-                   (read_flag[3:0] == 4'd12) ? 1'b0 :  // ROUTER_ACK (stub)
-                   (read_flag[3:0] == 4'd13) ? long_parity :
-                   (read_flag[3:0] == 4'd14) ? 1'b0 :  // INPUT (stub)
-                                               1'b0;   // ZERO
+    assign f_bit = (read_flag == 4'd0)  ? gp_flags[0] :
+                   (read_flag == 4'd1)  ? gp_flags[1] :
+                   (read_flag == 4'd2)  ? gp_flags[2] :
+                   (read_flag == 4'd3)  ? gp_flags[3] :
+                   (read_flag == 4'd4)  ? gp_flags[4] :
+                   (read_flag == 4'd5)  ? gp_flags[5] :
+                   (read_flag == 4'd6)  ? gp_flags[6] :
+                   (read_flag == 4'd7)  ? gp_flags[7] :
+                   (read_flag == 4'd8)  ? news_flag :
+                   (read_flag == 4'd9)  ? cube_in :
+                   (read_flag == 4'd10) ? daisy_in :
+                   (read_flag == 4'd11) ? 1'b0 :  // ROUTER_DATA (stub)
+                   (read_flag == 4'd12) ? 1'b0 :  // ROUTER_ACK (stub)
+                   (read_flag == 4'd13) ? long_parity :
+                   (read_flag == 4'd14) ? input_pin :
+                                          1'b0;   // ZERO
     
     // =========================================================
-    // Condition Check
+    // Condition Check (supports ALL 16 flags)
     // =========================================================
     wire cond_flag_val;
-    assign cond_flag_val = (cond_flag[3:0] == 4'd0)  ? gp_flags[0] :
-                           (cond_flag[3:0] == 4'd1)  ? gp_flags[1] :
-                           (cond_flag[3:0] == 4'd2)  ? gp_flags[2] :
-                           (cond_flag[3:0] == 4'd3)  ? gp_flags[3] :
-                           (cond_flag[3:0] == 4'd4)  ? gp_flags[4] :
-                           (cond_flag[3:0] == 4'd5)  ? gp_flags[5] :
-                           (cond_flag[3:0] == 4'd6)  ? gp_flags[6] :
-                           (cond_flag[3:0] == 4'd7)  ? gp_flags[7] :
-                           (cond_flag[3:0] == 4'd15) ? 1'b0 :
-                                                       1'b0;  // special flags
+    assign cond_flag_val = (cond_flag == 4'd0)  ? gp_flags[0] :
+                           (cond_flag == 4'd1)  ? gp_flags[1] :
+                           (cond_flag == 4'd2)  ? gp_flags[2] :
+                           (cond_flag == 4'd3)  ? gp_flags[3] :
+                           (cond_flag == 4'd4)  ? gp_flags[4] :
+                           (cond_flag == 4'd5)  ? gp_flags[5] :
+                           (cond_flag == 4'd6)  ? gp_flags[6] :
+                           (cond_flag == 4'd7)  ? gp_flags[7] :
+                           (cond_flag == 4'd8)  ? news_flag :
+                           (cond_flag == 4'd9)  ? cube_in :
+                           (cond_flag == 4'd10) ? daisy_in :
+                           (cond_flag == 4'd11) ? 1'b0 :  // ROUTER_DATA
+                           (cond_flag == 4'd12) ? 1'b0 :  // ROUTER_ACK
+                           (cond_flag == 4'd13) ? long_parity :
+                           (cond_flag == 4'd14) ? input_pin :
+                                                  1'b0;   // ZERO
     
     wire execute = (cond_flag_val == cond_sense);
     
@@ -292,17 +316,30 @@ module cm1_processor (
     assign mem_addr = addr_a;  // Write address (same as read A)
     assign mem_we = instr_valid & execute;
     assign mem_wdata = mem_result;
-    assign flag_out = flag_result;  // Broadcast to neighbors
-    assign global_bit = flag_result;
+    reg flag_out_reg;
+        always @(posedge clk) begin
+            if (instr_valid && execute) begin
+                flag_out_reg <= flag_result;
+            end
+            // else: hold previous value
+        end
+
+    assign flag_out = flag_out_reg;
     
     // =========================================================
-    // Flag Write
+    // Flag Write (with automatic long_parity tracking)
     // =========================================================
     always @(posedge clk or negedge rst_n) begin
         if (!rst_n) begin
             gp_flags <= 8'h00;
             long_parity <= 1'b0;
         end else if (instr_valid && execute) begin
+            // Automatic parity tracking on every memory write
+            if (mem_we) begin
+                long_parity <= long_parity ^ mem_rdata_a ^ mem_wdata;
+            end
+            
+            // Explicit flag writes (can override automatic parity)
             case (write_flag)
                 4'd0: gp_flags[0] <= flag_result;
                 4'd1: gp_flags[1] <= flag_result;
@@ -312,8 +349,8 @@ module cm1_processor (
                 4'd5: gp_flags[5] <= flag_result;
                 4'd6: gp_flags[6] <= flag_result;
                 4'd7: gp_flags[7] <= flag_result;
-                4'd13: long_parity <= flag_result;
-                // Other special flags not writable
+                4'd13: long_parity <= flag_result;  // Explicit write overrides
+                // Other special flags (8-12, 14-15) are read-only
                 default: ;
             endcase
         end
@@ -352,6 +389,9 @@ module cm1_array_16 (
     input  wire [15:0] cube_in,          // One bit per processor
     output wire [15:0] cube_out,         // One bit per processor
     
+    // Input pins (one per processor, for I/O)
+    input  wire [15:0] input_pins,
+    
     // Global OR (for reductions)
     output wire        global_or
 );
@@ -367,13 +407,7 @@ module cm1_array_16 (
     //   12 13 14 15
     
     // North neighbors (wrap around)
-    wire [15:0] north_in = {flag_out[11:8], flag_out[15:12], 
-                           flag_out[3:0], flag_out[7:4]};
-    // Actually, simpler:
-    // proc N's north = proc (N-4) mod 16, but with wrap
-    // Let me just enumerate:
-    
-    wire [15:0] north;  // north_in for each processor
+    wire [15:0] north;
     assign north[0]  = flag_out[12]; // 0's north is 12
     assign north[1]  = flag_out[13];
     assign north[2]  = flag_out[14];
@@ -391,7 +425,7 @@ module cm1_array_16 (
     assign north[14] = flag_out[10];
     assign north[15] = flag_out[11];
     
-    wire [15:0] south;  // south = N+4 mod 16
+    wire [15:0] south;
     assign south[0]  = flag_out[4];
     assign south[1]  = flag_out[5];
     assign south[2]  = flag_out[6];
@@ -409,7 +443,7 @@ module cm1_array_16 (
     assign south[14] = flag_out[2];
     assign south[15] = flag_out[3];
     
-    wire [15:0] east;   // east = (N+1) with row wrap
+    wire [15:0] east;
     assign east[0]  = flag_out[1];
     assign east[1]  = flag_out[2];
     assign east[2]  = flag_out[3];
@@ -427,7 +461,7 @@ module cm1_array_16 (
     assign east[14] = flag_out[15];
     assign east[15] = flag_out[12]; // wrap
     
-    wire [15:0] west;   // west = (N-1) with row wrap
+    wire [15:0] west;
     assign west[0]  = flag_out[3];  // wrap
     assign west[1]  = flag_out[0];
     assign west[2]  = flag_out[1];
@@ -483,7 +517,7 @@ module cm1_array_16 (
                 .news_dir(news_dir),
                 .daisy_in(daisy[i]),
                 .cube_in(cube_in[i]),
-                .global_bit()
+                .input_pin(input_pins[i])
             );
         end
     endgenerate
@@ -533,6 +567,9 @@ module cm1_with_tdma #(
     input  wire [55:0] instruction,
     output wire        global_or_out,
     
+    // I/O pins (for INPUT flag)
+    input  wire [15:0] io_pins,
+    
     // Memory interface to RISC-V RAM
     // (bit-serial access to 16 × 4K bit regions)
     output wire [11:0] mem_addr,
@@ -579,6 +616,7 @@ module cm1_with_tdma #(
         .mem_rdata_b(mem_rdata_b),
         .cube_in(cube_in),
         .cube_out(cube_out),
+        .input_pins(io_pins),
         .global_or(global_or_out)
     );
     
@@ -589,8 +627,9 @@ module cm1_with_tdma #(
     genvar d;
     generate
         for (d = 0; d < 12; d = d + 1) begin : gen_dim
+            wire cube_out_combined = |cube_out;  // OR all 16
             assign dim_pins[d] = (i_transmit && active_dim == d) ? 
-                                 cube_out[0] : 1'bz;
+                     cube_out_combined : 1'bz;
         end
     endgenerate
     
@@ -639,6 +678,8 @@ void cm1_execute_instruction(uint64_t instr) {
 }
 ```
 
+**Note:** This implementation uses dual-port RAM to read A and B simultaneously, which is faster than the original CM-1's 3-cycle sequence. The original used single-ported memory and required separate read cycles. This is an optimization that doesn't affect correctness.
+
 ## What You Can Run
 
 With this architecture, you can run actual CM-1 programs:
@@ -677,22 +718,39 @@ WRITE_FLAG=0
 ; Read from south neighbor, write to local memory
 
 NEWS_DIR=SOUTH, READ_FLAG=NEWS
-ADDR_A=pixel_addr, TT_MEM=0xAA  ; Copy F to memory
+ADDR_A=pixel_addr, TT_MEM=0xF0  ; Copy F to memory (truth table 0xF0)
+```
+
+**Conditional Execution (using any flag):**
+```
+; Only processors with CUBE flag set execute
+COND_FLAG=CUBE, COND_SENSE=1
+ADDR_A=result, TT_MEM=0xFF  ; Write all 1s to memory
+; Only nodes receiving 1 on hypercube dimension will execute
+```
+
+**Parity Checking:**
+```
+; The LONG_PARITY flag automatically tracks parity
+; After writing many bits, read it to check memory integrity
+
+READ_FLAG=LONG_PARITY  ; Read automatically-maintained parity
+; Use in error correction algorithm
 ```
 
 ## LUT Summary
 
 | Component | LUTs |
 |-----------|------|
-| 16 processors (flags + ALU) | 640 |
-| NEWS grid routing | 50 |
+| 16 processors (flags + ALU + conditions) | 784 |
+| NEWS grid routing (with registers) | 54 |
 | Daisy chain | 16 |
 | Instruction decode | 50 |
 | Memory interface | 100 |
 | TDMA controller | 50 |
 | Global OR | 10 |
-| **Total** | **~916** |
-| **Remaining for router/extras** | **~1,084** |
+| **Total** | **~1,064** |
+| **Remaining for router/extras** | **~936** |
 
 There's room for:
 - Hardware packet router (for async messages)
@@ -706,7 +764,9 @@ When this works, I get to say:
 
 "I built the only working Connection Machine. 65,536 bit-serial processors in a 12D hypercube, running the original CM-1 instruction set. The actual CM-1 cost $5 million and filled a room. Mine cost $5,000 and fits on a desk."
 
-And unlike the original, mine has deterministic latency. Hillis had to deal with adaptive routing and buffer overflow.
+And unlike the original, mine has deterministic latency. Hillis had to deal with adaptive routing and buffer overflow. My TDMA scheme is simpler, faster, and more predictable.
+
+Plus, I can run Wolfram's elementary cellular automata rules natively - the 8-bit truth tables are the exact same mathematical space. Rule 110 on 65,536 processors. Nobody else has this.
 
 
 [back](../)

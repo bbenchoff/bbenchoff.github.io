@@ -28,6 +28,73 @@ StarC is that language. It's C, extended with primitives for data-parallel compu
 
 This isn't a research project. This isn't a language design exercise. This is the minimum viable language needed to make a hypercube computer programmable instead of merely operational.
 
+## Open Design Questions
+
+This spec describes the language as designed. Several decisions remain open until validated against real hardware and real programs. This section tracks tensions between StarC's expressiveness and the TDMA network's constraints.
+
+### Neighbor Exchange Ordering
+
+`nbr(dim, value)` maps directly to TDMA phases. Dimension 0 uses phases 0-1. Dimension 11 uses phases 22-23. Calling dimensions in ascending order is fast. Calling them out of order forces a wait until the next superframe:
+
+```c
+nbr(0, x);   // phase 0 or 1
+nbr(11, y);  // phase 22 or 23 — fast, same superframe
+
+nbr(11, y);  // phase 22 or 23
+nbr(0, x);   // phase 0 or 1 of NEXT superframe — 23 phases of dead time
+```
+
+**Unresolved:** Do we document this and let programmers deal with it? Add a `nbr_batch()` primitive that reorders internally? Have the preprocessor reorder independent `nbr()` calls? Unknown until we write real algorithms and see how often this bites.
+
+### Hotspot Permutations
+
+`get(source)` allows arbitrary communication patterns. But TDMA guarantees "one message per link per phase." If all 4,096 processors call `get(0)`, processor 0 cannot serve everyone in one superframe. The data must fan out through the hypercube over multiple cycles.
+
+**Unresolved:** How slow is slow? Is this acceptable for rare operations? Should `broadcast(source, value)` be a first-class primitive using tree distribution? Do we need combining at intermediate nodes? Unknown until we measure actual timings on hardware.
+
+### Collective Operation Rule Enforcement
+
+The rule: "All processors must reach collective operations in the same sequence." TDMA requires this for timing correctness. But StarC allows:
+
+```c
+if (pid() < 2048) {
+    x = reduce_sum(y);  // half the machine calls this
+}
+// other half never does — TDMA schedule breaks
+```
+
+**Unresolved:** Is "undefined behavior" sufficient, or do we need compile-time restrictions (collectives only at top-level scope), runtime detection, or tooling (playground warnings)? Unknown until we see how often programmers accidentally write this.
+
+### Payload Size Limits
+
+At 10 kHz phase rate with 1 Mbps baud, each phase carries ~100 bits (~10 bytes with header). StarC allows `pvar<float>`, arrays, structs. A 64-byte neighbor exchange doesn't fit in one phase.
+
+**Unresolved:** Do we define `STAR_MAX_PAYLOAD` and restrict types? Fragment large messages across superframes? Let users choose phase rate based on payload needs? Unknown until we know what payloads real algorithms require.
+
+### NEWS Communication
+
+The spec mentions NEWS (North-East-West-South) for 2D grid operations within chips. The TDMA spec only covers hypercube dimensions.
+
+**Unresolved:** How do NEWS directions map to dimensions 0-3? What happens at chip boundaries? Does NEWS use TDMA or a faster on-chip path? Punted to a future version. Hypercube primitives are the core; NEWS is nice-to-have for image processing.
+
+### Barrier Semantics
+
+`barrier()` is defined as "wait for end of superframe." But:
+- If called at phase 5, wait for phase 23 of this superframe, or phase 0 of next?
+- Do masked processors participate?
+
+**Working definition:** Barrier means "wait until the next superframe boundary; all processors participate regardless of mask state." Subject to revision based on what the firmware actually needs.
+
+### The Meta-Question
+
+The TDMA spec assumes lockstep execution. StarC assumes programmer flexibility. These are in tension. The more flexibility StarC provides (masking, conditionals, arbitrary permutations), the harder it is to maintain TDMA's guarantees.
+
+**Current stance:** Co-design carefully. Accept that some patterns are fast (neighbor exchange, reductions) and some are slow (arbitrary permutations, hotspots). Document costs. Use the playground to build intuition. Revise after building the 16-node AG32 board and writing real programs.
+
+---
+
+*This section will be revised or removed as questions are resolved through implementation.*
+
 ## The Programming Model
 
 The Connection Machine's programming model, as described in Hillis's thesis, is fundamentally different from how most programmers think about parallelism today.
