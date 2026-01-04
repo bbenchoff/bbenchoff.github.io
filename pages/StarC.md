@@ -150,6 +150,22 @@ pre[class*="language-"] {
   position: relative;
 }
 
+.tm-toc-nav li.tm-toc-level-1 {
+  padding-left: 0;
+  margin-top: 0.75rem;
+  margin-bottom: 0.35rem;
+  font-weight: 600;
+}
+
+.tm-toc-nav li.tm-toc-level-1::before {
+  content: none;
+}
+
+.tm-toc-nav li.tm-toc-level-1 a {
+  font-size: 1rem;
+  font-weight: 600;
+}
+
 .tm-toc-nav li.tm-toc-level-2::before {
   content: "•";
   position: absolute;
@@ -529,6 +545,11 @@ These constraints lead to clear design principles:
 
 5. **Only hypercube-native operations.** Neighbor exchange, tree reductions, broadcasts. No arbitrary permutation.
 
+---
+
+# Part II: The Language
+
+---
 
 ## Chapter 3: Data Model
 
@@ -1923,7 +1944,7 @@ document.addEventListener("DOMContentLoaded", () => {
   // ---------- Build ToC ----------
   tocList.innerHTML = "";
 
-  const headings = Array.from(articleEl.querySelectorAll("h2, h3, h4"))
+  const headings = Array.from(articleEl.querySelectorAll("h1, h2, h3, h4"))
     .filter(h => !h.closest(".tm-toc"));
 
   if (!headings.length) {
@@ -1955,6 +1976,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const li = document.createElement("li");
     const tag = h.tagName.toLowerCase();
     li.classList.add(
+      tag === "h1" ? "tm-toc-level-1" :
       tag === "h2" ? "tm-toc-level-2" :
       tag === "h3" ? "tm-toc-level-3" : "tm-toc-level-4"
     );
