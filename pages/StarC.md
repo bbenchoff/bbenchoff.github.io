@@ -74,6 +74,55 @@ pre[class*="language-"] {
   margin: 0;
 }
 
+/* Logo and headline layout */
+.starc-header {
+  display: flex;
+  align-items: center;
+  gap: 2rem;
+  margin: 2rem 0 3rem 0;
+  flex-wrap: wrap;
+}
+
+.starc-header img {
+  max-width: 200px;
+  height: auto;
+  flex-shrink: 0;
+}
+
+.starc-header h1 {
+  margin: 0;
+  flex: 1;
+  min-width: 300px;
+}
+
+/* Mobile: stack vertically */
+@media (max-width: 768px) {
+  .starc-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+
+  .starc-header img {
+    max-width: 150px;
+  }
+
+  .starc-header h1 {
+    font-size: 1.5rem;
+  }
+}
+
+/* Very small screens */
+@media (max-width: 480px) {
+  .starc-header img {
+    max-width: 120px;
+  }
+
+  .starc-header h1 {
+    font-size: 1.3rem;
+  }
+}
+
 /* Table styling - full width */
 .tm-article table {
   width: 100%;
@@ -344,7 +393,10 @@ pre[class*="language-"] {
 
 <div class="tm-article" markdown="1">
 
-# StarC: A Parallel C for Hypercube Computers
+<div class="starc-header">
+  <img src="/images/ConnM/StarCLogo.png" alt="StarC Logo">
+  <h1>StarC: A Parallel C for Hypercube Computers</h1>
+</div>
 
 ## Introduction
 
@@ -1995,7 +2047,7 @@ document.addEventListener("DOMContentLoaded", () => {
   tocList.innerHTML = "";
 
   const headings = Array.from(articleEl.querySelectorAll("h1, h2, h3, h4"))
-    .filter(h => !h.closest(".tm-toc"));
+    .filter(h => !h.closest(".tm-toc") && !h.closest(".starc-header"));
 
   if (!headings.length) {
     tocEl.style.display = "none";
