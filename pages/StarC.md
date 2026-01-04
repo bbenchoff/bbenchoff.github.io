@@ -9,6 +9,235 @@ last_modified_at: 2025-06-04
 image: "/images/default.jpg"
 ---
 
+<style>
+/* Override collapsible code blocks for StarC.md */
+.code-block-wrapper {
+  margin: 1.5em 0;
+  border-radius: 0;
+  overflow: visible;
+  box-shadow: none;
+}
+
+.code-block-header {
+  display: none !important;
+}
+
+.code-block-content {
+  display: block !important;
+  max-height: none !important;
+  overflow: visible !important;
+}
+
+.code-block-content pre[class*="language-"] {
+  margin: 1.5em 0;
+  border-radius: 6px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Ensure code blocks are visible */
+pre[class*="language-"] {
+  display: block !important;
+  max-height: none !important;
+}
+
+/* Table of Contents styling */
+:root {
+  --tm-gap: 16px;
+  --tm-article-max: 94ch;
+  --tm-article-min-ch: 52;
+  --tm-nav-h: 64px;
+  --tm-scroll-offset: 90px;
+  --tm-toc-max-px: 420px;
+  --tm-article-fit-px: 100000px;
+}
+
+.tm-layout {
+  position: relative;
+}
+
+.tm-article {
+  margin-left: auto;
+  margin-right: auto;
+  min-width: 0;
+  max-width: min(var(--tm-article-max), var(--tm-article-fit-px));
+}
+
+.tm-toc-inner {
+  padding: 0.75rem 0.9rem 0.9rem 0.7rem;
+  border-radius: 8px;
+  border: 1px solid rgba(0,0,0,0.12);
+  background: rgba(0,0,0,0.04);
+}
+
+.tm-toc-inner h3 {
+  margin: 0 0 0.5rem 0;
+  font-size: 0.9rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.tm-toc-nav {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.tm-toc-nav a {
+  white-space: normal;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.tm-toc-nav li {
+  margin: 0.15rem 0;
+  padding-left: 1.2rem;
+  position: relative;
+}
+
+.tm-toc-nav li.tm-toc-level-2::before {
+  content: "•";
+  position: absolute;
+  left: 0;
+}
+
+.tm-toc-nav li.tm-toc-level-3 {
+  margin-left: 1.5rem;
+}
+
+.tm-toc-nav li.tm-toc-level-3::before {
+  content: "◦";
+  position: absolute;
+  left: 0;
+}
+
+.tm-toc-nav li.tm-toc-level-4 {
+  margin-left: 3rem;
+}
+
+.tm-toc-nav li.tm-toc-level-4::before {
+  content: "◦";
+  position: absolute;
+  left: 0;
+  opacity: 0.8;
+}
+
+.tm-toc-nav a {
+  text-decoration: none;
+  font-size: 0.9rem;
+}
+
+.tm-toc-nav a:hover {
+  text-decoration: underline;
+}
+
+.tm-toc-sep {
+  margin: 0.75rem 0;
+  border: 0;
+  border-top: 1px solid rgba(0,0,0,0.12);
+}
+
+.tm-related-nav {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.tm-related-nav li {
+  margin: 0.15rem 0;
+  padding-left: 1.2rem;
+  position: relative;
+}
+
+.tm-related-nav li::before {
+  content: "•";
+  position: absolute;
+  left: 0;
+}
+
+.tm-related-nav a {
+  text-decoration: none;
+  font-size: 0.9rem;
+}
+
+.tm-related-nav a:hover {
+  text-decoration: underline;
+}
+
+.tm-article h2,
+.tm-article h3,
+.tm-article h4 {
+  scroll-margin-top: calc(var(--tm-nav-h) + 12px);
+}
+
+@media (min-width: 900px) {
+  .tm-layout:not(.tm-stack) .tm-toc {
+    position: fixed;
+    right: 0;
+    top: calc(var(--tm-nav-h) + 12px);
+    z-index: 50;
+    width: max-content;
+    max-width: min(var(--tm-toc-max-px), calc(100vw - 12px));
+    max-height: calc(100dvh - (var(--tm-nav-h) + 24px));
+    overflow: auto;
+    overscroll-behavior: contain;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+  }
+}
+
+.tm-layout.tm-stack .tm-toc {
+  position: static;
+  width: auto;
+  max-width: 100%;
+  max-height: none;
+  overflow: visible;
+}
+
+@supports (overflow: clip) {
+  .tm-layout { overflow-x: clip; }
+}
+@supports not (overflow: clip) {
+  .tm-layout { overflow-x: hidden; }
+}
+
+.tm-toc-nav a.is-active {
+  font-weight: 700;
+  text-decoration: underline;
+}
+
+.tm-toc-nav li.is-active::before {
+  font-weight: 700;
+}
+
+.tm-toc-nav li::before {
+  font-weight: 400;
+}
+
+.tm-toc-nav li.is-active {
+  font-weight: normal;
+}
+
+.tm-toc {
+  margin-bottom: 2rem;
+}
+</style>
+
+<div class="tm-layout">
+  <aside class="tm-toc">
+  <div class="tm-toc-inner">
+    <h3>Contents</h3>
+    <ul class="tm-toc-nav" id="tm-toc"></ul>
+    <hr class="tm-toc-sep" />
+    <h3>Related pages</h3>
+    <ul class="tm-related-nav">
+      <li><a href="ThinkinMachine.html">Connection Machine Recreation</a></li>
+      <li><a href="HypercubeTDMA.html">Hypercube TDMA</a></li>
+    </ul>
+  </div>
+</aside>
+
+<div class="tm-article" markdown="1">
+
 # StarC: A Parallel C for Hypercube Computers
 
 ## Introduction
@@ -1601,3 +1830,167 @@ That's what StarC is for. Not to be a perfect language. To be the language that 
 [back to main project page](ThinkinMachine.html)
 
 [main](../)
+
+</div><!-- /.tm-article -->
+</div><!-- /.tm-layout -->
+
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+  // Prevent the default code block collapsing behavior
+  const preventCodeCollapse = () => {
+    // Remove all code-block-wrapper structures if they exist
+    document.querySelectorAll('.code-block-wrapper').forEach(wrapper => {
+      const pre = wrapper.querySelector('pre');
+      if (pre && wrapper.parentNode) {
+        wrapper.parentNode.insertBefore(pre, wrapper);
+        wrapper.remove();
+      }
+    });
+
+    // Make sure all code blocks are visible
+    document.querySelectorAll('pre[class*="language-"]').forEach(pre => {
+      pre.style.display = 'block';
+      pre.style.maxHeight = 'none';
+    });
+  };
+
+  // Run immediately
+  preventCodeCollapse();
+
+  // Run again after a short delay to catch any late additions
+  setTimeout(preventCodeCollapse, 100);
+
+  const root     = document.documentElement;
+  const layoutEl = document.querySelector(".tm-layout") || document.body;
+  const articleEl= document.querySelector(".tm-article") || layoutEl;
+  const tocEl    = document.querySelector(".tm-toc");
+  const tocList  = document.getElementById("tm-toc");
+  const navEl    = document.querySelector(".navbar");
+
+  if (!tocList || !tocEl) return;
+
+  // ---------- Build ToC ----------
+  tocList.innerHTML = "";
+
+  const headings = Array.from(articleEl.querySelectorAll("h2, h3, h4"))
+    .filter(h => !h.closest(".tm-toc"));
+
+  if (!headings.length) {
+    tocEl.style.display = "none";
+    return;
+  } else {
+    tocEl.style.display = "";
+  }
+
+  const slugify = (s) => (s || "")
+    .trim()
+    .toLowerCase()
+    .replace(/[^\w\- ]+/g, "")
+    .replace(/\s+/g, "-")
+    .replace(/\-+/g, "-")
+    .replace(/^\-|\-$/g, "");
+
+  const used = new Set();
+
+  headings.forEach(h => {
+    if (!h.id) {
+      let base = slugify(h.textContent) || "section";
+      let id = base, n = 2;
+      while (used.has(id) || document.getElementById(id)) id = `${base}-${n++}`;
+      h.id = id;
+    }
+    used.add(h.id);
+
+    const li = document.createElement("li");
+    const tag = h.tagName.toLowerCase();
+    li.classList.add(
+      tag === "h2" ? "tm-toc-level-2" :
+      tag === "h3" ? "tm-toc-level-3" : "tm-toc-level-4"
+    );
+
+    const a = document.createElement("a");
+    a.href = `#${h.id}`;
+    a.textContent = h.textContent;
+
+    li.appendChild(a);
+    tocList.appendChild(li);
+  });
+
+  // ---------- Layout sync ----------
+  const px = (n) => `${Math.max(0, Math.round(n))}px`;
+
+  function syncLayout() {
+    const navH = navEl ? navEl.getBoundingClientRect().height : 0;
+    root.style.setProperty("--tm-nav-h", px(navH));
+    root.style.setProperty("--tm-scroll-offset", px(navH + 12));
+
+    const desktop = window.matchMedia("(min-width: 900px)").matches;
+    if (!desktop) {
+      layoutEl.classList.add("tm-stack");
+      root.style.setProperty("--tm-article-fit-px", "100000px");
+      return;
+    }
+
+    layoutEl.classList.remove("tm-stack");
+
+    const vw = document.documentElement.clientWidth;
+    const tocMax = Math.min(Math.max(176, Math.floor(vw * 0.256)), 416);
+    root.style.setProperty("--tm-toc-max-px", px(tocMax));
+
+    const tocW = tocEl ? tocEl.getBoundingClientRect().width : 0;
+    const gap = 16;
+    const articleFit = vw - tocW - gap;
+    root.style.setProperty("--tm-article-fit-px", px(articleFit));
+  }
+
+  syncLayout();
+  window.addEventListener("resize", syncLayout);
+
+  // ---------- Active section highlight ----------
+  const tocLinks = Array.from(tocList.querySelectorAll("a"));
+  const linkById = new Map(
+    tocLinks.map(a => [decodeURIComponent(a.getAttribute("href").slice(1)), a])
+  );
+
+  let activeLi = null;
+
+  const obs = new IntersectionObserver(
+    (entries) => {
+      for (const e of entries) {
+        if (e.isIntersecting) {
+          const link = linkById.get(e.target.id);
+          if (link) {
+            if (activeLi) {
+              activeLi.classList.remove("is-active");
+              activeLi.querySelector("a")?.classList.remove("is-active");
+            }
+            activeLi = link.parentElement;
+            activeLi.classList.add("is-active");
+            link.classList.add("is-active");
+          }
+        }
+      }
+    },
+    {
+      rootMargin: "-10% 0px -85% 0px",
+      threshold: 0
+    }
+  );
+
+  headings.forEach(h => obs.observe(h));
+
+  // Smooth scroll
+  tocList.addEventListener("click", (e) => {
+    if (e.target.tagName === "A") {
+      e.preventDefault();
+      const id = e.target.getAttribute("href").slice(1);
+      const target = document.getElementById(id);
+      if (target) {
+        const offset = parseFloat(getComputedStyle(root).getPropertyValue("--tm-scroll-offset")) || 90;
+        const top = target.getBoundingClientRect().top + window.scrollY - offset;
+        window.scrollTo({ top, behavior: "smooth" });
+      }
+    }
+  });
+});
+</script>
