@@ -40,6 +40,40 @@ pre[class*="language-"] {
   max-height: none !important;
 }
 
+/* Fix extra space at beginning of code blocks */
+.tm-article pre[class*="language-"] code {
+  padding: 0;
+  margin: 0;
+  display: block;
+  white-space: pre;
+}
+
+.tm-article pre[class*="language-"] {
+  padding: 1rem !important;
+  margin: 1.5em 0 !important;
+}
+
+/* Remove any extra indentation from code blocks */
+.tm-article pre code {
+  text-indent: 0;
+  padding-left: 0;
+}
+
+/* Disable line numbers plugin if it's adding spacing */
+.tm-article pre.line-numbers {
+  padding-left: 1rem !important;
+}
+
+.tm-article pre.line-numbers code {
+  padding-left: 0 !important;
+}
+
+/* Remove extra spacing from Prism */
+.tm-article .token {
+  padding: 0;
+  margin: 0;
+}
+
 /* Table styling - full width */
 .tm-article table {
   width: 100%;
@@ -1912,7 +1946,8 @@ document.addEventListener("DOMContentLoaded", () => {
   const preventCodeCollapse = () => {
     // Remove all code-block-wrapper structures if they exist
     document.querySelectorAll('.code-block-wrapper').forEach(wrapper => {
-      const pre = wrapper.querySelector('pre');
+      const content = wrapper.querySelector('.code-block-content');
+      const pre = content ? content.querySelector('pre') : wrapper.querySelector('pre');
       if (pre && wrapper.parentNode) {
         wrapper.parentNode.insertBefore(pre, wrapper);
         wrapper.remove();
@@ -1923,6 +1958,16 @@ document.addEventListener("DOMContentLoaded", () => {
     document.querySelectorAll('pre[class*="language-"]').forEach(pre => {
       pre.style.display = 'block';
       pre.style.maxHeight = 'none';
+
+      // Remove any wrapper divs that might have been added
+      if (pre.parentElement && pre.parentElement.classList.contains('code-block-content')) {
+        const parent = pre.parentElement;
+        const grandparent = parent.parentElement;
+        if (grandparent) {
+          grandparent.parentNode.insertBefore(pre, grandparent);
+          grandparent.remove();
+        }
+      }
     });
   };
 
@@ -1931,6 +1976,11 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Run again after a short delay to catch any late additions
   setTimeout(preventCodeCollapse, 100);
+
+  // Also run when Prism finishes highlighting
+  if (window.Prism) {
+    Prism.hooks.add('after-highlight', preventCodeCollapse);
+  }
 
   const root     = document.documentElement;
   const layoutEl = document.querySelector(".tm-layout") || document.body;
