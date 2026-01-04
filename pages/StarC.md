@@ -2047,7 +2047,7 @@ document.addEventListener("DOMContentLoaded", () => {
   tocList.innerHTML = "";
 
   const headings = Array.from(articleEl.querySelectorAll("h1, h2, h3, h4"))
-    .filter(h => !h.closest(".tm-toc") && !h.closest(".starc-header"));
+    .filter(h => !h.closest(".tm-toc"));
 
   if (!headings.length) {
     tocEl.style.display = "none";
