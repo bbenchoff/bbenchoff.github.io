@@ -40,6 +40,62 @@ pre[class*="language-"] {
   max-height: none !important;
 }
 
+/* Table styling - full width */
+.tm-article table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 1.5rem 0;
+  font-size: 0.95rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  background: white;
+}
+
+.tm-article table thead {
+  background: #f5f5f5;
+}
+
+.tm-article table th {
+  padding: 0.75rem 1rem;
+  text-align: left;
+  font-weight: 600;
+  border-bottom: 2px solid #ddd;
+  color: #333;
+}
+
+.tm-article table td {
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid #e0e0e0;
+  vertical-align: top;
+}
+
+.tm-article table tbody tr:hover {
+  background: #f9f9f9;
+}
+
+.tm-article table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+/* Code in tables */
+.tm-article table code {
+  background: rgba(0, 0, 0, 0.05);
+  padding: 0.2em 0.4em;
+  border-radius: 3px;
+  font-size: 0.9em;
+}
+
+/* Responsive tables */
+@media (max-width: 768px) {
+  .tm-article table {
+    font-size: 0.85rem;
+  }
+
+  .tm-article table th,
+  .tm-article table td {
+    padding: 0.5rem 0.75rem;
+  }
+}
+
 /* Table of Contents styling */
 :root {
   --tm-gap: 16px;
