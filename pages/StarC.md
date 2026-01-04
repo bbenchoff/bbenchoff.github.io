@@ -1,1904 +1,1602 @@
 ---
 layout: default
-title: "Blank"
-description: "Hardware engineering and PCB design documentation by Brian Benchoff"
-keywords: ["hardware engineering", "PCB design", "electronics", "reverse engineering"]
+title: "StarC: A Parallel C for Hypercube Computers"
+description: "Language specification for StarC v1.0"
+keywords: ["parallel programming", "hypercube", "Connection Machine", "TDMA"]
 author: "Brian Benchoff"
 date: 2025-06-04
-last_modified_at: 2022-06-04
+last_modified_at: 2025-06-04
 image: "/images/default.jpg"
 ---
 
 # StarC: A Parallel C for Hypercube Computers
 
-## Introduction: Why StarC Exists
+## Introduction
 
-The Connection Machine had two programming languages: C* (a parallel extension of C) and *Lisp (a parallel dialect of Lisp). Both are dead. The compilers don't exist. The documentation is scattered across university archives and the Internet Archive. If you want to program a hypercube computer in 2025, you're on your own.
+The C programming language is a product of the DEC PDP-11. C is the way it is because that's how the PDP-11 worked. `++` and `--` exist because the PDP-11 had auto-increment addressing modes. `*p++` isn't a trick; it's built into the hardware. Strings in C are `char` arrays with a 0 at the end, because that's what the PDP-11 did. C has no checks for array bounds because the PDP-11 didn't check array bounds in hardware. There's nothing wrong with what C does; like most things it is a product of the material conditions of its development.
 
-Modern parallel programming languages miss the point of a Connection Machine. MPI treats parallelism as message passing between independent processes. CUDA assumes a GPU with tens of thousands of lightweight threads. OpenMP is shared-memory parallelism with pragma annotations. None of these capture what the Connection Machine was: a SIMD machine where thousands of processors execute the same instruction simultaneously, operating on different data, with explicit control over which processors are active.
+StarC is what those material conditions look like for a hypercube.
 
-This machine—4,096 RISC-V microcontrollers arranged as a 12-dimensional hypercube—needs a programming model that matches its architecture. It needs a language where:
+This language was developed in parallel with a machine with 4,096 RISC-V microcontrollers arranged as a 12-dimensional hypercube. Each processor has 12 neighbors. Communication happens over a time-division multiplexed serial network with deterministic timing. This machine is obviously inspired by the Thinking Machines Connection Machine CM-1. There were two programming languages for the CM-1: C* and *Lisp. Both are dead. The machines that ran these languages are all powered down. If you want to program a hypercube machine in the 21st century, you're on your own. StarC was created to program this machine.
 
-- **Data is distributed** across all processors by default
-- **Operations happen everywhere** simultaneously
-- **Masking is first-class** - you explicitly control which processors execute
-- **Communication is topology-aware** - neighbor exchanges and dimension-ordered routing are primitives, not libraries
+There are subtle but significant differences between the Connection Machine CM-1 and the machine this language was designed for. The CM-1 had dedicated router ASICs at each node for arbitrary point-to-point communication. This machine doesn't. It has a TDMA schedule and neighbor links, nothing more. The CM-1 had 1-bit processors with hardware masking for true SIMD execution. This machine has 32-bit RISC-V cores running SPMD, but each processor executes independently. The CM-1 could hide communication latency behind its router. This machine cannot. The network schedule is visible, and communication happens when the schedule says it happens.
 
-StarC is that language. It's C, extended with primitives for data-parallel computation on a hypercube. It compiles to normal C code that runs on the actual hardware. The toolchain is simple: a Python preprocessor rewrites StarC syntax into runtime library calls, then a standard C compiler produces the firmware.
+These differences shape the language. No router means no `get(arbitrary_address)`. StarC only has neighbor exchange. TDMA means communication is batched into explicit `exchange` blocks, not scattered through code. SPMD means `where` is just syntax for `if`, not a hardware mask operation. The constraints of C* came from the CM-1's hardware. The constraints of StarC come from this machine's hardware.
 
-This isn't a research project. This isn't a language design exercise. This is the minimum viable language needed to make a hypercube computer programmable instead of merely operational.
+### Implementation
 
-## Open Design Questions
+In implementation, StarC compiles to C via a Python preprocessor. That's it. There is no virtual machine or garbage collector or runtime type system. The Python preprocessor rewrites `pvar<T>`, `where`, and `exchange` blocks into C with runtime calls. The runtime handles TDMA timing and communication. There's no magic, only just enough syntax to express hypercube algorithms without fighting the hardware. C was, and is, a thin wrapper over the PDP-11. StarC is a thin wrapper over a hypercube.
 
-This spec describes the language as designed. Several decisions remain open until validated against real hardware and real programs. This section tracks tensions between StarC's expressiveness and the TDMA network's constraints.
+Calling StarC an overcomplication of what could be a bunch of macros is probably correct. However, GCC has no idea about the rules of a hypercube. With StarC, exchange blocks can be validated, there is no accidental dependence on ordering, and no weird multi-superframe behavior. StarC exists to enforce the rules of the machine and illustrate what is possible within the confines of the hardware. Like C did with a PDP-11.
 
-### Neighbor Exchange Ordering
+**Recommended reading providing context to this specification**
 
-`nbr(dim, value)` maps directly to TDMA phases. Dimension 0 uses phases 0-1. Dimension 11 uses phases 22-23. Calling dimensions in ascending order is fast. Calling them out of order forces a wait until the next superframe:
-
-```c
-nbr(0, x);   // phase 0 or 1
-nbr(11, y);  // phase 22 or 23 — fast, same superframe
-
-nbr(11, y);  // phase 22 or 23
-nbr(0, x);   // phase 0 or 1 of NEXT superframe — 23 phases of dead time
-```
-
-**Unresolved:** Do we document this and let programmers deal with it? Add a `nbr_batch()` primitive that reorders internally? Have the preprocessor reorder independent `nbr()` calls? Unknown until we write real algorithms and see how often this bites.
-
-### Hotspot Permutations
-
-`get(source)` allows arbitrary communication patterns. But TDMA guarantees "one message per link per phase." If all 4,096 processors call `get(0)`, processor 0 cannot serve everyone in one superframe. The data must fan out through the hypercube over multiple cycles.
-
-**Unresolved:** How slow is slow? Is this acceptable for rare operations? Should `broadcast(source, value)` be a first-class primitive using tree distribution? Do we need combining at intermediate nodes? Unknown until we measure actual timings on hardware.
-
-### Collective Operation Rule Enforcement
-
-The rule: "All processors must reach collective operations in the same sequence." TDMA requires this for timing correctness. But StarC allows:
-
-```c
-if (pid() < 2048) {
-    x = reduce_sum(y);  // half the machine calls this
-}
-// other half never does — TDMA schedule breaks
-```
-
-**Unresolved:** Is "undefined behavior" sufficient, or do we need compile-time restrictions (collectives only at top-level scope), runtime detection, or tooling (playground warnings)? Unknown until we see how often programmers accidentally write this.
-
-### Payload Size Limits
-
-At 10 kHz phase rate with 1 Mbps baud, each phase carries ~100 bits (~10 bytes with header). StarC allows `pvar<float>`, arrays, structs. A 64-byte neighbor exchange doesn't fit in one phase.
-
-**Unresolved:** Do we define `STAR_MAX_PAYLOAD` and restrict types? Fragment large messages across superframes? Let users choose phase rate based on payload needs? Unknown until we know what payloads real algorithms require.
-
-### NEWS Communication
-
-The spec mentions NEWS (North-East-West-South) for 2D grid operations within chips. The TDMA spec only covers hypercube dimensions.
-
-**Unresolved:** How do NEWS directions map to dimensions 0-3? What happens at chip boundaries? Does NEWS use TDMA or a faster on-chip path? Punted to a future version. Hypercube primitives are the core; NEWS is nice-to-have for image processing.
-
-### Barrier Semantics
-
-`barrier()` is defined as "wait for end of superframe." But:
-- If called at phase 5, wait for phase 23 of this superframe, or phase 0 of next?
-- Do masked processors participate?
-
-**Working definition:** Barrier means "wait until the next superframe boundary; all processors participate regardless of mask state." Subject to revision based on what the firmware actually needs.
-
-### The Meta-Question
-
-The TDMA spec assumes lockstep execution. StarC assumes programmer flexibility. These are in tension. The more flexibility StarC provides (masking, conditionals, arbitrary permutations), the harder it is to maintain TDMA's guarantees.
-
-**Current stance:** Co-design carefully. Accept that some patterns are fast (neighbor exchange, reductions) and some are slow (arbitrary permutations, hotspots). Document costs. Use the playground to build intuition. Revise after building the 16-node AG32 board and writing real programs.
+- [TDMA Routing on a Hypercube](https://bbenchoff.github.io/pages/HypercubeTDMA.html)
 
 ---
 
-*This section will be revised or removed as questions are resolved through implementation.*
+# Part I: The Machine
 
-## The Programming Model
+---
 
-The Connection Machine's programming model, as described in Hillis's thesis, is fundamentally different from how most programmers think about parallelism today.
+## Chapter 1: Hardware Model
 
-**Traditional parallelism:** You have a sequential program. You identify parts that can run in parallel. You spawn threads or processes. You coordinate them with locks and messages. Parallelism is something you add to a serial program.
+Before writing StarC code, you need to understand what the code runs on. This chapter describes the physical machine.
 
-**CM-1 parallelism:** The machine IS parallel. There is no serial program. There are 4,096 processors. They all execute the same instruction stream (SIMD). Each processor has its own data. Operations happen everywhere simultaneously. Masking controls which processors are active. Communication moves data between processors according to the hypercube topology.
+### Dual Networks
 
-This is **set-centric programming**. You don't write loops over array elements. You write operations that apply to the entire set of processors. A variable doesn't hold one value—it holds 4,096 values, one per processor. When you write `x = x + 1`, that happens on all 4,096 processors simultaneously.
+The machine has two independent networks:
 
-Hillis called these distributed variables **xectors** (a portmanteau of "vector" and something else, probably "executor"). C* formalized them as **parallel variables with shapes**. StarC calls them `pvar<T>` - parallel variables of type T.
+**1. Hypercube Network (TDMA)**
 
-The key insight: **data structures are active**. An array isn't passive storage. It's 4,096 individual values, each owned by a processor, all operated on simultaneously. Computation happens through coordinated interactions across the network.
+The primary communication network. A 12-dimensional hypercube connecting all 4,096 processors. Each processor has 12 neighbors—one per dimension. Communication is time-division multiplexed over a single UART per processor. Deterministic latency: every operation completes in bounded time.
 
-### Xectors (Parallel Variables)
+This network handles: neighbor exchange, reductions, scans, broadcasts.
 
-A `pvar<T>` is one value per processor. If you have 4,096 processors and declare `pvar<int> x`, you have 4,096 separate integers, one in each processor's local memory.
+**2. Control Tree Network**
+
+A hierarchical network separate from the hypercube. The structure is:
+
+- 16 nodes per slice controller
+- 16 slice controllers per plane controller  
+- 16 plane controllers per machine controller
+- Machine controller connects to host PC
+
+Physical connections are single-wire serial from slice controllers to nodes. Higher bandwidth than the hypercube for bulk transfers, but variable latency.
+
+This network handles: programming nodes, LED updates, bulk data transfer, host I/O.
+
+```
+                    ┌──────────────┐
+                    │    Host PC   │
+                    └──────┬───────┘
+                           │ USB
+                    ┌──────┴───────┐
+                    │   Machine    │
+                    │  Controller  │
+                    └──────┬───────┘
+           ┌───────────────┼───────────────┐
+           │               │               │
+    ┌──────┴──────┐ ┌──────┴──────┐ ┌──────┴──────┐
+    │    Plane    │ │    Plane    │ │    Plane    │  (×16)
+    │  Controller │ │  Controller │ │  Controller │
+    └──────┬──────┘ └──────┬──────┘ └──────┬──────┘
+           │               │               │
+      ┌────┴────┐     ┌────┴────┐     ┌────┴────┐
+      │  Slice  │     │  Slice  │     │  Slice  │     (×16 per plane)
+      │Controller│    │Controller│    │Controller│
+      └────┬────┘     └────┬────┘     └────┬────┘
+           │               │               │
+       ┌───┴───┐       ┌───┴───┐       ┌───┴───┐
+       │ Nodes │       │ Nodes │       │ Nodes │      (×16 per slice)
+       │ 0-15  │       │ 0-15  │       │ 0-15  │
+       └───────┘       └───────┘       └───────┘
+```
+
+StarC communication primitives use the hypercube network. Host I/O functions use the control tree.
+
+### TDMA Timing
+
+The hypercube network operates on a fixed schedule. Time is divided into phases, and phases are grouped into superframes.
+
+**Default timing configuration:**
+
+| Parameter | Value |
+|-----------|-------|
+| Phase clock | 1 kHz |
+| Phase duration | 1 ms |
+| Phases per superframe | 24 |
+| Superframe duration | 24 ms |
+| Serial baud rate | 1 Mbps |
+| Payload per phase | 80 bytes |
+
+Each of the 12 dimensions gets two phases per superframe: one for each direction. In dimension *d*, processors with bit *d* = 0 transmit first, then processors with bit *d* = 1 transmit. Dimension 0 uses phases 0-1. Dimension 11 uses phases 22-23.
+
+**TDMA properties:**
+
+- **No collisions.** Each link has exactly one transmitter per phase. The schedule guarantees this.
+- **No arbitrary routing.** There is no `get(address)` or `send(address, value)`. You cannot send a message to an arbitrary processor. You can only exchange with your 12 hypercube neighbors.
+- **No adaptive forwarding.** Packets don't route around congestion. There is no congestion—the schedule determines everything.
+- **Multi-hop collectives exist** but are implemented as structured tree algorithms over neighbor links, not general routing. A reduction traverses dimensions 0→11 in order, exchanging with neighbors at each step. The path is fixed, not computed per-packet.
+
+### Message Framing
+
+Each phase transmits one frame:
+
+```
+┌──────┬────────┬────────┬─────────────────┬───────┐
+│ Sync │ Header │ Length │     Payload     │ CRC16 │
+│  1B  │   1B   │   1B   │    0-80 B       │  2B   │
+└──────┴────────┴────────┴─────────────────┴───────┘
+```
+
+| Field | Size | Description |
+|-------|------|-------------|
+| Sync | 1 byte | 0xAA — byte alignment |
+| Header | 1 byte | Flags and metadata |
+| Length | 1 byte | Payload length (0-80) |
+| Payload | 0-80 bytes | User data |
+| CRC-16 | 2 bytes | Error detection |
+
+At 1 Mbps with 1 ms phases, approximately 100 bytes can transit per phase. After framing overhead and timing margins, 80 bytes of payload remain.
+
+### Addressing
+
+The 4,096 processors can be viewed two ways.
+
+**Hypercube view:** Each processor has a 12-bit address (0-4095). Two processors are neighbors if their addresses differ by exactly one bit. Processor 0x2A3 has neighbors at 0x2A2 (bit 0 differs), 0x2A1 (bit 1 differs), 0x2A7 (bit 2 differs), and so on for all 12 bits.
+
+**Grid view:** The processors form a 64×64 toroidal grid. Each processor has a row (0-63) and column (0-63). The grid wraps: row 0's north neighbor is row 63, column 63's east neighbor is column 0.
+
+These views are equivalent through Gray code mapping:
+
+```c
+// Convert grid position to processor ID
+int grid_to_pid(int row, int col) {
+    int gray_row = row ^ (row >> 1);  // 6-bit Gray code
+    int gray_col = col ^ (col >> 1);  // 6-bit Gray code
+    return (gray_row << 6) | gray_col;
+}
+```
+
+**Why Gray code?** In Gray code, adjacent values differ by exactly one bit. Moving one step in any cardinal direction—including wrapping at edges—changes exactly one bit of the address. Every NEWS direction is exactly one hypercube hop.
+
+**Dimension mapping:**
+
+- Bits 0-5 (dimensions 0-5): column position
+- Bits 6-11 (dimensions 6-11): row position
+- EAST/WEST movement: dimensions 0-5
+- NORTH/SOUTH movement: dimensions 6-11
+
+### The LED Array
+
+Each processor has one LED. The 64×64 LED matrix maps directly to the 64×64 grid view. Position (row, col) shows the LED of the processor at that grid position.
+
+LEDs are updated via the control tree, not the hypercube network. Setting an LED is a local operation that doesn't require an exchange block.
+
+---
+
+## Chapter 2: Design Constraints
+
+The CM-1 and this machine are both hypercubes. But they're built differently, and those differences determine what the programming language can and cannot do.
+
+### What the CM-1 Had
+
+**Router ASICs.** Every CM-1 node had a dedicated routing chip that could accept messages at any time, buffer them, and forward them toward their destination. This enabled arbitrary point-to-point communication. Any processor could send a message to any other processor.
+
+**1-bit processors with hardware masking.** The CM-1 processors were 1-bit wide and operated in true SIMD fashion. A global instruction stream controlled all processors simultaneously. Hardware masking disabled processors that shouldn't participate in an operation—they still executed the instruction, but results were discarded.
+
+**Hidden latency.** The router buffered messages and handled delivery asynchronously. A program could issue a send and continue computing while the router worked.
+
+### What This Machine Has Instead
+
+**TDMA schedule and neighbor links.** No router. Each processor can only talk to its 12 hypercube neighbors, and only during the scheduled phases. There's no buffering, no forwarding, no arbitrary addressing.
+
+**32-bit RISC-V cores running SPMD.** Each processor is a full 32-bit microcontroller executing independently. There's no global instruction stream. Processors run the same program but make independent control flow decisions. "Masking" is just `if` statements.
+
+**Visible latency.** Communication happens when the schedule says it happens. If you miss a phase, you wait for the next superframe. The network timing is part of the programming model.
+
+### How These Differences Shape the Language
+
+**No router → no `get(arbitrary_address)`.**
+
+C* and *Lisp had primitives to read from or write to any processor. This requires routing through intermediate nodes. We can't do that—we have no router. StarC only has neighbor exchange: `nbr(dimension, value)` swaps values with your neighbor in that dimension. Everything else is built on top of that.
+
+**TDMA → explicit `exchange` blocks.**
+
+In C*, you could scatter communication calls throughout your code. The router would handle them whenever. We can't do that—communication only works during the right phase. StarC batches all communication into explicit `exchange` blocks. Inside the block, you declare what exchanges you need. The runtime schedules them optimally within the TDMA superframe.
+
+**SPMD → `where` is just `if`.**
+
+In C*, `where` was a hardware operation that masked processors. Inactive processors still executed but discarded results. In StarC, `where` is syntactic sugar for `if`. Each processor independently decides whether to execute the body. There's no hardware masking—just conditional execution.
+
+### Why No Arbitrary Routing?
+
+Building a router is hard. The CM-1's router was a significant fraction of the machine's complexity and cost. We don't have the budget for custom ASICs.
+
+But here's the thing: most parallel algorithms don't need arbitrary routing.
+
+| Algorithm | Communication Pattern | Needs Routing? |
+|-----------|----------------------|----------------|
+| Bitonic sort | `pid XOR 2^k` — hypercube neighbor | No |
+| Parallel prefix | Tree over dimensions | No |
+| Reduction | Tree over dimensions | No |
+| Stencils | NEWS neighbors | No |
+| FFT | Dimension-ordered exchange | No |
+| Matrix multiply | Broadcasts + local compute | No |
+| Game of Life | 8 neighbors | No |
+
+Bitonic sort is the canonical example. The inner loop exchanges with `pid XOR j` where j is a power of 2. That's a single-bit difference—always a hypercube neighbor. The algorithm is topology-aware.
+
+Algorithms that genuinely need arbitrary routing—sparse matrix, irregular graph traversal, hash tables—should use a GPU or a machine with a real interconnect. The hypercube excels at structured, topology-aware communication. StarC supports what the hypercube does well.
+
+### Design Principles
+
+These constraints lead to clear design principles:
+
+1. **Data is distributed.** Each processor has its own data. There's no shared memory.
+
+2. **Operations happen everywhere.** When you write `x = x + 1`, all 4,096 processors increment their local `x`.
+
+3. **Communication is batched.** All exchanges go in `exchange` blocks. The runtime schedules them.
+
+4. **The topology is visible.** You know you're on a hypercube. You know what dimensions cost.
+
+5. **Only hypercube-native operations.** Neighbor exchange, tree reductions, broadcasts. No arbitrary permutation.
+
+---
+
+# Part II: The Language
+
+---
+
+## Chapter 3: Data Model
+
+This chapter covers how data is represented in StarC: parallel variables, scalars, and processor identity.
+
+### Parallel Variables
+
+A `pvar<T>` is a **type qualifier** meaning "this value exists once per processor." In generated code, it's just a local variable—there's no distributed shared memory, no magic synchronization. Each of the 4,096 processors has its own independent copy.
 
 ```c
 pvar<int> x;              // 4,096 integers, one per processor
 pvar<float> temperature;  // 4,096 floats
-pvar<char> pixel;         // 4,096 bytes
+pvar<point_t> position;   // 4,096 structs
 ```
 
-Each processor can read and write its own value:
+When you operate on a pvar, all processors execute the operation simultaneously:
 
 ```c
-x = 42;                   // All 4,096 processors store 42
-x = pid();                // Each processor stores its own ID (0-4095)
-x = x + 1;                // All processors increment their local copy
+x = 42;           // All 4,096 processors store 42
+x = pid();        // Each processor stores its own ID (0-4095)
+x = x + 1;        // All processors increment their local x
 ```
 
-But the power comes from operations that move data between processors or combine values across the entire machine.
-
-### Processor Identity
-
-Each processor needs to know its own address in the hypercube:
+**Initial values are undefined.** A freshly declared pvar contains garbage—whatever was in that memory location. Always initialize before use:
 
 ```c
-int pid()           // Returns this processor's 12-bit address (0-4095)
-int coord(int dim)  // Returns bit d of this processor's address
+pvar<int> x;      // Undefined—could be anything
+x = 0;            // Now defined
 ```
 
-This is how you write position-dependent code:
+### Scalars
+
+Scalars are ordinary C variables. They have the same value on all processors:
+
+```c
+int iterations = 1000;    // Same on all processors
+float threshold = 0.001f; // Same on all processors
+```
+
+Scalars are used for control flow (loop counters, convergence flags) and constants. They're replicated, not distributed.
+
+**Mixing scalars and pvars:**
 
 ```c
 pvar<int> x;
-x = pid();        // Processor 0 stores 0, processor 1 stores 1, etc.
+int scalar = 100;
+
+x = scalar;          // Every processor stores 100
+x = x + scalar;      // Every processor adds 100 to its x
+x = x * 2;           // Every processor doubles its x
+```
+
+**You cannot assign a pvar to a scalar:**
+
+```c
+int scalar = x;      // ERROR: which processor's x?
+```
+
+To get a scalar from parallel data, use a reduction:
+
+```c
+int total = reduce_sum(x);   // Sum across all processors
+int maximum = reduce_max(x); // Maximum across all processors
+```
+
+### Processor Identity
+
+Every processor knows who it is:
+
+```c
+int pid()              // Hypercube address (0-4095)
+int coord(int dim)     // Bit 'dim' of the address (0 or 1)
+int grid_row()         // Grid row (0-63)  
+int grid_col()         // Grid column (0-63)
+```
+
+These are how you write position-dependent code:
+
+```c
+pvar<int> x;
+x = pid();            // Each processor stores its own ID
 
 if (coord(0) == 1) {
     // Only processors with bit 0 set execute this
     // That's processors 1, 3, 5, 7, ... (odd addresses)
 }
+
+// Initialize based on grid position
+pvar<int> distance_from_center;
+int dr = grid_row() - 32;
+int dc = grid_col() - 32;
+distance_from_center = dr*dr + dc*dc;
 ```
 
-### Masking with `where`
+### Type Limits
 
-The `where` statement is the most important primitive in StarC. It controls which processors execute a block of code.
+**Maximum pvar size for exchange: 80 bytes.**
+
+This is the payload limit per phase at 1 kHz. If your struct exceeds this, you'll need to split exchanges or use a slower phase rate.
+
+**No pointers in pvars:**
 
 ```c
-where (x > 100) {
-    x = x * 2;
+pvar<int*> ptr;       // ERROR: pointers don't make sense
+```
+
+A pointer on processor 17 pointing to processor 42's memory is meaningless—there's no shared address space.
+
+**No nested pvars:**
+
+```c
+pvar<pvar<int>> x;    // ERROR: doesn't make sense
+```
+
+### Struct Padding
+
+When approaching the 80-byte limit, padding matters:
+
+```c
+// Bad: padding wastes space
+typedef struct {
+    char a;       // 1 byte
+    int b;        // 4 bytes (3 bytes padding before)
+    char c;       // 1 byte (3 bytes padding after)
+} padded_t;       // 12 bytes!
+
+// Good: ordered by size
+typedef struct {
+    int b;        // 4 bytes
+    char a;       // 1 byte
+    char c;       // 1 byte
+} packed_t;       // 6 bytes (2 bytes trailing padding)
+
+// Best: explicit packing
+typedef struct __attribute__((packed)) {
+    int b;
+    char a;
+    char c;
+} tight_t;        // 6 bytes, no padding
+```
+
+Order struct members from largest to smallest, or use `__attribute__((packed))` when you need precise control.
+
+### Arrays of Pvars
+
+Arrays of pvars create multiple values per processor:
+
+```c
+pvar<int> buffer[256];    // Each processor has 256 integers
+                          // Total: 4,096 × 256 = 1M integers
+```
+
+Indexing works as expected:
+
+```c
+pvar<int> A[100];
+int i = 50;               // Scalar index
+
+A[i] = pid();             // All processors write to their A[50]
+
+pvar<int> j = pid() % 100;  // Parallel index
+pvar<int> val = A[j];       // Each processor reads a different element
+```
+
+---
+
+## Chapter 4: Control Flow
+
+StarC distinguishes between uniform and divergent control flow. This distinction matters because exchange blocks require all processors to participate together.
+
+### Two-Phase Execution
+
+StarC programs alternate between two phases:
+
+**Compute phase:** Local operations only. Arithmetic, memory access, control flow. No network communication.
+
+```c
+data = expensive_math(data);
+if (data > threshold) data = threshold;
+local_array[i] = data;
+```
+
+**Exchange phase:** Network communication. Batched into explicit `exchange` blocks.
+
+```c
+exchange {
+    neighbor = nbr(0, data);
+    total = reduce_sum(data);
 }
 ```
 
-This means: "For processors where x is greater than 100, double x. All other processors do nothing."
+The rhythm is: compute, exchange, compute, exchange. This matches the hardware: the MCU computes, then waits for the TDMA schedule to move data.
 
-Inactive processors still participate in the instruction stream (it's SIMD), but they don't modify their state. If a `where` block contains a reduction or scan, inactive processors contribute identity elements (0 for sum, -∞ for max, etc.) but still participate in the communication pattern.
+### Uniform Control Flow
+
+Uniform control flow means all processors take the same path. The condition is a scalar—same value on all processors.
 
 ```c
-where (coord(0) == 0) {
-    // Only even-addressed processors
-    y = reduce_sum(x);  // Sum only the even processors' values
+int threshold = 100;          // Scalar—same everywhere
+
+if (threshold > 50) {         // All processors take this branch
+    data = data * 2;          // All processors execute this
+}
+
+for (int i = 0; i < 10; i++) { // Scalar loop counter
+    // All processors execute this loop 10 times
 }
 ```
 
-`where` can nest:
+Exchange blocks are allowed inside uniform control flow:
+
+```c
+for (int iter = 0; iter < 1000; iter++) {  // Scalar bound
+    exchange {
+        n = news(NORTH, temp);             // All processors participate
+    }
+    temp = update(temp, n);
+}
+```
+
+### Divergent Control Flow
+
+Divergent control flow means processors take different paths. The condition is a pvar—different value on each processor.
+
+StarC uses `where` for divergent control flow:
+
+```c
+pvar<int> x;
+
+where (x > 100) {             // Some processors execute, others don't
+    x = 0;                    // Only where condition is true
+}
+```
+
+Each processor independently evaluates `x > 100` and decides whether to execute the body.
+
+**`if` vs `where`:**
+
+- `if (scalar_condition)` — uniform, all processors same branch
+- `where (pvar_condition)` — divergent, per-processor decision
+
+This distinction is enforced. If you write `if (pvar_condition)`, the preprocessor warns you. Use `where` to signal divergent intent.
+
+**Exchange blocks are NOT allowed inside `where`:**
 
 ```c
 where (x > 0) {
-    where (y > 0) {
-        z = x + y;  // Only where both x and y are positive
+    exchange {                // ERROR: divergent exchange
+        y = nbr(0, x);
     }
 }
 ```
 
-The runtime maintains a **mask stack**. Each `where` pushes a mask onto the stack. When the block exits, the mask is popped. This is invisible to the programmer but critical for correct execution.
+This is illegal because some processors would skip the exchange. The TDMA schedule requires all processors to participate—if half the processors don't transmit during their phase, communication breaks.
 
-### Variable Types: Scalar vs Parallel
-
-StarC has two kinds of variables with fundamentally different semantics:
-
-**Scalar variables** (normal C):
-```c
-int count = 0;
-float pi = 3.14159;
-char buffer[256];
-```
-
-Scalars exist **once** - the same value is replicated across all processors. Every processor executes the same scalar operations and sees the same scalar values. Scalars are how you write code that coordinates parallel operations.
-
-**Parallel variables** (pvars):
-```c
-pvar<int> x;
-pvar<float> temperature;
-pvar<uint8_t> pixel;
-```
-
-Pvars exist **4,096 times** - each processor has its own distinct value. Operations on pvars happen simultaneously on all processors, each operating on their local copy.
-
-**Mixing scalar and parallel:**
-```c
-pvar<int> x;
-int scalar_value = 100;
-
-x = scalar_value;          // Every processor stores 100
-x = x + scalar_value;      // Every processor adds 100 to its local x
-x = x + 1;                 // Every processor increments its local x
-
-int total = reduce_sum(x); // Reduce pvar to scalar - same result on all processors
-```
-
-**Key distinction:** Scalars are for **control** and **coordination**. Pvars are for **data**. Loop counters are scalar. Data being processed is parallel.
-
-**Assignment semantics:**
-```c
-pvar<int> x = 5;           // All processors: x ← 5
-pvar<int> y = pid();       // Each processor: y ← its own address
-
-int s1 = 42;               // All processors: s1 ← 42 (replicated)
-int s2 = reduce_sum(x);    // All processors: s2 ← sum(all x values) (same everywhere)
-```
-
-**What you cannot do:**
-```c
-int scalar = x;            // ERROR: cannot assign pvar to scalar
-                          // (which processor's value would you use?)
-
-pvar<int> x = some_function_returning_different_values();
-                          // ERROR: right side must be deterministic
-                          // (all processors must compute same expression)
-```
-
-To convert a pvar to a scalar, you must use a reduction or explicitly select one processor's value:
-```c
-int result = reduce_sum(x);     // Sum all processors' x values
-int first = (pid() == 0) ? x : 0;  // Only processor 0's value (others get 0)
-```
-
-## Core Primitives
-
-StarC provides five categories of primitives that map directly to the hypercube architecture:
-
-1. **Xectors and shapes** - distributed data
-2. **Processor selection** - masking
-3. **Communication** - moving data between processors
-4. **Collective operations** - reductions, scans, broadcasts
-5. **Synchronization** - barriers and phase control
-6. **LED Control** - because we have to do this
-
-### Xectors and Shapes
+**Solution: make data conditional, not exchange:**
 
 ```c
-pvar<T>          // Declare a parallel variable of type T
-pid()            // Get this processor's 12-bit address
-coord(dim)       // Get bit 'dim' of this processor's address
-```
-
-**Example:**
-```c
-pvar<int> data;
-data = pid() * 2;  // Each processor stores 2× its address
-```
-
-#### Arrays of Parallel Variables
-
-Arrays of pvars create multiple parallel values per processor:
-```c
-pvar<int> local_data[1024];  // Each processor has 1,024 integers
-```
-
-This creates 4,096 × 1,024 = 4,194,304 total integers distributed across the machine.
-
-**Indexing with scalars:**
-```c
-pvar<int> A[100];
-
-for (int i = 0; i < 100; i++) {  // Scalar loop counter
-    A[i] = i;                     // All processors: A[i] ← i
-}
-// Now all processors have [0, 1, 2, ..., 99] in their local A array
-```
-
-The index `i` is the same on all processors, so all processors access the same element of their local array.
-
-**Indexing with pvars:**
-```c
-pvar<int> A[256];
-pvar<int> index;
-
-index = pid() % 256;     // Each processor computes different index
-pvar<int> value = A[index];  // Each processor reads different element
-
-// This is legal but watch out: different processors access different elements
-```
-
-**Memory layout:**
-
-Arrays are stored in each processor's local memory. `A[0]` through `A[n-1]` are consecutive in the local address space. There is no shared memory - every processor has its own copy of the array.
-
-**Multi-dimensional arrays:**
-```c
-pvar<float> matrix[64][64];  // 64×64 matrix per processor
-
-matrix[row][col] = 0.0f;     // Access with scalar indices
-```
-
-**Common pattern - distributed vectors:**
-```c
-// Distribute a 4096-element vector: each processor holds one element
-pvar<float> my_element;
-
-// Distribute a 4096×1024 matrix: each processor holds one row of 1024 elements  
-pvar<float> my_row[1024];
-```
-
-### Type System
-
-**Legal types for pvars:**
-```c
-// Primitive types
-pvar<int>              // 32-bit signed integer
-pvar<float>            // 32-bit floating point
-pvar<double>           // 64-bit floating point (if hardware supports)
-pvar<char>             // 8-bit character
-pvar<uint8_t>          // 8-bit unsigned
-pvar<uint16_t>         // 16-bit unsigned
-pvar<uint32_t>         // 32-bit unsigned
-pvar<int64_t>          // 64-bit signed (if hardware supports)
-
-// Structs
-pvar<struct point { int x; int y; }>
-pvar<struct rgb { uint8_t r, g, b; }>
-
-// Typedef'd types
-typedef struct { float x, y, z; } vec3;
-pvar<vec3> position;
-```
-
-**Illegal types for pvars:**
-```c
-pvar<int*>             // ERROR: no pointers in pvars
-pvar<int[]>            // ERROR: no variable-length arrays
-pvar<pvar<int>>        // ERROR: no nested pvars
-pvar<void>             // ERROR: void has no size
-```
-
-**Type conversions:**
-
-Implicit conversions work as in C:
-```c
-pvar<int> x = 5;
-pvar<float> y = x;     // int → float conversion
-pvar<uint8_t> z = y;   // float → uint8_t (truncation)
-```
-
-Explicit casts:
-```c
-pvar<int> x = 1000;
-pvar<uint8_t> y = (uint8_t)x;  // Explicit truncation
-```
-
-**Structure member access:**
-```c
-typedef struct { int x; int y; } point;
-pvar<point> p;
-
-p.x = 10;              // Set x member on all processors
-p.y = pid();           // Set y member to processor address
-
-pvar<int> sum = p.x + p.y;  // Read members
-```
-
-**Size considerations:**
-
-Communication primitives (`nbr`, `get`, `send`) need to know the size of data being moved. The runtime uses `sizeof(T)` to determine how many bytes to transmit. Large structs are legal but expensive to communicate.
-```c
-typedef struct { float data[256]; } big_struct;
-pvar<big_struct> x;
-
-// This works but transmits 1KB per processor per exchange
-pvar<big_struct> neighbor = nbr(0, x);  
-```
-
-### Control Flow
-
-StarC is **SPMD**: every processor runs the same program, but control flow may diverge based on per-processor state. Conditions may depend on `pid()`, `coord(dim)`, or `pvar` values, and different processors may take different branches.
-
-The catch is that StarC runs on a TDMA-synchronized network. The TDMA clock makes link timing deterministic, but **it does not make divergent software magically safe**. To keep communication correct, StarC defines a strict rule:
-
-> **Collective Operation Rule:** Any operation that touches the network is a **collective operation** and must be executed in a compatible order by all required participants.
->
-> Collective operations include: `nbr`, all `reduce_*`, all `scan_*`, `get`, `send`, `prs`, `pact`, `barrier`, and `sync_dim`.
->
-> * **Global collectives** (`reduce_*`, `scan_*`, `barrier`) must be reached by **all processors** in the same sequence.
-> * **Edge collectives** (`nbr(dim, ...)`) must be reached by **both endpoints of every edge in that dimension** in the same sequence (same `dim`, same payload size).
->
-> Violating this rule is **undefined behavior** (typically deadlock or garbage data).
-
-With that rule in mind, StarC supports two broad kinds of control flow.
-
----
-
-#### Uniform control flow
-
-Uniform control flow is code where all processors take the same branch and execute the same iteration counts. This is ordinary C control flow that happens to be executed everywhere.
-
-```c
-int n = 100;
-
-for (int i = 0; i < n; i++) {
-    // All processors execute this loop n times.
-    // Loop counter 'i' has the same value on all processors.
-}
-
-if (n > 50) {
-    // All processors execute this branch (or all skip it).
-}
-
-while (n > 0) {
-    n--;
-    // All processors execute this loop together.
+pvar<int> to_send = (x > 0) ? x : 0;  // Conditional data
+exchange {
+    y = nbr(0, to_send);              // All processors participate
 }
 ```
 
-Uniform control flow is always safe with respect to communication, because it preserves the same collective call ordering across processors.
+### Nesting
 
----
-
-#### Divergent control flow (per-processor branching)
-
-Divergent control flow is allowed. Any processor may take different branches based on per-processor values:
+Uniform inside uniform: fine.
 
 ```c
-pvar<int> x;
-
-if (x > 100) {
-    // Only processors where x > 100 execute this block.
-    x = 0;
-}
-```
-
-This is legal in StarC. There is no special “scalar if” restriction: `if` conditions may depend on `pvar` values.
-
-However, **divergent control flow must still obey the Collective Operation Rule**. In practice:
-
-* Divergence is always safe for **local-only work** (computation, local memory updates, LED updates, host I/O buffering, etc.).
-* Divergence is **unsafe** if it causes processors to execute **different sequences of collective operations**.
-
-**Illegal (mismatched collective):**
-
-```c
-if (pid() == 0) {
-    x = nbr(0, x);   // Only processor 0 calls nbr → mismatch → undefined behavior
-}
-```
-
-**Legal (balanced collective):**
-
-```c
-if (pid() == 0) {
-    x = nbr(0, x);
-} else {
-    x = nbr(0, x);   // Everyone calls nbr(0) exactly once → safe
-}
-```
-
-**Legal (conditional participation via identity values):**
-
-```c
-int active = (x > 100);
-int contrib = active ? x : 0;
-int sum = reduce_sum(contrib);   // Everyone calls reduce_sum once → safe
-```
-
----
-
-#### The `where` construct
-
-`where (cond) { ... }` is syntactic sugar for an `if` block intended to make “per-processor selection” visually explicit:
-
-```c
-where (x > 100) {
-    x = 0;
-}
-```
-
-This is equivalent to:
-
-```c
-if (x > 100) {
-    x = 0;
-}
-```
-
-`where` does **not** imply SIMD-style masking in v0.1; it is a readability feature for data-parallel code.
-
-As with `if`, code inside `where` must obey the **Collective Operation Rule**.
-
----
-
-#### Loops with varying conditions
-
-Loops whose termination depends on per-processor state are allowed, but they are a common source of collective mismatches. The safe pattern is:
-
-1. Use a **uniform** loop bound for the structure (same on all processors), and
-2. Use a **global collective** to decide early exit.
-
-```c
-pvar<int> has_data;
-
-for (int iter = 0; iter < MAX_ITERS; iter++) {
-    int any_active = reduce_or(has_data != 0);
-    if (!any_active) break;   // Uniform early exit (same on all processors)
-
-    if (has_data != 0) {
-        // Local-only processing is fine here
-        has_data = process_step(has_data);
-    }
-
-    barrier();  // Optional: reconverge before the next collective-heavy phase
-}
-```
-
-**Rule of thumb:** if a loop body contains any collective operation, the loop must execute the same number of collective calls in the same order on all processors.
-
-### Function Definitions
-
-Functions can operate on scalars, pvars, or both:
-
-**Functions with scalar parameters:**
-```c
-int square(int x) {
-    return x * x;
-}
-
-int result = square(5);  // Normal C function call
-```
-
-**Functions with pvar parameters:**
-```c
-pvar<int> double_value(pvar<int> x) {
-    return x * 2;
-}
-
-pvar<int> a;
-pvar<int> b = double_value(a);  // Each processor calls with its own 'a'
-```
-
-**Mixed parameters:**
-```c
-pvar<int> scale(pvar<int> x, int factor) {
-    return x * factor;  // factor is scalar (same on all processors)
-}
-
-pvar<int> result = scale(data, 10);
-```
-
-**Calling convention:**
-
-Functions execute on all processors simultaneously. Each processor calls the function with its own pvar values:
-```c
-pvar<int> compute(pvar<int> x) {
-    pvar<int> temp = x * x;
-    temp = nbr(0, temp);  // Communication inside function
-    return temp;
-}
-
-pvar<int> y = compute(my_data);
-// All processors call compute() in lockstep
-// Each processor passes its own my_data
-```
-
-**Return values:**
-
-- Functions returning pvars: each processor gets its own result
-- Functions returning scalars: all processors get the same result
-```c
-int max_of_pvar(pvar<int> x) {
-    return reduce_max(x);  // Returns scalar (same on all processors)
-}
-
-pvar<int> increment(pvar<int> x) {
-    return x + 1;  // Returns pvar (different per processor)
-}
-```
-
-**Restrictions:**
-
-Functions cannot have side effects that break SIMD execution:
-```c
-// ILLEGAL: different processors would call at different times
-pvar<int> bad_function(pvar<int> x) {
-    if (x > 0) {  // ERROR: cannot use pvar condition
-        return x * 2;
-    } else {
-        return x;
+for (int i = 0; i < 10; i++) {
+    if (i % 2 == 0) {
+        // All processors, on even iterations
     }
 }
+```
 
-// CORRECT: use where for conditional logic
-pvar<int> good_function(pvar<int> x) {
-    pvar<int> result = x;
-    where (x > 0) {
-        result = x * 2;
+Divergent inside divergent: fine.
+
+```c
+where (x > 0) {
+    where (x > 100) {
+        x = 100;              // Only where x > 100
     }
+}
+```
+
+Divergent inside uniform: fine.
+
+```c
+for (int i = 0; i < 10; i++) {
+    where (x > i) {
+        x = x - 1;            // Per-processor conditional
+    }
+}
+```
+
+Uniform with exchange inside divergent: **not allowed**.
+
+```c
+where (x > 0) {
+    for (int i = 0; i < 10; i++) {
+        exchange { ... }      // ERROR: inside divergent
+    }
+}
+```
+
+### Functions
+
+Functions can take pvar parameters and use `where`:
+
+```c
+pvar<float> clamp(pvar<float> x, float lo, float hi) {
+    pvar<float> result = x;
+    where (x < lo) { result = lo; }
+    where (x > hi) { result = hi; }
     return result;
 }
+
+pvar<float> data;
+data = clamp(data, 0.0f, 1.0f);  // All processors call simultaneously
 ```
 
-**Inlining:**
+**Rules for functions:**
 
-The preprocessor does not automatically inline functions. For performance-critical code, consider using macros or relying on the C compiler's inline optimization:
+- All processors call the function together (SPMD)
+- `where` inside functions works normally
+- No `exchange` blocks inside functions—move them to the caller
+
+The no-exchange rule keeps function semantics simple. A function is pure local computation. Communication happens at the call site.
+
+---
+
+## Chapter 5: Communication
+
+All communication happens inside `exchange` blocks. This chapter covers the exchange block mechanics and each communication primitive.
+
+### Exchange Blocks
+
+An `exchange` block declares what communications are needed. It's not sequential code—it's a **declaration** that the runtime executes optimally.
+
 ```c
-static inline pvar<int> fast_function(pvar<int> x) {
-    return x * x;
+exchange {
+    a = nbr(0, x);
+    b = nbr(5, y);
+    total = reduce_sum(z);
 }
 ```
 
-**Recursion:**
+**Snapshot semantics:** All input values are captured at block entry. You cannot use the result of one exchange as input to another within the same block.
 
-Recursion is legal but remember that the call depth is the same on all processors. The recursion is scalar (same depth everywhere), even if operating on pvar data:
 ```c
-pvar<int> factorial(int n, pvar<int> x) {  // n is scalar depth
-    if (n <= 1) return x;
-    return factorial(n - 1, x * n);
+pvar<int> x = 5;
+exchange {
+    a = nbr(0, x);    // Captures x=5
+    b = nbr(1, x);    // Also captures x=5, not 'a'
 }
-
-pvar<int> result = factorial(5, pid());  // All processors recurse 5 levels
+// Now a and b are valid
 ```
 
-### Processor Selection (where)
+**Rules:**
+
+1. Communication primitives may ONLY appear inside `exchange` blocks
+2. No using results from the same block as inputs
+3. No nested `exchange` blocks
+4. No `exchange` inside `where` blocks
+5. Scalar control flow (loops with scalar bounds) IS allowed
+
+**Scalar loops in exchange blocks:**
 
 ```c
-where (condition) { ... }       // Execute only where condition is true
-where (condition) { ... } else { ... }  // With explicit else branch
-```
-
-**Example:**
-```c
-pvar<int> x, y;
-where (x > y) {
-    x = y;  // Clamp x to y where x exceeds y
+exchange {
+    for (int d = 0; d < 12; d++) {
+        neighbors[d] = nbr(d, data);
+    }
 }
 ```
 
-### Communication Primitives
+This is allowed because the loop counter is scalar—it's just syntactic sugar for 12 declarations. The rule is: **scalar control flow that can be unrolled at compile time is allowed**.
 
-This is where StarC becomes more than just "C with parallel variables." Communication exposes the hypercube topology and the TDMA message-passing scheme.
+**Capacity limit:** If declared exchanges exceed one superframe's capacity, the runtime aborts with an error. This is deliberate—automatic splitting would hide costs and make performance unpredictable. If you need more, use multiple exchange blocks.
 
-#### NEWS Communication (Grid Topology)
-
-While `nbr(dim, value)` exchanges data along hypercube dimensions, many algorithms think in terms of 2D grids. NEWS communication provides cardinal-direction exchanges within the 4×4 processor grid on each chip.
-
-**Primitives:**
-```c
-T news_recv(direction_t dir, T default_value)
-void news_send(direction_t dir, T value)
-```
-
-**Directions:**
-```c
-typedef enum {
-    NORTH = 0,
-    EAST  = 1, 
-    SOUTH = 2,
-    WEST  = 3
-} direction_t;
-```
-
-**Mapping to hypercube:**
-
-Each chip has a 4×4 grid of processors with addresses `base + (row * 4 + col)`. NEWS directions map to hypercube dimensions based on grid position:
-```c
-// Within a 4×4 grid:
-// NORTH/SOUTH: dimension determined by row position
-// EAST/WEST: dimension determined by column position
-
-// Example for processor at (row=1, col=2):
-NORTH → dimension 2  // connects to (row=0, col=2)
-SOUTH → dimension 2  // connects to (row=2, col=2)  
-EAST  → dimension 0  // connects to (row=1, col=3)
-WEST  → dimension 0  // connects to (row=1, col=1)
-```
-
-**Edge handling:**
-
-Processors at grid edges can either:
-1. Receive a default value (wrap-around disabled)
-2. Wrap to the opposite edge (toroidal topology)
-3. Connect to neighboring chips (if treating entire machine as mega-grid)
-```c
-pvar<int> pixel;
-
-// Receive from all four directions (with edge defaults)
-pvar<int> n = news_recv(NORTH, 0);
-pvar<int> e = news_recv(EAST, 0);
-pvar<int> s = news_recv(SOUTH, 0);
-pvar<int> w = news_recv(WEST, 0);
-
-// 5-point stencil (common in image processing)
-pvar<int> blurred = (pixel * 4 + n + e + s + w) / 8;
-```
-
-**Implementation note:**
-
-NEWS is syntactic sugar over `nbr()` with grid-aware dimension mapping. The runtime calculates which hypercube dimension corresponds to each NEWS direction based on the processor's position in its local 4×4 grid.
-
-**When to use NEWS vs nbr:**
-
-- Use NEWS for image processing, cellular automata, stencil operations on 2D grids
-- Use `nbr(dim)` for hypercube-aware algorithms, sorting, reductions, arbitrary topology
-
-NEWS is optional - everything NEWS does can be done with `nbr()` and explicit dimension calculation. But it makes grid algorithms cleaner.
-
-#### Neighbor Exchange
+### Neighbor Exchange: `nbr()`
 
 ```c
 T nbr(int dim, T value)
 ```
 
-Exchange `value` with the neighbor in dimension `dim`. Returns the neighbor's value.
-
-The neighbor in dimension `dim` is the processor whose address differs by exactly one bit - the XOR neighbor. For processor `0x2A3`, the dimension-0 neighbor is `0x2A2`. The dimension-5 neighbor is `0x283`.
-
-**Example:**
-```c
-pvar<int> x;
-x = pid();
-
-pvar<int> neighbor_value;
-neighbor_value = nbr(0, x);  // Exchange with dimension-0 neighbor
-
-// Now each processor has its neighbor's original value
-// Processor 0x2A3 received the value from 0x2A2
-// Processor 0x2A2 received the value from 0x2A3
-```
-
-This maps perfectly to the TDMA scheme. During dimension-0's time slot, all processors exchange data with their dimension-0 neighbors. No collisions. Deterministic latency.
-
-#### Remote Read
+Exchange `value` with your hypercube neighbor in dimension `dim` (0-11). Returns the neighbor's value.
 
 ```c
-T prs(addr_t global_addr)
-```
-
-Read from a global address. This is "parallel remote reference" - every processor can specify a different address, and reads happen simultaneously across the network.
-
-**Example:**
-```c
-pvar<addr_t> target;
-target = pid() ^ 0x001;  // Each processor targets its dimension-0 neighbor
-
-pvar<int> remote_value;
-remote_value = prs(target);  // Read from remote processor
-```
-
-Under the hood, this becomes a series of dimension-ordered hops. The runtime routes each read request to its destination, retrieves the value, and routes it back.
-
-#### Remote Write with Combining
-
-```c
-void pact(addr_t global_addr, T value, combiner_t op)
-```
-
-Write to a global address with a combining operation. If multiple processors write to the same address, the combiner resolves conflicts.
-
-**Example:**
-```c
-// All processors in the upper half write to processor 0
-where (coord(11) == 1) {
-    pact(0, 1, COMBINE_SUM);  // Increment processor 0's counter
+exchange {
+    pvar<int> n0 = nbr(0, data);   // Dimension 0 neighbor
+    pvar<int> n5 = nbr(5, data);   // Dimension 5 neighbor
 }
 ```
 
-Available combiners: `COMBINE_SUM`, `COMBINE_MAX`, `COMBINE_MIN`, `COMBINE_OR`, `COMBINE_AND`.
+Your neighbor in dimension `dim` is the processor whose address differs from yours in bit `dim`. If you're processor 0b101010, your dimension-0 neighbor is 0b101011, your dimension-1 neighbor is 0b101000, etc.
 
-This is how you implement atomic operations without locks. Multiple writers to the same address don't race—they combine according to the specified operation.
+**Cost:** 2 phases per dimension (one each direction).
 
-#### General Permutation
+### Grid Neighbors: `news()`
 
 ```c
-T get(pvar<addr_t> source_index)
-void send(pvar<addr_t> dest_index, T value)
+T news(direction_t dir, T value)
 ```
 
-`get` and `send` implement arbitrary permutations. Each processor specifies a source (for get) or destination (for send), and the runtime executes the data movement.
+Exchange with your grid neighbor. Directions: `NORTH`, `EAST`, `SOUTH`, `WEST`.
 
-**Example (transpose):**
 ```c
-// Assume 64×64 grid mapped onto hypercube
-pvar<int> my_row = pid() / 64;
-pvar<int> my_col = pid() % 64;
-
-pvar<addr_t> transpose_addr = my_col * 64 + my_row;
-
-pvar<int> data;
-data = get(transpose_addr);  // Fetch from transposed position
+exchange {
+    n = news(NORTH, temp);
+    e = news(EAST, temp);
+    s = news(SOUTH, temp);
+    w = news(WEST, temp);
+}
 ```
 
-This is expensive (requires routing through the hypercube), but it's the primitive that makes "pointer chasing" and arbitrary data movement possible.
+`news()` is `nbr()` with automatic dimension selection. The runtime computes which dimension corresponds to each direction based on your grid position and the Gray code mapping.
 
-### Collective Operations
+**Edge behavior:** The grid wraps toroidally. Row 0's NORTH neighbor is row 63. Column 63's EAST neighbor is column 0. Because of Gray code, edge wrapping is still a single-bit change—one hypercube hop.
 
-Collective operations combine or distribute data across all processors. These are the bread and butter of data-parallel programming.
+**Cost:** NORTH and SOUTH use row dimensions (6-11). EAST and WEST use column dimensions (0-5). These don't overlap, so four cardinal directions use **8 phases** (4 dimensions × 2 phases each).
 
-#### Reduce
+### Diagonal Neighbors
+
+Diagonal neighbors (NE, NW, SE, SW) require two hops: one row dimension and one column dimension. Since exchange blocks can't use results as inputs within the same block, diagonals need **two exchange blocks**:
+
+```c
+pvar<int> n, e, s, w;
+pvar<int> ne, nw, se, sw;
+
+// First: get cardinal neighbors
+exchange {
+    n = news(NORTH, cell);
+    e = news(EAST, cell);
+    s = news(SOUTH, cell);
+    w = news(WEST, cell);
+}
+
+// Second: get diagonals via cardinals
+exchange {
+    ne = news(NORTH, e);  // My N neighbor's E = my NE
+    nw = news(NORTH, w);  // My N neighbor's W = my NW
+    se = news(SOUTH, e);  // My S neighbor's E = my SE
+    sw = news(SOUTH, w);  // My S neighbor's W = my SW
+}
+```
+
+**How this works:** After the first exchange, I have my east neighbor's value in `e`. In the second exchange, `news(NORTH, e)` sends my `e` northward. I receive my north neighbor's `e`—which is their east neighbor's value. My north neighbor's east neighbor is my northeast neighbor.
+
+**Cost:** Two superframes for 8-neighbor stencils.
+
+### Reductions
 
 ```c
 T reduce_sum(pvar<T> value)
-T reduce_max(pvar<T> value)
 T reduce_min(pvar<T> value)
+T reduce_max(pvar<T> value)
 T reduce_and(pvar<T> value)
 T reduce_or(pvar<T> value)
 ```
 
-Combine values from all processors into a single result. Every processor receives the same result.
-
-**Example:**
-```c
-pvar<int> local_count;
-// ... compute local_count ...
-
-int total = reduce_sum(local_count);  // Sum across all processors
-// Now 'total' is the same on every processor
-```
-
-Implementation: Tree reduction over the hypercube dimensions. First, processors exchange with dimension-0 neighbors and combine. Then dimension-1. Then dimension-2. After 12 steps, every processor has the global result.
-
-#### Scan (Prefix Sum)
+Combine values from all 4,096 processors into a single scalar. Every processor receives the same result.
 
 ```c
-pvar<T> scan_sum(pvar<T> value)
-pvar<T> scan_max(pvar<T> value)
-pvar<T> scan_min(pvar<T> value)
+exchange {
+    int total = reduce_sum(local_count);
+    int any_active = reduce_or(is_active);
+}
+// total and any_active are the same on all processors
 ```
 
-Compute a running total (or max, or min) across processors. Processor `i` receives the sum of values from processors `0..i`.
+**Implementation:** Tree reduction over 12 dimensions, **dimension 0 first, ascending**. Each step exchanges with the neighbor in that dimension and combines. After 12 steps, everyone has the global result.
 
-**Example:**
-```c
-pvar<int> x;
-x = 1;  // Every processor has 1
+This is a multi-hop operation, but the path is fixed: dimension 0, then 1, then 2, ... then 11. It's a structured tree algorithm, not arbitrary routing.
 
-pvar<int> prefix;
-prefix = scan_sum(x);  // Processor 0 gets 1, processor 1 gets 2, processor 2 gets 3, ...
-```
+**Floating-point determinism:** The dimension ordering is guaranteed and the toolchain enforces `-fno-fast-math`. Identical inputs always produce identical outputs.
 
-This is how you implement parallel compaction, load balancing, and prefix-based algorithms.
+**Cost:** 24 phases (one full superframe).
 
-#### Spread (Broadcast)
+**Multiple reductions pipeline:** Reductions in the same block share the same 24 phases, processing different data streams in parallel:
 
 ```c
-pvar<T> spread(T scalar_value)
+exchange {
+    sum = reduce_sum(x);    // ┐
+    max = reduce_max(y);    // ├─ All share one superframe
+    count = reduce_sum(1);  // ┘
+}
 ```
 
-Broadcast a scalar value to all processors. Typically used to send a result computed on one processor to everyone.
-
-**Example:**
-```c
-int result_on_zero = reduce_sum(local_values);
-
-pvar<int> everyone_has_it;
-everyone_has_it = spread(result_on_zero);  // All processors receive the result
-```
-
-#### Rank (Optional)
+**Conditional participation:** Processors that shouldn't contribute use identity values:
 
 ```c
-pvar<int> rank(pvar<T> value)
+// Sum only positive values
+pvar<int> contrib = (x > 0) ? x : 0;  // Non-positive → 0
+exchange {
+    int sum = reduce_sum(contrib);    // Zeros don't affect sum
+}
 ```
 
-Compute the rank of each processor's value in sorted order. Processor with the smallest value gets rank 0, largest gets rank 4095.
+| Operation | Identity Value |
+|-----------|----------------|
+| sum | 0 |
+| min | TYPE_MAX |
+| max | TYPE_MIN |
+| and | ~0 (all 1s) |
+| or | 0 |
 
-This enables sorting and reordering without explicit data movement.
-
-### Synchronization
+### Scans (Prefix Operations)
 
 ```c
-void barrier()              // Wait for all processors
-void sync_dim(int dim)      // Synchronize on dimension (advanced)
+pvar<T> scan_sum(pvar<T> value)           // Exclusive
+pvar<T> scan_min(pvar<T> value)           // Exclusive
+pvar<T> scan_max(pvar<T> value)           // Exclusive
+pvar<T> scan_sum_inclusive(pvar<T> value) // Inclusive
+pvar<T> scan_min_inclusive(pvar<T> value) // Inclusive
+pvar<T> scan_max_inclusive(pvar<T> value) // Inclusive
 ```
 
-`barrier()` is a global synchronization point. All processors must reach the barrier before any can proceed.
+Prefix operations across all processors.
 
-In most StarC programs, you don't call `barrier()` explicitly. The runtime inserts barriers automatically around communication operations. But it's available if you need manual control.
+**Exclusive scan:** Processor *i* receives combination of processors 0..*i*-1 (excluding self).
+
+**Inclusive scan:** Processor *i* receives combination of processors 0..*i* (including self).
+
+```c
+pvar<int> x = 1;  // All processors have 1
+
+exchange {
+    pvar<int> excl = scan_sum(x);           // Exclusive
+    pvar<int> incl = scan_sum_inclusive(x); // Inclusive
+}
+
+// Processor 0: excl=0, incl=1
+// Processor 1: excl=1, incl=2
+// Processor 2: excl=2, incl=3
+// ...
+// Processor 4095: excl=4095, incl=4096
+```
+
+Scans enable parallel compaction, load balancing, and many classic parallel algorithms.
+
+**Cost:** 24 phases.
+
+### Broadcast
+
+```c
+pvar<T> broadcast(int source_pid, T value)
+```
+
+Distribute one processor's value to all processors.
+
+```c
+pvar<float> result;
+if (pid() == 0) {
+    result = special_computation();
+}
+exchange {
+    pvar<float> everyone = broadcast(0, result);
+}
+// All processors now have processor 0's result
+```
+
+**Semantics:** Only the source processor's `value` matters. Other processors' values are undefined—don't rely on them.
+
+**Implementation:** Tree distribution over 12 dimensions.
+
+**Cost:** 24 phases.
+
+### Double Buffering
+
+For high MCU utilization, overlap compute with communication:
+
+```c
+exchange_async {
+    neighbor = nbr(0, data);
+}
+// MCU computes while FPGA exchanges
+next_data = expensive_compute(data);
+
+exchange_wait();  // Block until exchange completes
+// Now 'neighbor' is valid
+```
+
+**Snapshot semantics:** Values are captured when `exchange_async` begins. Modifying `data` during compute doesn't affect what gets sent—the snapshot was already taken.
+
+**Rules:**
+
+- Cannot read exchange results before `exchange_wait()`
+- Cannot start new `exchange_async` before previous `exchange_wait()`
+- `exchange { }` is equivalent to `exchange_async { } exchange_wait();`
+
+**Typical pattern:**
+
+```c
+// Prime the pipeline
+exchange {
+    neighbor = nbr(0, data);
+}
+
+for (int i = 0; i < 1000; i++) {
+    exchange_async {
+        neighbor = nbr(0, data);
+    }
+    
+    // Compute using PREVIOUS neighbor (still valid from last iteration)
+    next_data = compute(data, neighbor);
+    
+    exchange_wait();
+    data = next_data;
+}
+```
+
+---
+
+## Chapter 6: Host I/O
+
+Host communication uses the control tree, not the hypercube. This chapter covers loading data, storing results, and debugging output.
+
+### Bulk Data Transfer
+
+```c
+void load_from_host(pvar<T> *dest, size_t count)
+void store_to_host(pvar<T> *src, size_t count)
+```
+
+Load distributes data from the host to all processors. Store collects data from all processors to the host.
+
+```c
+pvar<float> input;
+load_from_host(&input, 1);   // Each processor gets one float
+
+// ... compute ...
+
+pvar<float> result;
+store_to_host(&result, 1);   // Each processor sends one float
+```
+
+Data flows through the control tree: Host → Machine Controller → Plane Controllers → Slice Controllers → Nodes (and reverse for store).
+
+**No 80-byte limit.** The control tree is a separate network with different constraints. Large transfers are fine:
+
+```c
+pvar<float> big_array[1000];
+load_from_host(big_array, 1000);  // 4KB per processor—no problem
+```
+
+**Latency:** Variable, depending on tree traversal and data size. Much slower than hypercube exchange for small data, but higher total bandwidth for bulk transfers.
+
+### Console Output
+
+```c
+void host_printf(const char *fmt, ...)
+```
+
+Print to the host console. Only processor 0 should call this—other processors' output is discarded.
+
+```c
+if (pid() == 0) {
+    host_printf("Starting computation\n");
+}
+
+// ... compute and exchange ...
+
+if (pid() == 0) {
+    int max = ...;  // result from reduction
+    host_printf("Maximum value: %d\n", max);
+}
+```
 
 ### LED Control
 
 ```c
-void led_set(uint8_t brightness)    // Set this processor's LED (0-255)
-uint8_t led_get()                   // Read current LED value
+void led_set(uint8_t brightness)   // 0 = off, 255 = full
+uint8_t led_get(void)              // Read current value
 ```
 
-Each processor has a memory-mapped LED register that controls its brightness on the 64×64 LED matrix. The slice controller reads these registers and forwards them to the IS31FL3741 LED driver.
-
-**Memory map:**
-```
-0x2000_0000: LED_VALUE (write-only from processor)
-    [7:0] brightness (0 = off, 255 = max)
-```
-
-**Example:**
-```c
-pvar<int> data;
-// ... compute something ...
-
-// Visualize which processors have large values
-where (data > 100) {
-    led_set(255);  // Bright
-}
-where (data <= 100) {
-    led_set(data * 2);  // Dim, proportional to value
-}
-```
-
-**Hardware implementation:**
-
-The slice controller polls (or receives interrupts from) all 64 processors in its slice, aggregates their LED values into a 64-byte buffer, and sends it to the IS31FL3741 via I²C at 30-60Hz. This data is also passed up the control tree to the root controller for display on the master LED matrix.
-
-Total bandwidth: 4,096 bytes at 60Hz = ~250 KB/s over the control backbone.
-
-**Connection Machine parallel:**
-
-The CM-1 had this exact feature. Each processor had a red LED on the front panel. Hillis used it for debugging (light up processors meeting a condition), visualization (watch sorting algorithms propagate data), and status monitoring (show active vs masked processors). Classic CM-1 demos included:
-- Sorting networks - watch data flow through the hypercube
-- Cellular automata - Game of Life running on hardware
-- Mandelbrot set - each processor computes one pixel
-- Bit patterns - verify communication is working
-
-The LED isn't just for show. It's a **debugging primitive**. When processor 2,047 hangs during a reduction, the LED pattern tells you which dimension failed.
-
-**Simulator implementation:**
-
-In the simulator, `led_set()` just updates a field in the processor state:
-```c
-typedef struct {
-    int my_addr;
-    uint8_t led_value;  // 0-255 brightness
-    // ... other state
-} vproc_state_t;
-
-void star_led_set(uint8_t brightness, star_context_t *ctx) {
-    vprocs[ctx->my_addr].led_value = brightness;
-}
-```
-
-The web visualization reads `vprocs[i].led_value` and renders a colored square on the canvas.
-
-
-## Input/Output
-
-The hypercube needs to exchange data with the host (your laptop/desktop). Processor 0 acts as the I/O coordinator, connected to the host via USB/UART.
-
-### Host-to-Machine Transfer
-```c
-void load_from_host(pvar<T> *dest, size_t count)
-```
-
-Loads `count` values of type `T` from the host. Processor 0 receives data over USB, then distributes it across the machine.
-
-**Example:**
-```c
-pvar<float> data;
-
-// Host sends 4096 float values
-load_from_host(&data, 1);  // Each processor receives one float
-
-// Or load arrays
-pvar<float> local_array[1024];
-load_from_host(local_array, 1024);  // Each processor receives 1024 floats
-```
-
-**Distribution patterns:**
-
-The runtime can distribute data in different patterns:
-```c
-// Sequential: processor i gets element i
-load_sequential(&data, 4096);
-
-// Block: processors 0-63 get block 0, 64-127 get block 1, etc.
-load_blocked(&data, 4096, BLOCK_SIZE);
-
-// Scattered: arbitrary mapping defined by host
-load_scatter(&data, mapping_table, 4096);
-```
-
-### Machine-to-Host Transfer
-```c
-void store_to_host(pvar<T> *src, size_t count)
-```
-
-Sends data from all processors back to the host. Processors send to processor 0, which forwards to the host.
-
-**Example:**
-```c
-pvar<int> result;
-// ... compute result ...
-
-store_to_host(&result, 1);  // Send each processor's result to host
-```
-
-**Gather pattern:**
-```c
-pvar<float> local_results[100];
-
-// Host receives 4096 × 100 = 409,600 values
-store_to_host(local_results, 100);
-```
-
-### Scalar I/O from Processor 0
-
-For debugging or small data transfer, processor 0 can communicate directly:
-```c
-void host_printf(const char *fmt, ...)  // Printf to host console
-int host_scanf(const char *fmt, ...)    // Read from host stdin
-```
-
-**Example:**
-```c
-if (pid() == 0) {
-    int max_value = reduce_max(data);
-    host_printf("Maximum value: %d\n", max_value);
-}
-```
-
-**Blocking semantics:**
-
-`host_printf` and `host_scanf` block only processor 0. Other processors continue executing. Use barriers if you need synchronization:
-```c
-if (pid() == 0) {
-    host_printf("Iteration %d complete\n", iter);
-}
-barrier();  // Wait for processor 0 to finish I/O
-```
-
-### Broadcast from Host
-
-To send a single scalar value from host to all processors:
-```c
-int host_broadcast_int()
-float host_broadcast_float()
-```
-
-**Example:**
-```c
-// Host sends one int, all processors receive it
-int threshold = host_broadcast_int();
-
-where (data > threshold) {
-    data = 0;
-}
-```
-
-### Implementation Details
-
-**USB/UART protocol:**
-
-Processor 0 connects to host via FTDI USB-UART bridge. Protocol:
-```
-HOST → NODE0: [CMD_LOAD] [TYPE] [COUNT] [DATA...]
-NODE0 → HOST: [CMD_STORE] [COUNT] [DATA...]
-NODE0 → HOST: [CMD_PRINT] [LENGTH] [STRING...]
-```
-
-**Distribution algorithm:**
-
-`load_from_host` uses hypercube routing:
-1. Processor 0 receives all data from host
-2. Processor 0 sends half the data to processor 2048 (dimension 11)
-3. Processors 0 and 2048 each send half their data along dimension 10
-4. Continue splitting for all 12 dimensions
-5. After 12 steps, all processors have their data
-
-This is a broadcast tree, completing in ~5ms for 4,096 values.
-
-**Buffer sizing:**
-
-The runtime allocates buffers in processor 0's memory:
-```c
-#define MAX_TRANSFER_SIZE (1024 * 1024)  // 1MB
-uint8_t transfer_buffer[MAX_TRANSFER_SIZE];
-```
-
-Large transfers (> 1MB) must be split into multiple calls.
-
-
-## Performance Model
-
-Understanding the cost of each operation helps you write efficient StarC programs.
-
-### Communication Costs
-
-**Neighbor exchange** (`nbr`):
-- Cost: 1 TDMA phase = 416 μs
-- All processors exchange simultaneously
-- Deterministic, no collisions
-
-**Example:**
-```c
-x = nbr(0, x);  // 416 μs
-x = nbr(1, x);  // 416 μs
-x = nbr(2, x);  // 416 μs
-// Total: 1.25 ms for three dimensions
-```
-
-**Reduction** (`reduce_sum`, `reduce_max`, etc.):
-- Cost: 12 TDMA phases = 12 × 416 μs = 5.0 ms
-- Tree algorithm over all dimensions
-- All processors receive result
-
-**Scan** (`scan_sum`, etc.):
-- Cost: 12 TDMA phases = 5.0 ms
-- Similar to reduction but propagates running total
-
-**Permutation** (`get`, `send`):
-- Cost: up to 12 hops = 5.0 ms worst case
-- Average case: ~6 hops = 2.5 ms
-- Depends on Hamming distance between source and destination
-
-**Example - sorting:**
-```c
-// Bitonic sort: O(log²N) compare-exchange steps
-// For N=4096: log²(4096) = 12² = 144 steps
-// Each step: one permutation = 5ms
-// Total: 144 × 5ms = 720ms
-```
-
-### Computation Costs
-
-**Local operations:**
-- Arithmetic: ~1-10 cycles (depends on operation)
-- At 133 MHz: arithmetic is essentially free compared to communication
-- Memory access: ~2-5 cycles
-
-**Rule of thumb:** Computation is **1000× faster** than communication. A single `nbr()` call costs as much as ~55,000 arithmetic operations.
-
-### Optimization Strategies
-
-**1. Minimize dimension hops:**
-```c
-// Bad: permute, then process, then permute back
-data = get(remote_addr);
-data = process(data);
-send(original_addr, data);
-// Cost: 10ms
-
-// Good: process locally, only send result
-result = process(local_data);
-send(remote_addr, result);
-// Cost: 5ms
-```
-
-**2. Batch communication:**
-```c
-// Bad: multiple small messages
-for (int i = 0; i < 10; i++) {
-    small_value = nbr(0, small_value);  // 10 × 416μs = 4.16ms
-}
-
-// Good: one large message
-struct batch { int values[10]; };
-pvar<struct batch> data;
-data = nbr(0, data);  // 416μs (same cost regardless of size up to MTU)
-```
-
-**3. Use local computation:**
-```c
-// Bad: exchange every step
-for (int i = 0; i < 100; i++) {
-    x = nbr(0, x);  // 416μs × 100 = 41.6ms
-}
-
-// Good: compute locally, exchange once
-for (int i = 0; i < 100; i++) {
-    x = local_compute(x);  // ~1μs × 100
-}
-x = nbr(0, x);  // 416μs
-// Total: 516μs
-```
-
-**4. Overlap communication and computation (advanced):**
-
-If the hardware supports it, you can issue a communication operation and do local work while it completes:
-```c
-// Issue non-blocking exchange
-nbr_async(0, x, &handle);
-
-// Do local work
-y = expensive_computation(y);
-
-// Wait for exchange to complete
-x = nbr_wait(handle);
-```
-
-This is not in MVP but planned for v0.2.
-
-### Bandwidth Analysis
-
-**Per-dimension bandwidth:**
-- 12 Mbaud UART = 1.5 MB/s
-- TDMA phase = 416 μs → ~2400 phases/second
-- Per-phase payload: ~256 bytes (limited by UART buffer)
-- Effective: 256 bytes × 2400 = 614 KB/s per dimension
-
-**Aggregate bandwidth:**
-- 12 dimensions × 614 KB/s = 7.4 MB/s total
-- But dimensions are sequential, not parallel (TDMA)
-- Realistic sustained: ~2-3 MB/s across all dimensions
-
-**Comparison:**
-- GPU (PCIe 4.0): ~32 GB/s
-- DDR4 memory: ~25 GB/s  
-- Hypercube: ~3 MB/s
-
-The hypercube is **bandwidth-limited**. Algorithm design must minimize data movement. This is by design - the CM-1 had similar characteristics.
-
-### Latency Analysis
-
-**Reduction latency:** 5ms for 4,096 processors
-- Compare to GPU: ~10μs for reduction on 10,000 threads
-- Hypercube is 500× slower
-
-But:
-- GPU requires PCIe transfer: ~1ms for 4KB
-- GPU kernel launch overhead: ~10μs
-- GPU is optimized for throughput, not latency
-
-For **streaming problems** where you do many reductions in sequence, the hypercube's predictable latency can be an advantage. No contention, no scheduling jitter.
-
-### When the Hypercube Wins
-
-The hypercube is competitive when:
-1. **Communication pattern matches topology** (neighbor exchanges, grid stencils)
-2. **Computation is communication-bound** (cellular automata, graph traversal)
-3. **Deterministic timing is required** (real-time processing, control systems)
-4. **Problem size exactly fits** (4,096 is your native granularity)
-
-The hypercube loses when:
-- Problem needs high bandwidth (video processing, large matrix ops)
-- Irregular communication (random access, pointer chasing)
-- Variable workload (some processors much busier than others)
-
-## Edge Cases and Undefined Behavior
-
-### Masked Operations
-
-**All processors masked out:**
-```c
-where (false) {
-    int result = reduce_sum(x);  // What is result?
-}
-```
-
-**Behavior:** Reduction of empty set returns identity element:
-- `reduce_sum`: returns 0
-- `reduce_max`: returns -∞ (or `INT_MIN`)
-- `reduce_min`: returns +∞ (or `INT_MAX`)
-- `reduce_and`: returns all-bits-set
-- `reduce_or`: returns 0
-
-All processors receive the same identity value.
-
-**Partial masking:**
-```c
-where (x > 0) {
-    int sum = reduce_sum(x);  // Sum of only positive x values
-}
-```
-
-Inactive processors contribute identity elements but still participate in communication (for TDMA timing). The result is computed correctly.
-
-### Division and Arithmetic Errors
-
-**Division by zero:**
-```c
-pvar<int> x = 5;
-pvar<int> y = 0;
-pvar<int> z = x / y;  // Undefined behavior on processors where y == 0
-```
-
-**Behavior:** Follows C semantics - undefined behavior per processor. On RISC-V, typically returns zero or triggers a trap. Use `where` to guard:
-```c
-where (y != 0) {
-    z = x / y;
-}
-where (y == 0) {
-    z = 0;  // Or some other default
-}
-```
-
-**Floating point exceptions:**
-
-Overflow, underflow, and NaN follow IEEE 754 semantics. Each processor handles its own exceptions independently.
-
-### Out-of-Range Addressing
-
-**Invalid processor address:**
-```c
-pvar<addr_t> target = 5000;  // Out of range (> 4095)
-pvar<int> value = prs(target);  // Undefined
-```
-
-**Behavior:** Undefined. Implementation may:
-- Wrap modulo 4096
-- Return zero
-- Trap/assert in debug builds
-
-**Guard with masking:**
-```c
-where (target < 4096) {
-    value = prs(target);
-}
-```
-
-**Invalid dimension:**
-```c
-x = nbr(15, x);  // Only dimensions 0-11 exist
-```
-
-**Behavior:** Undefined. Implementation may trap or wrap modulo 12.
-
-### Deadlock Scenarios
-
-**Circular dependencies in get/send:**
-```c
-// Processor A waits for data from B
-// Processor B waits for data from A
-pvar<addr_t> target = (pid() + 1) % 2;  // 0→1, 1→0
-pvar<int> data = get(target);
-send(target, data);  // DEADLOCK
-```
-
-**Behavior:** Deadlock. Both processors wait forever. The TDMA system cannot detect this. **Don't do this.**
-
-**Safe pattern - use separate phases:**
-```c
-// Phase 1: everyone sends
-send(target, my_data);
-barrier();
-
-// Phase 2: everyone receives  
-data = get(source);
-```
-
-### Resource Limits
-
-**Mask stack overflow:**
-```c
-// Nesting too deep
-where (a) { where (b) { where (c) { where (d) { 
-where (e) { where (f) { where (g) { where (h) {
-where (i) { where (j) { where (k) { where (l) {
-where (m) { where (n) { where (o) { where (p) {
-where (q) {  // Overflow if stack depth < 17
-```
-
-**Behavior:** Undefined. Implementation may:
-- Trap/assert
-- Silently wrap (incorrect masking)
-- Increase limit dynamically
-
-Current limit: 16 levels (configurable in runtime).
-
-**Memory exhaustion:**
-```c
-pvar<uint8_t> huge_array[1024 * 1024];  // 1MB per processor
-```
-
-Each processor has limited RAM (typically 64-128KB on CH32V307). Large allocations fail. Use dynamic allocation with error checking:
-```c
-pvar<uint8_t*> array = malloc(size);
-if (array == NULL) {
-    // Handle allocation failure
-}
-```
-
-### Communication Failures
-
-**UART bit errors:**
-
-At 12 Mbaud over SlimStack connectors, bit errors can occur. The runtime should use CRC checks:
-```c
-// If CRC fails on received data
-// Behavior: Implementation-defined
-// Options: retry, return error code, trap
-```
-
-**Phase desynchronization:**
-
-If processor clocks drift or FPGA TDMA controller fails:
-
-**Behavior:** Catastrophic. Communication garbled. No automatic recovery. Requires hardware reset.
-
-Prevention: FPGA generates TDMA clock from crystal oscillator. All processors sync to this. Use watchdog timers to detect desync.
-
-### Unspecified Evaluation Order
-
-**Reduction of non-commutative operations:**
-```c
-float result = reduce_sum(floating_point_values);
-```
-
-Floating-point addition is **not associative** due to rounding. Different reduction tree orders produce different results (within epsilon).
-
-**Behavior:** Unspecified which tree order is used. Results are deterministic for a given implementation but may vary between compiler versions.
-
-### Type Punning
-
-**Reinterpreting pvar bytes:**
-```c
-pvar<int> x = 0x12345678;
-pvar<uint8_t*> ptr = (uint8_t*)&x;  // Pointer to pvar - ILLEGAL
-```
-
-**Behavior:** Undefined. Pointers to pvars don't make sense - pvars are distributed values, not memory locations.
-
-**Correct approach - use unions:**
-```c
-pvar<union { int i; uint8_t bytes[4]; }> data;
-data.i = 0x12345678;
-pvar<uint8_t> first_byte = data.bytes[0];  // Legal
-```
-
-### Recommendations
-
-1. **Guard divisions** with `where` to avoid division by zero
-2. **Check array bounds** before indexing with pvars
-3. **Avoid circular dependencies** in get/send patterns
-4. **Don't nest `where` more than 10 deep** (implementation limit)
-5. **Use CRC checks** for critical communication
-6. **Test with small processor counts** (e.g., 16) before deploying to 4,096
-
-## The MVP Subset
-
-If you only implement four things, you can still write real programs:
-
-1. **`where` (masking)** - control which processors execute
-2. **`nbr(dim, value)` (neighbor exchange)** - move data to adjacent processors
-3. **`reduce` and `scan`** - combine values across processors
-4. **`get/send` (permutation)** - arbitrary data movement
-
-With these four primitives, you can write:
-- Cellular automata (neighbor exchange)
-- Image processing (NEWS communication within chips)
-- Sorting (scan + permutation)
-- Reductions (sum, max, counting)
-- Sparse matrix operations (permutation)
-- Graph algorithms (routing through hypercube)
-
-The remote-memory primitives (`prs` and `pact`) are the "now we're doing crimes" layer. You can defer those to v0.2.
-
-## Toolchain Architecture
-
-StarC is not a compiler. It's a **source-to-source translator** that rewrites StarC syntax into plain C with runtime library calls.
-
-### Files
-
-```
-project/
-├── src/
-│   ├── algorithm.starc       # Your StarC source
-│   └── helpers.starc
-├── libstar/
-│   ├── runtime.h              # Runtime library header
-│   ├── backend_sim/           # Simulator backend (runs on desktop)
-│   │   ├── runtime.c
-│   │   └── comm_sim.c
-│   └── backend_hw/            # Hardware backend (runs on actual nodes)
-│       ├── runtime.c
-│       ├── comm_tdma.c
-│       └── uart_driver.c
-└── build/
-    ├── algorithm.c            # Generated C code
-    └── algorithm.elf          # Compiled binary
-```
-
-### Build Pipeline
-
-```
-algorithm.starc
-    ↓
-starc_pp.py (Python preprocessor)
-    ↓
-algorithm.c (plain C)
-    ↓
-gcc / riscv-gcc (standard C compiler)
-    ↓
-algorithm.elf (executable)
-```
-
-You compile **twice** with different backends:
-
-1. **Simulator build:** Compile with `backend_sim`, run on your desktop with N virtual processors
-2. **Hardware build:** Compile with `backend_hw`, upload to all 4,096 nodes
-
-The simulator is for debugging. Fast iteration. You can run the algorithm with 16 processors on your laptop, step through with gdb, verify correctness. Then compile for hardware and deploy to the actual machine.
-
-### Why Source-to-Source, Not LLVM
-
-You don't need LLVM. You don't need a custom compiler backend. You need a **disciplined rewrite pass** that turns StarC syntax into function calls.
-
-```starc
-pvar<int> x;
-x = nbr(0, x);
-```
-
-becomes:
+Set this processor's LED brightness. Updates flow through the control tree to the LED drivers.
 
 ```c
-STAR_PVAR(int, x);
-x = star_nbr(0, x, &STAR_CTX);
+// Visualize temperature
+led_set((uint8_t)(temperature * 255.0f));
+
+// Binary visualization
+led_set(active ? 255 : 0);
 ```
 
-The runtime library (`libstar`) handles everything:
-- Maintaining the mask stack
-- Coordinating TDMA communication
-- Implementing reductions over the hypercube
-- Routing messages through dimensions
+LED operations are local—no `exchange` block needed. All 4,096 processors can set their LEDs simultaneously.
 
-This approach is **simple** and **reliable**. No yacc. No LLVM IR. No semantic analysis passes. Just controlled text rewriting.
+The LED array is a debugging primitive. When something goes wrong, the pattern tells you which processors are affected, which dimensions failed, where data is stuck.
 
-## The Preprocessor
+---
 
-The preprocessor (`starc_pp.py`) is a **tokenizer** that recognizes StarC syntax and rewrites it into C.
+# Part III: Programming
 
-### What Gets Rewritten
+---
 
-**Parallel variable declarations:**
-```starc
-pvar<int> x;
-```
-becomes:
-```c
-STAR_PVAR(int, x);
-```
+## Chapter 7: Patterns
 
-**`where` statements:**
-```starc
-where (x > 100) {
-    x = x * 2;
-}
-```
-becomes:
-```c
-STAR_WHERE_PUSH(x > 100, &STAR_CTX);
-{
-    x = x * 2;
-}
-STAR_WHERE_POP(&STAR_CTX);
-```
+This chapter shows complete programs for common parallel algorithms, demonstrating how to use StarC effectively.
 
-**Communication primitives:**
-```starc
-y = nbr(0, x);
-```
-becomes:
-```c
-y = star_nbr(0, x, &STAR_CTX);
-```
+### 4-Neighbor Stencil: Heat Equation
 
-### What Stays Plain C
-
-Everything else is normal C:
-- Control flow (`if`, `for`, `while`)
-- Function definitions
-- Struct declarations
-- Pointer arithmetic
-- Standard library calls
-
-This means StarC programs can use normal C code freely. You can call `malloc`, use `printf` for debugging, include standard headers. StarC is C with extensions, not a completely different language.
-
-### Why Regex Dies Here
-
-A man has a problem. He decides to use regex. Now the man has two problems.
-
-You might think: "I'll just use regex to find `where` keywords and rewrite them."
-
-This works for exactly one week, then you encounter:
-```c
-char *where = "location";  // Variable named 'where'
-printf("where are we?\n");  // String containing 'where'
-// where (x > 0) { ... }   // Commented-out where
-```
-
-Regex can't distinguish these cases. You need a tokenizer that understands:
-- String literals
-- Comments
-- Keywords vs identifiers
-- Block structure
-
-A simple tokenizer is ~200 lines of Python. Fuck your Q-bert swears.
-
-## Runtime Library
-
-The runtime library is where the real work happens. It implements all the StarC primitives on top of the actual hardware (or simulator).
-
-### Mask Stack Management
-
-The runtime maintains a stack of boolean masks. Each `where` statement pushes a mask:
+The heat equation is the simplest stencil: each cell updates based on its four cardinal neighbors.
 
 ```c
-typedef struct {
-    bool mask_stack[MAX_DEPTH];
-    int  mask_depth;
-    int  my_addr;
-} star_context_t;
+pvar<float> temp;
+pvar<float> n, s, e, w;
+float alpha = 0.25f;
 
-void STAR_WHERE_PUSH(bool condition, star_context_t *ctx) {
-    ctx->mask_stack[ctx->mask_depth++] = condition;
-}
+load_from_host(&temp, 1);
 
-void STAR_WHERE_POP(star_context_t *ctx) {
-    ctx->mask_depth--;
-}
-
-bool star_is_active(star_context_t *ctx) {
-    for (int i = 0; i < ctx->mask_depth; i++) {
-        if (!ctx->mask_stack[i]) return false;
-    }
-    return true;
-}
-```
-
-Every operation checks `star_is_active()`. Inactive processors participate in communication (for timing), but don't modify local state.
-
-### `nbr()` Over TDMA
-
-Neighbor exchange maps directly to TDMA phases:
-
-```c
-int star_nbr(int dim, int value, star_context_t *ctx) {
-    // Calculate neighbor address (XOR)
-    int neighbor = ctx->my_addr ^ (1 << dim);
-    
-    // Determine transmit phase
-    bool my_bit = (ctx->my_addr >> dim) & 1;
-    int phase = 2 * dim + my_bit;
-    
-    // Wait for correct phase
-    wait_for_phase(phase);
-    
-    // If I transmit this phase, send
-    if (my_bit == 0) {
-        uart_send_dim(dim, &value, sizeof(int));
+for (int iter = 0; iter < 1000; iter++) {
+    exchange {
+        n = news(NORTH, temp);
+        s = news(SOUTH, temp);
+        e = news(EAST, temp);
+        w = news(WEST, temp);
     }
     
-    // Wait for opposite phase
-    wait_for_phase(phase ^ 1);
-    
-    // Receive
-    int result;
-    uart_recv_dim(dim, &result, sizeof(int));
-    
-    return result;
+    temp = temp + alpha * (n + s + e + w - 4.0f * temp);
+    led_set((uint8_t)(temp * 255.0f));
 }
+
+store_to_host(&temp, 1);
 ```
 
-The FPGA's TDMA controller handles pin remapping. The runtime just needs to know which phase is active and which UART to use.
+**Cost per iteration:** 8 phases exchange + compute ≈ 10 ms → ~100 iterations/second.
 
-### `reduce` and `scan` Tree Algorithms
+### 8-Neighbor Stencil: Game of Life
 
-Reductions happen over a tree spanning the hypercube dimensions:
+Game of Life needs all 8 neighbors, including diagonals. This requires two exchange blocks.
 
 ```c
-int star_reduce_sum(int value, star_context_t *ctx) {
-    int result = value;
+pvar<int> cell = 0;
+load_from_host(&cell, 1);
+
+for (int gen = 0; gen < 10000; gen++) {
+    pvar<int> n, e, s, w;
+    pvar<int> ne, nw, se, sw;
     
-    // Tree reduction: combine with neighbor in each dimension
-    for (int dim = 0; dim < 12; dim++) {
-        int neighbor_value = star_nbr(dim, result, ctx);
-        result += neighbor_value;
+    // Exchange 1: cardinal neighbors
+    exchange {
+        n = news(NORTH, cell);
+        e = news(EAST, cell);
+        s = news(SOUTH, cell);
+        w = news(WEST, cell);
     }
     
-    return result;
+    // Exchange 2: diagonal neighbors
+    exchange {
+        ne = news(NORTH, e);
+        nw = news(NORTH, w);
+        se = news(SOUTH, e);
+        sw = news(SOUTH, w);
+    }
+    
+    // Apply rules
+    pvar<int> neighbors = n + e + s + w + ne + nw + se + sw;
+    pvar<int> new_cell = cell;
+    
+    where (cell == 1 && (neighbors < 2 || neighbors > 3)) {
+        new_cell = 0;  // Death: underpopulation or overpopulation
+    }
+    where (cell == 0 && neighbors == 3) {
+        new_cell = 1;  // Birth: exactly 3 neighbors
+    }
+    
+    cell = new_cell;
+    led_set(cell * 255);
 }
 ```
 
-After 12 steps, every processor has the global sum. This works because the hypercube is a spanning tree for any reduction.
+**Cost per generation:** ~48 ms (two superframes) → ~20 generations/second.
 
-Scan is trickier (you need to carefully manage which values propagate up vs down the tree), but the structure is similar.
+### Sorting: Bitonic Sort
 
-### `get` and `send` Routing
-
-General permutation requires **dimension-ordered routing**:
+Bitonic sort on a hypercube is beautiful: every compare-exchange is a neighbor exchange.
 
 ```c
-int star_get(int source_addr, star_context_t *ctx) {
-    int current_addr = ctx->my_addr;
-    int data;
-    
-    if (current_addr == source_addr) {
-        // I'm the source, send my data
-        data = read_local_memory(source_addr);
-    }
-    
-    // Route through dimensions
-    for (int dim = 0; dim < 12; dim++) {
-        int delta = current_addr ^ source_addr;
-        if (delta & (1 << dim)) {
-            // Need to traverse this dimension
-            data = star_nbr(dim, data, ctx);
-        }
-    }
-    
-    return data;
-}
-```
-
-Optimizations can batch requests or use smarter routing.
-
-### `prs` and `pact` with Combining
-
-Remote memory with combining is basically `get`/`send` with conflict resolution:
-
-```c
-void star_pact(int dest_addr, int value, combiner_t op, star_context_t *ctx) {
-    // Route value to destination
-    star_send(dest_addr, value, ctx);
-    
-    // Destination combines all incoming values
-    if (ctx->my_addr == dest_addr) {
-        int combined = value;
-        // Collect from all senders, apply combiner
-        // (Implementation depends on knowing how many senders)
-        local_memory[dest_addr] = combined;
-    }
-}
-```
-
-The hard part is knowing when all writes have arrived. This requires either a barrier or a count of expected writes.
-
-## Example Programs
-
-### Vector Addition
-
-```starc
-pvar<float> A[1024];
-pvar<float> B[1024];
-pvar<float> C[1024];
-
-for (int i = 0; i < 1024; i++) {
-    C[i] = A[i] + B[i];  // Happens on all 4096 processors simultaneously
-}
-```
-
-This is the simplest data-parallel operation. Every processor adds its local elements of A and B.
-
-### Matrix Multiply (Simplified)
-
-```starc
-// Assume 64x64 matrix distributed across processors
-pvar<float> A[64];  // My row of A
-pvar<float> B[64];  // My column of B
-pvar<float> C = 0;
-
-for (int k = 0; k < 64; k++) {
-    // Broadcast A[k] within my row
-    // Broadcast B[k] within my column
-    // (This requires NEWS communication within chips)
-    C += A[k] * B[k];
-}
-```
-
-Full matrix multiply is complex, but this shows the basic structure.
-
-### Parallel Prefix Sum
-
-```starc
-pvar<int> x;
-// ... initialize x ...
-
-pvar<int> prefix = scan_sum(x);
-
-// Now prefix[i] = sum of x[0..i]
-```
-
-One line. The runtime handles the tree communication.
-
-### Bitonic Sort
-
-```starc
 pvar<int> key;
-// ... initialize keys ...
+load_from_host(&key, 1);
 
 for (int k = 2; k <= 4096; k *= 2) {
     for (int j = k / 2; j > 0; j /= 2) {
-        int partner = pid() ^ j;
-        int partner_key = get(partner);
+        int dim = __builtin_ctz(j);  // log2(j) — which dimension
         
-        bool ascending = (pid() & k) == 0;
-        bool swap = (ascending && key > partner_key) || 
-                    (!ascending && key < partner_key);
+        pvar<int> partner_key;
+        exchange {
+            partner_key = nbr(dim, key);
+        }
+        
+        // Determine sort direction for this processor
+        int ascending = ((pid() & k) == 0);
+        int swap = (ascending && key > partner_key) || 
+                   (!ascending && key < partner_key);
         
         where (swap) {
             key = partner_key;
         }
     }
 }
+
+store_to_host(&key, 1);
 ```
 
-This is a standard bitonic sort, but the compare-exchange happens via `get` and conditional assignment.
+**Why it works:** `j` is always a power of 2, so `pid XOR j` differs in exactly one bit—dimension `log2(j)`. Every compare-exchange is with a hypercube neighbor. No routing needed.
 
-### Image Convolution (NEWS)
+**Cost:** O(log²N) compare-exchanges. For N=4096: 78 exchanges × 2 ms each ≈ 156 ms total.
 
-```starc
-// Assume 64x64 image on 64x64 processor grid (one pixel per processor)
-pvar<int> pixel;
+### Global Statistics
 
-// 3x3 Gaussian blur
-pvar<int> north = news_recv(NORTH);
-pvar<int> south = news_recv(SOUTH);
-pvar<int> east = news_recv(EAST);
-pvar<int> west = news_recv(WEST);
+Compute multiple statistics in one superframe using pipelined reductions:
 
-pvar<int> blurred = (pixel * 4 + north + south + east + west) / 8;
+```c
+pvar<float> value = compute_something();
+
+float sum, min, max;
+int count;
+
+exchange {
+    sum = reduce_sum(value);
+    min = reduce_min(value);
+    max = reduce_max(value);
+    count = reduce_sum(1);
+}
+// All four reductions share one superframe
+
+if (pid() == 0) {
+    float avg = sum / count;
+    host_printf("Sum=%f Min=%f Max=%f Avg=%f\n", sum, min, max, avg);
+}
 ```
 
-NEWS communication is a special case of `nbr()` for the 4×4 grid within each chip.
+### Parallel Prefix: Compaction Addresses
 
-## Comparison to C* and *Lisp
+Use exclusive scan to compute destination addresses for compaction:
 
-### C* (Thinking Machines C)
+```c
+pvar<int> data;
+load_from_host(&data, 1);
 
-C* was the production language for the CM-2. It had:
-- `parallel` variables (like `pvar`)
-- `where` statements for masking
-- Permutation operations (`get`, `send`)
-- Virtual processor ratios (map N virtual processors onto M physical)
+// Mark elements to keep
+pvar<int> keep = (data != 0) ? 1 : 0;
 
-**What StarC keeps:**
-- `pvar` and `where`
-- Communication primitives
-- Set-centric thinking
+// Compute destination addresses
+pvar<int> dest;
+exchange {
+    dest = scan_sum(keep);  // Exclusive prefix sum
+}
 
-**What StarC changes:**
-- Simplified syntax (no `parallel` keyword, just `pvar<T>`)
-- Explicit topology (hypercube dimensions, not abstract "shapes")
-- No virtual processors (at least not in v0.1)
+// Processor i with keep=1 should go to position dest
+// Processor 0: if keep=1, dest=0
+// First keeper after gap: dest = count of previous keepers
+```
 
-### *Lisp (CM Lisp)
+The scan gives each element its destination address. Actual data movement would require routing (which we don't have), but the addresses enable many algorithms.
 
-*Lisp (pronounced "star-lisp") was the original CM-1 language. It was Lisp with:
-- `xectors` (distributed data)
-- `alpha` (parallel map)
-- `beta` (parallel reduce)
-- Explicit router operations
+### Double-Buffered Stencil
 
-**What StarC keeps:**
-- The xector concept
-- Map/reduce style operations
+Overlap compute and communication for better MCU utilization:
 
-**What StarC changes:**
-- C syntax instead of Lisp
-- Imperative style instead of functional
-- Direct hardware mapping instead of abstraction
+```c
+pvar<float> temp;
+pvar<float> n, s, e, w;
 
-StarC is closer to C* than *Lisp, but simpler than both. It's the minimum language needed to program a hypercube without fighting the architecture.
+load_from_host(&temp, 1);
 
-## Current Status
+// Prime: get initial neighbors
+exchange {
+    n = news(NORTH, temp);
+    s = news(SOUTH, temp);
+    e = news(EAST, temp);
+    w = news(WEST, temp);
+}
 
-**What works:**
-- Preprocessor handles `pvar`, `where`, and primitive calls
-- Simulator backend runs on desktop with 16 virtual processors
-- `nbr()`, `reduce`, and `scan` work in simulation
-- Example programs compile and run
+for (int iter = 0; iter < 1000; iter++) {
+    // Start next exchange asynchronously
+    exchange_async {
+        n = news(NORTH, temp);
+        s = news(SOUTH, temp);
+        e = news(EAST, temp);
+        w = news(WEST, temp);
+    }
+    
+    // Compute using PREVIOUS neighbors (snapshot from before async)
+    pvar<float> new_temp = temp + 0.25f * (n + s + e + w - 4.0f * temp);
+    
+    // Wait for exchange to complete
+    exchange_wait();
+    
+    temp = new_temp;
+}
 
-**What's stubbed:**
-- Hardware backend (TDMA communication layer)
-- `get`/`send` permutation (routing logic exists but untested)
-- `prs`/`pact` remote memory
-- NEWS communication (needs special handling for 4×4 grids)
+store_to_host(&temp, 1);
+```
 
-**What's planned:**
-- Virtual processor ratios (map many VPs onto each physical processor)
-- Debugging support (breakpoints, watch expressions)
-- Profiling (time spent in each dimension's communication)
-- Optimization passes (batch communication, overlap compute and messaging)
+While the FPGA executes the current exchange, the MCU computes the next iteration. Utilization approaches 100% when compute time matches exchange time.
 
-## The Point
+---
 
-This machine isn't useful if you can't program it. Building 4,096 processors in a hypercube is impressive, but it's just a curiosity if the only way to use it is hand-writing assembly.
+## Chapter 8: Performance
 
-StarC makes the machine programmable. You can write algorithms that actually exploit the architecture:
-- Cellular automata that exchange data with neighbors every step
-- Matrix operations that broadcast rows and columns
-- Sorting that uses the hypercube structure
-- Graph algorithms that route messages through dimensions
+This chapter explains the cost model and how to reason about performance.
 
-The goal isn't to build a perfect language. The goal is to build a language that makes the machine useful. StarC does that. It's C with the minimum extensions needed to express hypercube algorithms. The toolchain is simple. The runtime is comprehensible. The examples work.
+### Timing Model
 
-When you can write a parallel prefix sum in one line, or a bitonic sort in 20 lines, or an image filter that runs on 4,096 processors simultaneously—then the machine stops being a flex and starts being a tool.
+At 1 kHz phase clock:
 
-And that's the point.
+| Unit | Duration |
+|------|----------|
+| Phase | 1 ms |
+| Superframe (24 phases) | 24 ms |
+
+**Operation costs:**
+
+| Operation | Phases | Time |
+|-----------|--------|------|
+| `nbr()` — one dimension | 2 | 2 ms |
+| `nbr()` — all 12 dimensions | 24 | 24 ms |
+| `news()` — 4 cardinal directions | 8 | 8 ms |
+| `reduce_*()` — one or more | 24 | 24 ms |
+| `scan_*()` | 24 | 24 ms |
+| `broadcast()` | 24 | 24 ms |
+
+### Exchange Scheduling
+
+The runtime schedules exchanges to minimize superframe usage.
+
+**What fits in one superframe:**
+
+- Up to 12 `nbr()` calls on **different** dimensions
+- AND/OR multiple pipelined reductions
+- AND/OR one scan
+- AND/OR one broadcast
+
+**What exceeds capacity (runtime error):**
+
+- More than ~160 bytes total on a single dimension
+- Scan + reduction in same block (both need the full tree)
+- Too many exchanges overall
+
+**Examples:**
+
+```c
+// OK: 12 different dimensions
+exchange {
+    for (int d = 0; d < 12; d++) {
+        neighbors[d] = nbr(d, data);
+    }
+}
+
+// OK: multiple reductions (pipelined)
+exchange {
+    sum = reduce_sum(x);
+    max = reduce_max(x);
+    min = reduce_min(x);
+}
+
+// ERROR: reduction + scan both need full tree
+exchange {
+    total = reduce_sum(x);
+    prefix = scan_sum(y);   // Can't share with reduction
+}
+
+// OK: separate blocks
+exchange { total = reduce_sum(x); }
+exchange { prefix = scan_sum(y); }
+```
+
+### Automatic Reordering
+
+The runtime reorders `nbr()` calls by dimension for optimal phase usage:
+
+```c
+exchange {
+    d11 = nbr(11, x);  // Declared first
+    d0 = nbr(0, y);    // Declared second  
+    d5 = nbr(5, z);    // Declared third
+}
+// Executes: d0 (phases 0-1), d5 (phases 10-11), d11 (phases 22-23)
+```
+
+You don't need to think about phase ordering—just declare what you need.
+
+### Bandwidth
+
+| Path | Payload | Bandwidth |
+|------|---------|-----------|
+| Hypercube (per dimension) | 80 B / 2 ms | 40 KB/s |
+| Hypercube (all dimensions) | 960 B / 24 ms | 40 KB/s |
+| Control tree (bulk) | Unlimited | ~1 MB/s |
+
+The hypercube is latency-optimized: small payloads, fast phases, deterministic timing. Use it for algorithm communication.
+
+The control tree is bandwidth-optimized: large transfers, variable latency. Use it for bulk I/O.
+
+### MCU Utilization
+
+**Without double buffering:**
+
+During an exchange, the MCU waits. At 133 MHz, a 24 ms superframe wastes 3.2 million cycles.
+
+**With double buffering:**
+
+The MCU computes iteration N+1 while the FPGA exchanges iteration N. Utilization depends on the ratio:
+
+- If compute > exchange: MCU-bound, utilization ≈ 100%
+- If compute < exchange: exchange-bound, utilization ≈ compute/exchange
+- If compute ≈ exchange: optimal overlap, utilization ≈ 100%
+
+### Phase Rate Trade-offs
+
+The phase rate is configurable:
+
+| Rate | Superframe | Payload/Phase | Use Case |
+|------|------------|---------------|----------|
+| 100 Hz | 240 ms | 800 bytes | Debug, huge payloads |
+| 1 kHz | 24 ms | 80 bytes | Default, balanced |
+| 10 kHz | 2.4 ms | 8 bytes | Low latency, small data |
+
+Slower rates give more payload per phase. Faster rates give lower latency but smaller payloads.
+
+### Iteration Rates
+
+Typical workloads at 1 kHz:
+
+| Workload | Exchange Time | Iter/Sec |
+|----------|---------------|----------|
+| 4-neighbor stencil | ~8 ms | ~100 |
+| 8-neighbor stencil | ~48 ms | ~20 |
+| Stencil + reduction | ~32 ms | ~30 |
+| Single bitonic step | ~2 ms | ~500 |
+
+---
+
+# Part IV: Implementation
+
+---
+
+## Chapter 9: Toolchain
+
+This chapter describes how StarC source code becomes executable firmware.
+
+### Build Pipeline
+
+```
+algorithm.starc
+      ↓
+  starc_pp.py (Python preprocessor)
+      ↓
+algorithm.c (plain C with runtime calls)
+      ↓
+  gcc / riscv-gcc
+      ↓
+algorithm.elf (executable)
+```
+
+StarC is not a compiler. It's a preprocessor that rewrites StarC syntax into C, then a standard C compiler produces the binary.
+
+### Preprocessor Transformations
+
+The preprocessor tokenizes the source (not regex—proper tokenization) and rewrites StarC constructs:
+
+| StarC | Generated C |
+|-------|-------------|
+| `pvar<T> x;` | `T x;` |
+| `where (c) { }` | `if (c) { }` |
+| `if (c) { }` | `if (c) { }` (validated: c must be scalar) |
+| `exchange { ... }` | `star_ex_begin(); ... star_ex_execute();` |
+| `exchange_async { ... }` | `star_ex_begin(); ... star_ex_start();` |
+| `exchange_wait()` | `star_ex_wait();` |
+| `nbr(d, v)` | `star_ex_nbr(d, &r, &v, sizeof(v))` |
+| `reduce_sum(v)` | `star_ex_reduce(SUM, &r, &v, sizeof(v))` |
+| `scan_sum(v)` | `star_ex_scan(SUM, EXCL, &r, &v, sizeof(v))` |
+| `news(NORTH, v)` | `star_ex_news(NORTH, &r, &v, sizeof(v))` |
+| `pid()` | `star_pid()` |
+| `grid_row()` | `star_grid_row()` |
+| `grid_col()` | `star_grid_col()` |
+
+### Preprocessor Diagnostics
+
+The preprocessor validates StarC rules and emits warnings/errors:
+
+- **Warning:** `if` condition appears to involve a pvar (should use `where`)
+- **Error:** `exchange` block inside `where` block
+- **Error:** Exchange result used as input within same block
+- **Error:** Nested `exchange` blocks
+- **Error:** Communication primitive outside `exchange` block
+
+### Compiler Settings
+
+The toolchain enforces specific compiler settings:
+
+- `-fno-fast-math` — guarantees floating-point reproducibility in reductions/scans
+- Standard optimization flags as appropriate for the target
+
+### Backends
+
+**Simulator backend:**
+
+Compiles to run on desktop with N virtual processors (configurable, typically 16 or 64 for testing). Used for debugging and algorithm development.
+
+```bash
+./starc_pp.py src/algorithm.starc -o build/algorithm.c
+gcc -DSTAR_SIM -Ilibstar build/algorithm.c libstar/sim_backend.c -o build/sim
+./build/sim
+```
+
+**Hardware backend:**
+
+Compiles for actual RISC-V nodes. Links against TDMA runtime.
+
+```bash
+./starc_pp.py src/algorithm.starc -o build/algorithm.c
+riscv-gcc -DSTAR_HW -Ilibstar build/algorithm.c libstar/hw_backend.c -o build/firmware.elf
+```
+
+---
+
+## Chapter 10: Runtime
+
+This chapter describes the runtime library and hardware interface.
+
+### Exchange Block Compilation
+
+The preprocessor transforms an exchange block into runtime calls:
+
+```c
+exchange {
+    a = nbr(0, x);
+    b = nbr(5, y);
+    total = reduce_sum(z);
+}
+```
+
+Becomes:
+
+```c
+{
+    star_ex_t __ex;
+    star_ex_begin(&__ex);
+    
+    star_ex_nbr(&__ex, 0, &a, &x, sizeof(x));
+    star_ex_nbr(&__ex, 5, &b, &y, sizeof(y));
+    star_ex_reduce(&__ex, STAR_SUM, &total, &z, sizeof(z));
+    
+    star_ex_execute(&__ex);  // Blocks until complete
+}
+```
+
+The `star_ex_t` structure collects exchange declarations. `star_ex_execute()` validates capacity, schedules phases, and executes.
+
+### FPGA Interface
+
+The MCU communicates with the FPGA via memory-mapped registers:
+
+| Address | Register | Description |
+|---------|----------|-------------|
+| 0x4000_0000 | PHASE_COUNTER | Current phase (0-23) |
+| 0x4000_0004 | PHASE_CONFIG | Phase clock divider |
+| 0x4000_0008 | TX_DATA | Transmit FIFO |
+| 0x4000_000C | RX_DATA | Receive FIFO |
+| 0x4000_0010 | TX_STATUS | TX FIFO status |
+| 0x4000_0014 | RX_STATUS | RX FIFO status |
+| 0x4000_0018 | DIM_SELECT | Current dimension (pin mux) |
+| 0x4000_001C | FRAME_COUNT | Superframes since reset |
+| 0x4000_0020 | ERROR_COUNT | CRC errors per dimension |
+
+### Phase Rate Configuration
+
+```c
+void star_set_phase_rate(int hz);
+```
+
+Sets the FPGA's phase clock divider. Valid values: 100, 1000, 10000.
+
+| Rate | Superframe | Payload |
+|------|------------|---------|
+| 100 Hz | 240 ms | 800 B |
+| 1 kHz | 24 ms | 80 B |
+| 10 kHz | 2.4 ms | 8 B |
+
+### Error Handling
+
+**CRC errors:**
+
+Each received frame is CRC-checked. On failure:
+1. Error counter for that dimension increments
+2. Payload is zeroed
+3. Execution continues
+
+Query errors:
+```c
+int star_crc_errors(int dim);  // Errors on dimension dim
+void star_clear_errors(void);  // Reset all counters
+```
+
+**Capacity exceeded:**
+
+If an exchange block declares more than fits in one superframe, the runtime aborts with an error message. This is deliberate—automatic splitting would hide costs.
+
+**Desynchronization:**
+
+If the TDMA clock drifts or a processor crashes, the watchdog timer triggers a hardware reset. There is no automatic recovery.
+
+---
+
+# Appendices
+
+---
+
+## Appendix A: Quick Reference
+
+### Types and Identity
+
+```c
+pvar<T>              // Parallel variable (one per processor)
+int pid()            // Processor ID (0-4095)
+int coord(int dim)   // Bit 'dim' of address (0 or 1)
+int grid_row()       // Grid row (0-63)
+int grid_col()       // Grid column (0-63)
+```
+
+### Communication (exchange blocks only)
+
+```c
+// Neighbor exchange
+T nbr(int dim, T val)              // Hypercube neighbor
+T news(dir, T val)                 // Grid neighbor (N/E/S/W)
+
+// Reductions → scalar
+T reduce_sum(pvar<T>)
+T reduce_min(pvar<T>)
+T reduce_max(pvar<T>)
+T reduce_and(pvar<T>)
+T reduce_or(pvar<T>)
+
+// Scans → pvar
+pvar<T> scan_sum(pvar<T>)              // Exclusive
+pvar<T> scan_min(pvar<T>)              // Exclusive
+pvar<T> scan_max(pvar<T>)              // Exclusive
+pvar<T> scan_sum_inclusive(pvar<T>)    // Inclusive
+pvar<T> scan_min_inclusive(pvar<T>)    // Inclusive
+pvar<T> scan_max_inclusive(pvar<T>)    // Inclusive
+
+// Broadcast
+pvar<T> broadcast(int source, T val)
+```
+
+### Control
+
+```c
+if (scalar_cond) { }     // Uniform (all same branch)
+where (pvar_cond) { }    // Divergent (per-processor)
+exchange { }             // Synchronous communication
+exchange_async { }       // Asynchronous communication
+exchange_wait()          // Wait for async
+barrier()                // Global sync (rarely needed)
+```
+
+### I/O (control tree)
+
+```c
+void led_set(uint8_t brightness)
+uint8_t led_get(void)
+void load_from_host(pvar<T>*, size_t)
+void store_to_host(pvar<T>*, size_t)
+void host_printf(const char*, ...)
+```
+
+### Configuration
+
+```c
+void star_set_phase_rate(int hz)   // 100, 1000, or 10000
+int star_crc_errors(int dim)
+void star_clear_errors(void)
+```
+
+---
+
+## Appendix B: What StarC Doesn't Have
+
+**No `get(address)` or `send(address, value)`.**
+
+Arbitrary point-to-point communication would require routing through intermediate nodes. We have no router—only neighbor links and a TDMA schedule. Algorithms requiring arbitrary permutation should use a GPU or other architecture.
+
+**No virtual processors.**
+
+The CM-1 could simulate more processors than physically existed. StarC has exactly 4,096 processors. Problem size must be 4,096 or adapted to fit.
+
+**No variable payload sizes.**
+
+80 bytes per phase at 1 kHz. Pack your structs accordingly, or use a slower phase rate for larger payloads.
+
+**No automatic multi-superframe splitting.**
+
+If your exchange block exceeds capacity, you get a runtime error. This is deliberate—hidden costs make performance unpredictable. Split your blocks explicitly.
+
+**No automatic error recovery.**
+
+CRC failures zero the payload and increment a counter. Desynchronization triggers hardware reset. The machine does not attempt to recover from errors automatically.
+
+---
+
+## Appendix C: Constants
+
+```c
+#define STAR_PROCESSORS      4096
+#define STAR_DIMENSIONS      12
+#define STAR_GRID_SIZE       64
+#define STAR_MAX_PAYLOAD     80    // bytes, at 1 kHz
+#define STAR_SUPERFRAME_MS   24    // at 1 kHz
+#define STAR_PHASES          24
+```
+
+---
+
+## Appendix D: Reduction and Scan Order
+
+All tree operations proceed **dimension 0 first, ascending to dimension 11**.
+
+**Reduction sequence:**
+
+1. Exchange with dimension 0 neighbor, combine
+2. Exchange with dimension 1 neighbor, combine
+3. Exchange with dimension 2 neighbor, combine
+4. ...
+5. Exchange with dimension 11 neighbor, combine
+6. All processors have global result
+
+**Floating-point guarantee:**
+
+This ordering is fixed and guaranteed. Combined with the toolchain's `-fno-fast-math` enforcement, identical inputs always produce bit-identical outputs. Reproducibility is not optional.
+
+---
+
+## Colophon
+
+StarC exists because a hypercube exists. The language is shaped by the hardware: TDMA phases become exchange blocks, neighbor links become `nbr()` calls, the absence of routing becomes the absence of `get()`.
+
+C was a thin wrapper over the PDP-11. StarC is a thin wrapper over a hypercube. Neither is an abstraction. Both are descriptions of what the machine does, expressed as syntax.
+
+The Connection Machine made parallel computation visible. You could watch sorting algorithms ripple across the front panel. This machine does the same: 4,096 LEDs showing 4,096 processors, running algorithms you can see.
+
+That's what StarC is for. Not to be a perfect language. To be the language that makes this machine programmable.
+
+---
 
 [back to main project page](ThinkinMachine.html)
 
