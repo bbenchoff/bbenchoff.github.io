@@ -529,11 +529,6 @@ These constraints lead to clear design principles:
 
 5. **Only hypercube-native operations.** Neighbor exchange, tree reductions, broadcasts. No arbitrary permutation.
 
----
-
-# Part II: The Language
-
----
 
 ## Chapter 3: Data Model
 
