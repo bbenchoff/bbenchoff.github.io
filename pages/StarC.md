@@ -212,7 +212,7 @@ pre[class*="language-"] {
   --tm-article-min-ch: 52;
   --tm-nav-h: 64px;
   --tm-scroll-offset: 90px;
-  --tm-toc-max-px: 420px;
+  --tm-toc-max-px: 280px;
   --tm-article-fit-px: 100000px;
 }
 
@@ -1819,6 +1819,7 @@ Application of prefix sum. `scan_sum()` → destination addresses.
 4-neighbor stencil. Clean `news()` usage.
 
 <div class="collapsible">
+
 ```c
 // 2D Gaussian blur using NEWS communication
 // Each pixel averages with its 4 neighbors
@@ -1859,12 +1860,14 @@ void main() {
 }
 
 ```
+
 </div>
 
 ### Conway's Game of Life
 8-neighbor stencil. Two exchange blocks for diagonals.
 
 <div class="collapsible">
+
 ```c
 // Conway's Game of Life using NEWS communication
 // Classic cellular automaton with multiple patterns
@@ -1988,6 +1991,7 @@ void main() {
 }
 
 ```
+
 </div>
 
 ### Double-Buffered Stencil
@@ -1997,6 +2001,7 @@ void main() {
 Embarrassingly parallel. Scalar LFSR state. Zero communication.
 
 <div class="collapsible">
+
 ```c
 // LFSR Scrolling Columns - Embarrassingly Parallel!
 // 64 rows × 4 columns = 256 independent 16-pixel-wide windows
@@ -2121,6 +2126,7 @@ void main() {
 }
 
 ```
+
 </div>
 
 ---
@@ -2459,53 +2465,54 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     });
 
-    // Setup collapsible functionality for marked code blocks
-    document.querySelectorAll('.collapsible').forEach(container => {
-      // Find code blocks within this collapsible container
-      const codeBlocks = container.querySelectorAll('pre[class*="language-"]');
+    // Setup collapsible functionality for code blocks with data-collapsible attribute
+    // OR within a .collapsible container
+    const collapsibleSelectors = [
+      'pre[data-collapsible]',
+      '.collapsible pre[class*="language-"]'
+    ];
 
-      codeBlocks.forEach((codeBlock, index) => {
-        // Skip if already wrapped
-        if (codeBlock.closest('.code-block-wrapper.collapsible')) return;
+    document.querySelectorAll(collapsibleSelectors.join(', ')).forEach((codeBlock) => {
+      // Skip if already wrapped
+      if (codeBlock.closest('.code-block-wrapper.collapsible')) return;
 
-        // Get the language from the class
-        const languageClass = Array.from(codeBlock.classList)
-          .find(className => className.startsWith('language-'));
-        const language = languageClass ? languageClass.replace('language-', '') : 'code';
+      // Get the language from the class
+      const languageClass = Array.from(codeBlock.classList)
+        .find(className => className.startsWith('language-'));
+      const language = languageClass ? languageClass.replace('language-', '') : 'code';
 
-        // Create wrapper structure
-        const wrapper = document.createElement('div');
-        wrapper.className = 'code-block-wrapper collapsible';
+      // Create wrapper structure
+      const wrapper = document.createElement('div');
+      wrapper.className = 'code-block-wrapper collapsible';
 
-        const header = document.createElement('div');
-        header.className = 'code-block-header';
+      const header = document.createElement('div');
+      header.className = 'code-block-header';
 
-        const title = document.createElement('div');
-        title.className = 'code-block-title';
-        title.textContent = language.charAt(0).toUpperCase() + language.slice(1);
+      const title = document.createElement('div');
+      title.className = 'code-block-title';
+      title.textContent = language.charAt(0).toUpperCase() + language.slice(1);
 
-        const toggle = document.createElement('div');
-        toggle.className = 'code-block-toggle';
-        toggle.textContent = 'Show code';
+      const toggle = document.createElement('div');
+      toggle.className = 'code-block-toggle';
+      toggle.textContent = 'Show code';
 
-        const content = document.createElement('div');
-        content.className = 'code-block-content';
+      const content = document.createElement('div');
+      content.className = 'code-block-content';
 
-        // Assemble structure
-        header.appendChild(title);
-        header.appendChild(toggle);
-        wrapper.appendChild(header);
+      // Assemble structure
+      header.appendChild(title);
+      header.appendChild(toggle);
+      wrapper.appendChild(header);
 
-        // Move code block into wrapper
-        codeBlock.parentNode.insertBefore(wrapper, codeBlock);
-        content.appendChild(codeBlock);
-        wrapper.appendChild(content);
+      // Move code block into wrapper
+      codeBlock.parentNode.insertBefore(wrapper, codeBlock);
+      content.appendChild(codeBlock);
+      wrapper.appendChild(content);
 
-        // Add click handler
-        header.addEventListener('click', function() {
-          content.classList.toggle('expanded');
-          toggle.textContent = content.classList.contains('expanded') ? 'Hide code' : 'Show code';
-        });
+      // Add click handler
+      header.addEventListener('click', function() {
+        content.classList.toggle('expanded');
+        toggle.textContent = content.classList.contains('expanded') ? 'Hide code' : 'Show code';
       });
     });
   };
