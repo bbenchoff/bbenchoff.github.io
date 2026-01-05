@@ -45,13 +45,13 @@ image: "/images/default.jpg"
 }
 
 .code-block-wrapper.collapsible .code-block-content {
-  display: none;
+  display: none !important;
   max-height: 400px;
   overflow: auto;
 }
 
 .code-block-wrapper.collapsible .code-block-content.expanded {
-  display: block;
+  display: block !important;
 }
 
 .code-block-wrapper.collapsible .code-block-content pre[class*="language-"] {
@@ -60,8 +60,8 @@ image: "/images/default.jpg"
   box-shadow: none;
 }
 
-/* Ensure code blocks are visible */
-pre[class*="language-"] {
+/* Ensure code blocks are visible (but not inside collapsible wrappers) */
+pre[class*="language-"]:not(.code-block-wrapper.collapsible .code-block-content pre) {
   display: block !important;
   max-height: none !important;
 }
@@ -2517,10 +2517,20 @@ document.addEventListener("DOMContentLoaded", () => {
       content.appendChild(codeBlock);
       wrapper.appendChild(content);
 
+      // Ensure collapsed state initially (remove expanded class if present)
+      content.classList.remove('expanded');
+      content.style.display = 'none';
+
       // Add click handler
       header.addEventListener('click', function() {
         content.classList.toggle('expanded');
-        toggle.textContent = content.classList.contains('expanded') ? 'Hide code' : 'Show code';
+        if (content.classList.contains('expanded')) {
+          content.style.display = 'block';
+          toggle.textContent = 'Hide code';
+        } else {
+          content.style.display = 'none';
+          toggle.textContent = 'Show code';
+        }
       });
     });
   };
