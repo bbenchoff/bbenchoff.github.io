@@ -10,9 +10,9 @@ image: "/images/default.jpg"
 ---
 
 <style>
-/* Collapsible code blocks - OPT-IN via 'collapsible' class */
+/* Collapsible code blocks - OPT-IN via HTML comment markers */
 /* Default: all code blocks are visible */
-/* To make a code block collapsible, wrap it in <div class="collapsible">...</div> */
+/* To make a code block collapsible, add <!-- COLLAPSIBLE --> before it */
 
 .code-block-wrapper.collapsible {
   margin: 1.5em 0;
@@ -1818,8 +1818,7 @@ Application of prefix sum. `scan_sum()` → destination addresses.
 ### NEWS Blur
 4-neighbor stencil. Clean `news()` usage.
 
-<div class="collapsible">
-
+<!-- COLLAPSIBLE -->
 ```c
 // 2D Gaussian blur using NEWS communication
 // Each pixel averages with its 4 neighbors
@@ -1858,16 +1857,13 @@ void main() {
     barrier();
   }
 }
-
 ```
-
-</div>
+<!-- /COLLAPSIBLE -->
 
 ### Conway's Game of Life
 8-neighbor stencil. Two exchange blocks for diagonals.
 
-<div class="collapsible">
-
+<!-- COLLAPSIBLE -->
 ```c
 // Conway's Game of Life using NEWS communication
 // Classic cellular automaton with multiple patterns
@@ -1989,10 +1985,8 @@ void main() {
     barrier();
   }
 }
-
 ```
-
-</div>
+<!-- /COLLAPSIBLE -->
 
 ### Double-Buffered Stencil
 `exchange_async` / `exchange_wait`. MCU utilization.
@@ -2000,8 +1994,7 @@ void main() {
 ### Random and Pleasing
 Embarrassingly parallel. Scalar LFSR state. Zero communication.
 
-<div class="collapsible">
-
+<!-- COLLAPSIBLE -->
 ```c
 // LFSR Scrolling Columns - Embarrassingly Parallel!
 // 64 rows × 4 columns = 256 independent 16-pixel-wide windows
@@ -2124,10 +2117,8 @@ void main() {
     barrier();
   }
 }
-
 ```
-
-</div>
+<!-- /COLLAPSIBLE -->
 
 ---
 
@@ -2465,14 +2456,31 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     });
 
-    // Setup collapsible functionality for code blocks with data-collapsible attribute
-    // OR within a .collapsible container
-    const collapsibleSelectors = [
-      'pre[data-collapsible]',
-      '.collapsible pre[class*="language-"]'
-    ];
+    // Find all code blocks that are preceded by <!-- COLLAPSIBLE --> comment
+    const walker = document.createTreeWalker(
+      document.body,
+      NodeFilter.SHOW_COMMENT,
+      null
+    );
 
-    document.querySelectorAll(collapsibleSelectors.join(', ')).forEach((codeBlock) => {
+    const collapsibleBlocks = [];
+    let comment;
+    while (comment = walker.nextNode()) {
+      if (comment.nodeValue.trim() === 'COLLAPSIBLE') {
+        // Find the next code block after this comment
+        let node = comment.nextSibling;
+        while (node) {
+          if (node.nodeType === Node.ELEMENT_NODE && node.tagName === 'PRE') {
+            collapsibleBlocks.push(node);
+            break;
+          }
+          node = node.nextSibling;
+        }
+      }
+    }
+
+    // Wrap each collapsible code block
+    collapsibleBlocks.forEach((codeBlock) => {
       // Skip if already wrapped
       if (codeBlock.closest('.code-block-wrapper.collapsible')) return;
 
