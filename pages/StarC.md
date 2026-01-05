@@ -2443,6 +2443,9 @@ That's what StarC is for. Not to be a perfect language. To be the language that 
 </div><!-- /.tm-layout -->
 
 <script>
+// Tell default.html to skip its automatic code block processing
+document.body.setAttribute('data-custom-code-blocks', 'true');
+
 document.addEventListener("DOMContentLoaded", () => {
   // Handle collapsible code blocks
   const setupCollapsibleCodeBlocks = () => {

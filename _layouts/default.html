@@ -618,9 +618,14 @@
         
         // Process code blocks to make them collapsible
         document.addEventListener('DOMContentLoaded', function() {
+            // Skip if page has custom code block handling
+            if (document.body.hasAttribute('data-custom-code-blocks')) {
+                return;
+            }
+
             // Find all code blocks
             const codeBlocks = document.querySelectorAll('pre[class*="language-"]');
-            
+
             codeBlocks.forEach((codeBlock, index) => {
                 // Get the language class
                 const languageClass = Array.from(codeBlock.classList)
