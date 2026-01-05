@@ -10,28 +10,54 @@ image: "/images/default.jpg"
 ---
 
 <style>
-/* Override collapsible code blocks for StarC.md */
-.code-block-wrapper {
-  margin: 1.5em 0;
-  border-radius: 0;
-  overflow: visible;
-  box-shadow: none;
-}
+/* Collapsible code blocks - OPT-IN via 'collapsible' class */
+/* Default: all code blocks are visible */
+/* To make a code block collapsible, wrap it in <div class="collapsible">...</div> */
 
-.code-block-header {
-  display: none !important;
-}
-
-.code-block-content {
-  display: block !important;
-  max-height: none !important;
-  overflow: visible !important;
-}
-
-.code-block-content pre[class*="language-"] {
+.code-block-wrapper.collapsible {
   margin: 1.5em 0;
   border-radius: 6px;
+  overflow: hidden;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.code-block-wrapper.collapsible .code-block-header {
+  background: var(--accent);
+  color: white;
+  padding: 0.5rem 1rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  cursor: pointer;
+  user-select: none;
+}
+
+.code-block-wrapper.collapsible .code-block-title {
+  font-weight: 500;
+  font-size: 0.9rem;
+}
+
+.code-block-wrapper.collapsible .code-block-toggle {
+  font-size: 0.8rem;
+  padding: 0.2rem 0.5rem;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 4px;
+}
+
+.code-block-wrapper.collapsible .code-block-content {
+  display: none;
+  max-height: 400px;
+  overflow: auto;
+}
+
+.code-block-wrapper.collapsible .code-block-content.expanded {
+  display: block;
+}
+
+.code-block-wrapper.collapsible .code-block-content pre[class*="language-"] {
+  margin: 0;
+  border-radius: 0;
+  box-shadow: none;
 }
 
 /* Ensure code blocks are visible */
@@ -1535,6 +1561,104 @@ store_to_host(&temp, 1);
 
 While the FPGA executes the current exchange, the MCU computes the next iteration. Utilization approaches 100% when compute time matches exchange time.
 
+### LFSR Scrolling Columns
+
+This example demonstrates **embarrassingly parallel computation**: 4,096 independent pseudo-random bit streams with zero communication. Each processor maintains a local scroll buffer fed by a replicated global LFSR state.
+
+```c
+// Global state: 4 Galois LFSRs (replicated on all processors)
+uint64_t lfsr[4] = {
+    0xACE1BEEFCAFEDEADU,
+    0x123456789ABCDEF0U,
+    0xFEDCBA9876543210U,
+    0xDEADBEEFBADC0FFEU
+};
+
+// Per-processor state
+pvar<uint16_t> scroll_buffer;  // 16-bit horizontal scroll
+pvar<uint8_t> lfsr_idx;        // Which LFSR (0-3)
+pvar<uint8_t> bit_pos;         // Which bit (0-63)
+pvar<uint8_t> direction;       // Scroll direction (0=right, 1=left)
+
+// Initialization: assign unique LFSR bits to each processor
+void init_lfsr() {
+    // Simple assignment: distribute 256 LFSR bits across 4096 processors
+    // Multiple processors may share the same bit (creates visual patterns)
+    int my_pid = pid();
+    int segment = my_pid % 256;  // 256 unique assignments
+
+    lfsr_idx = segment / 64;
+    bit_pos = segment % 64;
+    direction = (my_pid & 1);  // Alternate directions based on PID
+    scroll_buffer = 0;
+}
+
+// Animation loop
+init_lfsr();
+
+for (int frame = 0; frame < 10000; frame++) {
+    // Step 1: Advance all 4 LFSRs (scalar - same on all processors)
+    for (int i = 0; i < 4; i++) {
+        uint64_t lsb = lfsr[i] & 1;
+        lfsr[i] >>= 1;
+        if (lsb) lfsr[i] ^= 0xD800000000000000ULL;  // Taps at 63,62,60,59
+    }
+
+    // Step 2: Each processor extracts its assigned bit (parallel - no exchange!)
+    pvar<int> new_bit = (lfsr[lfsr_idx] >> bit_pos) & 1;
+
+    // Step 3: Shift bit into local scroll buffer
+    where (direction == 0) {
+        scroll_buffer = (scroll_buffer >> 1) | (new_bit << 15);  // Scroll right
+    }
+    where (direction == 1) {
+        scroll_buffer = (scroll_buffer << 1) | new_bit;           // Scroll left
+    }
+
+    // Step 4: Display the middle bit of the scroll buffer
+    pvar<int> display_bit = (scroll_buffer >> 8) & 1;
+    led_set(display_bit ? 255 : 0);
+
+    // No exchange needed - every processor operates independently!
+}
+```
+
+**Why this works:**
+
+- **LFSR state is replicated:** All 4,096 processors compute the same 4 LFSR values each frame
+- **Extraction is parallel:** Each processor reads its assigned bit from its assigned LFSR
+- **Scroll buffers are local:** 4,096 independent 16-bit shift registers
+- **Zero communication:** No `exchange` blocks anywhere in the main loop
+
+**Visual effect:** The 64×64 LED array shows horizontal strips of pseudo-random bits scrolling in alternating directions. The LFSR polynomial (taps at bits 63, 62, 60, 59) gives maximum period: 2^64 - 1 cycles before repeating.
+
+**Cost per frame:** ~100 µs compute only (no network phases). Frame rate limited only by LED refresh, not communication. At 1 kHz phase clock, this runs **240× faster** than algorithms requiring full superframe exchanges.
+
+**Enhancement with communication:**
+
+Add neighbor blending for smoother visual transitions:
+
+```c
+// After extracting the bit, blend with neighbors
+pvar<int> display_bit = (scroll_buffer >> 8) & 1;
+
+pvar<int> n, e, s, w;
+exchange {
+    n = news(NORTH, display_bit);
+    e = news(EAST, display_bit);
+    s = news(SOUTH, display_bit);
+    w = news(WEST, display_bit);
+}
+
+// Average with neighbors
+pvar<int> blended = (display_bit * 2 + n + e + s + w) / 6;
+led_set(blended * 255 / 6);
+```
+
+This adds spatial correlation while maintaining independent LFSR streams.
+
+**Why Galois LFSR?** The right-shift form (`lfsr >>= 1`) is more efficient than Fibonacci LFSR because the XOR feedback only happens on half the cycles (when `lsb == 1`). The polynomial `0xD800000000000000` is maximal-length, ensuring all 2^64-1 non-zero states appear exactly once before cycling.
+
 ---
 
 ## Chapter 8: Performance
@@ -1670,13 +1794,342 @@ Typical workloads at 1 kHz:
 | Stencil + reduction | ~32 ms | ~30 |
 | Single bitonic step | ~2 ms | ~500 |
 
+
+## Chapter 9: Worked Examples
+
+### Dimension Walk
+Pure hypercube. Uses `coord(dim)`, `nbr()` across all 12 dimensions.
+
+### Bitonic Sort  
+The canonical hypercube algorithm. `nbr(log₂(j), key)`. Proves topology = algorithm.
+
+### Heat Equation
+Stencil + convergence. `news()` for neighbors, `reduce_max()` for termination. Shows conditional participation with identity values.
+
+### Global Statistics
+Pipelined reductions. Multiple `reduce_*` in one exchange block. Shows they share the superframe.
+
+### Parallel Prefix (Exclusive and Inclusive)
+`scan_sum()` and `scan_sum_inclusive()`. Shows the difference.
+
+### Stream Compaction
+Application of prefix sum. `scan_sum()` → destination addresses.
+
+### NEWS Blur
+4-neighbor stencil. Clean `news()` usage.
+
+<div class="collapsible">
+```c
+// 2D Gaussian blur using NEWS communication
+// Each pixel averages with its 4 neighbors
+
+void main() {
+  pvar<int> x = pid() % 64;
+  pvar<int> y = pid() / 64;
+
+  // Initialize with a simple pattern
+  pvar<int> value = 0;
+  where (x > 20 && x < 44 && y > 20 && y < 44) {
+    value = 255;
+  }
+
+  // Declare neighbor variables outside the loop
+  pvar<int> north;
+  pvar<int> south;
+  pvar<int> east;
+  pvar<int> west;
+
+  for (;;) {
+    // All communication must happen in an exchange block
+    exchange {
+      north = news(NORTH, value);
+      south = news(SOUTH, value);
+      east = news(EAST, value);
+      west = news(WEST, value);
+    }
+
+    // 5-point stencil: average with 4 neighbors
+    pvar<int> sum = value * 2 + north + south + east + west;
+    value = sum / 6;
+
+    led_set(value);
+
+    barrier();
+  }
+}
+
+```
+</div>
+
+### Conway's Game of Life
+8-neighbor stencil. Two exchange blocks for diagonals.
+
+<div class="collapsible">
+```c
+// Conway's Game of Life using NEWS communication
+// Classic cellular automaton with multiple patterns
+
+void main() {
+  pvar<int> x = pid() % 64;
+  pvar<int> y = pid() / 64;
+
+  pvar<int> alive = 0;
+
+  // Acorn pattern at (10, 10)
+  where ((x == 11 && y == 10) ||
+         (x == 13 && y == 11) ||
+         (x == 10 && y == 12) || (x == 11 && y == 12) ||
+         (x == 14 && y == 12) || (x == 15 && y == 12) || (x == 16 && y == 12)) {
+    alive = 1;
+  }
+
+  // R-pentomino at (40, 20)
+  where ((x == 41 && y == 20) || (x == 42 && y == 20) ||
+         (x == 40 && y == 21) || (x == 41 && y == 21) ||
+         (x == 41 && y == 22)) {
+    alive = 1;
+  }
+
+  // Glider at (50, 50)
+  where ((x == 50 && y == 50) ||
+         (x == 51 && y == 51) ||
+         (x == 49 && y == 52) || (x == 50 && y == 52) || (x == 51 && y == 52)) {
+    alive = 1;
+  }
+
+  // Lightweight spaceship (LWSS) at (5, 40)
+  where ((x == 6 && y == 40) || (x == 7 && y == 40) || (x == 8 && y == 40) || (x == 9 && y == 40) ||
+         (x == 5 && y == 41) || (x == 10 && y == 41) ||
+         (x == 10 && y == 42) ||
+         (x == 5 && y == 43) || (x == 9 && y == 43)) {
+    alive = 1;
+  }
+
+  // Pulsar (oscillator) at (30, 35) - period 3
+  where ((x == 28 && y == 29) || (x == 29 && y == 29) || (x == 30 && y == 29) ||
+         (x == 34 && y == 29) || (x == 35 && y == 29) || (x == 36 && y == 29)) {
+    alive = 1;
+  }
+  where ((x == 26 && y == 31) || (x == 31 && y == 31) || (x == 33 && y == 31) || (x == 38 && y == 31)) {
+    alive = 1;
+  }
+  where ((x == 26 && y == 32) || (x == 31 && y == 32) || (x == 33 && y == 32) || (x == 38 && y == 32)) {
+    alive = 1;
+  }
+  where ((x == 26 && y == 33) || (x == 31 && y == 33) || (x == 33 && y == 33) || (x == 38 && y == 33)) {
+    alive = 1;
+  }
+  where ((x == 28 && y == 34) || (x == 29 && y == 34) || (x == 30 && y == 34) ||
+         (x == 34 && y == 34) || (x == 35 && y == 34) || (x == 36 && y == 34)) {
+    alive = 1;
+  }
+  where ((x == 28 && y == 39) || (x == 29 && y == 39) || (x == 30 && y == 39) ||
+         (x == 34 && y == 39) || (x == 35 && y == 39) || (x == 36 && y == 39)) {
+    alive = 1;
+  }
+  where ((x == 26 && y == 40) || (x == 31 && y == 40) || (x == 33 && y == 40) || (x == 38 && y == 40)) {
+    alive = 1;
+  }
+  where ((x == 26 && y == 41) || (x == 31 && y == 41) || (x == 33 && y == 41) || (x == 38 && y == 41)) {
+    alive = 1;
+  }
+  where ((x == 26 && y == 42) || (x == 31 && y == 42) || (x == 33 && y == 42) || (x == 38 && y == 42)) {
+    alive = 1;
+  }
+  where ((x == 28 && y == 44) || (x == 29 && y == 44) || (x == 30 && y == 44) ||
+         (x == 34 && y == 44) || (x == 35 && y == 44) || (x == 36 && y == 44)) {
+    alive = 1;
+  }
+
+  // Declare neighbor variables outside the loop
+  pvar<int> n;
+  pvar<int> s;
+  pvar<int> e;
+  pvar<int> w;
+  pvar<int> ne;
+  pvar<int> nw;
+  pvar<int> se;
+  pvar<int> sw;
+
+  for (;;) {
+
+    // Exchange 1: Get cardinal neighbors
+    exchange {
+      n = news(NORTH, alive);
+      s = news(SOUTH, alive);
+      e = news(EAST, alive);
+      w = news(WEST, alive);
+    }
+
+    // Exchange 2: Get diagonal neighbors via cardinals
+    // My north neighbor's east = my northeast
+    exchange {
+      ne = news(NORTH, e);
+      nw = news(NORTH, w);
+      se = news(SOUTH, e);
+      sw = news(SOUTH, w);
+    }
+
+    pvar<int> neighbors = n + s + e + w + ne + nw + se + sw;
+
+    // Conway's rules (optimized):
+    // Live cell: survives if 2-3 neighbors
+    // Dead cell: born if exactly 3 neighbors
+    pvar<int> survive = (alive == 1) && (neighbors == 2 || neighbors == 3);
+    pvar<int> born = (alive == 0) && (neighbors == 3);
+    alive = survive || born;
+
+    // Display: compute LED value directly (faster than where blocks)
+    pvar<int> brightness = alive * 255;
+    led_set(brightness);
+
+    barrier();
+  }
+}
+
+```
+</div>
+
+### Double-Buffered Stencil
+`exchange_async` / `exchange_wait`. MCU utilization.
+
+### Random and Pleasing
+Embarrassingly parallel. Scalar LFSR state. Zero communication.
+
+<div class="collapsible">
+```c
+// LFSR Scrolling Columns - Embarrassingly Parallel!
+// 64 rows × 4 columns = 256 independent 16-pixel-wide windows
+// Each window displays a 16-bit LFSR scroll buffer, scrolling left/right
+
+void main() {
+  // Global state: 8 simple 32-bit Galois LFSRs
+  // Polynomial: x^32 + x^31 + x^29 + x^1 + 1 (primitive)
+  // Taps: bits 31, 29, 1 → mask 0xA0000002
+  int lfsr0 = 0xACE1BEEF;
+  int lfsr1 = 0xCAFEDEAD;
+  int lfsr2 = 0x12345678;
+  int lfsr3 = 0x9ABCDEF0;
+  int lfsr4 = 0xFEDCBA98;
+  int lfsr5 = 0x76543210;
+  int lfsr6 = 0xDEADBEEF;
+  int lfsr7 = 0xBADC0FFE;
+
+  // Calculate which segment (window) this processor belongs to
+  pvar<int> x = pid() % 64;
+  pvar<int> y = pid() / 64;
+  pvar<int> col = x / 16;        // Which column (0-3)
+  pvar<int> pixel_in_col = x % 16;  // Which pixel within the 16-pixel window
+
+  // Each row-column pair is one segment with its own scroll buffer
+  // Segment ID: row * 4 + col (256 total segments)
+  pvar<int> segment_id = y * 4 + col;
+
+  // Pseudo-random but unique LFSR bit assignment
+  // 8 LFSRs × 32 bits = 256 unique bits (perfect!)
+  pvar<int> permuted = (segment_id * 131 + 73) & 0xFF;  // Linear congruential permutation
+
+  pvar<int> my_lfsr_idx = permuted / 32;   // Which LFSR (0-7)
+  pvar<int> my_bit_pos = permuted % 32;    // Which bit (0-31)
+
+  // Pseudo-random direction per segment (use different permutation)
+  pvar<int> dir_hash = (segment_id * 179 + 41);
+  pvar<int> my_direction = (dir_hash >> 3) & 1;  // Extract bit 3 for randomness
+
+  // Each segment has its own 16-bit scroll buffer
+  pvar<int> scroll_buffer = 0;
+
+  for (;;) {
+    // Step 1: Advance all 8 LFSRs (scalar - same on all processors)
+    // 32-bit Galois LFSR: x^32 + x^31 + x^29 + x^1 + 1
+    // Taps at bits 31, 29, 1 → XOR mask = 0xA0000002
+    // Use negation trick for branch-free conditional: (-lsb) & mask
+
+    // LFSR 0
+    int lsb = lfsr0 & 1;
+    lfsr0 = (lfsr0 >> 1) ^ ((-lsb) & 0xA0000002);
+
+    // LFSR 1
+    lsb = lfsr1 & 1;
+    lfsr1 = (lfsr1 >> 1) ^ ((-lsb) & 0xA0000002);
+
+    // LFSR 2
+    lsb = lfsr2 & 1;
+    lfsr2 = (lfsr2 >> 1) ^ ((-lsb) & 0xA0000002);
+
+    // LFSR 3
+    lsb = lfsr3 & 1;
+    lfsr3 = (lfsr3 >> 1) ^ ((-lsb) & 0xA0000002);
+
+    // LFSR 4
+    lsb = lfsr4 & 1;
+    lfsr4 = (lfsr4 >> 1) ^ ((-lsb) & 0xA0000002);
+
+    // LFSR 5
+    lsb = lfsr5 & 1;
+    lfsr5 = (lfsr5 >> 1) ^ ((-lsb) & 0xA0000002);
+
+    // LFSR 6
+    lsb = lfsr6 & 1;
+    lfsr6 = (lfsr6 >> 1) ^ ((-lsb) & 0xA0000002);
+
+    // LFSR 7
+    lsb = lfsr7 & 1;
+    lfsr7 = (lfsr7 >> 1) ^ ((-lsb) & 0xA0000002);
+
+    // Step 2: Each segment extracts its assigned bit from its assigned LFSR
+    pvar<int> new_bit = 0;
+    where (my_lfsr_idx == 0) {
+      new_bit = (lfsr0 >> my_bit_pos) & 1;
+    }
+    where (my_lfsr_idx == 1) {
+      new_bit = (lfsr1 >> my_bit_pos) & 1;
+    }
+    where (my_lfsr_idx == 2) {
+      new_bit = (lfsr2 >> my_bit_pos) & 1;
+    }
+    where (my_lfsr_idx == 3) {
+      new_bit = (lfsr3 >> my_bit_pos) & 1;
+    }
+    where (my_lfsr_idx == 4) {
+      new_bit = (lfsr4 >> my_bit_pos) & 1;
+    }
+    where (my_lfsr_idx == 5) {
+      new_bit = (lfsr5 >> my_bit_pos) & 1;
+    }
+    where (my_lfsr_idx == 6) {
+      new_bit = (lfsr6 >> my_bit_pos) & 1;
+    }
+    where (my_lfsr_idx == 7) {
+      new_bit = (lfsr7 >> my_bit_pos) & 1;
+    }
+
+    // Step 3: Shift bit into segment's 16-bit scroll buffer
+    where (my_direction == 0) {
+      scroll_buffer = (scroll_buffer >> 1) | (new_bit << 15);  // Scroll right
+    }
+    where (my_direction == 1) {
+      scroll_buffer = (scroll_buffer << 1) | new_bit;          // Scroll left
+    }
+
+    // Step 4: Each processor displays its assigned bit from the scroll buffer
+    pvar<int> display_bit = (scroll_buffer >> pixel_in_col) & 1;
+    led_set(display_bit * 255);
+
+    barrier();
+  }
+}
+
+```
+</div>
+
 ---
 
 # Part IV: Implementation
 
 ---
 
-## Chapter 9: Toolchain
+## Chapter 10: Toolchain
 
 This chapter describes how StarC source code becomes executable firmware.
 
@@ -1756,7 +2209,7 @@ riscv-gcc -DSTAR_HW -Ilibstar build/algorithm.c libstar/hw_backend.c -o build/fi
 
 ---
 
-## Chapter 10: Runtime
+## Chapter 11: Runtime
 
 This chapter describes the runtime library and hardware interface.
 
@@ -1994,10 +2447,10 @@ That's what StarC is for. Not to be a perfect language. To be the language that 
 
 <script>
 document.addEventListener("DOMContentLoaded", () => {
-  // Prevent the default code block collapsing behavior
-  const preventCodeCollapse = () => {
-    // Remove all code-block-wrapper structures if they exist
-    document.querySelectorAll('.code-block-wrapper').forEach(wrapper => {
+  // Handle collapsible code blocks
+  const setupCollapsibleCodeBlocks = () => {
+    // Remove all auto-generated wrappers that AREN'T marked collapsible
+    document.querySelectorAll('.code-block-wrapper:not(.collapsible)').forEach(wrapper => {
       const content = wrapper.querySelector('.code-block-content');
       const pre = content ? content.querySelector('pre') : wrapper.querySelector('pre');
       if (pre && wrapper.parentNode) {
@@ -2006,32 +2459,66 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     });
 
-    // Make sure all code blocks are visible
-    document.querySelectorAll('pre[class*="language-"]').forEach(pre => {
-      pre.style.display = 'block';
-      pre.style.maxHeight = 'none';
+    // Setup collapsible functionality for marked code blocks
+    document.querySelectorAll('.collapsible').forEach(container => {
+      // Find code blocks within this collapsible container
+      const codeBlocks = container.querySelectorAll('pre[class*="language-"]');
 
-      // Remove any wrapper divs that might have been added
-      if (pre.parentElement && pre.parentElement.classList.contains('code-block-content')) {
-        const parent = pre.parentElement;
-        const grandparent = parent.parentElement;
-        if (grandparent) {
-          grandparent.parentNode.insertBefore(pre, grandparent);
-          grandparent.remove();
-        }
-      }
+      codeBlocks.forEach((codeBlock, index) => {
+        // Skip if already wrapped
+        if (codeBlock.closest('.code-block-wrapper.collapsible')) return;
+
+        // Get the language from the class
+        const languageClass = Array.from(codeBlock.classList)
+          .find(className => className.startsWith('language-'));
+        const language = languageClass ? languageClass.replace('language-', '') : 'code';
+
+        // Create wrapper structure
+        const wrapper = document.createElement('div');
+        wrapper.className = 'code-block-wrapper collapsible';
+
+        const header = document.createElement('div');
+        header.className = 'code-block-header';
+
+        const title = document.createElement('div');
+        title.className = 'code-block-title';
+        title.textContent = language.charAt(0).toUpperCase() + language.slice(1);
+
+        const toggle = document.createElement('div');
+        toggle.className = 'code-block-toggle';
+        toggle.textContent = 'Show code';
+
+        const content = document.createElement('div');
+        content.className = 'code-block-content';
+
+        // Assemble structure
+        header.appendChild(title);
+        header.appendChild(toggle);
+        wrapper.appendChild(header);
+
+        // Move code block into wrapper
+        codeBlock.parentNode.insertBefore(wrapper, codeBlock);
+        content.appendChild(codeBlock);
+        wrapper.appendChild(content);
+
+        // Add click handler
+        header.addEventListener('click', function() {
+          content.classList.toggle('expanded');
+          toggle.textContent = content.classList.contains('expanded') ? 'Hide code' : 'Show code';
+        });
+      });
     });
   };
 
   // Run immediately
-  preventCodeCollapse();
+  setupCollapsibleCodeBlocks();
 
   // Run again after a short delay to catch any late additions
-  setTimeout(preventCodeCollapse, 100);
+  setTimeout(setupCollapsibleCodeBlocks, 100);
 
   // Also run when Prism finishes highlighting
   if (window.Prism) {
-    Prism.hooks.add('after-highlight', preventCodeCollapse);
+    Prism.hooks.add('after-highlight', setupCollapsibleCodeBlocks);
   }
 
   const root     = document.documentElement;
