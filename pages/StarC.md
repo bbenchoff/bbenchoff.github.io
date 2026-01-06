@@ -470,7 +470,7 @@ pre[class*="language-"]:not(.code-block-wrapper.collapsible .code-block-content 
 
 <div class="tm-article" markdown="1">
 
-<div class="starc-header">
+<div class="starc-part-header">
   <img src="/images/ConnM/StarCLogo.png" alt="StarC Logo">
   <h1>StarC: A Parallel C for Hypercube Computers</h1>
 </div>
