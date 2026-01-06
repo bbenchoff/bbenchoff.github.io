@@ -2444,13 +2444,28 @@ That's what StarC is for. Not to be a perfect language. To be the language that 
 
 <script>
 // Tell default.html to skip its automatic code block processing
-document.body.setAttribute('data-custom-code-blocks', 'true');
+// This MUST run synchronously before DOMContentLoaded
+if (document.body) {
+  document.body.setAttribute('data-custom-code-blocks', 'true');
+  console.log('StarC: Set custom code blocks attribute');
+} else {
+  console.error('StarC: Body not available');
+}
+</script>
 
+<script>
 document.addEventListener("DOMContentLoaded", () => {
+  console.log('StarC: DOMContentLoaded fired');
+
   // Handle collapsible code blocks
   const setupCollapsibleCodeBlocks = () => {
+    console.log('StarC: Setting up collapsible code blocks');
+
     // Remove all auto-generated wrappers that AREN'T marked collapsible
-    document.querySelectorAll('.code-block-wrapper:not(.collapsible)').forEach(wrapper => {
+    const defaultWrappers = document.querySelectorAll('.code-block-wrapper:not(.collapsible)');
+    console.log(`StarC: Found ${defaultWrappers.length} default wrappers to remove`);
+
+    defaultWrappers.forEach(wrapper => {
       const content = wrapper.querySelector('.code-block-content');
       const pre = content ? content.querySelector('pre') : wrapper.querySelector('pre');
       if (pre && wrapper.parentNode) {
@@ -2468,12 +2483,20 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const collapsibleBlocks = [];
     let comment;
+    let commentCount = 0;
     while (comment = walker.nextNode()) {
+      commentCount++;
+      console.log(`StarC: Found comment: "${comment.nodeValue.trim()}"`);
       if (comment.nodeValue.trim() === 'COLLAPSIBLE') {
+        console.log('StarC: Found COLLAPSIBLE marker');
         // Find the next code block after this comment
         let node = comment.nextSibling;
-        while (node) {
+        let siblingCount = 0;
+        while (node && siblingCount < 10) {
+          siblingCount++;
+          console.log(`StarC: Checking sibling ${siblingCount}: ${node.nodeType} ${node.nodeName}`);
           if (node.nodeType === Node.ELEMENT_NODE && node.tagName === 'PRE') {
+            console.log('StarC: Found PRE after COLLAPSIBLE');
             collapsibleBlocks.push(node);
             break;
           }
@@ -2481,6 +2504,8 @@ document.addEventListener("DOMContentLoaded", () => {
         }
       }
     }
+    console.log(`StarC: Total comments found: ${commentCount}`);
+    console.log(`StarC: Collapsible blocks to create: ${collapsibleBlocks.length}`);
 
     // Wrap each collapsible code block
     collapsibleBlocks.forEach((codeBlock) => {
