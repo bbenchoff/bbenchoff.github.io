@@ -254,7 +254,7 @@ pre[class*="language-"]:not(.code-block-wrapper.collapsible .code-block-content 
   --tm-article-min-ch: 52;
   --tm-nav-h: 64px;
   --tm-scroll-offset: 90px;
-  --tm-toc-max-px: 220px;
+  --tm-toc-max-px: 200px;
   --tm-article-fit-px: 100000px;
 }
 
