@@ -2495,10 +2495,20 @@ document.addEventListener("DOMContentLoaded", () => {
         while (node && siblingCount < 10) {
           siblingCount++;
           console.log(`StarC: Checking sibling ${siblingCount}: ${node.nodeType} ${node.nodeName}`);
-          if (node.nodeType === Node.ELEMENT_NODE && node.tagName === 'PRE') {
-            console.log('StarC: Found PRE after COLLAPSIBLE');
-            collapsibleBlocks.push(node);
-            break;
+          if (node.nodeType === Node.ELEMENT_NODE) {
+            // Check if this element is a PRE directly
+            if (node.tagName === 'PRE') {
+              console.log('StarC: Found PRE after COLLAPSIBLE');
+              collapsibleBlocks.push(node);
+              break;
+            }
+            // Check if this element contains a PRE (Jekyll wraps in DIV)
+            const preInside = node.querySelector('pre[class*="language-"]');
+            if (preInside) {
+              console.log('StarC: Found PRE inside DIV after COLLAPSIBLE');
+              collapsibleBlocks.push(preInside);
+              break;
+            }
           }
           node = node.nextSibling;
         }
