@@ -510,7 +510,7 @@ Calling StarC an overcomplication of what could be a bunch of macros is probably
 
 ## Chapter 1: Hardware Model
 
-Before writing StarC code, you need to understand what the code runs on. This chapter describes the physical machine.
+Before writing StarC code, you need to understand the machine StarC was designed for. StarC was created for exactly one machine: a massively parallel array of microcontrollers that communicate through a hypercube network where messages are passed with a time-division multiplex communications scheme. It is highly recommended you [read about the TDMA routing](https://bbenchoff.github.io/pages/HypercubeTDMA.html) before digging into this.
 
 ### Dual Networks
 
@@ -1423,442 +1423,6 @@ The LED array is a debugging primitive. When something goes wrong, the pattern t
 
 ## Chapter 7: Patterns
 
-This chapter shows complete programs for common parallel algorithms, demonstrating how to use StarC effectively.
-
-### 4-Neighbor Stencil: Heat Equation
-
-The heat equation is the simplest stencil: each cell updates based on its four cardinal neighbors.
-
-```c
-pvar<float> temp;
-pvar<float> n, s, e, w;
-float alpha = 0.25f;
-
-load_from_host(&temp, 1);
-
-for (int iter = 0; iter < 1000; iter++) {
-    exchange {
-        n = news(NORTH, temp);
-        s = news(SOUTH, temp);
-        e = news(EAST, temp);
-        w = news(WEST, temp);
-    }
-    
-    temp = temp + alpha * (n + s + e + w - 4.0f * temp);
-    led_set((uint8_t)(temp * 255.0f));
-}
-
-store_to_host(&temp, 1);
-```
-
-**Cost per iteration:** 8 phases exchange + compute ≈ 10 ms → ~100 iterations/second.
-
-### 8-Neighbor Stencil: Game of Life
-
-Game of Life needs all 8 neighbors, including diagonals. This requires two exchange blocks.
-
-```c
-pvar<int> cell = 0;
-load_from_host(&cell, 1);
-
-for (int gen = 0; gen < 10000; gen++) {
-    pvar<int> n, e, s, w;
-    pvar<int> ne, nw, se, sw;
-    
-    // Exchange 1: cardinal neighbors
-    exchange {
-        n = news(NORTH, cell);
-        e = news(EAST, cell);
-        s = news(SOUTH, cell);
-        w = news(WEST, cell);
-    }
-    
-    // Exchange 2: diagonal neighbors
-    exchange {
-        ne = news(NORTH, e);
-        nw = news(NORTH, w);
-        se = news(SOUTH, e);
-        sw = news(SOUTH, w);
-    }
-    
-    // Apply rules
-    pvar<int> neighbors = n + e + s + w + ne + nw + se + sw;
-    pvar<int> new_cell = cell;
-    
-    where (cell == 1 && (neighbors < 2 || neighbors > 3)) {
-        new_cell = 0;  // Death: underpopulation or overpopulation
-    }
-    where (cell == 0 && neighbors == 3) {
-        new_cell = 1;  // Birth: exactly 3 neighbors
-    }
-    
-    cell = new_cell;
-    led_set(cell * 255);
-}
-```
-
-**Cost per generation:** ~48 ms (two superframes) → ~20 generations/second.
-
-### Sorting: Bitonic Sort
-
-Bitonic sort on a hypercube is beautiful: every compare-exchange is a neighbor exchange.
-
-```c
-pvar<int> key;
-load_from_host(&key, 1);
-
-for (int k = 2; k <= 4096; k *= 2) {
-    for (int j = k / 2; j > 0; j /= 2) {
-        int dim = __builtin_ctz(j);  // log2(j) — which dimension
-        
-        pvar<int> partner_key;
-        exchange {
-            partner_key = nbr(dim, key);
-        }
-        
-        // Determine sort direction for this processor
-        int ascending = ((pid() & k) == 0);
-        int swap = (ascending && key > partner_key) || 
-                   (!ascending && key < partner_key);
-        
-        where (swap) {
-            key = partner_key;
-        }
-    }
-}
-
-store_to_host(&key, 1);
-```
-
-**Why it works:** `j` is always a power of 2, so `pid XOR j` differs in exactly one bit—dimension `log2(j)`. Every compare-exchange is with a hypercube neighbor. No routing needed.
-
-**Cost:** O(log²N) compare-exchanges. For N=4096: 78 exchanges × 2 ms each ≈ 156 ms total.
-
-### Global Statistics
-
-Compute multiple statistics in one superframe using pipelined reductions:
-
-```c
-pvar<float> value = compute_something();
-
-float sum, min, max;
-int count;
-
-exchange {
-    sum = reduce_sum(value);
-    min = reduce_min(value);
-    max = reduce_max(value);
-    count = reduce_sum(1);
-}
-// All four reductions share one superframe
-
-if (pid() == 0) {
-    float avg = sum / count;
-    host_printf("Sum=%f Min=%f Max=%f Avg=%f\n", sum, min, max, avg);
-}
-```
-
-### Parallel Prefix: Compaction Addresses
-
-Use exclusive scan to compute destination addresses for compaction:
-
-```c
-pvar<int> data;
-load_from_host(&data, 1);
-
-// Mark elements to keep
-pvar<int> keep = (data != 0) ? 1 : 0;
-
-// Compute destination addresses
-pvar<int> dest;
-exchange {
-    dest = scan_sum(keep);  // Exclusive prefix sum
-}
-
-// Processor i with keep=1 should go to position dest
-// Processor 0: if keep=1, dest=0
-// First keeper after gap: dest = count of previous keepers
-```
-
-The scan gives each element its destination address. Actual data movement would require routing (which we don't have), but the addresses enable many algorithms.
-
-### Double-Buffered Stencil
-
-Overlap compute and communication for better MCU utilization:
-
-```c
-pvar<float> temp;
-pvar<float> n, s, e, w;
-
-load_from_host(&temp, 1);
-
-// Prime: get initial neighbors
-exchange {
-    n = news(NORTH, temp);
-    s = news(SOUTH, temp);
-    e = news(EAST, temp);
-    w = news(WEST, temp);
-}
-
-for (int iter = 0; iter < 1000; iter++) {
-    // Start next exchange asynchronously
-    exchange_async {
-        n = news(NORTH, temp);
-        s = news(SOUTH, temp);
-        e = news(EAST, temp);
-        w = news(WEST, temp);
-    }
-    
-    // Compute using PREVIOUS neighbors (snapshot from before async)
-    pvar<float> new_temp = temp + 0.25f * (n + s + e + w - 4.0f * temp);
-    
-    // Wait for exchange to complete
-    exchange_wait();
-    
-    temp = new_temp;
-}
-
-store_to_host(&temp, 1);
-```
-
-While the FPGA executes the current exchange, the MCU computes the next iteration. Utilization approaches 100% when compute time matches exchange time.
-
-### LFSR Scrolling Columns
-
-This example demonstrates **embarrassingly parallel computation**: 4,096 independent pseudo-random bit streams with zero communication. Each processor maintains a local scroll buffer fed by a replicated global LFSR state.
-
-```c
-// Global state: 4 Galois LFSRs (replicated on all processors)
-uint64_t lfsr[4] = {
-    0xACE1BEEFCAFEDEADU,
-    0x123456789ABCDEF0U,
-    0xFEDCBA9876543210U,
-    0xDEADBEEFBADC0FFEU
-};
-
-// Per-processor state
-pvar<uint16_t> scroll_buffer;  // 16-bit horizontal scroll
-pvar<uint8_t> lfsr_idx;        // Which LFSR (0-3)
-pvar<uint8_t> bit_pos;         // Which bit (0-63)
-pvar<uint8_t> direction;       // Scroll direction (0=right, 1=left)
-
-// Initialization: assign unique LFSR bits to each processor
-void init_lfsr() {
-    // Simple assignment: distribute 256 LFSR bits across 4096 processors
-    // Multiple processors may share the same bit (creates visual patterns)
-    int my_pid = pid();
-    int segment = my_pid % 256;  // 256 unique assignments
-
-    lfsr_idx = segment / 64;
-    bit_pos = segment % 64;
-    direction = (my_pid & 1);  // Alternate directions based on PID
-    scroll_buffer = 0;
-}
-
-// Animation loop
-init_lfsr();
-
-for (int frame = 0; frame < 10000; frame++) {
-    // Step 1: Advance all 4 LFSRs (scalar - same on all processors)
-    for (int i = 0; i < 4; i++) {
-        uint64_t lsb = lfsr[i] & 1;
-        lfsr[i] >>= 1;
-        if (lsb) lfsr[i] ^= 0xD800000000000000ULL;  // Taps at 63,62,60,59
-    }
-
-    // Step 2: Each processor extracts its assigned bit (parallel - no exchange!)
-    pvar<int> new_bit = (lfsr[lfsr_idx] >> bit_pos) & 1;
-
-    // Step 3: Shift bit into local scroll buffer
-    where (direction == 0) {
-        scroll_buffer = (scroll_buffer >> 1) | (new_bit << 15);  // Scroll right
-    }
-    where (direction == 1) {
-        scroll_buffer = (scroll_buffer << 1) | new_bit;           // Scroll left
-    }
-
-    // Step 4: Display the middle bit of the scroll buffer
-    pvar<int> display_bit = (scroll_buffer >> 8) & 1;
-    led_set(display_bit ? 255 : 0);
-
-    // No exchange needed - every processor operates independently!
-}
-```
-
-**Why this works:**
-
-- **LFSR state is replicated:** All 4,096 processors compute the same 4 LFSR values each frame
-- **Extraction is parallel:** Each processor reads its assigned bit from its assigned LFSR
-- **Scroll buffers are local:** 4,096 independent 16-bit shift registers
-- **Zero communication:** No `exchange` blocks anywhere in the main loop
-
-**Visual effect:** The 64×64 LED array shows horizontal strips of pseudo-random bits scrolling in alternating directions. The LFSR polynomial (taps at bits 63, 62, 60, 59) gives maximum period: 2^64 - 1 cycles before repeating.
-
-**Cost per frame:** ~100 µs compute only (no network phases). Frame rate limited only by LED refresh, not communication. At 1 kHz phase clock, this runs **240× faster** than algorithms requiring full superframe exchanges.
-
-**Enhancement with communication:**
-
-Add neighbor blending for smoother visual transitions:
-
-```c
-// After extracting the bit, blend with neighbors
-pvar<int> display_bit = (scroll_buffer >> 8) & 1;
-
-pvar<int> n, e, s, w;
-exchange {
-    n = news(NORTH, display_bit);
-    e = news(EAST, display_bit);
-    s = news(SOUTH, display_bit);
-    w = news(WEST, display_bit);
-}
-
-// Average with neighbors
-pvar<int> blended = (display_bit * 2 + n + e + s + w) / 6;
-led_set(blended * 255 / 6);
-```
-
-This adds spatial correlation while maintaining independent LFSR streams.
-
-**Why Galois LFSR?** The right-shift form (`lfsr >>= 1`) is more efficient than Fibonacci LFSR because the XOR feedback only happens on half the cycles (when `lsb == 1`). The polynomial `0xD800000000000000` is maximal-length, ensuring all 2^64-1 non-zero states appear exactly once before cycling.
-
----
-
-## Chapter 8: Performance
-
-This chapter explains the cost model and how to reason about performance.
-
-### Timing Model
-
-At 1 kHz phase clock:
-
-| Unit | Duration |
-|------|----------|
-| Phase | 1 ms |
-| Superframe (24 phases) | 24 ms |
-
-**Operation costs:**
-
-| Operation | Phases | Time |
-|-----------|--------|------|
-| `nbr()` — one dimension | 2 | 2 ms |
-| `nbr()` — all 12 dimensions | 24 | 24 ms |
-| `news()` — 4 cardinal directions | 8 | 8 ms |
-| `reduce_*()` — one or more | 24 | 24 ms |
-| `scan_*()` | 24 | 24 ms |
-| `broadcast()` | 24 | 24 ms |
-
-### Exchange Scheduling
-
-The runtime schedules exchanges to minimize superframe usage.
-
-**What fits in one superframe:**
-
-- Up to 12 `nbr()` calls on **different** dimensions
-- AND/OR multiple pipelined reductions
-- AND/OR one scan
-- AND/OR one broadcast
-
-**What exceeds capacity (runtime error):**
-
-- More than ~160 bytes total on a single dimension
-- Scan + reduction in same block (both need the full tree)
-- Too many exchanges overall
-
-**Examples:**
-
-```c
-// OK: 12 different dimensions
-exchange {
-    for (int d = 0; d < 12; d++) {
-        neighbors[d] = nbr(d, data);
-    }
-}
-
-// OK: multiple reductions (pipelined)
-exchange {
-    sum = reduce_sum(x);
-    max = reduce_max(x);
-    min = reduce_min(x);
-}
-
-// ERROR: reduction + scan both need full tree
-exchange {
-    total = reduce_sum(x);
-    prefix = scan_sum(y);   // Can't share with reduction
-}
-
-// OK: separate blocks
-exchange { total = reduce_sum(x); }
-exchange { prefix = scan_sum(y); }
-```
-
-### Automatic Reordering
-
-The runtime reorders `nbr()` calls by dimension for optimal phase usage:
-
-```c
-exchange {
-    d11 = nbr(11, x);  // Declared first
-    d0 = nbr(0, y);    // Declared second  
-    d5 = nbr(5, z);    // Declared third
-}
-// Executes: d0 (phases 0-1), d5 (phases 10-11), d11 (phases 22-23)
-```
-
-You don't need to think about phase ordering—just declare what you need.
-
-### Bandwidth
-
-| Path | Payload | Bandwidth |
-|------|---------|-----------|
-| Hypercube (per dimension) | 80 B / 2 ms | 40 KB/s |
-| Hypercube (all dimensions) | 960 B / 24 ms | 40 KB/s |
-| Control tree (bulk) | Unlimited | ~1 MB/s |
-
-The hypercube is latency-optimized: small payloads, fast phases, deterministic timing. Use it for algorithm communication.
-
-The control tree is bandwidth-optimized: large transfers, variable latency. Use it for bulk I/O.
-
-### MCU Utilization
-
-**Without double buffering:**
-
-During an exchange, the MCU waits. At 133 MHz, a 24 ms superframe wastes 3.2 million cycles.
-
-**With double buffering:**
-
-The MCU computes iteration N+1 while the FPGA exchanges iteration N. Utilization depends on the ratio:
-
-- If compute > exchange: MCU-bound, utilization ≈ 100%
-- If compute < exchange: exchange-bound, utilization ≈ compute/exchange
-- If compute ≈ exchange: optimal overlap, utilization ≈ 100%
-
-### Phase Rate Trade-offs
-
-The phase rate is configurable:
-
-| Rate | Superframe | Payload/Phase | Use Case |
-|------|------------|---------------|----------|
-| 100 Hz | 240 ms | 800 bytes | Debug, huge payloads |
-| 1 kHz | 24 ms | 80 bytes | Default, balanced |
-| 10 kHz | 2.4 ms | 8 bytes | Low latency, small data |
-
-Slower rates give more payload per phase. Faster rates give lower latency but smaller payloads.
-
-### Iteration Rates
-
-Typical workloads at 1 kHz:
-
-| Workload | Exchange Time | Iter/Sec |
-|----------|---------------|----------|
-| 4-neighbor stencil | ~8 ms | ~100 |
-| 8-neighbor stencil | ~48 ms | ~20 |
-| Stencil + reduction | ~32 ms | ~30 |
-| Single bitonic step | ~2 ms | ~500 |
-
-
-## Chapter 9: Worked Examples
-
 The following goes through examples from the StarC Playground, demonstrating the why and how everything in StarC works. Topics covered for each example:
 
 - Dimension Walk - Direct hypercube addressing (`coord()`, `nbr()` on all 12 dimensions)
@@ -1875,6 +1439,7 @@ The following goes through examples from the StarC Playground, demonstrating the
 These examples provide enough context to StarC that you should be able to understand the language after following these examples. 
 
 If you'd like to just _run_ these examples, look at the saved examples on the StarC Playground.
+
 
 ### Dimension Walk
 Pure hypercube. Uses `coord(dim)`, `nbr()` across all 12 dimensions.
@@ -2300,6 +1865,144 @@ void main() {
 ```
 <!-- /COLLAPSIBLE -->
 
+
+---
+
+## Chapter 8: Performance
+
+This chapter explains the cost model and how to reason about performance.
+
+### Timing Model
+
+At 1 kHz phase clock:
+
+| Unit | Duration |
+|------|----------|
+| Phase | 1 ms |
+| Superframe (24 phases) | 24 ms |
+
+**Operation costs:**
+
+| Operation | Phases | Time |
+|-----------|--------|------|
+| `nbr()` — one dimension | 2 | 2 ms |
+| `nbr()` — all 12 dimensions | 24 | 24 ms |
+| `news()` — 4 cardinal directions | 8 | 8 ms |
+| `reduce_*()` — one or more | 24 | 24 ms |
+| `scan_*()` | 24 | 24 ms |
+| `broadcast()` | 24 | 24 ms |
+
+### Exchange Scheduling
+
+The runtime schedules exchanges to minimize superframe usage.
+
+**What fits in one superframe:**
+
+- Up to 12 `nbr()` calls on **different** dimensions
+- AND/OR multiple pipelined reductions
+- AND/OR one scan
+- AND/OR one broadcast
+
+**What exceeds capacity (runtime error):**
+
+- More than ~160 bytes total on a single dimension
+- Scan + reduction in same block (both need the full tree)
+- Too many exchanges overall
+
+**Examples:**
+
+```c
+// OK: 12 different dimensions
+exchange {
+    for (int d = 0; d < 12; d++) {
+        neighbors[d] = nbr(d, data);
+    }
+}
+
+// OK: multiple reductions (pipelined)
+exchange {
+    sum = reduce_sum(x);
+    max = reduce_max(x);
+    min = reduce_min(x);
+}
+
+// ERROR: reduction + scan both need full tree
+exchange {
+    total = reduce_sum(x);
+    prefix = scan_sum(y);   // Can't share with reduction
+}
+
+// OK: separate blocks
+exchange { total = reduce_sum(x); }
+exchange { prefix = scan_sum(y); }
+```
+
+### Automatic Reordering
+
+The runtime reorders `nbr()` calls by dimension for optimal phase usage:
+
+```c
+exchange {
+    d11 = nbr(11, x);  // Declared first
+    d0 = nbr(0, y);    // Declared second  
+    d5 = nbr(5, z);    // Declared third
+}
+// Executes: d0 (phases 0-1), d5 (phases 10-11), d11 (phases 22-23)
+```
+
+You don't need to think about phase ordering—just declare what you need.
+
+### Bandwidth
+
+| Path | Payload | Bandwidth |
+|------|---------|-----------|
+| Hypercube (per dimension) | 80 B / 2 ms | 40 KB/s |
+| Hypercube (all dimensions) | 960 B / 24 ms | 40 KB/s |
+| Control tree (bulk) | Unlimited | ~1 MB/s |
+
+The hypercube is latency-optimized: small payloads, fast phases, deterministic timing. Use it for algorithm communication.
+
+The control tree is bandwidth-optimized: large transfers, variable latency. Use it for bulk I/O.
+
+### MCU Utilization
+
+**Without double buffering:**
+
+During an exchange, the MCU waits. At 133 MHz, a 24 ms superframe wastes 3.2 million cycles.
+
+**With double buffering:**
+
+The MCU computes iteration N+1 while the FPGA exchanges iteration N. Utilization depends on the ratio:
+
+- If compute > exchange: MCU-bound, utilization ≈ 100%
+- If compute < exchange: exchange-bound, utilization ≈ compute/exchange
+- If compute ≈ exchange: optimal overlap, utilization ≈ 100%
+
+### Phase Rate Trade-offs
+
+The phase rate is configurable:
+
+| Rate | Superframe | Payload/Phase | Use Case |
+|------|------------|---------------|----------|
+| 100 Hz | 240 ms | 800 bytes | Debug, huge payloads |
+| 1 kHz | 24 ms | 80 bytes | Default, balanced |
+| 10 kHz | 2.4 ms | 8 bytes | Low latency, small data |
+
+Slower rates give more payload per phase. Faster rates give lower latency but smaller payloads.
+
+### Iteration Rates
+
+Typical workloads at 1 kHz:
+
+| Workload | Exchange Time | Iter/Sec |
+|----------|---------------|----------|
+| 4-neighbor stencil | ~8 ms | ~100 |
+| 8-neighbor stencil | ~48 ms | ~20 |
+| Stencil + reduction | ~32 ms | ~30 |
+| Single bitonic step | ~2 ms | ~500 |
+
+
+
 ---
 
 <div class="starc-part-header">
@@ -2309,7 +2012,7 @@ void main() {
 
 ---
 
-## Chapter 10: Toolchain
+## Chapter 9: Toolchain
 
 This chapter describes how StarC source code becomes executable firmware.
 
@@ -2389,7 +2092,7 @@ riscv-gcc -DSTAR_HW -Ilibstar build/algorithm.c libstar/hw_backend.c -o build/fi
 
 ---
 
-## Chapter 11: Runtime
+## Chapter 10: Runtime
 
 This chapter describes the runtime library and hardware interface.
 
