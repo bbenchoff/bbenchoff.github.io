@@ -149,6 +149,48 @@ pre[class*="language-"]:not(.code-block-wrapper.collapsible .code-block-content 
   }
 }
 
+/* Part headers (smaller logo layout) */
+.starc-part-header {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  margin: 2rem 0 1.5rem 0;
+  flex-wrap: wrap;
+}
+
+.starc-part-header img {
+  height: 64px;
+  width: auto;
+  flex-shrink: 0;
+}
+
+.starc-part-header h1 {
+  margin: 0;
+  flex: 1;
+  min-width: 200px;
+}
+
+/* Mobile: part headers stay horizontal */
+@media (max-width: 768px) {
+  .starc-part-header img {
+    height: 48px;
+  }
+
+  .starc-part-header h1 {
+    font-size: 1.3rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .starc-part-header img {
+    height: 40px;
+  }
+
+  .starc-part-header h1 {
+    font-size: 1.2rem;
+  }
+}
+
 /* Table styling - full width */
 .tm-article table {
   width: 100%;
@@ -212,7 +254,7 @@ pre[class*="language-"]:not(.code-block-wrapper.collapsible .code-block-content 
   --tm-article-min-ch: 52;
   --tm-nav-h: 64px;
   --tm-scroll-offset: 90px;
-  --tm-toc-max-px: 280px;
+  --tm-toc-max-px: 220px;
   --tm-article-fit-px: 100000px;
 }
 
@@ -448,7 +490,10 @@ Calling StarC an overcomplication of what could be a bunch of macros is probably
 
 ---
 
-# Part I: The Machine
+<div class="starc-part-header">
+  <img src="/images/ConnM/StarCLogo.png" alt="StarC Logo">
+  <h1>Part I: The Machine</h1>
+</div>
 
 ---
 
@@ -659,7 +704,10 @@ These constraints lead to clear design principles:
 
 ---
 
-# Part II: The Language
+<div class="starc-part-header">
+  <img src="/images/ConnM/StarCLogo.png" alt="StarC Logo">
+  <h1>Part II: The Language</h1>
+</div>
 
 ---
 
@@ -1355,7 +1403,10 @@ The LED array is a debugging primitive. When something goes wrong, the pattern t
 
 ---
 
-# Part III: Programming
+<div class="starc-part-header">
+  <img src="/images/ConnM/StarCLogo.png" alt="StarC Logo">
+  <h1>Part III: Programming</h1>
+</div>
 
 ---
 
@@ -2122,7 +2173,10 @@ void main() {
 
 ---
 
-# Part IV: Implementation
+<div class="starc-part-header">
+  <img src="/images/ConnM/StarCLogo.png" alt="StarC Logo">
+  <h1>Part IV: Implementation</h1>
+</div>
 
 ---
 
@@ -2597,7 +2651,7 @@ document.addEventListener("DOMContentLoaded", () => {
   tocList.innerHTML = "";
 
   const headings = Array.from(articleEl.querySelectorAll("h1, h2, h3, h4"))
-    .filter(h => !h.closest(".tm-toc"));
+    .filter(h => !h.closest(".tm-toc") && !h.closest(".starc-header"));
 
   if (!headings.length) {
     tocEl.style.display = "none";
