@@ -1848,6 +1848,23 @@ Typical workloads at 1 kHz:
 
 ## Chapter 9: Worked Examples
 
+The following goes through examples from the StarC Playground, demonstrating the why and how everything in StarC works. Topics covered for each example:
+
+- Dimension Walk - Direct hypercube addressing (`coord()`, `nbr()` on all 12 dimensions)
+- Bitonic Sort - Topology-aware algorithm (dimension = log₂, hypercube structure dictates algorithm)
+- Heat Equation - Stencil operations (`news()`), global convergence detection (`reduce_max()`), conditional participation with identity values
+- Global Statistics - Pipelined reductions (multiple reduce_* in single exchange block share superframe bandwidth)
+- Parallel Prefix - Exclusive vs. inclusive scans (`scan_sum()` vs `scan_sum_inclusive()`)
+- Stream Compaction - Practical application of prefix sum (computing destination addresses)
+- NEWS Blur - Basic 4-neighbor stencil, grid topology (`news()`)
+- Conway's Game of Life - Complex stencil (8 neighbors via two exchange blocks for diagonals)
+- Double-Buffered Stencil - Asynchronous communication (exchange_async/exchange_wait) for overlapping compute and communication
+- Random and Pleasing (LFSR) - Embarrassingly parallel computation (replicated scalar state, zero communication, independent per-processor computation)
+
+These examples provide enough context to StarC that you should be able to understand the language after following these examples. 
+
+If you'd like to just _run_ these examples, look at the saved examples on the StarC Playground.
+
 ### Dimension Walk
 Pure hypercube. Uses `coord(dim)`, `nbr()` across all 12 dimensions.
 
@@ -1912,7 +1929,7 @@ void main() {
 <!-- /COLLAPSIBLE -->
 
 ### Conway's Game of Life
-8-neighbor stencil. Two exchange blocks for diagonals.
+Because of course a gigantic LED array needs to run Game of Life. This example uses two iterations of the `news()` grid to create a stencil with eight neighbors.
 
 <!-- COLLAPSIBLE -->
 ```c
@@ -1926,10 +1943,10 @@ void main() {
   pvar<int> alive = 0;
 
   // Acorn pattern at (10, 10)
-  where ((x == 11 && y == 10) ||
-         (x == 13 && y == 11) ||
+  where ((x == 11 && y == 10) || (x == 13 && y == 11) ||
          (x == 10 && y == 12) || (x == 11 && y == 12) ||
-         (x == 14 && y == 12) || (x == 15 && y == 12) || (x == 16 && y == 12)) {
+         (x == 14 && y == 12) || (x == 15 && y == 12) || 
+         (x == 16 && y == 12)) {
     alive = 1;
   }
 
@@ -1941,53 +1958,64 @@ void main() {
   }
 
   // Glider at (50, 50)
-  where ((x == 50 && y == 50) ||
-         (x == 51 && y == 51) ||
-         (x == 49 && y == 52) || (x == 50 && y == 52) || (x == 51 && y == 52)) {
+  where ((x == 50 && y == 50) || (x == 51 && y == 51) ||
+         (x == 49 && y == 52) || (x == 50 && y == 52) || 
+         (x == 51 && y == 52)) {
     alive = 1;
   }
 
   // Lightweight spaceship (LWSS) at (5, 40)
-  where ((x == 6 && y == 40) || (x == 7 && y == 40) || (x == 8 && y == 40) || (x == 9 && y == 40) ||
+  where ((x == 6 && y == 40) || (x == 7 && y == 40) || 
+         (x == 8 && y == 40) || (x == 9 && y == 40) ||
          (x == 5 && y == 41) || (x == 10 && y == 41) ||
-         (x == 10 && y == 42) ||
-         (x == 5 && y == 43) || (x == 9 && y == 43)) {
+         (x == 10 && y == 42) || (x == 5 && y == 43) ||
+         (x == 9 && y == 43)) {
     alive = 1;
   }
 
   // Pulsar (oscillator) at (30, 35) - period 3
-  where ((x == 28 && y == 29) || (x == 29 && y == 29) || (x == 30 && y == 29) ||
-         (x == 34 && y == 29) || (x == 35 && y == 29) || (x == 36 && y == 29)) {
+  where ((x == 28 && y == 29) || (x == 29 && y == 29) || 
+         (x == 30 && y == 29) || (x == 34 && y == 29) ||
+         (x == 35 && y == 29) || (x == 36 && y == 29)) {
     alive = 1;
   }
-  where ((x == 26 && y == 31) || (x == 31 && y == 31) || (x == 33 && y == 31) || (x == 38 && y == 31)) {
+  where ((x == 26 && y == 31) || (x == 31 && y == 31) || 
+         (x == 33 && y == 31) || (x == 38 && y == 31)) {
     alive = 1;
   }
-  where ((x == 26 && y == 32) || (x == 31 && y == 32) || (x == 33 && y == 32) || (x == 38 && y == 32)) {
+  where ((x == 26 && y == 32) || (x == 31 && y == 32) ||
+         (x == 33 && y == 32) || (x == 38 && y == 32)) {
     alive = 1;
   }
-  where ((x == 26 && y == 33) || (x == 31 && y == 33) || (x == 33 && y == 33) || (x == 38 && y == 33)) {
+  where ((x == 26 && y == 33) || (x == 31 && y == 33) ||
+         (x == 33 && y == 33) || (x == 38 && y == 33)) {
     alive = 1;
   }
-  where ((x == 28 && y == 34) || (x == 29 && y == 34) || (x == 30 && y == 34) ||
-         (x == 34 && y == 34) || (x == 35 && y == 34) || (x == 36 && y == 34)) {
+  where ((x == 28 && y == 34) || (x == 29 && y == 34) ||
+         (x == 30 && y == 34) || (x == 34 && y == 34) ||
+         (x == 35 && y == 34) || (x == 36 && y == 34)) {
     alive = 1;
   }
-  where ((x == 28 && y == 39) || (x == 29 && y == 39) || (x == 30 && y == 39) ||
-         (x == 34 && y == 39) || (x == 35 && y == 39) || (x == 36 && y == 39)) {
+  where ((x == 28 && y == 39) || (x == 29 && y == 39) ||
+         (x == 30 && y == 39) || (x == 34 && y == 39) ||
+         (x == 35 && y == 39) || (x == 36 && y == 39)) {
     alive = 1;
   }
-  where ((x == 26 && y == 40) || (x == 31 && y == 40) || (x == 33 && y == 40) || (x == 38 && y == 40)) {
+  where ((x == 26 && y == 40) || (x == 31 && y == 40) ||
+         (x == 33 && y == 40) || (x == 38 && y == 40)) {
     alive = 1;
   }
-  where ((x == 26 && y == 41) || (x == 31 && y == 41) || (x == 33 && y == 41) || (x == 38 && y == 41)) {
+  where ((x == 26 && y == 41) || (x == 31 && y == 41) ||
+         (x == 33 && y == 41) || (x == 38 && y == 41)) {
     alive = 1;
   }
-  where ((x == 26 && y == 42) || (x == 31 && y == 42) || (x == 33 && y == 42) || (x == 38 && y == 42)) {
+  where ((x == 26 && y == 42) || (x == 31 && y == 42) ||
+         (x == 33 && y == 42) || (x == 38 && y == 42)) {
     alive = 1;
   }
-  where ((x == 28 && y == 44) || (x == 29 && y == 44) || (x == 30 && y == 44) ||
-         (x == 34 && y == 44) || (x == 35 && y == 44) || (x == 36 && y == 44)) {
+  where ((x == 28 && y == 44) || (x == 29 && y == 44) ||
+         (x == 30 && y == 44) || (x == 34 && y == 44) ||
+         (x == 35 && y == 44) || (x == 36 && y == 44)) {
     alive = 1;
   }
 
@@ -2043,7 +2071,11 @@ void main() {
 `exchange_async` / `exchange_wait`. MCU utilization.
 
 ### Random and Pleasing
-Embarrassingly parallel. Scalar LFSR state. Zero communication.
+This is the single reason you've ever seen a Connection Machine in print or media. The original CM-1, CM-2, and CM-5 all had a, "random LFSR, scrolling randomly" setting for the front lights. You can see it in Jurassic Park, and it's what the MoMA runs when they pull their CM-1 out of storage. While what these lights _looked like_ is well documented, the actual code that produced this pattern is not.
+
+For my machine, I break up the 64x64 pixel panel into 1x16 'windows'. These windows either scroll left or right. The content of these windows is determined by an LFSR -- a pseudo-random bit generator. A bit is generated from the LFSR, and pushed into the 'window'. Another bit is generated by the LFSR (either 1 or 0), and the existing bit in each window is pushed to the left or right. The eventual result is a "shimmer" of LEDs. It _looks_ like the computer is doing something important.
+
+This Random and Pleasing mode is enough like the original mode found in Connection Machines that I'll call it a clone. It's not a direct copy, but then again the layout of the front panel isn't either.
 
 <!-- COLLAPSIBLE -->
 ```c
@@ -2076,7 +2108,8 @@ void main() {
 
   // Pseudo-random but unique LFSR bit assignment
   // 8 LFSRs × 32 bits = 256 unique bits (perfect!)
-  pvar<int> permuted = (segment_id * 131 + 73) & 0xFF;  // Linear congruential permutation
+  // Linear congruential permutation
+  pvar<int> permuted = (segment_id * 131 + 73) & 0xFF; 
 
   pvar<int> my_lfsr_idx = permuted / 32;   // Which LFSR (0-7)
   pvar<int> my_bit_pos = permuted % 32;    // Which bit (0-31)
