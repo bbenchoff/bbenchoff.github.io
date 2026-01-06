@@ -486,7 +486,9 @@ Calling StarC an overcomplication of what could be a bunch of macros is probably
 
 **Recommended reading providing context to this specification**
 
+- [Recreating the Connection Machine: 4,096 RISC-V Cores in a Hypercube](https://bbenchoff.github.io/pages/ThinkinMachine.html)
 - [TDMA Routing on a Hypercube](https://bbenchoff.github.io/pages/HypercubeTDMA.html)
+
 
 ---
 
@@ -1868,6 +1870,81 @@ If you'd like to just _run_ these examples, look at the saved examples on the St
 ### Dimension Walk
 Pure hypercube. Uses `coord(dim)`, `nbr()` across all 12 dimensions.
 
+![Animated gif of the Dimension Walk](/images/StarC/DimensionWalk.gif)
+
+<!-- COLLAPSIBLE -->
+```c
+// Dimension Walk - Hamiltonian path through 12D hypercube
+// Uses coord() to build position from dimension bits
+// Uses nbr() to highlight the 12-dimensional neighborhood
+// Gray code ensures each step moves to exactly 1 neighbor
+
+void main() {
+  // Build my position from individual dimension coordinates
+  pvar<int> c0 = coord(0);
+  pvar<int> c1 = coord(1);
+  pvar<int> c2 = coord(2);
+  pvar<int> c3 = coord(3);
+  pvar<int> c4 = coord(4);
+  pvar<int> c5 = coord(5);
+  pvar<int> c6 = coord(6);
+  pvar<int> c7 = coord(7);
+  pvar<int> c8 = coord(8);
+  pvar<int> c9 = coord(9);
+  pvar<int> c10 = coord(10);
+  pvar<int> c11 = coord(11);
+
+  // My 12-bit position: c11 c10 c9 ... c2 c1 c0
+  pvar<int> my_position = (c11 << 11) | (c10 << 10) | (c9 << 9) | (c8 << 8) |
+                          (c7 << 7) | (c6 << 6) | (c5 << 5) | (c4 << 4) |
+                          (c3 << 3) | (c2 << 2) | (c1 << 1) | c0;
+
+  int counter = 0;
+
+  for (;;) {
+    // Convert counter to Gray code (Hamiltonian path property)
+    int gray = counter ^ (counter >> 1);
+
+    // Am I the current position?
+    pvar<int> lit = 0;
+    where (my_position == gray) {
+      lit = 255;  // Bright: current position
+    }
+
+    // Use nbr() to highlight my 12 neighbors in the hypercube
+    exchange {
+      pvar<int> n0 = nbr(0, lit);
+      pvar<int> n1 = nbr(1, lit);
+      pvar<int> n2 = nbr(2, lit);
+      pvar<int> n3 = nbr(3, lit);
+      pvar<int> n4 = nbr(4, lit);
+      pvar<int> n5 = nbr(5, lit);
+      pvar<int> n6 = nbr(6, lit);
+      pvar<int> n7 = nbr(7, lit);
+      pvar<int> n8 = nbr(8, lit);
+      pvar<int> n9 = nbr(9, lit);
+      pvar<int> n10 = nbr(10, lit);
+      pvar<int> n11 = nbr(11, lit);
+
+      // If any neighbor is bright, I'm dim (shows hypercube connectivity)
+      pvar<int> any_neighbor = n0 | n1 | n2 | n3 | n4 | n5 | n6 | n7 | n8 | n9 | n10 | n11;
+      where (any_neighbor > 0 && lit == 0) {
+        lit = 64;  // Dim: neighbor of current position
+      }
+    }
+
+    led_set(lit);
+
+    // Advance to next Gray code position
+    counter = (counter + 1) & 4095;
+    barrier();
+  }
+}
+
+```
+<!-- /COLLAPSIBLE -->
+
+
 ### Bitonic Sort  
 The canonical hypercube algorithm. `nbr(log₂(j), key)`. Proves topology = algorithm.
 
@@ -1930,6 +2007,8 @@ void main() {
 
 ### Conway's Game of Life
 Because of course a gigantic LED array needs to run Game of Life. This example uses two iterations of the `news()` grid to create a stencil with eight neighbors.
+
+![Animated gif of Conway's Game of Life](/images/StarC/Conway.gif)
 
 <!-- COLLAPSIBLE -->
 ```c
@@ -2077,124 +2156,132 @@ For my machine, I break up the 64x64 pixel panel into 1x16 'windows'. These wind
 
 This Random and Pleasing mode is enough like the original mode found in Connection Machines that I'll call it a clone. It's not a direct copy, but then again the layout of the front panel isn't either.
 
+![Animated gif of the random and pleasing mode](/images/StarC/RandomAndPleasing.gif)
+
+** How this works **
+
+First, we define 8 LFSRs shared across all the processors. Then, we create some 'bookkeeping' variables per processor. These bookkeeping variables define the `x` and `y` locations on the display. The display is split up into four 'columns' consisting of 1x16 pixel 'windows', so we declare those as well.
+
+```c
+  int lfsr[8];
+  lfsr[0] = 0xACE1BEEF;
+  ...
+  lfsr[7] = 0xBADC0FFE;
+
+  // Per-processor state: figure out my role
+  pvar<int> x = pid() % 64;
+  pvar<int> y = pid() / 64;
+  pvar<int> col = x / 16;           // Column (0-3)
+  pvar<int> pixel_in_col = x % 16;  // Pixel within window (0-15)
+  pvar<int> segment_id = y * 4 + col;  // Window ID (0-255)
+```
+
+Next, we assign each window a unique LFSR bit. Each window will scroll randomly left or right, so we create the direction with some bitshift trickery:
+
+```c
+  // Assign each window a unique LFSR bit (8 LFSRs × 32 bits = 256)
+  pvar<int> permuted = (segment_id * 131 + 73) & 0xFF;
+  pvar<int> my_lfsr_idx = permuted / 32;  // Which LFSR (0-7)
+  pvar<int> my_bit_pos = permuted % 32;   // Which bit (0-31)
+
+  // Pseudo-random scroll direction per window
+  pvar<int> my_direction = ((segment_id * 179 + 41) >> 3) & 1;
+```
+
+Now comes the main loop, and this is where StarC reveals its elegance. The infinite loop steps all 8 LFSRs using a plain C for-loop—this executes once per frame, not per processor. Each LFSR advances using Galois LFSR logic with the primitive polynomial x³² + x³¹ + x²⁹ + x¹ + 1:
+
+```c
+    for (int i = 0; i < 8; i++) {
+      int lsb = lfsr[i] & 1;
+      lfsr[i] = (lfsr[i] >> 1) ^ ((-lsb) & 0xA0000002);
+    }
+```
+
+Then the magic happens: each of the 4096 processors simultaneously reads from the scalar LFSR array using its own index: lfsr[my_lfsr_idx]. This single line demonstrates massively parallel array access—256 different windows extracting 256 different bits from 8 LFSRs, all at once:
+
+```c
+pvar<int> new_bit = (lfsr[my_lfsr_idx] >> my_bit_pos) & 1;
+```
+
+Each processor maintains its own 16-bit scroll buffer. The where() blocks handle directional scrolling—processors with my_direction == 0 shift right (pushing new bits from the left), while processors with my_direction == 1 shift left. Notice there's zero communication between processors; this is embarrassingly parallel:
+
+```c
+    where (my_direction == 0) {
+      scroll_buffer = (scroll_buffer >> 1) | (new_bit << 15);
+    }
+    where (my_direction == 1) {
+      scroll_buffer = (scroll_buffer << 1) | new_bit;
+    }
+```
+
+Finally, each processor extracts its display bit from its scroll buffer based on its position within the window, and sets its LED intensity. The barrier() synchronizes all processors before the next frame:
+
+```c
+    pvar<int> display_bit = (scroll_buffer >> pixel_in_col) & 1;
+    led_set(display_bit * 255);
+    barrier();
+```
+
+The result is 256 independent windows, each scrolling its own LFSR-generated pattern in its own direction, creating that signature "thinking computer" shimmer. This is StarC's design philosophy in action: it's just C until it isn't. Plain for-loops stepping LFSRs in scalar context, then massively parallel array indexing when you need it.
+
+** Code Listing **
 <!-- COLLAPSIBLE -->
 ```c
 // LFSR Scrolling Columns - Embarrassingly Parallel!
 // 64 rows × 4 columns = 256 independent 16-pixel-wide windows
 // Each window displays a 16-bit LFSR scroll buffer, scrolling left/right
+// Based on real hardware implementation (animations.h)
 
 void main() {
-  // Global state: 8 simple 32-bit Galois LFSRs
-  // Polynomial: x^32 + x^31 + x^29 + x^1 + 1 (primitive)
-  // Taps: bits 31, 29, 1 → mask 0xA0000002
-  int lfsr0 = 0xACE1BEEF;
-  int lfsr1 = 0xCAFEDEAD;
-  int lfsr2 = 0x12345678;
-  int lfsr3 = 0x9ABCDEF0;
-  int lfsr4 = 0xFEDCBA98;
-  int lfsr5 = 0x76543210;
-  int lfsr6 = 0xDEADBEEF;
-  int lfsr7 = 0xBADC0FFE;
+  // Scalar array: 8 LFSRs shared across all processors
+  // Polynomial: x^32 + x^31 + x^29 + x^1 + 1 → mask 0xA0000002
+  int lfsr[8];
+  lfsr[0] = 0xACE1BEEF;
+  lfsr[1] = 0xCAFEDEAD;
+  lfsr[2] = 0x12345678;
+  lfsr[3] = 0x9ABCDEF0;
+  lfsr[4] = 0xFEDCBA98;
+  lfsr[5] = 0x76543210;
+  lfsr[6] = 0xDEADBEEF;
+  lfsr[7] = 0xBADC0FFE;
 
-  // Calculate which segment (window) this processor belongs to
+  // Per-processor state: figure out my role
   pvar<int> x = pid() % 64;
   pvar<int> y = pid() / 64;
-  pvar<int> col = x / 16;        // Which column (0-3)
-  pvar<int> pixel_in_col = x % 16;  // Which pixel within the 16-pixel window
+  pvar<int> col = x / 16;           // Column (0-3)
+  pvar<int> pixel_in_col = x % 16;  // Pixel within window (0-15)
+  pvar<int> segment_id = y * 4 + col;  // Window ID (0-255)
 
-  // Each row-column pair is one segment with its own scroll buffer
-  // Segment ID: row * 4 + col (256 total segments)
-  pvar<int> segment_id = y * 4 + col;
+  // Assign each window a unique LFSR bit (8 LFSRs × 32 bits = 256)
+  pvar<int> permuted = (segment_id * 131 + 73) & 0xFF;
+  pvar<int> my_lfsr_idx = permuted / 32;  // Which LFSR (0-7)
+  pvar<int> my_bit_pos = permuted % 32;   // Which bit (0-31)
 
-  // Pseudo-random but unique LFSR bit assignment
-  // 8 LFSRs × 32 bits = 256 unique bits (perfect!)
-  // Linear congruential permutation
-  pvar<int> permuted = (segment_id * 131 + 73) & 0xFF; 
+  // Pseudo-random scroll direction per window
+  pvar<int> my_direction = ((segment_id * 179 + 41) >> 3) & 1;
 
-  pvar<int> my_lfsr_idx = permuted / 32;   // Which LFSR (0-7)
-  pvar<int> my_bit_pos = permuted % 32;    // Which bit (0-31)
-
-  // Pseudo-random direction per segment (use different permutation)
-  pvar<int> dir_hash = (segment_id * 179 + 41);
-  pvar<int> my_direction = (dir_hash >> 3) & 1;  // Extract bit 3 for randomness
-
-  // Each segment has its own 16-bit scroll buffer
+  // Each window has a 16-bit scroll buffer
   pvar<int> scroll_buffer = 0;
 
   for (;;) {
-    // Step 1: Advance all 8 LFSRs (scalar - same on all processors)
-    // 32-bit Galois LFSR: x^32 + x^31 + x^29 + x^1 + 1
-    // Taps at bits 31, 29, 1 → XOR mask = 0xA0000002
-    // Use negation trick for branch-free conditional: (-lsb) & mask
-
-    // LFSR 0
-    int lsb = lfsr0 & 1;
-    lfsr0 = (lfsr0 >> 1) ^ ((-lsb) & 0xA0000002);
-
-    // LFSR 1
-    lsb = lfsr1 & 1;
-    lfsr1 = (lfsr1 >> 1) ^ ((-lsb) & 0xA0000002);
-
-    // LFSR 2
-    lsb = lfsr2 & 1;
-    lfsr2 = (lfsr2 >> 1) ^ ((-lsb) & 0xA0000002);
-
-    // LFSR 3
-    lsb = lfsr3 & 1;
-    lfsr3 = (lfsr3 >> 1) ^ ((-lsb) & 0xA0000002);
-
-    // LFSR 4
-    lsb = lfsr4 & 1;
-    lfsr4 = (lfsr4 >> 1) ^ ((-lsb) & 0xA0000002);
-
-    // LFSR 5
-    lsb = lfsr5 & 1;
-    lfsr5 = (lfsr5 >> 1) ^ ((-lsb) & 0xA0000002);
-
-    // LFSR 6
-    lsb = lfsr6 & 1;
-    lfsr6 = (lfsr6 >> 1) ^ ((-lsb) & 0xA0000002);
-
-    // LFSR 7
-    lsb = lfsr7 & 1;
-    lfsr7 = (lfsr7 >> 1) ^ ((-lsb) & 0xA0000002);
-
-    // Step 2: Each segment extracts its assigned bit from its assigned LFSR
-    pvar<int> new_bit = 0;
-    where (my_lfsr_idx == 0) {
-      new_bit = (lfsr0 >> my_bit_pos) & 1;
-    }
-    where (my_lfsr_idx == 1) {
-      new_bit = (lfsr1 >> my_bit_pos) & 1;
-    }
-    where (my_lfsr_idx == 2) {
-      new_bit = (lfsr2 >> my_bit_pos) & 1;
-    }
-    where (my_lfsr_idx == 3) {
-      new_bit = (lfsr3 >> my_bit_pos) & 1;
-    }
-    where (my_lfsr_idx == 4) {
-      new_bit = (lfsr4 >> my_bit_pos) & 1;
-    }
-    where (my_lfsr_idx == 5) {
-      new_bit = (lfsr5 >> my_bit_pos) & 1;
-    }
-    where (my_lfsr_idx == 6) {
-      new_bit = (lfsr6 >> my_bit_pos) & 1;
-    }
-    where (my_lfsr_idx == 7) {
-      new_bit = (lfsr7 >> my_bit_pos) & 1;
+    // Step all 8 LFSRs (plain C loop)
+    for (int i = 0; i < 8; i++) {
+      int lsb = lfsr[i] & 1;
+      lfsr[i] = (lfsr[i] >> 1) ^ ((-lsb) & 0xA0000002);
     }
 
-    // Step 3: Shift bit into segment's 16-bit scroll buffer
+    // Extract my assigned bit - index scalar array with pvar!
+    pvar<int> new_bit = (lfsr[my_lfsr_idx] >> my_bit_pos) & 1;
+
+    // Shift into scroll buffer (direction depends on my_direction)
     where (my_direction == 0) {
-      scroll_buffer = (scroll_buffer >> 1) | (new_bit << 15);  // Scroll right
+      scroll_buffer = (scroll_buffer >> 1) | (new_bit << 15);
     }
     where (my_direction == 1) {
-      scroll_buffer = (scroll_buffer << 1) | new_bit;          // Scroll left
+      scroll_buffer = (scroll_buffer << 1) | new_bit;
     }
 
-    // Step 4: Each processor displays its assigned bit from the scroll buffer
+    // Display my bit from the scroll buffer
     pvar<int> display_bit = (scroll_buffer >> pixel_in_col) & 1;
     led_set(display_bit * 255);
 
