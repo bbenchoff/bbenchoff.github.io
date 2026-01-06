@@ -191,6 +191,15 @@ pre[class*="language-"]:not(.code-block-wrapper.collapsible .code-block-content 
   }
 }
 
+/* Center standalone images (like animated gifs) */
+.tm-article p img {
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+  max-width: 100%;
+  height: auto;
+}
+
 /* Table styling - full width */
 .tm-article table {
   width: 100%;
@@ -2158,7 +2167,7 @@ This Random and Pleasing mode is enough like the original mode found in Connecti
 
 ![Animated gif of the random and pleasing mode](/images/StarC/RandomAndPleasing.gif)
 
-** How this works **
+**How this works**
 
 First, we define 8 LFSRs shared across all the processors. Then, we create some 'bookkeeping' variables per processor. These bookkeeping variables define the `x` and `y` locations on the display. The display is split up into four 'columns' consisting of 1x16 pixel 'windows', so we declare those as well.
 
@@ -2222,9 +2231,9 @@ Finally, each processor extracts its display bit from its scroll buffer based on
     barrier();
 ```
 
-The result is 256 independent windows, each scrolling its own LFSR-generated pattern in its own direction, creating that signature "thinking computer" shimmer. This is StarC's design philosophy in action: it's just C until it isn't. Plain for-loops stepping LFSRs in scalar context, then massively parallel array indexing when you need it.
+The result is 256 independent windows, each scrolling its own LFSR-generated pattern in its own direction, creating the "thinking computer" shimmer. This is StarC's design philosophy in action: it's just C until it isn't. Plain for-loops stepping LFSRs in scalar context, then massively parallel array indexing when you need it.
 
-** Code Listing **
+**Code Listing**
 <!-- COLLAPSIBLE -->
 ```c
 // LFSR Scrolling Columns - Embarrassingly Parallel!
