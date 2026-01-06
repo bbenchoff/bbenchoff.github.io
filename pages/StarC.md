@@ -2061,6 +2061,30 @@ The preprocessor validates StarC rules and emits warnings/errors:
 - **Error:** Exchange result used as input within same block
 - **Error:** Nested `exchange` blocks
 - **Error:** Communication primitive outside `exchange` block
+- **Error:** Cannot assign pvar to scalar variable
+    - Catches `scalar = pvar_value` assignments
+    - This is a type error that breaks SPMD semantics
+- **Error:** Cannot mutate scalar variable inside where() block
+    - Catches `where (cond) { scalar = scalar + 1; }`
+    - Prevents the "4096 decrements per frame" bug class
+- **Error:** Array index out of bounds
+    - Runtime bounds checking for scalar arrays
+    - `arr[10]` when array has length 3
+
+Things that we're not catching (for now) that we probably should
+
+- **Warning:** For-loop with `pvar` condition:
+    - `for (int i = 0; i < my_pvar; i++)` is a non-deterministic iteration count
+    ` This should probably be an error
+- **Warning:** Uninitialized `pvar` read
+    - `pvar<int> x; led_set(x);` - x could be undefined
+- **Error:** Scalar declared inside loop
+    - `for (;;) { int counter = 0; }` - re-declares every frame
+    - Should be caught
+- **Error:** Array subscript with non-integer
+    - `arr[1.5]` or `arr[pvar_value]` (the second is actually legal!)
+    - We allow pvar subscripts for `lfsr[my_lfsr_idx]`
+
 
 ### Compiler Settings
 
@@ -2309,15 +2333,13 @@ This ordering is fixed and guaranteed. Combined with the toolchain's `-fno-fast-
 
 ---
 
-## Colophon
+# Finally...
 
-StarC exists because a hypercube exists. The language is shaped by the hardware: TDMA phases become exchange blocks, neighbor links become `nbr()` calls, the absence of routing becomes the absence of `get()`.
+StarC was developed in parallel (heh) with the design of a hypercube computer using TDMA for communication. The hardware influenced the programming model, and the programming model influenced the hardware. They are inseparable. StarC is simply just a Python preprocessor that emits C code because I didn't want to fork GCC to implement all this weird stuff. This is the minimum viable language for a strange bit of hardware. It's not revolutionary, and it will never sit even at the bottom of the TIOBE index. But this doesn't mean it's not useful.
 
-C was a thin wrapper over the PDP-11. StarC is a thin wrapper over a hypercube. Neither is an abstraction. Both are descriptions of what the machine does, expressed as syntax.
+C was created as a thin wrapper over the PDP-11, or a PDP-7, depending on how far back you want to go. StarC is a thin wrapper over a hypercube. It's not an abstraction; it's the language you use to program this specific piece of hardware.
 
-The Connection Machine made parallel computation visible. You could watch sorting algorithms ripple across the front panel. This machine does the same: 4,096 LEDs showing 4,096 processors, running algorithms you can see.
-
-That's what StarC is for. Not to be a perfect language. To be the language that makes this machine programmable.
+StarC is not meant to be the perfect language. In fact, the TDMA protocol used for communication in this machine can be much more expressive than StarC allows. Multi-hop routing is possible with the TDMA protocol, but it is unimplemented in StarC simply because the interesting algorithms made possible in a hypercube computer simply do not need multi-hop routing. But what _is_ implemented allows the machine to be programmed, and those interesting algorithms to be expressed cleanly. That's what StarC is for, not to be the perfect language, but to be the language that makes this machine programmable.
 
 ---
 
