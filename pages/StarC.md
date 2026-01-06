@@ -2746,11 +2746,12 @@ document.addEventListener("DOMContentLoaded", () => {
     layoutEl.classList.remove("tm-stack");
 
     const vw = document.documentElement.clientWidth;
-    const tocMax = Math.min(Math.max(176, Math.floor(vw * 0.256)), 416);
-    root.style.setProperty("--tm-toc-max-px", px(tocMax));
+
+    // Don't override the CSS --tm-toc-max-px, respect what's set in CSS
+    // This allows manual control of ToC width
 
     const tocW = tocEl ? tocEl.getBoundingClientRect().width : 0;
-    const gap = 16;
+    const gap = 32; // Increased gap between ToC and article
     const articleFit = vw - tocW - gap;
     root.style.setProperty("--tm-article-fit-px", px(articleFit));
   }
