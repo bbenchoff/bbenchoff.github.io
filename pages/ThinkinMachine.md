@@ -1545,8 +1545,9 @@ So I guess I have to create my own language for this computer.
 
 ### StarC - Parallel C
 
-<div class="side-image">
-  <div class="side-text">
+<p style="text-align: center;">
+  <img src="/images/StarC/logo2.svg" alt="StarC Logo" style="width: 300px; height: auto;">
+</p>
 
 [This is StarC](https://starc-lang.org/). It's the language I had to write to make this machine programmable. There are three basic ideas that I'm adding to C:
 
@@ -1559,12 +1560,6 @@ So I guess I have to create my own language for this computer.
 That's it. StarC compiles to plain C via a Python preprocessor. There's no virtual machine, no garbage collector, no runtime type system. It's a thin wrapper over the hardware, the same way C was a thin wrapper over the PDP-11.
 
 The full specification, with worked examples and the complete API, is in the [StarC documentation](StarC.html).
-
-  </div>
-  <div class="side-image-container">
-    <img src="/images/StarC/logo2.svg" alt="StarC Logo">
-  </div>
-</div>
 
 ## Calculating & Performance
 
