@@ -1533,13 +1533,42 @@ While my machine is _really good_, and even my guilt-addled upbringing doesn't p
 
 ## Software Architecture
 
-### Parallel C (StarC)
+After building the hardware, with LED panels wrapped in Chemcast acrylic, plug welded aluminum frame, and a backplane that actually feels pain, you may wonder what this machine _actually does_. That's a fair question. It’s elegant, beautiful, but it doesn’t really do anything useful. For many of us, that was an ex in our 20s. Now it’s a computer.
 
-### What this thing does
+This machine is fundamentally incompatable with any programming language. The only way I have to program the 4,096 chips in the machine is through C, because that's the toolchain I have. The real Connection Machine had a variety of languages like `*Lisp`, a parallel verison of Lisp, and `C*`, a parallel version of C. These languages don't exist any more, insofar as I can find _actual code_. I can, however, look at sources and figure out how they were programmed in these languages.
 
-"It’s elegant, beautiful, but it doesn’t really do anything useful. For many of us, that was an ex in our 20s. Now it’s a computer."
+`C*` and `*Lisp` and the parallel Fortran mentioned in an old NASA Ames publication all share the same basic ideas. The Connection Machine used _parallel variables_, where there's one value per processor, _scalar variables_, which are the same value repeated on all the processors, and _communication primitives_ like neighbor exchange, reduction, and broadcast. The languages are data-parallel, not message passing.
+
+The problem is, there's no existing language that does this. I can contort the C-based toolchain available for any microcontroller to _do_ all this, but this is the sort of thing that should really be its own language, if only for error and type checking.
+
+So I guess I have to create my own language for this computer.
+
+### StarC - Parallel C
+
+<div class="side-image">
+  <div class="side-text">
+
+[This is StarC](https://starc-lang.org/). It's the language I had to write to make this machine programmable. There are three basic ideas that I'm adding to C:
+
+**Parallel variables.** `pvar<int> x` means "every processor has its own x." When you write `x = x + 1`, all 4,096 processors increment their local copy simultaneously.
+
+**Masked execution.** `where (x > 0) { ... }` means "only processors where the condition is true execute this block." The others skip it. This is how you express "some processors do this, others don't" without breaking the single-program model.
+
+**Communication blocks.** `exchange { n = nbr(0, x); }` means "every processor swaps its x with its dimension-0 neighbor." All communication—neighbor exchange, grid neighbors, reductions, scans—happens inside exchange blocks. The runtime schedules it onto the TDMA phases. You declare what you need; the machine figures out when.
+
+That's it. StarC compiles to plain C via a Python preprocessor. There's no virtual machine, no garbage collector, no runtime type system. It's a thin wrapper over the hardware, the same way C was a thin wrapper over the PDP-11.
+
+The full specification, with worked examples and the complete API, is in the [StarC documentation](StarC.html).
+
+  </div>
+  <div class="side-image-container">
+    <img src="/images/StarC/logo2.svg" alt="StarC Logo">
+  </div>
+</div>
 
 ## Calculating & Performance
+
+When looking at the contemperanious sources related to programming the Connection Machine, [Amdahl's Law](https://en.wikipedia.org/wiki/Amdahl%27s_law) makes a few appearances. This law says the performance gain by  
 
 ### Quantum Chromodynamics
 
@@ -1983,103 +2012,5 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 </script>
 
-/// EVERYTHING BELOW THIS IS EXTRA:
 
 
-
-/* Move this to some other place, I've already done this */
-I'd like to mention that the Connection Machine isn't best visualized as a multidimensional tesseract, or something Nolan consulted Kip Thorne to get _just right_. It's not a hypercube. Because it exists in three dimensions. Like you. It's actually a 12-bit Hamming-distance-1 graph. Or a bit-flip adjacency graph. Or it's a bunch of processors, each connected to 12 other processors. Each processor has a 12-bit address, and by changing one bit I can go to an adjacent processor. But sure, we'll call it a hypercube if it makes you feel wicked smaht or whatever. 
-
-That being said, Danny had some good ideas in his thesis about why it's better to refer to this computer as a hypercube. The key insight that makes this buildable is exploiting a really cool property of hypercubes: __you can divide them up into identical segments.__
-
-Instead of trying to route a 12-dimensional hypercube as one massive board, I'm breaking the 4,096 processors into 16 completely identical processor boards, each containing exactly 256 RISC-V chips. Think of it like this: each board is its own 8-dimensional hypercube (since 256 = 2⁸), and the backplane connects those 16 sub-cubes into a full 12-dimensional hypercube (because 16 = 2⁴, and 8 + 4 = 12).
-*/
-
-
-Techniques That Fall Out of This Architecture
-
-1. Subset-Lattice Computing
-Your 4,096 nodes are literally the vertices of a 12-element subset lattice. Node 0x2A3 represents the subset {0,1,5,7,9}. Every subset of {0..11} has a physical home.
-This makes certain algorithms native to the hardware:
-
-Zeta transform: F(S) = Σ_{T⊆S} f(T) — runs in 12 TDMA phases
-Möbius transform: inclusion-exclusion inverse — same
-Walsh-Hadamard transforms on Boolean functions
-Subset DP: any dynamic programming indexed by bitmask (TSP variants, set cover)
-
-Each phase is "if my bit d is 1, pull value from neighbor, combine." The outer loop is your TDMA schedule. The machine is the algorithm's state space.
-
-2. Dimension-Phased Microcode (Wave ISA)
-Take TDMA further: treat the 12-phase cycle as a global microinstruction pointer.
-cfor (;;) {
-    for (int d = 0; d < 12; d++) {
-        wait_for_phase(d);
-        microstep[d]();  // per-node code, may use dim-d link
-    }
-}
-Compile high-level kernels into 12-entry choreography tables. "In phase 3, exchange X with dim-3 neighbor and add. In phase 7, reduce Y along dim-7."
-The ISA isn't opcodes—it's a 12-slot waveform of neighbor operations. Halfway between SIMD and cellular automata, but on real CPUs.
-
-3. Hardware Content-Addressable Memory / Distributed Hash Table
-Store value V at node hash(key) mod 4096. Lookup is routing: at most 12 hops, exactly popcount(my_addr XOR target_addr) hops. Deterministic latency.
-The CM couldn't do this—nodes couldn't think. Yours can handle collisions locally, respond to queries, cache hot keys. The hypercube becomes a 4,096-way associative memory where routing is lookup.
-
-4. Cellular Automata on Hypercube Topology
-Every cellular automaton ever studied assumes a grid. 4 neighbors. 8 neighbors. Maybe 6 in hex.
-What happens with 12 neighbors arranged as a hypercube? Different state space. Different emergent behavior. Different rules for interesting dynamics. Literally unexplored—the hardware to run it didn't exist.
-"Cellular Automata on Hypercube Topologies" is a paper waiting to be written, with your machine as the experimental platform.
-
-5. Deterministic Gossip with Exact Convergence Bounds
-Traditional gossip: randomly pick a neighbor, exchange state, converge "eventually" with high probability.
-Your TDMA makes it structured. Dimension-ordered gossip visits every dimension in lockstep. After 12 phases, every node has distance-1 information. After 24, distance-2. You can derive exact convergence bounds: "This distributed average converges in exactly 144 phases."
-That's not how gossip protocols work anywhere else. New primitive.
-
-6. Soft Topologies Over Hard Cube
-Old hypercubes were married to the physical topology. Your nodes have RAM and can route.
-Present different topologies to different programs:
-
-"This kernel sees a 2D torus"
-"This one sees a fat tree"
-"This one sees a ring with long chords"
-
-Each node maintains virtual neighbor tables, forwards via hypercube paths. Flip topologies dynamically without moving cables. Use TDMA dimension subsets to partition: "dimensions 0-3 for subgraph A, 4-7 for subgraph B."
-Dynamically reconfigurable interconnect, in software, on $0.37 chips.
-
-7. Multi-Scale Algorithms Mapped to Bit Ranges
-Treat the 12 bits as hierarchy levels:
-
-Bits 0-3: fine scale (on-board, local interactions)
-Bits 4-7: medium scale (cross-slice)
-Bits 8-11: coarse scale (backplane, global corrections)
-
-Multigrid-style algorithms where each scale lives in different bit ranges. Fine nodes run CFD/CA updates. Coarse nodes run slow global aggregations. Inter-scale patterns are perfectly regular: a dimension flip takes you from fine to corresponding coarse parent.
-Physical realization of multigrid on a Boolean lattice.
-
-8. Reversible Debugging / Time-Travel on 4,096 Cores
-Deterministic TDMA means you know exactly what messages were sent when. Each node has 20KB—enough to journal state transitions.
-Rewind the entire machine to a previous tick. Step backwards through parallel computation. Debugging parallel systems is hellish because of nondeterminism. You've built one where execution is fully deterministic and replayable.
-Time-travel debugging as a first-class architectural feature, not an afterthought.
-
-9. Hypercube as Physical Constraint Graph
-Each node is a variable. Each link is a constraint. The topology defines the constraint graph.
-Iterate: "given my neighbors' values, update mine to satisfy constraints." TDMA phases are "propagate constraints along dimension d."
-Hardware constraint satisfaction solver for problems whose graphs embed into 12-regular hypercubes.
-
-10. Locality-Sensitive Hashing in Hardware
-Interpret the 12-bit address as coordinates in a binary feature space. Nodes close in Hamming distance are topologically close.
-Feed vectors in. Each routes to its "nearest" node by Hamming distance. Similar vectors cluster at nearby nodes. Hardware approximate nearest-neighbor search.
-
-11. Self-Tuning Fabric
-You have a tree for monitoring, LEDs for visualization, 4,096 nodes that can all report stats.
-Each node tracks: packets forwarded per link, latency, error counts. Controllers pull stats, run meta-algorithms: adjust TDMA weights, change routing policies, push new parameters down.
-Classical machines treat interconnect as fixed, software as dynamic. Yours can make the interconnect algorithmic. Evolve different TDMA schedules and visualize fitness on the LED panel as you go.
-
-12. Self-Organizing Data Placement
-Nodes can notice "I'm forwarding a lot of traffic for key X" and cache it locally. Migrate data toward where it's accessed. The hypercube provides routing substrate, data placement becomes dynamic.
-Distributed systems study this on commodity networks with unpredictable latency. You have deterministic routing. Different optimization landscape.
-
-The Meta-Point
-The CM-1 was dumb SIMD with smart routing.
-You built smart MIMD with smart routing.
-That combination hasn't been explored because it was economically insane until $0.37 microcontrollers existed.
-*/
