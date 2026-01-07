@@ -1557,13 +1557,66 @@ So I guess I have to create my own language for this computer.
 
 **Communication blocks.** `exchange { n = nbr(0, x); }` means "every processor swaps its x with its dimension-0 neighbor." All communication—neighbor exchange, grid neighbors, reductions, scans—happens inside exchange blocks. The runtime schedules it onto the TDMA phases. You declare what you need; the machine figures out when.
 
-That's it. StarC compiles to plain C via a Python preprocessor. There's no virtual machine, no garbage collector, no runtime type system. It's a thin wrapper over the hardware, the same way C was a thin wrapper over the PDP-11.
+Here's what StarC looks like in practice—a simple program that lights up processors based on their neighbors:
 
-The full specification, with worked examples and the complete API, is in the [StarC documentation](StarC.html).
+```c
+void main() {
+    pvar alive = (pid() % 7 == 0) ? 1 : 0;  // Seed some processors
+    pvar neighbor;
+
+    for (int i = 0; i < 100; i++) {
+        exchange {
+            neighbor = nbr(0, alive);  // Get dimension-0 neighbor's state
+        }
+
+        where (alive == 0 && neighbor == 1) {
+            alive = 1;  // Dead processors with live neighbors come alive
+        }
+
+        led_set(alive * 255);
+        barrier();
+    }
+}
+```
+
+Every processor runs this same code. Each has its own `alive` and `neighbor`. The `exchange` block swaps values with neighbors; the `where` block filters which processors update. The LED panel shows the result—a pattern spreading across the hypercube, one dimension at a time.
+
+#### StarC Design
+
+StarC is deliberately minimal. The language adds exactly three constructs to C: parallel variables, masked execution, and exchange blocks. That's what the hardware requires, and what C doesn't natively provide. Everything else is still C.
+
+Because we're using a TDMA schedule to program this thing, costs should be visible. This is why exchange blocks exist as explicit syntax. The hardware batches all communication into TDMA phases—you can't scatter `nbr()` calls throughout your code like function calls. Making exchange blocks syntactically distinct forces you to think about communication as a discrete step: compute, exchange, compute, exchange. The code structure mirrors the hardware's rhythm.
+
+The `where`/`if` distinction exists for the same reason. `if` with a scalar condition means all processors take the same branch. `where` with a parallel condition means processors diverge. Exchange blocks inside `where` are illegal; if half the processors skip an exchange, the TDMA schedule breaks. The preprocessor catches this at compile time rather than letting it fail mysteriously at runtime.
+
+What StarC *doesn't* have is equally deliberate. There's no `send(dest, msg)` even though the TDMA scheme could support multi-hop routing. The interesting hypercube algorithms—bitonic sort, parallel prefix, stencils—don't need it. Adding arbitrary routing would invite people to write programs the hardware executes poorly. StarC restricts you to what the hypercube does well.
+
+You might be asking yourself, "wait, I'm smart and attractive and eminently capable and wealthy, why can't I just implement these with macros?" You could, but StarC has rules that interact in ways macros can't check. Exchange blocks can't go inside `where` blocks, exchange results can't be used as inputs in the same block, and `if` with a `pvar` is almost always a mistake. The preprocessor catches them at compile time instead.
+
+#### StarC Infrastructure
+
+For 'production code', StarC compiles to C via a Python preprocessor, which then gets shoved into whatever toolchain you're using for whatever microcontroller. There's no VM, and no crazy shit. This is the minimum possible tooling required to program a hypercube of microcontrollers.
+
+However, I had to design this language in parallel with building the machine. I needed a simulator, which means you also now have a simulator. [Here's the StarC Playground](https://starc-lang.org/playground/). It's a React app with a tree-sitter parser using the C grammar, a JavaScript interpreter that runs 4,096 virtual processors, and a Canvas renderer for the LED panel. It's not cycle-accurate, but it is logically equivalent to what you would see when running the same code on the real machine.
+
+![The StarC playground running the Gaussian Blur demo](/images/StarC/blurdemo.png)
+
+![The StarC Playground running the Random and Pleasing demo](/images/StarC/pleasingdemo.png)
+
+The playground has a dozen examples preloaded. There's Conway's Game of Life, dimension walks, LFSR scrolling columns, parallel Gaussian blurs, and examples of hypercube communications. Load one, hit run, and you'll understand what StarC does faster than reading any specification.
+
+#### StarC Identity
+
+The name StarC is obviously inspired by the Connection Machine's `C*` language. I got the [starc-lang.org](https://starc-lang.org/) domain for cheap, and it's generally _good enough_. The _real_ inspiration was me going to a Yakitori place on 8th and Clement in SF, right across the street from the Star of the Sea Catholic church. Inside, there's a [shrine to the first millennial saint](https://starparish.com/getting-to-know-carlo-acutis/), the patron saint of programmers. I have 'programmers' and a concept of 'sailors navigating a vast binary sea - the hypercube matrix' all in one concept. You can't turn down that kind of associative relationship.
+
+Hell, that's awesome; I can do some cool Catholic iconography, _or_ nautical imagery for the visual design of this language. I settled on a nautical star for the logo because of the relationship between sailors and the Star of the Sea church. With extra gradients in the line art because I'm going for early 90s maximalism. The O'Reilly book should have a seahorse on the cover, because that's how the Catholic iconography extends to the animal world.
+
+#### Get StarC
+
+The full specification, with worked examples, the StarC Playground where you can run your own StarC programs on a virtual Thinkin Machine, and the links to the Python preprocessor with instruction on how to generate real C code can be found [through the StarC website](https://starc-lang.org/). 
 
 ## Calculating & Performance
 
-When looking at the contemperanious sources related to programming the Connection Machine, [Amdahl's Law](https://en.wikipedia.org/wiki/Amdahl%27s_law) makes a few appearances. This law says the performance gain by  
 
 ### Quantum Chromodynamics
 
