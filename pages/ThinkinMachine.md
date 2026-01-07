@@ -1583,7 +1583,7 @@ Every processor runs this same code. Each has its own `alive` and `neighbor`. Th
 
 #### StarC Design
 
-StarC is deliberately minimal. The language adds exactly three constructs to C: parallel variables, masked execution, and exchange blocks. That's what the hardware requires, and what C doesn't natively provide. Everything else is still C.
+StarC is deliberately minimal. The language adds exactly three constructs to C: parallel variables, masked execution, and exchange blocks. StarC is a way to make illegal programs unrepresentable on a TDMA-scheduled hypercube. That's what the hardware requires, and what C doesn't natively provide. Everything else is still C.
 
 Because we're using a TDMA schedule to program this thing, costs should be visible. This is why exchange blocks exist as explicit syntax. The hardware batches all communication into TDMA phases—you can't scatter `nbr()` calls throughout your code like function calls. Making exchange blocks syntactically distinct forces you to think about communication as a discrete step: compute, exchange, compute, exchange. The code structure mirrors the hardware's rhythm.
 
@@ -1607,9 +1607,9 @@ The playground has a dozen examples preloaded. There's Conway's Game of Life, di
 
 #### StarC Identity
 
-The name StarC is obviously inspired by the Connection Machine's `C*` language. I got the [starc-lang.org](https://starc-lang.org/) domain for cheap, and it's generally _good enough_. The _real_ inspiration was me going to a Yakitori place on 8th and Clement in SF, right across the street from the Star of the Sea Catholic church. Inside, there's a [shrine to the first millennial saint](https://starparish.com/getting-to-know-carlo-acutis/), the patron saint of programmers. I have 'programmers' and a concept of 'sailors navigating a vast binary sea - the hypercube matrix' all in one concept. You can't turn down that kind of associative relationship.
+The name StarC is obviously inspired by the Connection Machine's `C*` language. I got the [starc-lang.org](https://starc-lang.org/) domain for cheap, and it's generally _good enough_. The _real_ inspiration was me going to a Yakitori place on 8th and Clement in SF, right across the street from the Star of the Sea church. Inside, there's a [shrine to the first millennial saint](https://starparish.com/getting-to-know-carlo-acutis/), the patron saint of programmers. I have 'programmers' and a concept of 'sailors navigating the vast binary sea of a hypercube matrix' all in one concept. You can't turn down that kind of associative relationship. Cray has Chapel, I have a church.
 
-Hell, that's awesome; I can do some cool Catholic iconography, _or_ nautical imagery for the visual design of this language. I settled on a nautical star for the logo because of the relationship between sailors and the Star of the Sea church. With extra gradients in the line art because I'm going for early 90s maximalism. The O'Reilly book should have a seahorse on the cover, because that's how the Catholic iconography extends to the animal world.
+It's too good to ignore. I can do some cool Catholic iconography, _or_ nautical imagery for the visual design of this language. I settled on a nautical star for the logo because of the relationship between sailors and the Star of the Sea church. With extra gradients in the art because I'm going for early 90s maximalism. The O'Reilly book should have a seahorse on the cover, because that's how that specific Catholic iconography extends to the animal world.
 
 #### Get StarC
 
