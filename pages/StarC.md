@@ -1491,7 +1491,126 @@ void main() {
 ```
 <!-- COLLAPSIBLE -->
 
-This example doesn't showcase any of StarC's unique features like `exchange()`, `nbr()` or `reduce()`. There's no hypercube topology in this code. It could run on any parallel platform. But it does demonstrate that this is a parallel computer. Every pixel completes in 32 iterations. If this were a single processor, the entire graphic would complete in `32 * 4096` iterations. It's faster because it's parallel.
+To describe this code, for this first example I'm going to compare this to _serial_ programming. As in, we have a single microcontroller that's controlling a 64x64 array of LEDs. The traditional way you render a Mandelbrot set in C looks like this:
+
+```c
+  // Serial Mandelbrot - One pixel at a time
+  void render_mandelbrot() {
+    for (int py = 0; py < 64; py++) {
+      for (int px = 0; px < 64; px++) {
+        // Map pixel to complex plane
+        int cx = (px * 896) / 64 - 640;
+        int cy = (py * 640) / 64 - 320;
+
+        // Iterate z = z² + c
+        int zx = cx, zy = cy;
+        int iter = 1;
+
+        for (int i = 1; i < 32; i++) {
+          int zx2 = (zx * zx) / 256;
+          int zy2 = (zy * zy) / 256;
+          int mag_sq = zx2 + zy2;
+
+          if (mag_sq < 1024) {
+            iter++;
+            int new_zx = zx2 - zy2 + cx;
+            int new_zy = (2 * zx * zy) / 256 + cy;
+            zx = new_zx;
+            zy = new_zy;
+          }
+        }
+
+        set_pixel(px, py, (32 - iter) * 8);
+      }
+    }
+  }
+```
+
+Notice the nested loops. There are 64 rows and 64 columns for 4,096 pixels, computed sequentially. If each pixel takes 32 iterations, that 131,072 total iterations before you see the complete image.
+
+In StarC, we eliminate the outer loops entirely. Each processor is a pixel:
+
+```c
+  void main() {
+    pvar<int> px = pid() % 64;  // I am pixel (px, py)
+    pvar<int> py = pid() / 64;
+
+    // Map MY pixel to complex plane
+    pvar<int> cx = (px * 896) / 64 - 640;
+    pvar<int> cy = (py * 640) / 64 - 320;
+
+    // Compute MY pixel's iteration count
+    // ... (same iteration logic)
+
+    led_set(brightness);  // Set MY LED
+  }
+```
+
+All 4,096 processors execute this simultaneously. Processor 0 computes pixel (0,0). Processor 1 computes pixel (1,0). Processor 2048 computes pixel (0,32). They all finish after 32 iterations—the same 32 iterations that a single processor would need for one pixel.
+
+**How This Works**
+Each processor needs to know which pixel it's responsible for. The pid() function returns a unique identifier (0-4095), which we decompose into grid coordinates:
+
+```c
+pvar<int> px = pid() % 64;  // Column: 0-63
+pvar<int> py = pid() / 64;  // Row: 0-63
+```
+
+This creates a per-processor variable—a pvar—that's different on each processor. Processor 0 gets `px=0`, `py=0`. Processor 127 gets `px=63`, `py=1`. Processor 4095 gets `px=63`, `py=63`.
+
+Next, we map these grid coordinates to the complex plane. The Mandelbrot set lives roughly between -2.5 and +1.0 on the real axis, and -1.25 to +1.25 on the imaginary axis. Since StarC uses integers, we use fixed-point arithmetic with a scale factor of 256:
+
+```c
+pvar<int> cx = (px * 896) / 64 - 640;  // Maps [0,63] → [-640, 256]
+pvar<int> cy = (py * 640) / 64 - 320;  // Maps [0,63] → [-320, 320]
+```
+
+In fixed-point, -640 represents -2.5 (because -640/256 = -2.5), and 256 represents 1.0. Each processor now has its own complex coordinate `c = cx + cy*i`.
+
+The Mandelbrot iteration is `z = z² + c`, starting from `z = c`. We track how many iterations it takes before `|z| > 2` (the point "escapes"):
+
+```c
+pvar<int> zx = cx;
+pvar<int> zy = cy;
+pvar<int> iter = 1;
+
+for (int i = 1; i < 32; i = i + 1) {
+  pvar<int> zx2 = (zx * zx) / 256;  // z² in fixed-point
+  pvar<int> zy2 = (zy * zy) / 256;
+  pvar<int> mag_sq = zx2 + zy2;     // |z|²
+}
+```
+
+In traditional code, you'd write `if (mag_sq < 1024)` to check if the point is still bounded. But in StarC, comparisons return `0` or `1`:
+
+```c
+pvar<int> still_bounded = mag_sq < 1024;  // 1 if bounded, 0 if escaped
+iter = iter + still_bounded;               // Only increment if bounded
+```
+
+Every processor evaluates `mag_sq < 1024`. For bounded points, `still_bounded = 1`, so iter increments. For escaped points, `still_bounded = 0`, so iter stops changing. No branches, no divergence. All 4,096 processors stay in lockstep.
+
+Then we compute the next iteration of `z = z² + c` using complex arithmetic: `(a+bi)² = (a²-b²) + 2abi`:
+
+```c
+pvar<int> new_zx = zx2 - zy2 + cx;     // Real part
+pvar<int> new_zy = (2 * zx * zy) / 256 + cy;  // Imaginary part
+zx = new_zx;
+zy = new_zy;
+```
+
+After 32 iterations, iter contains the escape count. Points inside the Mandelbrot set never escape, so `iter = 32`. Points outside escape quickly, so iter might be 1, 2, or 5. We map this to brightness:
+
+```c
+pvar<int> brightness = (32 - iter) * 8;
+led_set(brightness);
+```
+
+High `iter`  means we're "inside" the Mandelbrot set, so it's dark. Low `iter` means it escaped the Mandelbrot set, so it's bright.
+
+There's no communication between processors here. Each processor independently calculates the value of a single pixel. This is the simplest possible parallel program where it's all the same code, but different data.
+
+This example doesn't showcase any of StarC's unique features like `exchange()`, `nbr()` or `reduce()`. There's no hypercube topology in this code. It could run on any parallel platform. But it does demonstrate that this is a parallel computer. Every pixel completes in 32 iterations. If this were a single processor, the entire graphic would complete in `32 * 4096` iterations. The parallel speedup is 4,096×. It's faster because it's parallel.
 
 ### Dimension Walk
 Pure hypercube. Uses `coord(dim)`, `nbr()` across all 12 dimensions.

@@ -14,6 +14,40 @@ image: "/images/ConnM/CMSocialCard.png"
    General / existing styles
    ========================= */
 
+/* Center the button row */
+.btn-row{
+  display:flex;
+  justify-content:center;
+  margin:1rem 0;
+}
+
+/* High-contrast button */
+a.btn-download{
+  display:inline-flex;
+  align-items:center;
+  gap:.5rem;
+  padding:.85rem 1.2rem;
+  border-radius:.75rem;
+  border:1px solid rgba(0,0,0,.15);
+  background:#2563eb;
+  color:#fff !important;
+  font-weight:700;
+  text-decoration:none;
+  line-height:1.1;
+  box-shadow:0 2px 8px rgba(0,0,0,.2);
+}
+
+a.btn-download:hover{
+  filter:brightness(1.05);
+  transform:translateY(-1px);
+  box-shadow:0 6px 16px rgba(0,0,0,.25);
+}
+
+a.btn-download:focus-visible{
+  outline:2px solid #fff;
+  outline-offset:2px;
+}
+
 .matrix-table {
   border-collapse: collapse;
   font-family: monospace;
@@ -1460,6 +1494,12 @@ The obvious solution, therefore, is to build my own autorouter. Or at least spen
 
 **[This is OrthoRoute](https://github.com/bbenchoff/OrthoRoute)**, a GPU-accelerated autorouter for KiCad. There's very little that's actually _new_ here; I'm just leafing through some of the VLSI books in my basement and stealing some ideas that look like they might work. If you throw enough compute at a problem, you might get something that works.
 
+<div class="btn-row">
+  <a class="btn-download" href="https://github.com/bbenchoff/OrthoRoute" target="_blank" rel="noopener">
+    Download OrthoRoute (GitHub)
+  </a>
+</div>
+
 OrthoRoute is written for the new IPC plugin system for KiCad 9.0. This has several advantages over the old SWIG-based plugin system. IPC allows me to run code outside of KiCad's Python environment. That's important, since I'll be using CuPy for CUDA acceleration and Qt to make the plugin look good. The basic structure of the OrthoRoute plugin looks something like this:
 
 ![Block diagram of the OrthoRoute plugin](/images/ConnM/OrthorouteArch.png)
@@ -1515,6 +1555,11 @@ This board feels pain. You get mental damage from just looking at it. Every othe
 
 You can run OrthoRoute yourself [by downloading it from the repo](https://github.com/bbenchoff/OrthoRoute). Install the .zip file via the package manager. A somewhat beefy Nvidia GPU is highly suggested but not required; there's CPU fallback. If you want a deeper dive on how I built OrthoRoute, [there's also a page in my portfolio about it](http://bbenchoff.github.io/pages/OrthoRoute.html).
 
+<div class="btn-row">
+  <a class="btn-download" href="https://github.com/bbenchoff/OrthoRoute" target="_blank" rel="noopener">
+    Download OrthoRoute (GitHub)
+  </a>
+</div>
 
 ## Mechanical Design
 
@@ -1548,6 +1593,12 @@ So I guess I have to create my own language for this computer.
 <p style="text-align: center;">
   <img src="/images/StarC/logo2.svg" alt="StarC Logo" style="width: 300px; height: auto;">
 </p>
+
+<div class="btn-row">
+  <a class="btn-download" href="https://starc-lang.org/" target="_blank" rel="noopener">
+    Get StarC
+  </a>
+</div>
 
 [This is StarC](https://starc-lang.org/). It's the language I had to write to make this machine programmable. There are three basic ideas that I'm adding to C:
 
@@ -1607,11 +1658,19 @@ The playground has a dozen examples preloaded. There's Conway's Game of Life, di
 
 #### StarC Identity
 
-The name StarC is obviously inspired by the Connection Machine's `C*` language. I got the [starc-lang.org](https://starc-lang.org/) domain for cheap, and it's generally _good enough_. The _real_ inspiration was me going to a Yakitori place on 8th and Clement in SF, right across the street from the Star of the Sea church. Inside, there's a [shrine to the first millennial saint](https://starparish.com/getting-to-know-carlo-acutis/), the patron saint of programmers. I have 'programmers' and a concept of 'sailors navigating the vast binary sea of a hypercube matrix' all in one concept. You can't turn down that kind of associative relationship. Cray has Chapel, I have a church.
+The name StarC is obviously inspired by the Connection Machine's `C*` language. I got the [starc-lang.org](https://starc-lang.org/) domain for cheap, and as a name for a language it's _good enough_. The _real_ inspiration was me going to a Yakitori place on 8th and Clement in SF, right across the street from the Star of the Sea church. Inside, there's a [shrine to the first millennial saint](https://starparish.com/getting-to-know-carlo-acutis/), the patron saint of programmers. I have 'programmers' and a concept of 'sailors navigating the sea of a hypercube matrix' all in one concept. You can't turn down that kind of associative relationship. Cray has Chapel, I have a church.
 
-It's too good to ignore. I can do some cool Catholic iconography, _or_ nautical imagery for the visual design of this language. I settled on a nautical star for the logo because of the relationship between sailors and the Star of the Sea church. With extra gradients in the art because I'm going for early 90s maximalism. The O'Reilly book should have a seahorse on the cover, because that's how that specific Catholic iconography extends to the animal world.
+As an aside, why is Rust crabs? The carcinization of everyone on r/programming?
+
+But the StarC / Catholic iconography / sailor stuff is too good to ignore. I can do some cool Catholic iconography, _or_ nautical imagery for the visual design of this language. I settled on a nautical star for the logo because of the relationship between sailors and the Star of the Sea church. With extra gradients in the art because I'm going for early 90s maximalism. The O'Reilly book should have a seahorse on the cover, because that's how that specific Catholic iconography extends to the animal world.
 
 #### Get StarC
+
+<div class="btn-row">
+  <a class="btn-download" href="https://starc-lang.org/" target="_blank" rel="noopener">
+    Get StarC
+  </a>
+</div>
 
 The full specification, with worked examples, the StarC Playground where you can run your own StarC programs on a virtual Thinkin Machine, and the links to the Python preprocessor with instruction on how to generate real C code can be found [through the StarC website](https://starc-lang.org/). 
 
