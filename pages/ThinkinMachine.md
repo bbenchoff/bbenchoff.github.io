@@ -1658,19 +1658,6 @@ My "emulation" or "reimplementation" of the CM-1 -- I'm not sure exactly what th
 
 Theoretically, this machine could run original code for the Connection Machine. Maybe it could. I don't actually know, because I can't find any original CM-1 code. But if Danny wants to meet me for a beer at Interval, I would love to talk to him about this.
 
-## This Might Be Novel
-
-The communication scheme in this machine uses Time Division Multiple Access (TDMA) scheduling combined with dimension-ordered routing to create a collision-free, deadlock-free hypercube network with bounded latency—and no router hardware whatsoever. Each of the 24 phases in a communication cycle activates one dimension in one direction: phase 0 activates dimension 0 in the 0→1 direction, phase 1 activates dimension 0 in the 1→0 direction, phase 2 activates dimension 1 in the 0→1 direction, and so on. Because dimensions are traversed in order and phases are ordered by dimension, any message's route through the hypercube uses a strictly increasing sequence of phases. A message never waits for a phase to "come around again." The worst-case latency (12 hops, all bits differ) completes in one 24-phase cycle. This isn't worst-case latency—it's every-case latency.
-
-The intellectual framework that makes this possible has a name: time-triggered architecture. Hermann Kopetz at the Vienna University of Technology developed this paradigm through the 1980s and 1990s, culminating in the TTP/C protocol first published in 1993. The core insight is that in safety-critical distributed systems, you can use a global time base and a predetermined schedule to eliminate arbitration entirely. If every node knows exactly when it's allowed to transmit, collisions become impossible by construction. You don't need buffers, backoff algorithms, or deadlock detection—the schedule is the coordination mechanism. This approach now underpins automotive networks (FlexRay), aerospace systems (TTP/C is used in the Orion spacecraft), and industrial Ethernet (TSN).
-
-The other key ingredient is dimension-ordered routing for hypercubes, which Bertsekas and colleagues formalized in their 1991 paper "Optimal Communication Algorithms for Hypercubes." The insight is simple: if you always traverse dimensions in a fixed order (dimension 0 before dimension 1 before dimension 2, etc.), you get deadlock-free routing for free. No circular dependencies can form because messages always progress "forward" through the dimension sequence.
-
-Danny Hillis designed the Connection Machine CM-1 between 1983 and 1985. It shipped in 1986. The TTP/C protocol wouldn't be published for another seven years. Bertsekas's dimension-ordering paper wouldn't appear for another five. The conceptual toolkit required to build a routerless hypercube—time-triggered scheduling plus dimension-ordered routing—simply didn't exist yet.
-This isn't a criticism of Hillis. He solved the problem with the tools available: dedicated router ASICs with buffers, arbitration logic, and deadlock avoidance built into custom silicon. That was the paradigm in 1985. Networks were assumed to be asynchronous. Contention was assumed to happen. You built hardware to cope with it. The idea that you could schedule your way out of contention entirely—that the network could be a metronome rather than a negotiation—required a conceptual framework that was still being developed.
-
-The TDMA hypercube scheme in this machine synthesizes two ideas that were invented after the CM-1 existed, applying them to a topology that predates both. It eliminates an entire class of hardware complexity by making the schedule do what routers used to do. Whether anyone else has combined these specific ideas for a hypercube interconnect is unclear—I cannot find prior art that connects these dots—but what's certain is that Hillis couldn't have done it. The ideas hadn't been invented yet.
-
 ## Contextualizing the build
 
 This project was insane, probably due to the mental space I was in while building it. Desperate soil yields desperate fruit, or something like that. This project began on month five of a 2-year long streak of unemployment, and if you've never been in that situation, I can't convey how mentally taxing it is. Every day, for a few hours in the morning, I'd cruise LinkedIn, put in a few applications, and then spend the rest of my time working on this machine.
@@ -1701,7 +1688,7 @@ The ten-cent microcontrollers that enabled this build were only available for ab
 
 I couldn't have built this in 2020, because I would be looking at four thousand dollars in microcontrollers instead of four hundred. I couldn't have made this in 2015 because I bought the first reel of IS31FL3741s from Mouser in 2017. In 2010, the PCB costs alone would have been prohibitive.
 
-The earliest this Thinking Machine could have been built is the end of 2025 or the beginning of 2026, and I think I did alright. The trick wasn't knowing _how_ to build it, it's knowing that it _could_ be built. This is probably the best thing I'll ever build, but it certainly won't be the most advanced. For those builds, the technology hasn't even been invented yet and the parts are, as of yet, unavailable.
+The earliest this Thinking Machine could have been built is the end of 2025 or the beginning of 2026. I think I did alright. The trick wasn't knowing _how_ to build it, it's knowing that it _could_ be built. This is probably the best thing I'll ever build, but it certainly won't be the most advanced. For those builds, the technology hasn't even been invented yet and the parts are, as of yet, unavailable.
 
 ## Related Works And Suggested Reading
 

@@ -1,7 +1,7 @@
 ---
 layout: default
 title: "TDMA Routing for Hypercubes"
-description: "Hardware engineering and PCB design documentation by Brian Benchoff"
+description: ""
 keywords: ["Hypercube", "TDMA"]
 author: "Brian Benchoff"
 date: 2025-06-04
@@ -210,7 +210,6 @@ image: "/images/default.jpg"
 }
 </style>
 
- 
 # TDMA Routing on a Hypercube
 
 Somehow, I invented a better connection machine.
@@ -218,18 +217,14 @@ Somehow, I invented a better connection machine.
 My Thinkin' Machine has 4,096 processors arranged at the vertices of a 12-dimensional hypercube. Each processor connects to 12 neighbors. There are no dedicated routers. Messages traverse the network using a time-division multiple access (TDMA) scheme. This message passing scheme has several interesting properties that turn my machine into something interesting:
 
 - Deterministic link ownership (no collisions on a link, ever)
-
 - Dimension-ordered routing baked into time (deadlock-avoidance and routing simplicity fall out)
-
 - Bounded latency that’s a function of the superframe length (24 phases) and phase duration (the entire machine is synchronous)
 
 This page explains how.
 
 ## The Problem
 
-Nodes must pass messages to each other, but the naive way of doing this -- blasting out data and hoping everything works -- has significant drawbacks.
-
-Consider the constraints:
+Nodes must pass messages to each other, but the naive way of doing this -- blasting out data and hoping everything works -- has significant drawbacks. Consider the constraints:
 
 - **4,096 nodes**, each with 12 single-wire, half-duplex links to neighbors
 - **No dedicated router hardware** routing logic runs on the node processors themselves
@@ -237,21 +232,27 @@ Consider the constraints:
 - **Single hardware UART per node** must be remapped to different pins for different dimensions
 - **No collision detection or backoff** the links can't do CSMA elegantly
 
-The original Connection Machine CM-1 solved this with dedicated routing silicon: buffers, arbitration logic, and deadlock avoidance built into custom ASICs. This is not an option when building a machine without routers, only using microcontrollers that cost under a dollar.
+The original Connection Machine CM-1 solved this with dedicated routing silicon. This was an exceptionally difficult problem because Thinking Machines had to pull a Nobel laureate in Physics out of retirement to get these routers to actually _work_.  I do not have the luxury of building custom ASICs for this project; I'm building it with microcontrollers that cost less than a dollar.
 
 ## The Insight
 
-In a hypercube, each node's address is a binary number. Node `0x2A3` is connected to every node that differs by exactly one bit: `0x2A2` (bit 0), `0x2A1` (bit 1), `0x2AB` (bit 3), and so on.
-
-To route a message from source $S$ to destination $D$, XOR the addresses:
+In a hypercube, each node's address is a binary number. Node `0x2A3` is connected to every node that differs by exactly one bit: `0x2A2` (bit 0), `0x2A1` (bit 1), `0x2AB` (bit 3), and so on. To route a message from source $S$ to destination $D$, XOR the addresses:
 
 $$\Delta = S \oplus D$$
 
 The set bits in $\Delta$ tell you which dimensions to traverse. If bit 7 is set, the message must cross dimension 7 at some point. The number of set bits equals the number of hops.
 
-If you traverse dimensions in a fixed order — always dimension 0 before dimension 1 before dimension 2, and so on — **you get deadlock-free routing for free**. This is dimension-ordered routing, and it's a known result in the literature (see Bertsekas 1991).
+If you traverse dimensions in a fixed order, always dimension 0 before dimension 1 before dimension 2, and so on, you get deadlock-free routing for free. This is dimension-ordered routing, and it's a known result in the literature (see Bertsekas 1991).
 
-Divide that clock into $2n$ phases, where $n$ is the number of dimensions. Phase $2d$ activates dimension $d$ in the low→high direction; phase $2d+1$ activates the same dimension in the high→low direction. If link ownership is scheduled by dimension and direction, the routing algorithm collapses to: "wait for the right phase, then send."
+Divide that clock into $2n$ phases, where $n$ is the number of dimensions. Phase $2d$ activates dimension $d$ in the low→high direction; phase $2d+1$ activates the same dimension in the high→low direction. 
+
+Now collapse this back to hardware. We have a (slowish) global clock. Each chip has an binary address. On clock phase $2d$, if that chips address bit $d$ is $0$, we map the pin for dimension $d$ connections to the hypercube UART transmit. On clock phase $2x+1$, and if that chips address bit $d$ is $1$, we map the pin for dimension $d$ connections to the UART receive. 
+
+We multiplex the UART for each chips hypercube connections through time. That's it, that's the entire trick. This requires a few things:
+
+- A slow global clock, on the order of 1 to 10kHz. This is fairly easy even in a large machine because dealing with a 1kHz clock is a piece of cake.
+- A microcontroller where UART peripherals can be remapped to any pin. This is difficult, but there are chips that can do it.
+- Optionally, and to make things very easy, a second 'sync' clock that ensures the phase number is the same on all chips. 
 
 ![TDMA example waveforms](/images/ConnM/TDMA.png)
 
@@ -406,11 +407,7 @@ Phase sequence: 0, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22. Strictly increasing. 
 
 ### Bounded Latency
 
-The maximum number of hops in a 12-dimensional hypercube is 12 (all bits differ). The maximum number of phases is 24. Every message — regardless of source, destination, or network load — completes within one 24-phase cycle.
-
-**This isn't worst-case latency. This is every-case latency**. Not “usually fast, sometimes awful.” Not “fine until the network gets busy.” The schedule makes the network a metronome: every link gets a turn, every turn has an owner, and the longest possible route still fits inside a single superframe.
-
-Latency stops being a statistical property and becomes a design constant. You can write software assuming, “a message sent now will be delivered by the end of this cycle,” the same way you assume a flip-flop will settle by the next clock edge. The whole system becomes synchronous at the network level. The machine isn’t just connected; it’s coordinated. It doesn’t chatter. It breathes.
+The maximum number of hops in a 12-dimensional hypercube is 12 (all bits differ). The maximum number of phases is 24. Every message — regardless of source, destination, or network load — completes within one 24-phase cycle. This isn't worst-case latency, it's the latency for every possible message between every possible pairs of nodes in the hypercube.
 
 Wall-clock latency depends on phase duration:
 
@@ -434,9 +431,9 @@ At 10 kHz phase rate with 1 Mbps baud, each phase carries ~100 bits — enough f
 
 ## What Falls Out
 
-The TDMA scheme eliminates entire categories of complexity:
+The Connection Machine was famous beyond its blinkenlights for what fell out of the architecture. A bitonic sort algorithm is perfect for hypercube clusters of computers. Using the NEWS grid of the Connection Machine, intelligence services had the fastest image processing machine on the planet. This TDMA scheme is the same thing; really cool stuff just falls out of the architecture:
 
-**No collision detection.** Link ownership is determined by the schedule. Two nodes never try to transmit on the same link simultaneously.
+**No collision detection.** Two nodes never try to transmit on the same link simultaneously.
 
 **No backoff or retries.** Collisions don't happen, so recovery logic doesn't exist.
 
@@ -464,19 +461,21 @@ That's it. The complexity is in the schedule, not the silicon.
 
 ## Why This Works Here
 
-This scheme exists because of constraints. The project couldn't afford dedicated router ASICs. I couldn't find a microcontroller with 12 hardware UARTs. The one UART I had could be remapped to different pins at runtime.
-
-TDMA solves all of these problems simultaneously:
-
-- One UART handles all 12 dimensions because only one dimension is active per phase
-- No router hardware because the schedule *is* the arbitration
-- Remapping pins between phases is cheap — reconfigure the UART peripheral, wait for the next phase
+This scheme exists because of constraints. The project couldn't afford dedicated router ASICs. I couldn't find a microcontroller with 12 hardware UARTs. The one UART I had could be remapped to different pins at runtime. TDMA solves all of these problems simultaneously. One UART handles all 12 dimensions because we're only using one dimension at a time. There's no router hardware because the TDMA schedule *is* the router.
 
 The original Connection Machine CM-1 used dedicated routing hardware because the constraints were different: custom silicon, DARPA budget, and a goal of supporting arbitrary asynchronous communication patterns. The routers were complex because they were solving the general case. My workloads are synchronous. Compute, exchange, compute, exchange. For that pattern, the general case is unnecessary overhead. Lockstep TDMA is a feature, not a limitation.
 
+There is one gigantic, glaring problem with this idea. A naive interpretation of this routing scheme would complain that I just reduced the potential speed of the machine by a factor of 24. This is true, but it's lacking context. [This paper from NASA Ames in 1990](https://ntrs.nasa.gov/api/citations/19910023487/downloads/19910023487.pdf) assessed the Connection Machine from a programming standpoint, and the takeaway is not good.
+
+The NASA assessment of the Connection Machine says, _"irregular communication through the router is very expensive and should be sparingly used."_ Also, _"The router is the key to the CM. The current machine has a router that runs at roughly 1% of floating point speed. This makes router-intensive algorithms unattractive in terms of their performance."
+
+The CM-1's general purpose router, the thing that made it flexible, was so slow that NASA's assessment was basically, "don't use it". The machine could route messages arbitrarily and asynchronously but in practice nobody used it because it was a hundred times slower than compute.
+
+The TDMA scheme gives up the theoretical capability of arbitrary asynchronous routing, but that was unusable to begin with. In exchange, I get structured communication that I can actually use every cycle.
+
 ## My Context
 
-This _sounds_ smart, and it probably is, but I must admit I'm a bit out of my depth here. Not so much in that I couldn't _think of how to do this_, but my depth doesn't extend to _why this wasn't done before_. I've checked the literature, and the ideas are there. Bertsekas goes through the dimension ordering of message passing through a hypercube, and Stout sort of, kind of, applies this 'master scheduler clock scheme'. No one put these two ideas together to create a collision-free hypercube with bounded latency.
+This _sounds_ smart, and it probably is, but I must admit I'm a bit out of my depth here. Not so much in that I couldn't _think of how to do this_, but my depth doesn't extend to _why this wasn't done before_. I've checked the literature, and the ideas are there. Bertsekas goes through the dimension ordering of message passing through a hypercube, and Stout sort of, kind of, applies this 'master scheduler clock scheme'. Kopetz says, 'yeah man, just divide the communication up by time'. No one put these two ideas together to create a collision-free hypercube with bounded latency.
 
 The original Connection Machine CM-1 solved a slightly different problem with its routers. The CM-1 solved general purposes communication under unpredictable traffic. This required buffers, arbitration, and deadlock avoidance. In the CM-1, there is _a lot_ of silicon dedicated to simply passing messages between nodes.
 
@@ -490,9 +489,9 @@ Am I the first person to think of this? I have no idea.
 
 - Q. F. Stout, "Intensive Hypercube Communication: Prearranged Communication in Link-Bound Machines," *Journal of Parallel and Distributed Computing*, 1990. [Abstract](https://web.eecs.umich.edu/~qstout/abs/JPDC90.html)
 
-- W. Zierhoff et al., "Time Triggered Communication on CAN (TTCAN)," CAN in Automation, 1999. [PDF](https://www.can-cia.org/fileadmin/resources/documents/proceedings/1999_zierhoff.pdf)
+- Kopetz, H., & Grünsteidl, G. (1994). "TTP—A Protocol for Fault-Tolerant Real-Time Systems." IEEE Computer, 27(1), 14–23. [PDF](https://dl.acm.org/doi/10.1109/2.248873)
 
-- M. Boyer, "A TSN Introduction," ONERA, 2025. [PDF](https://wp.laas.fr/store/wp-content/uploads/sites/8/2025/04/TSN-STORE-compression.pdf)
+- Robert Schreiber, “An Assessment of the Connection Machine,” RIACS Technical Report 90.40 (June 1990) [PDF](https://ntrs.nasa.gov/api/citations/19910023487/downloads/19910023487.pdf)
 
 [back to main project page](ThinkinMachine.html)
 
