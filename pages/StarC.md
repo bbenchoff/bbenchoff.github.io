@@ -1425,6 +1425,7 @@ The LED array is a debugging primitive. When something goes wrong, the pattern t
 
 The following goes through examples from the StarC Playground, demonstrating the why and how everything in StarC works. Topics covered for each example:
 
+- Mandelbrot Set - Pure compute among 4096 processors
 - Dimension Walk - Direct hypercube addressing (`coord()`, `nbr()` on all 12 dimensions)
 - Bitonic Sort - Topology-aware algorithm (dimension = log₂, hypercube structure dictates algorithm)
 - Heat Equation - Stencil operations (`news()`), global convergence detection (`reduce_max()`), conditional participation with identity values
@@ -1440,6 +1441,57 @@ These examples provide enough context to StarC that you should be able to unders
 
 If you'd like to just _run_ these examples, look at the saved examples on the StarC Playground.
 
+### Mandelbrot Set
+You've seen the Mandelbrot Set. There's a picture below. You know what I'm talking about here.
+
+If you were to render the Mandelbrot fractal on a single processor, the only way to do it is one pixel at a time. That's just how it works. But in StarC we have thousands of independent processors. StarC is a language that allows these processors to compute pixels independently. This is that example. There's no communication here -- this is the 'Hello World' of SPMD execution. Each processor executes the same code on different data.
+
+![The Mandelbrot Set rendered on 4096 cores](/images/StarC/Mandelbrot.png)
+
+<!-- COLLAPSIBLE -->
+```c
+// Mandelbrot Set - The Ultimate Embarrassingly Parallel Algorithm!
+// Each of the 4,096 processors computes one pixel independently
+// No communication needed - pure parallel computation
+
+void main() {
+  pvar<int> px = pid() % 64;
+  pvar<int> py = pid() / 64;
+
+  // Map to complex plane: Real [-2.5, 1.0], Imaginary [-1.25, 1.25]
+  pvar<int> cx = (px * 896) / 64 - 640;  // Fixed-point scale 256
+  pvar<int> cy = (py * 640) / 64 - 320;
+
+  pvar<int> zx = cx;
+  pvar<int> zy = cy;
+  pvar<int> iter = 1;  // Everyone gets at least 1 iteration
+
+  // Iterate z = z² + c up to 32 times
+  for (int i = 1; i < 32; i = i + 1) {
+    pvar<int> zx2 = (zx * zx) / 256;
+    pvar<int> zy2 = (zy * zy) / 256;
+    pvar<int> mag_sq = zx2 + zy2;
+
+    // If still bounded (|z|² < 4), count this iteration
+    pvar<int> still_bounded = mag_sq < 1024;
+    iter = iter + still_bounded;
+
+    // Compute next z = z² + c
+    pvar<int> new_zx = zx2 - zy2 + cx;
+    pvar<int> new_zy = (2 * zx * zy) / 256 + cy;
+    zx = new_zx;
+    zy = new_zy;
+  }
+
+  // Map iteration count to brightness
+  // More iterations = darker (inside set)
+  pvar<int> brightness = (32 - iter) * 8;
+  led_set(brightness);
+}
+```
+<!-- COLLAPSIBLE -->
+
+This example doesn't showcase any of StarC's unique features like `exchange()`, `nbr()` or `reduce()`. There's no hypercube topology in this code. It could run on any parallel platform. But it does demonstrate that this is a parallel computer. Every pixel completes in 32 iterations. If this were a single processor, the entire graphic would complete in `32 * 4096` iterations. It's faster because it's parallel.
 
 ### Dimension Walk
 Pure hypercube. Uses `coord(dim)`, `nbr()` across all 12 dimensions.
