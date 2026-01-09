@@ -1708,6 +1708,8 @@ Application of prefix sum. `scan_sum()` → destination addresses.
 ### NEWS Blur
 4-neighbor stencil. Clean `news()` usage.
 
+![Animated gif of the NEWS blur](/images/StarC/NEWSblur.gif)
+
 <!-- COLLAPSIBLE -->
 ```c
 // 2D Gaussian blur using NEWS communication

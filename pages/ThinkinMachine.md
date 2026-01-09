@@ -1658,7 +1658,7 @@ The playground has a dozen examples preloaded. There's Conway's Game of Life, di
 
 #### StarC Identity
 
-The name StarC is obviously inspired by the Connection Machine's `C*` language. I got the [starc-lang.org](https://starc-lang.org/) domain for cheap, and as a name for a language it's _good enough_. The _real_ inspiration was me going to a Yakitori place on 8th and Clement in SF, right across the street from the Star of the Sea church. Inside, there's a [shrine to the first millennial saint](https://starparish.com/getting-to-know-carlo-acutis/), the patron saint of programmers. I have 'programmers' and a concept of 'sailors navigating the sea of a hypercube matrix' all in one concept. You can't turn down that kind of associative relationship. Cray has Chapel, I have a church.
+The name StarC is obviously inspired by the Connection Machine's `C*` language. I got the [starc-lang.org](https://starc-lang.org/) domain for cheap, and as a name for a language it's _good enough_. The _real_ inspiration was me going to a Yakitori place on 8th and Clement in SF, right across the street from the Star of the Sea church. Stella Maris, the patron of sailors. Inside, there's a [shrine to the first millennial saint](https://starparish.com/getting-to-know-carlo-acutis/), the patron saint of programmers. I have 'programmers' and a concept of 'sailors navigating the sea of a hypercube matrix' all in one concept. You can't turn down that kind of associative relationship. Cray has Chapel, I have a church.
 
 As an aside, why is Rust crabs? The carcinization of everyone on r/programming?
 
