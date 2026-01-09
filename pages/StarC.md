@@ -1425,7 +1425,7 @@ The LED array is a debugging primitive. When something goes wrong, the pattern t
 
 The following goes through examples from the StarC Playground, demonstrating the why and how everything in StarC works. Topics covered for each example:
 
-- Mandelbrot Set - Pure compute among 4096 processors
+- [Mandelbrot Set](#mandelbrot-set) - Pure compute among 4096 processors
 - Dimension Walk - Direct hypercube addressing (`coord()`, `nbr()` on all 12 dimensions)
 - Bitonic Sort - Topology-aware algorithm (dimension = log₂, hypercube structure dictates algorithm)
 - Heat Equation - Stencil operations (`news()`), global convergence detection (`reduce_max()`), conditional participation with identity values
