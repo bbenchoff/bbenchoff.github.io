@@ -1426,16 +1426,16 @@ The LED array is a debugging primitive. When something goes wrong, the pattern t
 The following goes through examples from the StarC Playground, demonstrating the why and how everything in StarC works. Topics covered for each example:
 
 - [Mandelbrot Set](#mandelbrot-set) - Pure compute among 4096 processors
-- Dimension Walk - Direct hypercube addressing (`coord()`, `nbr()` on all 12 dimensions)
-- Bitonic Sort - Topology-aware algorithm (dimension = log₂, hypercube structure dictates algorithm)
-- Heat Equation - Stencil operations (`news()`), global convergence detection (`reduce_max()`), conditional participation with identity values
-- Global Statistics - Pipelined reductions (multiple reduce_* in single exchange block share superframe bandwidth)
-- Parallel Prefix - Exclusive vs. inclusive scans (`scan_sum()` vs `scan_sum_inclusive()`)
-- Stream Compaction - Practical application of prefix sum (computing destination addresses)
-- NEWS Blur - Basic 4-neighbor stencil, grid topology (`news()`)
-- Conway's Game of Life - Complex stencil (8 neighbors via two exchange blocks for diagonals)
-- Double-Buffered Stencil - Asynchronous communication (exchange_async/exchange_wait) for overlapping compute and communication
-- Random and Pleasing (LFSR) - Embarrassingly parallel computation (replicated scalar state, zero communication, independent per-processor computation)
+- [Dimension Walk](#dimension-walk) - Direct hypercube addressing (`coord()`, `nbr()` on all 12 dimensions)
+- [Bitonic Sort](#bitonic-sort) - Topology-aware algorithm (dimension = log₂, hypercube structure dictates algorithm)
+- [Heat Equation](#heat-equation) - Stencil operations (`news()`), global convergence detection (`reduce_max()`), conditional participation with identity values
+- [Global Statistics](#global-statistics) - Pipelined reductions (multiple reduce_* in single exchange block share superframe bandwidth)
+- [Parallel Prefix](#parallel-prefix-exclusive-and-inclusive) - Exclusive vs. inclusive scans (`scan_sum()` vs `scan_sum_inclusive()`)
+- [Stream Compaction](#stream-compaction) - Practical application of prefix sum (computing destination addresses)
+- [NEWS Blur](#news-blur) - Basic 4-neighbor stencil, grid topology (`news()`)
+- [Conway's Game of Life](#conway39s-game-of-life) - Complex stencil (8 neighbors via two exchange blocks for diagonals)
+- [Double-Buffered Stencil](#double-buffered-stencil) - Asynchronous communication (exchange_async/exchange_wait) for overlapping compute and communication
+- [Random and Pleasing](#random-and-pleasing) - Embarrassingly parallel computation (replicated scalar state, zero communication, independent per-processor computation)
 
 These examples provide enough context to StarC that you should be able to understand the language after following these examples. 
 
