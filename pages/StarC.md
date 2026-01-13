@@ -1618,7 +1618,7 @@ This is a classic demoscene pattern, documented very well [on this page](https:/
 
 ![Animated gif of the Plasma demo](/images/StarC/Plasma.gif)
 
-The code is relatively simple, just iterate over three sine waves and plot the amplitude as brightness. The trick for this demo is the scalar array for the sine look up table. This scalar array is saved across all microcontrollers in the cluster:
+The code is relatively simple, just iterate over four sine waves and plot the amplitude as brightness. The trick for this demo is the scalar array for the sine look up table. This scalar array is saved across all microcontrollers in the cluster:
 
 ```c
 int sine[256];
@@ -1630,7 +1630,26 @@ int sine[256];
   sine[40]=234; sine[41]=235; sine[42]=237; sine[43]=238; sine[44]=240; sine[45]=241; sine[46]=243; sine[47]=244;
 ```
 
-Each microcontroller gets a copy of this array and performs it's own lookup while it's running. The only difference between the microcontrollers is their `pid()` address, which is used to create the X and Y axes for the display. Consider this an example of, 'this is just regular C' along with SPMD programming. The full listing is available below:
+The sine lookup table is an artifact of the StarC playground. The actual hardware uses RISC-V cores with floating-point units (roughly ARM Cortex-M3/M4 equivalent), so real StarC programs can use `sin()` from `math.h` directly. The StarC Playground, however, is built on JavaScript and doesn't support math libraries, forcing us to use a lookup table.
+
+This actually gives us a window into olden-time demoscene techniques. Before FPUs were common, this is how the old heads did it. On cheaper microcontrollers without FPUs, this is still how you'd do it today. As a bonus, it also demonstrates the difference between scalar and `pvar`. 
+
+Each microcontroller gets a copy of this array and performs its own lookup while it's running. The only difference between the microcontrollers is their `pid()` address, which is used to create the X and Y axes for the display. Consider this an example of, 'this is just regular C' along with SPMD programming. 
+
+**How This Works**
+
+The plasma effect combines four sine wave patterns, each varying across space and time:
+
+```c
+  pvar<int> v1 = sine[(px * 8 + t * 2) & 255];  // Horizontal waves
+  pvar<int> v2 = sine[(py * 8 + t * 3) & 255];  // Vertical waves
+  pvar<int> v3 = sine[((px + py) * 6 + t * 2) & 255];  // Diagonal waves
+  pvar<int> v4 = sine[(dist + t * 4) & 255];  // Radial waves
+```
+
+Each processor computes its own index into the shared sine[] array using its position (px, py) and the current frame counter (t). The & 255 wraps the index (equivalent to modulo 256) to keep it within the lookup table bounds. All 4,096 processors simultaneously read from the same scalar array, but each with a different index. Processor (0,0) reads `sine[frame*2]`, processor (32,32) reads a completely different entry, and processor (63,63) yet another. The four patterns are averaged together, creating interference patterns that flow and pulse as frame() advances each iteration.
+
+The full listing is available below:
 
 <!-- COLLAPSIBLE -->
 ```c
