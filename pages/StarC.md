@@ -1490,7 +1490,7 @@ void main() {
   led_set(brightness);
 }
 ```
-<!-- COLLAPSIBLE -->
+<!-- /COLLAPSIBLE -->
 
 To describe this code, for this first example I'm going to compare this to _serial_ programming. As in, we have a single microcontroller that's controlling a 64x64 array of LEDs. The traditional way you render a Mandelbrot set in C looks like this:
 
@@ -1725,7 +1725,7 @@ void main() {
 }
 
 ```
-<!-- COLLAPSIBLE -->
+<!-- /COLLAPSIBLE -->
 
 ### Dimension Walk
 Pure hypercube. Uses `coord(dim)`, `nbr()` across all 12 dimensions.
