@@ -43,11 +43,11 @@ image: "/images/ConnM/CMSocialCard.png"
 
 # The Controller Board: A Custom Zynq Linux Host
 
-You might be wondering why I didn't just slap a Raspberry Pi inside the aluminum monolith and call it a day. 
+This page documents the controller board for [my recreation of the Connection Machine](https://bbenchoff.github.io/pages/ThinkinMachine.html). This is the brains of the machine, the front end, and how you _control_ four thousand individual microcontrollers.
 
-The original Connection Machine CM-1 didn't operate on its own; it was a massively parallel accelerator attached to a "front-end" host, typically a Symbolics Lisp Machine or a VAX. To recreate this architecture, I needed a host computer capable of running a full Linux OS, compiling my StarC code natively, and, most importantly, orchestrating 16 deterministic TDMA hypercube backplanes simultaneously.
+The original Connection Machine CM-1 didn't operate alone. It was really just a massive parallel accelerator attached to a front-end host, a Symbolics Lisp Machine if you were cool or a VAX if you weren't. This front-end machine was responsible for loading data in and out of the Connection Machine, dividing the machine up for some pseudo batch-processing, and running the main program to broadcast instructions into the massive black monolith. My machine is really no different, except instead of a Lisp Machine controlling everything, I'm stuffing a Linux SoC inside, and putting Ethernet, USB, and an HDMI port on the back of the machine. The front-end is integral here.
 
-If you ask a Raspberry Pi to juggle 16 high-speed custom serial buses with microsecond accuracy, it will fail. A standard CPU cannot do this. The Linux kernel's interrupt overhead alone would choke the processor to death. You cannot bit-bang a supercomputer. You need the hardened processing of an ARM core bolted directly to the deterministic, programmable logic of an FPGA. 
+But this is not a job for a Raspberry Pi, an Allwinner chip, or anything 'normal'. The front-end of this machine needs dedicated serial channels to each of the sixteen individual cards in the hypercube. It needs to generate the [TDMA timing signals](https://bbenchoff.github.io/pages/HypercubeTDMA.html), and it runs the [StarC toolchain](https://bbenchoff.github.io/pages/StarC.html). Some of these can be accomplished with a simple Linux SoC, but multiple serial connections to each hypercube board (with some sort of DMA) and TDMA timing requires an FPGA.
 
 So, I designed a custom supercomputer motherboard from scratch. 
 
