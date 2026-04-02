@@ -158,6 +158,9 @@ Once the MCU-side SDK is solid and there are a few good “MCU ↔ CPLD” examp
 * [SoCXin / AG32VF407 – L3 R3: AGM RISC-V + CPLD/FPGA MCU (AG32VH407 / AG32VF407 / AG32VF303)](https://github.com/SoCXin/AG32VF407)
 * [OS-Q / platform-agm32 – PlatformIO “agm32rv” platform](https://github.com/OS-Q/platform-agm32)
 * [SoCXin org – all AG32-related repos](https://github.com/orgs/SoCXin/repositories)
+* **NEW** [tpunix/AGRV2K_go – bare-metal AG32VF407 project with Verilog AHB bus examples, SPI PSRAM controller, SD card controller, CherryUSB EHCI, CoreMark](https://github.com/tpunix/AGRV2K_go)
+* **NEW** [mxwiser/agm32-usb-blaster – open-source USB-Blaster clone built on AGRV2KQ32, includes schematics and PCB](https://github.com/mxwiser/agm32-usb-blaster)
+* **NEW** [823984418/AgRV2K_PAC – Rust Peripheral Access Crate for AG32, early stage but contains SVD files](https://github.com/823984418/AgRV2K_PAC)
 
 ---
 
@@ -166,6 +169,11 @@ Once the MCU-side SDK is solid and there are a few good “MCU ↔ CPLD” examp
 * [AG1280q48 tutorial issue – notes + link to AGMCU docs site](https://github.com/libc0607/libc0607.github.io/issues/1)
 * [Getting Started with AG32 MCU + CPLD Joint Use (Part 1) – EEWorld](https://en.eeworld.com.cn/bbs/thread-1309074-1-1.html)
 * [AG32 low-power mode & AGRV2KQ32 = AG32VF303KCU6 note – EEWorld](https://en.eeworld.com.cn/bbs/thread-1312847-1-1.html)
+* **NEW** [EEVBlog forum – "AGM CPLDs & FPGAs?" (multi-page, hands-on discussion, yosys native flow, flash-as-EEPROM)](https://www.eevblog.com/forum/fpga/agm-cplds-fpgas/)
+* **NEW** [EEVBlog forum – "AGM's latest platform.io SDK" (AgRV_pio version tracking)](https://www.eevblog.com/forum/fpga/agms-latest-platform-io-sdk/)
+* **NEW** [Z-Chips – AGM Blaster instructions, batch.bin workflow, Blaster modes documented](https://www.z-chips.com/news/expo/10.html)
+* **NEW** [ag32mcu.com – VE pin configuration guide](https://www.ag32mcu.com/2025/07/10/agm-ag32-mcu-ve%E7%AE%A1%E8%84%9A-%E9%85%8D%E7%BD%AE%E8%AF%B4%E6%98%8E/)
+* **NEW** [ag32mcu.com – AG32VF / AGRV2 series relationship explanation](https://www.ag32mcu.com/2025/07/10/ag32vf%E7%B3%BB%E5%88%97-agrv2%E7%B3%BB%E5%88%97%E7%9A%84%E5%85%B3%E7%B3%BB%E8%AF%B4%E6%98%8E/)
 
 ---
 
@@ -175,6 +183,23 @@ Once the MCU-side SDK is solid and there are a few good “MCU ↔ CPLD” examp
 * [AG32 MCU Reference Manual 2023-09 article (Chinese, with download link)](https://m.elecfans.com/article/2361211.html)
 
 That should be enough anchors for your SDK README / docs page: “official series page, ref manual, selection guide, GitHub repos, and the weird Chinese forum posts where the real knowledge lives.”
+
+---
+
+## NEW — Archives & offline mirrors
+
+* **NEW** [Internet Archive – complete AGM mirror (45.8 GB, 491 files)](https://archive.org/details/agm-micro) — every Supra version (2018.03–2025.05), every AgRV_PIO release, every Downloader version, all documentation PDFs. Best insurance against AGM's sites disappearing.
+* **NEW** [Telegram – AGM FPGA document collection](https://t.me/agmfpgadoc) — community-maintained, includes Supra distributions.
+
+---
+
+## NEW — Chinese-language tutorials (run through Google Translate)
+
+* **NEW** [Hizyuan Technology – CSDN blog (most prolific AG32 tutorial source, AGM FAE partner)](https://blog.csdn.net/HIZYUAN) — covers AG32VF303 NANO board, MCU+FPGA driver usage, flash encryption, AGRV2K quickstart from zero.
+* **NEW** [Hizyuan – AG32 MCU+FPGA driver usage (Part 1)](https://www.hizyuan.com/NewsDetail/5871662.html)
+* **NEW** [Hizyuan – AGRV2K quickstart from zero](http://www.hizyuan.com/NewsDetail/4323253.html)
+* **NEW** [Hizyuan – AG32 flash/code encryption](http://www.hizyuan.com/NewsDetail/6709157.html)
+* **NEW** [ag32mcu.com – AG32 parallel multi-channel application: liquid crystal antenna](https://www.ag32mcu.com/2025/08/17/ag32%E7%9A%84%E5%B9%B6%E8%A1%8C%E5%A4%9A%E9%80%9A%E9%81%93%E5%BA%94%E7%94%A8%EF%BC%9A%E6%B6%B2%E6%99%B6%E5%A4%A9%E7%BA%BF/)
 
 ---
 

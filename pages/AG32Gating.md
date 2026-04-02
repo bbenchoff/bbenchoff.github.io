@@ -9,10 +9,35 @@ pages are pre-filled with what I need to do.
 
 This document covers everything needed to verify the AG32 works for the
 Thinkin' Machine, and get a validated 16-node 4D hypercube running. There
-are twelve hardware steps and five software milestones. Hardware steps 1–3
+are twelve hardware steps and four software milestones. Hardware steps 1–3
 are a weekend. Steps 4–5 are the first real unknown. Step 6 is the
 architectural gate — if it passes, the machine works. Software work begins
 in parallel with hardware Step 4 and gates hardware from Step 9 onward.
+
+Each section below is laid out like a lab notebook page — the first half
+is pre-filled with what needs to happen, and the second half is blank,
+waiting for results and observations as the work gets done.
+
+---
+
+**Contents**
+
+- [ ] [Step 1 — First Flash via Vendor Tooling](#step-1--first-flash-via-vendor-tooling)
+- [ ] [Step 2 — Blinky From Your Own GCC Toolchain](#step-2--blinky-from-your-own-gcc-toolchain)
+- [ ] [Step 3 — UART Echo](#step-3--uart-echo)
+- [ ] [Step 4 — Pure FPGA Blinky via Supra](#step-4--pure-fpga-blinky-via-supra)
+- [ ] [Step 5 — UART1 Routed to Non-Default Pins](#step-5--uart1-routed-to-non-default-pins)
+- [ ] [Step 6 — Two-Way UART Mux From External GPIO (THE GATE)](#step-6--two-way-uart-mux-from-external-gpio-the-gate)
+- [ ] [Step 7 — Four-Way Mux Driven by 2-Bit Counter](#step-7--four-way-mux-driven-by-2-bit-counter)
+- [ ] [Step 8 — Characterize Switching Behavior](#step-8--characterize-switching-behavior)
+- [ ] [Step 9 — Single Dimension Link Round Trip](#step-9--single-dimension-link-round-trip)
+- [ ] [Step 10 — Four-Node 2D Hypercube With Routing](#step-10--four-node-2d-hypercube-with-routing)
+- [ ] [Step 11 — Sixteen-Node 4D Hypercube](#step-11--sixteen-node-4d-hypercube)
+- [ ] [Step 12 — Automated Flash Pipeline](#step-12--automated-flash-pipeline)
+- [ ] [S1 — Canonical Mux Verilog Project](#s1--canonical-mux-verilog-project)
+- [ ] [S2 — Node Runtime](#s2--node-runtime)
+- [ ] [S3 — Host Interface Library](#s3--host-interface-library)
+- [ ] [S4 — First StarC Program End-to-End](#s4--first-starc-program-end-to-end)
 
 ---
 
@@ -339,8 +364,6 @@ Node 01 correctly forwarded it without dropping or corrupting.
 
 **Gate:** Multi-hop routing confirmed on four-node hardware.
 
-After this, we can easily skip to Step 12, the multi-programming thing.
-
 ---
 
 ### Step 11 — Sixteen-Node 4D Hypercube
@@ -425,9 +448,9 @@ else is solvable engineering. If Step 6 passes, the machine gets built.
 
 The hardware steps above assume firmware and host software materialize when
 needed. They don't — they need to be built in parallel with the hardware
-validation sequence. The five software milestones below are the full
+validation sequence. The four software milestones below are the full
 software stack for the Thinkin' Machine, from bare fabric through the first
-real application.
+StarC program.
 
 Software is not a separate workstream that happens after hardware. S1 and
 S2 gate hardware steps 6 and 9 respectively. S3 gates Step 10 and Step 12.
@@ -479,8 +502,7 @@ cleanly from Makefile to `logic.bin`.
 The node runtime is the bare-metal C library that runs on every AG32 in
 the machine. It is small by design — target under 2KB of Flash and under
 512 bytes of RAM overhead — so node applications have maximum working
-memory. The AG32VF303KCU6 has 128KB SRAM; a Babelscope node needs most
-of that for the CHIP-8 machine state.
+memory. The AG32VF303KCU6 has 128KB SRAM.
 
 The public API:
 
@@ -613,58 +635,9 @@ result correct, submitted and collected via the S3 host library.
 
 ---
 
-### S5 — Babelscope Node Firmware
+## After Step 12 and S4
 
-*Requires S2, S3, S4. First non-trivial application.*
-
-The Babelscope running on the Thinkin' Machine is the first real test of
-the full stack. Each node runs a local RNG seeded with its node address
-plus a generation counter, generates a random CHIP-8 ROM, emulates it for
-N cycles, evaluates output against interestingness heuristics, and reports
-a result byte to the host.
-
-The CHIP-8 machine state is roughly 4.5KB. The AG32VF303KCU6 has 128KB
-SRAM. Budget:
-
-| Region | Size |
-|--------|------|
-| S2 runtime | ~2 KB |
-| CHIP-8 emulator code | ~4 KB |
-| CHIP-8 machine state | ~5 KB |
-| RNG state + scratch | ~1 KB |
-| Available for ROM buffer | ~116 KB |
-
-The emulator runs headless — no display output, just framebuffer in SRAM.
-The interestingness heuristic checks whether any non-zero pixels exist in
-the framebuffer after N cycles, which is the minimum bar for "this program
-produced output." More sophisticated heuristics (structured output,
-entropy of framebuffer, response to register state) can be added later.
-
-Inter-node communication is not required during emulation. The TDMA scheme
-is used only to drain results back to the host at the end of each
-generation. This makes Babelscope the ideal first application — it
-validates the full stack without depending on multi-hop routing working
-perfectly.
-
-The generation counter is synchronized across all nodes via a host
-broadcast at the start of each generation. The host collects result bytes,
-logs any node that found something interesting, and increments the counter.
-
-The LED panel reflects emulation state in real time. Each LED maps to one
-node. Lit means this node found interesting output in the current
-generation. Most of the time the panel is mostly dark. Occasionally a
-light flickers on. Once in a while something stays lit long enough to
-investigate.
-
-**Milestone:** 16 simultaneous CHIP-8 emulations running on the prototype
-board, results draining correctly to host, generation counter advancing
-continuously, LED panel reflecting per-node output state.
-
----
-
-## After Step 12 and S5
-
-A validated 16-node 4D hypercube running Babelscope is the proof of
+A validated 16-node 4D hypercube running a StarC program is the proof of
 concept for the full 4,096-node machine. The backplane card (256 nodes
 per card, 16 cards total) is a layout job that OrthoRoute was built to
 handle. The Zynq controller board replaces the RP2040 slice controller,
