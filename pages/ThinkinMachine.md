@@ -1,7 +1,7 @@
 ---
 layout: default
 title: "Recreating the Connection Machine: 4,096 RISC-V Cores in a Hypercube"
-description: "A modern recreation of the Connection Machines CM-1"
+description: "A modern recreation of the Connection Machine CM-1"
 keywords: ["hardware engineering", "PCB design", "electronics", "reverse engineering"]
 author: "Brian Benchoff"
 date: 2022-06-04
@@ -445,11 +445,11 @@ The machines that remain don't work, and there's zero code available for these m
 
 This project is a modern recreation or reinterpretation of the lowest-spec Connection Machine built. It contains 4,096 individual RISC-V processors, each connected to 12 neighbors in a 12-dimensional hypercube.
 
-The Connection Machine was an early experiment in massive parallelism. Today, a 'massively parallel computer' means wiring up a bunch of machines running Linux to an Ethernet switch. The Connection Machine is different. In a machine with 65,536 processor, every processor is connected to 16 other processors. In my machine, there are 4,096 processors, with each one connected to 12 others. For _n_ total processors, each node connects to exactly $\log_2(n)$ neighbors. This topology makes the machine extremely interesting with regard to what it can calculate efficiently, namely matrix operations, which is the basis of the third AI boom.
+The Connection Machine was an early experiment in massive parallelism. Today, a 'massively parallel computer' means wiring up a bunch of machines running Linux to an Ethernet switch. The Connection Machine is different. In a machine with 65,536 processors, every processor is connected to 16 other processors. In my machine, there are 4,096 processors, with each one connected to 12 others. For _n_ total processors, each node connects to exactly $\log_2(n)$ neighbors. This topology makes the machine extremely interesting with regard to what it can calculate efficiently, namely matrix operations, which is the basis of the third AI boom.
 
 The individual processors in the original CM-1 couldn't do much. These processors could only operate on a single bit at a time. This project leverages 40 years of Moore's law to put small, cheap microcontrollers into a parallel array.
 
-If I wanted this thing on the front page of Hacker News for twelve hours I'd call this, 'a distraction-free computational platform' and stuff a box full of Raspberry Pis. But I'm not doing that. This is a reproduction, or a recreation, or an 'inspired by' build of the 1986-era Connection Machine, plus 40 years of Moore's law and very poor impulse control.
+If I wanted this thing on the front page of Hacker News for twelve hours I'd call this, 'a distraction-free computational platform' and stuff a box full of Raspberry Pis. If I wanted a million views on YouTube I'd say I built my own GPU. But I'm not doing that. This is a reproduction, or a recreation, or an 'inspired by' build of the 1986-era Connection Machine, plus 40 years of Moore's law and very poor impulse control.
 
 In 1986, this was the cutting edge of parallel computing and AI. In 2006, NASA would have used this machine for hypersonic computational fluid dynamics for the rocket that would put humans on the moon by the year 2020. In 2026, it's a weird art project with a lot of LEDs.
 
@@ -461,17 +461,11 @@ The Connection Machine was _defined_ by a giant array of LEDs. It's the reason t
 
 ![Schematic and PCB of the LED array](/images/ConnM/LEDSchBoard.png)
 
-The LED board is built around the **IS31FL3741**, an I2C LED matrix driver ostensibly designed for mechanical keyboard backlighting. I've built [several project](https://bbenchoff.github.io/pages/IS31FL3741.html) around [this chip](https://github.com/bbenchoff/MrRobotBadge), and have a few of these now-discontinued chips in storage.
+The LED board is built around the **IS31FL3741**, an I2C LED matrix driver ostensibly designed for mechanical keyboard backlighting. I've built [several projects](https://bbenchoff.github.io/pages/IS31FL3741.html) around [this chip](https://github.com/bbenchoff/MrRobotBadge), and have a few of these now-discontinued chips in storage.
 
-Each IS31FL3741 is controlling a **8x32** matrix of LEDs over I2C. These chips have an I2C address pin with four possible values, allowing me to control a **32x32 array** over a single I2C bus. Four of these arrays are combined onto a single PCB, along with an RP2040 (a Raspberry Pi Pico) microcontroller to run the whole thing.
+Each IS31FL3741 is controlling an **8x32** matrix of LEDs over I2C. These chips have an I2C address pin with four possible values, allowing me to control a **32x32 array** over a single I2C bus. Four of these arrays are combined onto a single PCB, along with an RP2040 (a Raspberry Pi Pico) microcontroller to run the whole thing.
 
 ### LED Hardware
-
-- The **RP2040 drives 16 IS31FL3741 chips** over **four I²C buses**.  
-- It uses **PIO-based I²C with DMA transfers** to blast out pixel data fast enough for real-time updates.  
-- The data input is flexible:  
-   - Stream pixel data over serial from another microcontroller  
-   - Or run over USB, treating the RP2040 as a standalone LED controller
 
 Why did I build my own 64x64 LED array, instead of using an off-the-shelf HUB75 LED panel? It would have certainly been cheaper -- a 64x64 LED panel can be bought on Amazon for under $50. Basically, I wanted some practice with high-density design before diving into routing a 12-dimension hypercube. It's also a quick win, giving me something to look at while routing hundreds of thousands of connections.
 
@@ -486,15 +480,19 @@ Why did I build my own 64x64 LED array, instead of using an off-the-shelf HUB75 
   </iframe>
 </div>
 
+There are provisions to stream data from an external controller through a SPI interface at 20MHz (implemented in PIO), and through a USB connection, used mostly for testing. Data can be streamed either as black _or_ white, or as an 8-bit grayscale. Framerate for the SPI transfer is hundreds of frames per second, although the code locks the display at 30 FPS with double buffering. This method of sending raw pixel data to the LED panel is how the 4096 cores of the machine are ultimately visualized.
+
 Mechanically, the LED panel is a piece of FR4 screwed to the chassis of the machine. The front acrylic is [Chemcast Black LED plastic sheet](https://www.tapplastics.com/product/plastics/cut_to_size_plastic/black_led_sheet/668) from TAP Plastics, secured to the PCB with magnets epoxied to the back side of the acrylic into milled slots. These magnets attach to magnets epoxied to the frame, behind the PCB. This Chemcast plastic is apparently the same material as the [Adafruit Black LED Diffusion Acrylic](https://www.adafruit.com/product/4594), and it works exactly as advertised. _Somehow_, the Chemcast plastic turns the point source of an LED into a square at the surface of the machine. You can't photograph it, but in person it's _spectacular_.
 
 ### LED Software
 
-There are a few pre-programmed modes for this panel. Of course I had to implement Conway's Game of Life, but the real showstopper is the "Random and Pleasing" mode. This is the mode shown in Jurassic Park, and it's what MoMA turns on when they light up their machine.
+There are a few pre-programmed modes for this panel. The real showstopper is the "Random and Pleasing" mode. This is the mode shown in Jurassic Park, and it's what MoMA turns on when they light up their machine.
 
 There are several sources _describing_ this mode, but only sparse details on how it's _implemented_. Trammell Hudson [dug into this](https://trmm.net/CM-2_references/) and the basic idea is, "each processor steps through memory, and sends the bitwise OR of the memory for each processor to one LED." That's the CM-1. For the CM-2, it's basically stepping through random memory. However, every single 'reverse engineering by looking at it' attempt implements an LFSR to generate the pixels on the grid. This is (pseudo)random, and also has the effect that the LEDs scroll left or right instead of just blinking like random static.
 
 I went for a 4094-bit LFSR (256 taps), and divided the display up into four columns of 1x16 'cells'. These cells are randomly assigned to shift left or shift right, and 256 unique taps are assigned to a particular 1x16 cell. This is _so much better_ than what you see whenever MoMA pulls their machine out of storage. It's a digital shimmer. It's an oil stain in a puddle in a parking lot. It's _beautiful_.
+
+Other patterns include, among others, Conway's Game of Life, a demoscene-inspired Plasma pattern, Fire animation, and "videos" of the panel playing the first level of Doom, as well as the requisite Bad Apple animation. All of this is controlled via the RP2040 and fits on a small 2MB Flash chip.
 
 ## My Machine, Overview
 
