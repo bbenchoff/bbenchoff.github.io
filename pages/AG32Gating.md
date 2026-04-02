@@ -49,10 +49,12 @@ all four hypercube dimension links — not simultaneously, but one at a time,
 muxed through time by the TDMA phase clock.
 
 Because only one dimension is active per phase, a single UART handles all
-inter-node communication. The FPGA fabric in the AG32 (the AGRV2K, roughly
-2K LEs) implements a 4-way mux that routes UART1 TX/RX to whichever
-dimension pin pair is currently active. At phase 0 it connects dimension 0
-pins. At phase 2 it connects dimension 1 pins. And so on.
+inter-node communication. Each dimension link is a single wire — TDMA
+separates TX and RX in time, so one wire carries traffic in both
+directions. The FPGA fabric in the AG32 (the AGRV2K, roughly 2K LEs)
+implements a 4-way mux that routes UART1 TX/RX to whichever dimension
+pin is currently active. At phase 0 it connects the dimension 0 pin.
+At phase 2 it connects the dimension 1 pin. And so on.
 
 The mux select is driven by the external TDMA phase clock from the slice
 controller, which may be an RP2040, or a larger AG32. The mux logic is
@@ -313,9 +315,10 @@ continuous phase cycling. Minimum phase duration characterized.
 
 *Requires S2 (node runtime) to be complete before this step.*
 
-Wire two AG32 nodes together: Node 0 dimension-0 TX to Node 1 dimension-0
-RX, and Node 1 dimension-0 TX to Node 0 dimension-0 RX. Single wire each
-direction, open-drain with pullup.
+Wire two AG32 nodes together on dimension 0: a single wire between the
+two nodes' dimension-0 pins. TDMA phases separate direction — in one phase
+Node 0 drives and Node 1 listens, in the next phase the roles reverse.
+Push-pull, standard CMOS levels.
 
 Slice controller drives the phase clock. In phase 0 (dimension 0, 0→1
 direction): Node 0 transmits a packet, Node 1 receives it. In phase 1
@@ -327,7 +330,7 @@ the physical layer is solid. If errors appear, check:
 
 - Phase duration vs. packet size: does the packet fit in the phase window?
 - Clock skew between nodes: are both nodes counting phases identically?
-- Line termination: does the open-drain pullup need a different value?
+- Signal integrity: ringing or reflections on push-pull lines at target baud rate?
 
 **Gate:** 10,000 round trips, zero framing errors.
 
