@@ -72,12 +72,14 @@ Three separate pieces, from three different places:
 
 **MCU side — PlatformIO + agrv_sdk**
 The `OS-Q/platform-agm32` repo on GitHub is a PlatformIO platform for the
-AG32VF407 family, using `agrv_sdk` as the framework. The VF303 is close
-enough to use as a starting point; you'll add a board definition JSON for
-the KCU6 package. This produces `code.bin`.
+AG32VF407 family, using `agrv_sdk` as the framework. The dev board
+(LQFP-48, AG32VF303CCT6) needs a board definition — start from the
+existing `agrv2k_303` (LQFP-100) and adjust for the 48-pin package. For
+the final 16-node board (KCU6 / QFN-32), you'll add another board
+definition JSON. This produces `code.bin`.
 
 ```ini
-[env:ag32vf303kcu6]
+[env:ag32vf303]
 platform = https://github.com/os-q/platform-agm32.git
 board = agrv2k_303
 framework = agrv_sdk
@@ -85,21 +87,159 @@ framework = agrv_sdk
 
 **FPGA side — Supra**
 AGM's proprietary synthesis and place-and-route tool for the AGRV2K fabric.
-Windows-only. Free download from agmsemi.com, actual download is Baidu Pan
-(link password: `1234`). Takes Verilog + a `.ve` pin constraint file,
-produces `logic.bin`. There is no open-source alternative. If you're on
-Mac or Linux, you need a Windows VM for this step only.
+Windows-only (XP through 11). Free download from agmsemi.com, actual
+download is Baidu Pan (link password: `1234`; standalone download password:
+`q59e`). Install path must not contain Chinese characters or spaces.
+License file (`licence.txt`) imported via File → Import License. Three
+synthesis modes: **Native** (AGM's own EDA, Verilog only), **Synplicity**
+(third-party), **Compatible** (Altera Quartus II 8.0–13.0, needs Cyclone IV
+libraries). Use Native mode — it avoids the Quartus dependency entirely.
 
-**Flasher — AGM Blaster + Downloader.exe**
-The AGM Blaster is a ~$15 CMSIS-DAP probe from AGM. It exposes as a USB
-drive + serial port on Windows with no drivers. `Downloader.exe` ships
-inside the Supra installation directory (also available standalone). You
-point it at `XXXX_batch.bin` — a combined MCU+FPGA image the SDK produces
-— and it programs the chip.
+Takes Verilog + a `.ve` pin constraint file, produces `design.bin` +
+`design_batch.bin`. The `.ve` syntax is simple — one line per signal:
 
-Key wiring for the AGM Blaster in CMSIS-DAP mode: GND, TCK, TMS (required);
-TDI, TDO, NRST (optional but recommended). No Boot0 toggling needed; the
-Blaster handles entry into programming mode via JTAG.
+```
+clk       PIN_OSC    # internal 8MHz oscillator
+led[0]    PIN_29
+led[1]    PIN_30
+sel       PIN_31
+```
+
+Special keywords: `PIN_OSC` (internal 8 MHz oscillator), `PIN_HSE`
+(external crystal on OSC_IN/OSC_OUT pins). Clock/PLL inputs must use
+`IO_GB` global buffer pins. IO properties (pull-up, drive current 2–30mA)
+are set in a separate `.asf` file.
+
+Compilation options worth noting: Fit flow `timing_more`, Effort level
+`highest`, Fit target `hybrid`. Supra also has a **Probe mode** (Tools →
+Compile → Probe flow) that routes internal signals to spare IO pins for
+logic analyzer debug — useful for Step 8.
+
+Ref: `MANUAL_AGRV2K_4.2_Native.pdf`, `MANUAL_Supra_6.2.pdf` in the Supra
+installation's `Supra开发文档` folder. Both are in Chinese.
+
+**Flasher — AGM DAP-LINK + Downloader.exe**
+The AGM DAP-LINK (also called "AGM Blaster") is a dual-mode programmer
+built on an AG32VF407RGT6 with 32 Mbit SPI Flash for offline storage.
+Jumper **J4** selects the mode:
+
+- **CMSIS-DAP mode** (J4 open, default): Enumerates as USB mass-storage
+  device + USB COM serial port. No drivers needed on Win10+. Used for
+  AG32 MCU programming via JTAG or C-JTAG (2-wire TCK/TMS). LED D4
+  flashes fast, LED D3 stays on. Device ID: `0x40200001`.
+- **USB Blaster mode** (J4 connected, grounds nRESET): Behaves as an
+  Altera USB Blaster clone. Requires the Quartus USB Blaster driver.
+  Used for FPGA/CPLD programming via Supra. **Not used for AGRV2K work.**
+- **Serial mode** (via Downloader.exe): Uses UART_Tx/Rx pins on the
+  10-pin header. Target MCU must have **BOOT0 pulled high** to enter
+  boot ROM. Default baud: **460800**. LED D3 blinks during transfer.
+
+Other jumpers: **J3V** = output 3.3V to target, **J5V** = output 5V
+(AS mode only), **JBOOT0** = connect to update DAP-LINK firmware itself.
+Buttons: **SW_NRST** = MCU reset, **SW_IO** = start offline programming.
+
+`Downloader.exe` ships inside the Supra installation `bin` directory
+(also available standalone, also works from PlatformIO). Point it at
+`XXXX_batch.bin` — a combined MCU+FPGA image — and it programs the chip.
+The DAP-LINK also supports offline burning: select `CMSIS-DAP Offline`
+adapter in Downloader.exe, load `batch.bin` into the probe's 32 Mbit
+flash via "Update Offline File", then disconnect from PC and press
+SW_IO to program a target standalone. LED D1 = success, D2 = fail.
+
+The 10-pin header follows the Altera USB Blaster pinout:
+
+```
+TCK/DCLK        GND
+TDO/CONF_DONE   VCC3V
+TMS/nCONFIG     nCE/UART_Tx
+DATA/UART_Rx    nCS/5V
+TDI/ASDI         nRESET
+```
+
+Ref: `AGM_DAP_LINK_Rev2.5.pdf` in the Supra `Supra开发文档` folder.
+
+---
+
+## Hardware On Hand
+
+**AGM TCX Dev Board (AG32VF303CCT6, LQFP-48)**
+Purchased from TCX-micro (AGM's official distributor) via Taobao. "AGM TCX"
+on the listing refers to the distributor (Shanghai Tianchen Xinke /
+遨格芯), not a board model number. TCX-micro operates agmsemi.com and
+agmfpga.com.
+
+- **Chip:** AG32VF303CCT6 in **LQFP-48** package. 248 MHz max, 256K Flash,
+  128KB SRAM, 2K LEs FPGA fabric, 4 M9K RAM blocks, 1 PLL. 5 UARTs,
+  2 SPI/I2C, 1 CAN, 10 ADC channels, 2 DACs, 2 comparators, USB FS.
+- **UART0 (control):** PIN_42 (TX), PIN_43 (RX). 115200 baud default.
+- **JTAG:** PIN_46 (JTMS), PIN_49 (JTCK), PIN_50 (JTDI), PIN_55 (JTDO),
+  PIN_56 (JNTRST). Standard 10-pin header for the AGM DAP-LINK.
+- **NRST:** Pin 7. **BOOT0:** Pin 60. **BOOT1:** PIN_28.
+- **USB:** PIN_44 (USBDM), PIN_45 (USBDP).
+- **Crystal:** OSC_IN (pin 5), OSC_OUT (pin 6) for HSE; OSC32_IN (pin 3),
+  OSC32_OUT (pin 4) for 32.768 kHz LSE/RTC.
+- **Free I/O for mux experiments:** PIN_29 through PIN_41, PIN_47,
+  PIN_51–54, PIN_57–59, PIN_61, PIN_62 — roughly 20+ general-purpose
+  pins. More than enough for 4 dimension links (4 pins) + 2-bit phase
+  select (2 pins) + LEDs and debug signals.
+
+The LQFP-48 board is the validation platform for Steps 1–8. It has more
+pins than the final QFN-32 target but fewer than LQFP-100, which makes it
+a realistic test of pin budgets. Everything validated on this board
+transfers directly to the KCU6 (QFN-32) for the 16-node board — same
+AGRV2K fabric, same MCU core, same toolchain. Only the `.ve` pin
+constraint file changes.
+
+**AGM DAP-LINK / USB Blaster**
+Dual-mode programmer, described in the Toolchain Stack section above.
+Connect to the dev board's 10-pin JTAG header with the included ribbon
+cable. Use CMSIS-DAP mode (J4 jumper open) for all AG32 MCU work.
+
+**AGM Supra + documentation folder**
+The full Supra installation includes a `Supra开发文档` subfolder with
+13 PDFs. All are in Chinese. The critical ones for this project:
+
+- `MANUAL_AGRV2K_4.2_Native.pdf` — 17 pages. AGRV2K application guide
+  for Native (non-Quartus) synthesis mode. Documents the `.ve` pin
+  constraint syntax, `.asf` IO properties, PLL instantiation, M9K RAM
+  usage, internal oscillator config, and the full build/program flow.
+  Treats the chip as a standalone CPLD only — no MCU peripheral routing
+  info. Confirms AGRV2K is the same silicon as AG32.
+- `MANUAL_AGRV2K_3.2.pdf` — 17 pages. Same content but for Quartus II
+  compatible synthesis flow. Includes the `af_quartus.tcl` export step.
+- `MANUAL_Supra_6.2.pdf` — 16 pages. Full Supra IDE manual. Covers
+  project migration from Quartus II, compilation parameters and timing
+  optimization, Probe mode for routing internal signals to spare pins,
+  batch compilation with random seeds, the Generate tool for combining
+  bin files, and JTAG programming.
+- `AGM_DAP_LINK_Rev2.5.pdf` — 7 pages. DAP-LINK programmer manual.
+  Documents CMSIS-DAP mode, USB Blaster mode, Serial/UART programming
+  at 460800 baud, offline programming, firmware update procedure,
+  jumper and LED descriptions, encryption and download count limiting.
+- `Manual_MCU.pdf` — 6 pages. **AG11KMCU** datasheet (ARM Cortex-M3 +
+  11K LE FPGA SoC). Different chip, but reveals AGM's MCU+FPGA
+  integration architecture: the MCU is an IP block (`alta_mcu`)
+  instantiated in Verilog, with all peripheral signals (UART, SPI,
+  GPIO, JTAG) exposed as Verilog ports that you wire to physical pins
+  through the fabric. Shared RAM interface, AHB bus, and combined
+  binary format (FPGA bitstream + 16-byte header + MCU firmware) are
+  documented. **This is the architectural proof that runtime muxing of
+  MCU UART signals through the fabric will work** — the UART TX/RX are
+  just Verilog wires inside the fabric, not hardwired to pins.
+- `MANUAL_boot_2.0.pdf` — 2 pages. Dual-boot for AG10K, `alta_boot`
+  Verilog module. Flash header format: `FF 55` magic bytes + boot
+  address pointers.
+
+**Reference documents** (download from agm-micro.com products page):
+- `AG32 MCU Reference Manual (20260224修订版)` — 318-page peripheral
+  reference, v1.2. Pin tables for all four packages (LQFP-100, LQFP-64,
+  LQFP-48, QFN-32) starting at Chapter 2, page 23. Memory map on page 14.
+  Boot mode (BOOT0/BOOT1) on page 14. UART chapter pages 230–253 (5
+  UARTs, 16C550-compatible, 16-byte FIFOs, max 460.8 kbit/s). **No FPGA
+  fabric chapter exists in this manual.** On hand.
+- `AG32_pinout_100_64_48_32_2K.xlsx` — pinout spreadsheet for all packages
+- `AG32_DATASHEET_202303.pdf` — chip datasheet
+- TCX-micro getting-started guide: `tcx-micro.com/doc_26999806.html`
 
 ---
 
@@ -107,13 +247,16 @@ Blaster handles entry into programming mode via JTAG.
 
 ### Step 1 — First Flash via Vendor Tooling
 
-Wire up the dev board: AGM Blaster to JTAG header, power, done. Use the
-vendor example project from the `OS-Q/platform-agm32` examples directory.
-Flash it with Downloader.exe. LED blinks.
+Connect the AGM DAP-LINK to the dev board's 10-pin JTAG header with the
+ribbon cable. Ensure the JGND jumper on the DAP-LINK is **open** (CMSIS-DAP
+mode). Power the dev board. The DAP-LINK should enumerate as a USB drive
+and a COM port — no drivers needed. Use the vendor example project from the
+`OS-Q/platform-agm32` examples directory. Flash it with Downloader.exe
+pointing at the `_batch.bin`. An LED blinks.
 
 This step does not involve writing any code. The only goal is confirming
 the chip is alive, the board has correct power delivery, and the
-Downloader.exe + AGM Blaster pipeline works end to end.
+Downloader.exe + DAP-LINK pipeline works end to end.
 
 **Gate:** LED blinks from vendor example binary.
 
@@ -122,16 +265,19 @@ Downloader.exe + AGM Blaster pipeline works end to end.
 ### Step 2 — Blinky From Your Own GCC Toolchain
 
 Write a minimal blinky using PlatformIO + agrv_sdk — not the vendor example,
-your own `main.c` that enables a GPIO port and toggles a pin in a loop.
-Build and flash it.
+your own `main.c` that enables a GPIO port and toggles a pin connected to
+an LED on the dev board. You'll need to identify which GPIO pin drives the
+LED — check the board schematic or probe it. Build and flash it.
 
 This confirms the toolchain produces correct binaries, the linker script
-memory map is right (Flash at `0x08000000`, RAM at `0x20000000`, same
-convention as STM32), and the startup code initializes correctly.
+memory map is right (Flash at `0x80000000`, RAM at `0x20000000` — note:
+**not** the STM32 convention; Flash is at `0x80000000` not `0x08000000`
+per the AG32 MCU Reference Manual page 14), and the startup code
+initializes correctly.
 
-If the chip does nothing, the memory map assumptions are wrong. Check the
-AG32 MCU Reference Manual for the VF303 flash base address before assuming
-anything else is broken.
+If the chip does nothing, the memory map is the first thing to check.
+The AG32 FLASH (XIP) region is `0x8000_0000 – 0x80FF_FFFF`, SRAM is
+`0x2000_0000 – 0x2001_FFFF`.
 
 **Gate:** LED blinks from your own code.
 
@@ -139,12 +285,18 @@ anything else is broken.
 
 ### Step 3 — UART Echo
 
-Configure UART0 at 115200 8N1 on the default pins (Pin 20 TX, Pin 21 RX).
-Polled TX/RX. Echo characters back to a terminal.
+Configure UART0 at 115200 8N1 on the LQFP-48 default pins (PIN_42 TX,
+PIN_43 RX). Polled TX/RX. Echo characters back to a terminal. Connect a
+USB-UART adapter to these pins, or use the DAP-LINK's built-in COM port
+if it's wired through.
 
 UART0 on its default pins is the permanent control interface for every node
 in the 16-node board. This needs to be proven solid before you build sixteen
 of them. Run it for a few minutes and confirm no framing errors.
+
+Note: on the final KCU6 (QFN-32) board, UART0 is on PIN_20 (TX) and
+PIN_21 (RX) — different physical pins, same peripheral. Only the `.ve`
+constraint changes.
 
 **Gate:** Characters echo reliably at 115200.
 
@@ -170,14 +322,21 @@ module blinky (
 endmodule
 ```
 
-The `.ve` file maps `clk` to the internal oscillator and `led` to your
-chosen pin. The exact syntax requires the Supra quickstart guide from
-`agmsemi.com/quickstart-guide-for-agrv2k/` — archive this before it
-disappears.
+The `.ve` file syntax is confirmed (from `MANUAL_AGRV2K_4.2_Native.pdf`):
 
-This step has the most unknown friction. Supra may be straightforward or
-it may be a week of fighting Windows tooling, undocumented `.ve` syntax,
-and confusing error messages in Chinese. Budget time accordingly.
+```
+clk    PIN_OSC    # internal 8MHz oscillator
+led    PIN_29     # pick any free IO pin
+```
+
+To use the internal oscillator, also add to the `.asf` file:
+`set_config -loc 18 0 0 CFG_RCOSC_EN 1'b1`
+and select "Full chip erase before program" when flashing. The programming
+log should show "Oscillator calibrated with value xx" confirming it works.
+
+This step has friction, but the `.ve` syntax is now documented. The main
+unknowns are Supra installation issues and Chinese error messages. Use
+Native mode (not Compatible) to avoid the Quartus II dependency.
 
 **Gate:** LED blinks from fabric logic alone, MCU flash uninvolved.
 
@@ -185,24 +344,45 @@ and confusing error messages in Chinese. Budget time accordingly.
 
 ### Step 5 — UART1 Routed to Non-Default Pins
 
-Write a Verilog pin assignment that routes UART1 TX/RX to pins of your
-choosing. Keep the UART echo firmware from Step 3 running on UART0. Flash
-only `logic.bin`.
+UART1 has no default pin assignment on the LQFP-48 — it must be routed
+via the FPGA fabric. Based on the AG11KMCU architecture documentation
+(`Manual_MCU.pdf`), AGM's MCU+FPGA SoCs expose MCU peripheral signals as
+Verilog ports on an internal IP block (called `alta_mcu` on the Cortex-M3
+parts). The RISC-V equivalent in the AG32 works the same way: UART1 TX/RX
+are internal Verilog wires that you route to physical pins in your
+top-level design.
 
-Connect a USB-UART adapter to the new UART1 pins. Confirm you can send
-and receive characters on UART1 at the remapped location.
+The Verilog wrapper will look something like:
 
-This is the primary value proposition of the AG32 for this project. If
-UART1 routing works, the hardest part of the architecture is proven. The
-`.ve` constraint for a UART peripheral looks something like:
+```verilog
+module top (
+    output wire uart1_tx_pin,
+    input  wire uart1_rx_pin
+);
+    // uart1_txd and uart1_rxd are internal MCU signals
+    // connected through the fabric IP block
+    assign uart1_tx_pin = uart1_txd;   // MCU TX → physical pin
+    assign uart1_rxd = uart1_rx_pin;   // physical pin → MCU RX
+endmodule
+```
+
+And the `.ve` file simply maps the top-level ports:
 
 ```
-set_pin_assignment { uart1_txd } { LOCATION = P12; IOSTANDARD = LVCMOS33; }
-set_pin_assignment { uart1_rxd } { LOCATION = P13; IOSTANDARD = LVCMOS33; }
+uart1_tx_pin    PIN_33
+uart1_rx_pin    PIN_34
 ```
 
-Exact syntax: verify against the Supra quickstart and the EEWorld tutorial
-at `en.eeworld.com.cn/bbs/thread-1309074-1-1.html`.
+The exact signal naming for the AG32's RISC-V MCU IP block must be
+discovered from the SDK examples in `OS-Q/platform-agm32` or from the
+board `.ve` files. The AG11KMCU uses `UART_TXD` and `UART_RXD` as port
+names on `alta_mcu`.
+
+Keep the UART echo firmware from Step 3 running on UART0. Flash the new
+`logic.bin` with the UART1 pin routing. Connect a USB-UART adapter to
+the chosen pins. Confirm you can send and receive on UART1.
+
+This is the primary value proposition of the AG32 for this project.
 
 **Gate:** UART1 TX/RX confirmed working on non-default pins.
 
@@ -215,6 +395,15 @@ at `en.eeworld.com.cn/bbs/thread-1309074-1-1.html`.
 This is the architectural gate for the entire machine. Everything after
 this step is execution of a proven concept. Everything before was
 preparation.
+
+**Risk update:** The AG11KMCU documentation (`Manual_MCU.pdf`) proves that
+AGM's MCU+FPGA architecture exposes all MCU peripheral signals as Verilog
+wires inside the fabric. This means the mux is architecturally sound — UART
+TX/RX are just wires you can mux with combinational logic. The risk has
+shifted from "can the fabric do this?" (architectural) to "can you get
+Supra to synthesize this correctly?" (toolchain). This is a significant
+de-risking — toolchain friction is solvable, architectural limitations
+are not.
 
 Write Verilog that routes UART1 TX/RX to one of two pin pairs based on
 the state of an input GPIO. Force inactive outputs explicitly to `1'b1`
@@ -289,9 +478,11 @@ the correct pin pair for each phase.
 
 ### Step 8 — Characterize Switching Behavior
 
-Put a logic analyzer on all four dimension TX pins simultaneously. Drive
-the phase counter through a full 4-phase cycle while UART1 is transmitting
-continuously. Look for:
+Put a logic analyzer on all four dimension TX pins simultaneously. Supra's
+**Probe mode** (Tools → Compile, select Probe flow) can route internal
+fabric signals to spare IO pins — useful for observing the mux select
+and UART signals without extra test logic. Drive the phase counter through
+a full 4-phase cycle while UART1 is transmitting continuously. Look for:
 
 - Glitches on inactive pins during mux switch transitions
 - Spurious start bits (brief low pulse on an idle line)
@@ -403,21 +594,40 @@ drives Boot0 and NRST for each node via MCP23017 GPIO expanders (one for
 Boot0, one for NRST). UART0 TX is broadcast to all nodes; UART0 RX is
 muxed back via 74HC4067, selectable per node.
 
-Before writing `ag32boot.py`, figure out the `_batch.bin` format. Open a
-known-good batch.bin in a hex editor. Look for a header that identifies
-the MCU section vs the FPGA section, their offsets, and their sizes. The
-format is almost certainly a simple concatenation with a small header — the
-AGM Blaster documentation refers to it as a combined image but doesn't
-publish the format.
+The `batch.bin` format is now partially understood from the AG11KMCU
+documentation (`Manual_MCU.pdf`). The combined image is:
 
-Once the format is understood, `ag32boot.py` does the following for each
-node 0–15:
+```
+[FPGA bitstream (logic.bin)]
+[16-byte header: MCU firmware length (4 bytes) + 0xFFFFFFFF × 3]
+[MCU firmware (code.bin)]
+```
+
+The header sits at the boundary between the FPGA bitstream and the MCU
+firmware. The MCU's `FLASH_BIAS` / `BOOT_ADDR` parameter points to this
+header's address. On the AG11K, the default FPGA bitstream is ~0x51CE6
+bytes; the AG32/AGRV2K bitstream will be smaller (2K LEs vs 11K LEs).
+The Supra Generate tool (Tools → Generate → "Generate boot programming
+files") builds the combined image automatically, but understanding the
+format is needed for `ag32boot.py`.
+
+Still confirm this by hex-dumping a known-good `_batch.bin` from the
+SDK — the AGRV2K format may differ slightly from the AG11K format.
+
+The serial bootloader runs at **460800 baud** (confirmed in
+`AGM_DAP_LINK_Rev2.5.pdf`), not 115200 as might be assumed. The MCU
+enters boot ROM when BOOT0 is high and BOOT1 is low at reset. BOOT0
+and BOOT1 values are latched on the 4th rising edge of SYSCLK after
+reset (AG32 MCU Reference Manual, page 14).
+
+`ag32boot.py` does the following for each node 0–15:
 
 1. Assert NRST low via MCP23017
 2. Assert Boot0 high via MCP23017
-3. Release NRST
+3. Release NRST (BOOT0/BOOT1 latched on 4th SYSCLK edge)
 4. Select node RX via 74HC4067
-5. Speak the AG32 serial bootloader protocol, flash `_batch.bin`
+5. Speak the AG32 serial bootloader protocol at **460800 baud**,
+   flash `_batch.bin`
 6. Assert Boot0 low
 7. Pulse NRST to start normal execution
 8. Verify the node responds on UART0
@@ -435,15 +645,27 @@ intervention.
 | Step | Risk Level | Likely Failure Mode | Fallback |
 |------|-----------|---------------------|----------|
 | 1–3 | Low | Board bring-up issues | Fix the board |
-| 4–5 | Medium | Supra tooling friction, `.ve` format | Budget a week |
-| **6** | **High** | **AGRV2K mux has timing limitations** | **Find another chip with PIO** |
-| 7–8 | Medium | Glitches at high phase rate | Reduce phase rate, add dead-time |
+| 4–5 | Medium | Supra tooling friction, Chinese error messages | Budget a week; use Native mode |
+| **6** | **Medium** | **Toolchain issues synthesizing the mux** | **AG11KMCU docs prove architecture is sound; push through Supra** |
+| 7–8 | Medium | Glitches at high phase rate | Reduce phase rate, add dead-time; use Supra Probe mode |
 | 9–10 | Low | Line termination, clock skew | Tune pullup, verify clock tree |
 | 11 | Low | Board-level issues | Fix the board |
-| 12 | Medium | `_batch.bin` format undocumented | Reverse-engineer from hex dump |
+| 12 | Low | `_batch.bin` format now partially documented | Confirm via hex dump; format in `Manual_MCU.pdf` |
 
-Step 6 is the only step that can invalidate the architecture. Everything
-else is solvable engineering. If Step 6 passes, the machine gets built.
+**Risk update (post-documentation review):** Step 6 was originally rated
+High because it was unknown whether the FPGA fabric could do runtime
+combinational muxing of MCU peripheral signals. The AG11KMCU documentation
+(`Manual_MCU.pdf`) proves that AGM's MCU+FPGA architecture exposes all
+MCU peripheral signals (including UART TX/RX) as Verilog wires inside
+the fabric. The mux is just combinational logic on those wires. The risk
+has shifted from *architectural* (can the fabric do this?) to *toolchain*
+(can you get Supra to synthesize it?). Toolchain friction is solvable.
+Step 12's `_batch.bin` format risk is also reduced — the combined binary
+format is documented for the AG11KMCU and likely identical or very similar
+for the AGRV2K.
+
+Step 6 is still the gate — but it's now a toolchain gate, not an
+architecture gate. If Step 6 passes, the machine gets built.
 
 ---
 

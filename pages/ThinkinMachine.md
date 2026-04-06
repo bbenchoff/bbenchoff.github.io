@@ -975,17 +975,26 @@ The dedicated microcontroller used for this board is the RP2040. I'm using this 
 
 #### Hypercube Communication
 
-The 16-node board is also the first experiment with the hypercube links between nodes. Simply because I don't want double the work and density of wires in the full machine, I'm using a single wire communication between the nodes, just connecting one GPIO pin of a node to another GPIO pin of another node. These are single-wire half-duplex links, not a TX/RX pair. The CH32V203 only has two hardware UARTs, and one is dedicated to the Slice controller. If I need twelve UARTs for the hypercube connections, I'll have to bitbang them in software.
+Before digging into how nodes in _my_ machine communicate, I'd like to outline how the nodes in the original Connection Machine communicated. Each chip (which contained several 'nodes') had a router, and each router had a buffer for stored messages. This enabled any node to talk to any other node, and was the most expensive part of the computer. This makes sense; the actual compute nodes were glorified ALUs. The routers were the majority of the silicon die area in the Connection Machine.
 
-The astute reader will notice many problems with twelve bit-banged UARTs over a single-wire open-drain connection between microcontrollers. Those are electrical engineering terms, so here's automotive terms: it's like doing the Baja 1000 in a stock 1993 Ford Taurus. Yeah, you can finish it, but you're not making it easy on yourself. Back to electrical terms, you should _really_ have two wires between chips, either as a Tx/Rx pair, or a data clock line pair. It would be really cool if you could use hardware UARTs if only to make programming simpler. But this is a hypercube computer, a single-wire link between nodes already means there are too many wires on the PCB, and I can't find a single microcontroller with twelve UARTs.
+The routers were a problem. They were an engineering hassle, as it was silicon that wasn't going to compute. Routers sucked in production. The [NASA Assessment of the Connection Machine](https://ntrs.nasa.gov/api/citations/19910023487/downloads/19910023487.pdf) says _actually using_ the routers for arbitrary routing is a terrible programming practice. It just made the machine slower. The way to _use_ a Connection Machine is to only pass messages along the edges of the hypercube.
 
-To actually pass messages back and forth between nodes through the hypercube array, we need a way to arbitrate the connections -- which node actually gets to use the connection. There are several ways to do this.
+When Feynman was working on the CM-1, he analyzed the router by treating boolean circuits as a continuous, differentiable system. <a href="https://www.writingsbyraykurzweil.com/richard-feynman-and-the-connection-machine">Hillis wrote</a>:
+
+<blockquote style="border-left: 3px solid #888; margin: 1.5em 0; padding: 0.8em 1.2em; font-style: italic; color: #555; background: rgba(0,0,0,0.03);">
+<p>Our discrete analysis said we needed seven buffers per chip; Feynman's equations suggested that we only needed five. We decided to play it safe and ignore Feynman.</p>
+<p>The decision to ignore Feynman's analysis was made in September, but by next spring we were up against a wall. The chips that we had designed were slightly too big to manufacture and the only way to solve the problem was to cut the number of buffers per chip back to five. Since Feynman's equations claimed we could do this safely, his unconventional methods of analysis started looking better and better to us. We decided to go ahead and make the chips with the smaller number of buffers.</p>
+</blockquote>
+
+I looked at the same problem, thought really hard, and realized that you didn't need routers.
 
 #### CSMA vs TDMA
 
+To actually pass messages back and forth between nodes through the hypercube array, we need a way to arbitrate the connections -- which node actually gets to use the connection at any point in time. There are several ways to do this.
+
 <b>CSMA:</b>
 
-The naive way to arbitrate message passing between nodes is carrier-sense multiple access, or [CSMA](https://en.wikipedia.org/wiki/Carrier-sense_multiple_access). Consider two nodes. At rest, the line is pulled high, because of the pullup. For node Alice to talk to node Bob, Alice first pulls the line low for some number of microseconds. Bob detects the line is low, and starts listening. Then Alice starts sending data. If Bob wants to talk to Alice, Bob pulls the line low, waits, then sends data. Alice listens.
+The naive way to arbitrate message passing between nodes is carrier-sense multiple access, or [CSMA](https://en.wikipedia.org/wiki/Carrier-sense_multiple_access). Consider two nodes. At rest, the line is pulled high, because of a pullup. For node Alice to talk to node Bob, Alice first pulls the line low for some number of microseconds. Bob detects the line is low, and starts listening. Then Alice starts sending data. If Bob wants to talk to Alice, Bob pulls the line low, waits, then sends data. Alice listens.
 
 ![CSMA timing diagram and explination](/images/ConnM/CSMA.png)
 
