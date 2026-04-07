@@ -124,7 +124,7 @@ This split keeps the fanout balanced and avoids overloading a single bank's I/O 
 
 The remaining HD pins on Banks 24 and 44 are allocated to the TDMA phase clock outputs, the LED display SPI interface, and the quad-fan PWM array — all of which also run at 3.3V.
 
-All 41 signals (32 UART + 5 TDMA + 4 LED SPI) exit the controller board through a single **80-pin shrouded IDC header** connected to the backplane via a 2-inch ribbon cable. At this cable length and at UART baud rates, no termination resistors are needed — the signals are clean 3.3V LVCMOS driven straight from the PL fabric. The remaining pins in the 80-pin connector carry interleaved ground returns for signal integrity.
+All 41 signals (32 UART + 5 TDMA + 4 LED SPI) exit the controller board through a single **100-pin shrouded IDC header** at 1.27mm pitch (2x50) connected to the backplane via a 2-inch ribbon cable. The fine pitch keeps the connector compact while providing 100 pins — enough for every signal to have its own dedicated adjacent ground return, with 18 spare pins. At this cable length and at UART baud rates, no termination resistors are needed — the signals are clean 3.3V LVCMOS driven straight from the PL fabric.
 
 ## The Orchestrator: TDMA Sync and the LED Display
 
@@ -834,7 +834,7 @@ The addition of QSPI boot flash on MIO0-5 requires moving two signals:
 
 | Item | What to Do |
 | :--- | :--- |
-| Backplane connector | Place 80-pin shrouded IDC header (2x40, 2.54mm pitch) on Backplane.kicad_sch. Assign all 80 pins: 32 UART (Banks 25/26), 5 TDMA (Bank 44), 4 LED SPI (Bank 24), ~20 interleaved GND, spares. 2-inch ribbon cable to backplane. |
+| Backplane connector | Place 100-pin shrouded IDC header (2x50, 1.27mm pitch) on Backplane.kicad_sch. Assign all 100 pins: 32 UART (Banks 25/26), 5 TDMA (Bank 44), 4 LED SPI (Bank 24), 41 GND (one per signal), 18 spare. 2-inch ribbon cable to backplane. |
 | Fan PWM/Tach | Change local labels on Peripherals.kicad_sch to global labels. Add matching global labels on PL_HD.kicad_sch connecting to Bank 44 pins. |
 | PL pin assignment | Assign specific Zynq ball numbers to all PL signals (UARTs, TDMA, SPI, fans) on Banks 24/25/26/44. Currently all 272 PL I/O pins are unassigned. |
 | HP Banks 64/65/66 | 168 HP pins currently unallocated. Add no-connect markers or reserve for future use. |
