@@ -786,6 +786,226 @@ Four-channel PWM fan controller in the PL fabric. Each fan header carries a PWM 
 | 65 | HP | 1.8V | *Unallocated* | 0 | 56 |
 | 66 | HP | 1.8V | *Unallocated* | 0 | 56 |
 
+## Backplane Region Buildout (Planned)
+
+The board area between the Zynq BGA and the 100-pin backplane connector is currently empty. This section documents the signal conditioning, protection, and optional features that should populate that region. **Nothing in this section is currently in the schematic** — this is the design intent for the next round of schematic work, written so the next person (or LLM) picking up the project knows what belongs there and why.
+
+The 49 backplane signals fall into six groups:
+
+| Group | Count | Direction (FPGA POV) | Bank |
+| :--- | :--- | :--- | :--- |
+| UART_TX_0..15 | 16 | Output | 25/26 |
+| UART_RX_0..15 | 16 | Input | 25/26 |
+| SPI_SCK, SPI_MOSI, SPI_CS | 3 | Output | 24 |
+| SPI_MISO | 1 | Input | 24 |
+| TDMA_PHASE[0..3], TDMA_SYNC | 5 | Output | 44 |
+| FAN_PWM_0..3 | 4 | Output | 44 |
+| FAN_TACH_0..3 | 4 | Input | 44 |
+
+Outputs from the FPGA: 28. Inputs to the FPGA: 21. Every signal is single-ended 3.3V LVCMOS, unidirectional, and runs at relatively low speed (≤10 MHz worst case for SPI; 460800 baud or slower for UART).
+
+### Signal Conditioning and Protection (Required)
+
+Every backplane signal should pass through three layers of protection between the Zynq and the IDC connector. This is not optional — the FPGA is a $200 BGA on a custom 8-layer board with no socket. Protection components are cheap insurance.
+
+**Layer 1 — Series source termination (Zynq side, output lines only)**
+
+A 22Ω 0402 resistor in series with every Zynq output, placed within ~5mm of the BGA. This is *not* about UART bit timing — it is about taming the ~1ns LVCMOS edge rates of the HD bank drivers. Without source termination, those edges will ring and overshoot at the receiver, couple into adjacent traces, and radiate as EMI from the ribbon cable.
+
+Apply to all 28 output lines: 16× UART_TX, 3× SPI outputs, 5× TDMA, 4× FAN_PWM. Suggested part: RC0402FR-0722RL or equivalent.
+
+Input lines (UART_RX, SPI_MISO, FAN_TACH) do not need series termination — the driver is on the other end of the cable.
+
+**Layer 2 — Sacrificial unidirectional buffers (mid-board)**
+
+Insert 74LVC244-style octal buffers between the Zynq and the connector. Every backplane signal is unidirectional, so simple 244-class buffers work — no bidirectional bus transceivers needed. The 74LVC244 has 8 independent buffers in two banks of four, each bank with its own active-low output enable. Direction within a chip can be mixed (each buffer has a distinct A→Y signal path), so a single chip can carry both FPGA-driven and backplane-driven lines.
+
+Approximate chip count: **~6× 74LVC244** to cover all 49 signals (49 / 8 = 7, but with some packing efficiency 6 is achievable). Place them between the Zynq side (after the series resistors) and the connector side (before the TVS arrays).
+
+Tie all OE# pins to a single "system ready" signal driven from a Zynq MIO GPIO (or PS_DONE). This keeps the entire backplane in high-Z during FPGA configuration so cards see clean idle instead of garbage transitions during boot.
+
+The buffers serve three purposes:
+- **Sacrificial protection** — a $0.40 chip absorbs damage instead of a $200 BGA bank
+- **Defined startup state** via OE# control
+- **Higher drive strength** if the ribbon cable is ever lengthened or replaced with something lossier
+
+**Layer 3 — TVS diode arrays (connector side)**
+
+Place a low-capacitance TVS array on every backplane signal, located within ~3mm of the IDC connector pins so the strike is clamped before it reaches any meaningful trace inductance. Trace length between the strike point and the clamp matters more than the diode response time.
+
+Suggested part: **TPD4E1B06DCKR** (4-channel, 5pF, 5.5V working voltage) or PESD3V3L4UG. Roughly **13× quad arrays** to cover all 49 signals. Place each array directly under or adjacent to the connector pins it protects.
+
+### Pull Resistors
+
+Every input from the backplane should have a 10kΩ 0402 pull-up to 3.3V, placed on the Zynq side of the buffer:
+
+- **16× UART_RX** — UART idles high. Pullups prevent noise from being interpreted as a start bit when a card is dead, missing, or in reset.
+- **1× SPI_MISO** — prevents float when CS is deasserted.
+- **4× FAN_TACH** — fan tach outputs are open-collector and require external pullups.
+
+Total: 21 pull-up resistors.
+
+### Test Points
+
+Drop a test point on every backplane signal, placed between the buffer chip and the connector. SMD round test points (Keystone 5015 or similar 0.040" diameter pads) on a uniform grid. **This is critical for bringup** — you will be probing every line with a logic analyzer and a scope, and trying to clip onto 49 individual signals without dedicated test points is miserable.
+
+In addition to individual test points, place a **2x25 0.05"-pitch shrouded header** that taps every backplane signal between the buffer and the connector. This gives you a single connector for a Saleae Logic Pro 16 / Kingst LA5016 / similar logic analyzer, so you can scope all 49 signals through one ribbon cable instead of 49 individual probes. Place it accessible from the top of the board for easy clip-on.
+
+### Power Filtering for HD Banks
+
+With up to 16 LVCMOS outputs potentially switching simultaneously on Banks 25 and 26, simultaneous switching output (SSO) noise on VCCO can be significant. Add a localized power island per bank:
+
+- Ferrite bead (BLM18PG471SN1D, ~470Ω @ 100 MHz, 3A rated) between the main 3.3V plane and each local VCCO_25 / VCCO_26 / VCCO_24 / VCCO_44 island
+- 10µF + 1µF + per-pin 100nF on the bank side of the bead
+
+Cheap, takes minimal space, and noticeably quiets switching transients on bank power. Worth doing.
+
+---
+
+### Per-Card Reset and Boot Control (Currently Missing)
+
+The host library's `flash()` method (`pages/ThinkinController.md` line ~263) describes "Assert Boot0 high, pulse NRST via GPIO" — but **the current schematic does not allocate any backplane pins or Zynq GPIO for these signals**. This is a real gap that must be closed before flashing will work.
+
+Three options, in increasing complexity:
+
+**Option A — Shared broadcast Boot0 + NRST (2 backplane pins, simplest)**
+
+One global NRST and one global Boot0 broadcast to all 16 cards. The host puts the entire machine into bootloader mode in one operation, then flashes each card in parallel through its dedicated UART. After flashing, NRST is released and all cards run their new firmware simultaneously.
+
+Limitation: cannot reset individual cards. If one card hangs mid-job, the only recovery is rebooting the whole machine. Acceptable if cards are reliable and recovery is rare.
+
+Implementation: 2 additional output lines from PL Bank 44 (or any spare HD bank pin) → series R → buffer → TVS → backplane. Add to the 100-pin connector by reclaiming 2 of the 18 currently-spare pins.
+
+**Option B — Per-card Boot0 + NRST via I2C GPIO expander (recommended)**
+
+Add an I2C bus to the backplane (2 wires + GND = 3 pins) and place a PCA9555 16-bit I2C GPIO expander on each compute card. Each expander drives its own card's NRST and Boot0 locally. The host writes to the expanders over I2C to assert/release reset and bootloader mode on individual cards.
+
+Bonus: the same I2C bus can carry temperature sensors, INA226 power monitors, EEPROM card-ID storage, and any future per-card slow-control signals.
+
+Implementation: 2 additional MIO pins from the Zynq (one of the unused MIO64-77 range) brought out to backplane through buffers + TVS. Each card gets a PCA9555 with 4 address-strap pins to give it a unique I2C address.
+
+This is the right answer. It costs 3 backplane pins instead of 32, scales to additional control signals, and keeps the master fully in control of every card individually.
+
+**Option C — 32 dedicated GPIO lines (16 NRST + 16 Boot0)**
+
+Direct point-to-point control. Most flexible, simplest software model, but requires 32 additional backplane pins + ~32 more grounds = 64 more connector pins. The current 100-pin IDC won't fit it; you would need to upgrade to a 200-pin or split into two connectors. Not recommended unless I2C is unworkable for some reason.
+
+**Verdict:** implement Option B. It's the only one that scales and reuses existing connector pins.
+
+---
+
+### Optional Subsystems for the Empty Board Region
+
+Beyond the required signal conditioning and the missing per-card reset control, the board area can host several independent subsystems. Each is genuinely useful; implement as appetite and complexity budget allow.
+
+**Per-Card Power Monitoring (INA226 over I2C)**
+
+If Option B above is implemented, you already have an I2C bus on the backplane. Add an INA226 current/voltage sensor on each compute card's power input. INA226 supports 16 selectable I2C addresses — exactly enough for 16 cards on a single bus. The host can then detect:
+- Failed cards (zero current draw)
+- Thermal runaway (current spike)
+- Per-card power consumption for job profiling
+
+Cost: ~$1.50/card for the chip + shunt resistor. High value for diagnostics.
+
+**Per-Card Power Switching (Load Switches)**
+
+Drop a TPS22918 or AP2161 load switch inline with each card's main power input, controlled from the same per-card PCA9555. This lets the host:
+- Power-cycle a flaky card without rebooting the entire machine
+- Sequentially bring up cards during boot to spread inrush current
+- Cut power to cards that draw excessive current (closed-loop with INA226)
+
+Combined with INA226, this gives you full per-card power management.
+
+**RP2040 SWD Passthrough**
+
+The RP2040 on the LED panel needs to be flashable. Currently there is no documented path. Add either:
+- A passive SWD header routed through the front-panel connector to the RP2040's SWDIO/SWCLK pins, accessible from outside the cube
+- An active path: Zynq MIO bit-banged SWD or an FT2232H USB-SWD bridge controlled by the host
+
+The passive header is cheaper; the active path lets the host reflash the RP2040 over the network without opening the case. Worth doing.
+
+**USB Debug Console (FT232 / CP2102)**
+
+The current MIO map plans to bring out the UART0 console on MIO8-9 to a header. Upgrade this: add an FT232RL or CP2102N USB-serial bridge directly on the controller board, exposing the Zynq console as a micro-USB or USB-C port on the rear panel. Plug a laptop in, get a console — no 3.3V USB-TTL dongle needed.
+
+This is independent of the four USB 3.0 host ports — the FT232 acts as a USB *device* on a separate connector.
+
+**External Watchdog Timer**
+
+The Zynq has internal watchdogs, but they share fate with the silicon they're trying to reset. An external watchdog (TPS3823, MAX6369) tied to PS_SRST_B gives you a true hardware reset path if the kernel locks hard enough to disable internal watchdogs. A userspace daemon toggles a Zynq GPIO every second; if the toggle stops for >1.6s, the watchdog yanks SRST and the whole system reboots.
+
+**Battery-Backed RTC**
+
+The Zynq has no battery-backed RTC. Add a DS3231 (I2C) + CR2032 holder. Without this, every power-on starts at 1970-01-01 until NTP catches up — bad for log timestamping and useless if the machine ever runs offline.
+
+**Status / Diagnostic LEDs**
+
+A bank of LEDs visible inside the cube or on the rear panel, driven from PL GPIO via a TLC59116 I2C LED driver (16 channels, brightness control, $1):
+- 16× per-card link/activity LEDs (one per UART channel — blink on TX/RX)
+- 1× Zynq heartbeat
+- 1× TDMA running indicator
+- 1× thermal warning
+- 1× job-in-progress
+
+Charlieplexed alternatives use fewer driver pins but are harder to debug. TLC59116 is the easy path.
+
+**Front-Panel Buttons**
+
+Reset and mode-select pushbuttons routed through a 74HC14 Schmitt-trigger debouncer (with RC) to Zynq GPIO. Useful for forcing reboots without yanking power or holding the SD card eject.
+
+**Ambient Light Sensor (BH1750 / VEML7700)**
+
+I2C ambient light sensor lets the LED display auto-dim. ~$0.50 of parts. Cute and slightly useful.
+
+**Small OLED Status Display**
+
+A 0.96" or 1.3" I2C OLED visible through a slot in the cube showing:
+- IP address
+- Boot status / kernel version
+- Last job ID and result
+- CPU/FPGA temperature
+- Number of live cards
+
+Lets you operate the machine headless without `nmap`-ing your network to find it. ~$3 of parts.
+
+**Spare HD Bank Breakout**
+
+Banks 25, 26, and 44 have ~10–13 unused pins each (per the I/O budget table above). Bring them out to a 0.1" header for future expansion — extra GPIO, additional UARTs, debug signals. Free real estate that's currently wasted.
+
+---
+
+### Implementation Priority
+
+If implementing in passes:
+
+**Pass 1 — Do not fab without these:**
+- Series source termination (~28 resistors)
+- TVS arrays at the connector (~13 chips)
+- Pull-ups on RX / MISO / TACH inputs (~21 resistors)
+- Test points + logic analyzer breakout header
+- Per-card reset/boot control (Option B: I2C bus + PCA9555 per card) — this is currently missing from the design
+
+**Pass 2 — Strongly recommended:**
+- Sacrificial 74LVC244 buffers (~6 chips)
+- VCCO power islands with ferrite beads on Banks 24/25/26/44
+- USB debug console (FT232RL/CP2102N)
+
+**Pass 3 — High-value features:**
+- Per-card INA226 power monitoring
+- Per-card load switches
+- External watchdog timer
+- Battery-backed RTC (DS3231)
+
+**Pass 4 — Convenience and cosmetic:**
+- TLC59116 status LED bank
+- OLED status display
+- Front-panel buttons
+- Ambient light sensor
+- RP2040 SWD passthrough
+- Spare HD bank breakout header
+
+Pass 1 items address actual hardware risks (FPGA destruction, missing GPIO functionality, undebuggable bringup). Pass 2 items significantly improve robustness and SI. Passes 3 and 4 add features rather than fix problems, but everything in Pass 3 is high-value-per-dollar diagnostics worth including in the first board spin if board space is truly unlimited.
+
 ## Schematic TODO — Remaining Work
 
 The following items are not yet wired in the KiCad schematic and must be completed before the board can be fabricated.
@@ -834,10 +1054,12 @@ The addition of QSPI boot flash on MIO0-5 requires moving two signals:
 
 | Item | What to Do |
 | :--- | :--- |
-| Backplane connector | Place 100-pin shrouded IDC header (2x50, 1.27mm pitch) on Backplane.kicad_sch. Assign all 100 pins: 32 UART (Banks 25/26), 5 TDMA (Bank 44), 4 LED SPI (Bank 24), 41 GND (one per signal), 18 spare. 2-inch ribbon cable to backplane. |
+| Backplane connector | Place 100-pin shrouded IDC header (2x50, 1.27mm pitch) on Backplane.kicad_sch. Assign all 100 pins: 32 UART (Banks 25/26), 5 TDMA (Bank 44), 4 LED SPI (Bank 24), 41 GND (one per signal), 18 spare. 2-inch ribbon cable to backplane. **Reclaim 3 spare pins for the per-card I2C control bus (SDA, SCL, GND ref) — see Backplane Region Buildout section.** |
 | Fan PWM/Tach | Change local labels on Peripherals.kicad_sch to global labels. Add matching global labels on PL_HD.kicad_sch connecting to Bank 44 pins. |
 | PL pin assignment | Assign specific Zynq ball numbers to all PL signals (UARTs, TDMA, SPI, fans) on Banks 24/25/26/44. Currently all 272 PL I/O pins are unassigned. |
 | HP Banks 64/65/66 | 168 HP pins currently unallocated. Add no-connect markers or reserve for future use. |
+| Backplane signal conditioning | Series R + 74LVC244 buffers + TVS arrays + pullups + test points on all 49 backplane signals. See "Backplane Region Buildout (Planned)" section above for full part list and rationale. **Currently absent from schematic.** |
+| Per-card reset/boot control | Currently missing. The host `flash()` method needs Boot0/NRST control per card — see Backplane Region Buildout section, Option B (I2C + PCA9555 per card). |
 
 ### Minor Fixes
 
