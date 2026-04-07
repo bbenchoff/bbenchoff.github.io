@@ -100,6 +100,515 @@ The Zynq Processing System's hardened video controller outputs native DisplayPor
 
 The DisplayPort AUX channel (a bidirectional sideband for EDID and link training) is routed through MIO pins 27, 28, 29, and 30. MIO27 drives AUX data out through a 100Ω series resistor, MIO30 reads the return signal tapped from the same net, MIO29 controls the output enable, and MIO28 reads the Hot Plug Detect signal from the connector.
 
+## The Operator Console: A Fabric-Owned Display Sidebar
+
+The DisplayPort output is not just for running Ubuntu. Modern single-board computers hand the entire display to the operating system and call it a day — on this machine, the fabric claims part of the screen for itself, permanently, and Linux isn't even told it exists. The result is a hardware operator console that runs at all times and survives any software state, including complete kernel panics.
+
+### The Partition
+
+The physical DisplayPort link runs at **1920×1080 @ 60Hz**. Rather than handing all 2,073,600 pixels to Linux, the framebuffer is split into two vertical regions:
+
+```
+┌────────────────────────────────────────────────────┐
+│  DisplayPort output: 1920×1080 @ 60Hz              │
+│  ┌─────────────────────────────┬──────────────────┐│
+│  │                             │ ┌──────────────┐ ││
+│  │                             │ │              │ ││
+│  │                             │ │  448×448     │ ││
+│  │                             │ │  LED PANEL   │ ││
+│  │   1440×1080 Ubuntu          │ │  MIRROR      │ ││
+│  │   (4:3, Mali-400 GPU,       │ │  (7× exact)  │ ││
+│  │    Xorg / Wayland)          │ │              │ ││
+│  │                             │ └──────────────┘ ││
+│  │                             │ ──────────────── ││
+│  │                             │  TELEMETRY HUD   ││
+│  │                             │  (fabric text    ││
+│  │                             │   480×600)       ││
+│  │                             │                  ││
+│  └─────────────────────────────┴──────────────────┘│
+│            Linux side                sidebar       │
+│            (PS owns)              (fabric owns)    │
+└────────────────────────────────────────────────────┘
+```
+
+- **Left region: 1440×1080** — exact 4:3 aspect ratio, the same aspect every 1980s workstation monitor had (VGA, Sun 3, NeXTstation, SPARCstation). This is what Linux/Xorg/Wayland sees as its entire display. The Mali-400 GPU renders the Ubuntu desktop into this region exactly as it would on any other machine. Applications, window managers, and the kernel framebuffer console believe the screen is 1440×1080 and nothing more.
+- **Right region: 480×1080** — owned exclusively by the Programmable Logic. Split into two sub-regions: a **448×448 LED panel mirror** at the top (centered with a 16-pixel decorative border on each side) and a **480×600 telemetry HUD** below it. Linux has no knowledge of these pixels and no way to draw on them.
+
+### How the Partition Works
+
+The PS DisplayPort controller is configured for 1920×1080 and scans out a single contiguous framebuffer from DDR4. Linux is then told via the framebuffer driver that the screen is **1440×1080** but that the scanline stride is **1920 × 4 bytes = 7680 bytes** instead of the expected 5760. This is a standard trick: Xorg writes 1440 pixels per line, leaves the remaining 480 pixels of each scanline untouched, and the DP hardware happily pulls all 1920 pixels per line anyway. Linux has no idea the extra 480 pixels exist because they're outside the framebuffer size it was configured with.
+
+A PL AXI master on one of the Zynq's High-Performance (HP) AXI ports writes directly into those otherwise-untouched 480 pixels per line. The DP controller, reading the same DDR4 region, scans the fabric-written pixels out on the right side of the display. Both writers (PS GPU on the left, PL DMA on the right) share the DDR4 memory controller but never touch each other's regions. Zero conflict, zero coordination, zero software involvement.
+
+**This is the key architectural property:** the sidebar is not a Linux feature, not a kernel module, not an Xorg driver, not a userspace process. It is a hardware DMA master writing to a fixed memory region that the display controller happens to scan out. Nothing in the Linux software stack is aware it exists.
+
+### The Out-of-Band Console Property
+
+Because the sidebar is painted by a processor that shares nothing with the Linux side except the DDR4 memory controller, it **keeps running when Linux is dead**. When Ubuntu panics, when Xorg hangs, when the A53 cores livelock inside a kernel bug — none of it matters to the sidebar. The R5F core keeps reading telemetry and writing pixels, the DMA path keeps moving bytes to the framebuffer, and the DP controller keeps scanning it all out at 60Hz.
+
+The user experience of a crashed system becomes:
+
+- **Left side:** frozen desktop, last image before the crash
+- **Right side:** **still updating.** Still mirroring the LED panel in real time. Still showing live temperatures, TDMA state, card health. Still posting event messages ("14:47:12 KERNEL PANIC — general protection fault").
+
+This is exactly what enterprise servers call an **out-of-band management console**. IBM RSA, Dell iDRAC, HP iLO, Sun LOM — every major server vendor ships dedicated BMC silicon just to provide this feature, because the ability to see what's wrong *when the main OS can't tell you* is the difference between "five-hour remote debug session" and "oh, node 7 is on fire." Commercial servers pay hundreds of dollars of BOM cost for a dedicated BMC chip to get this.
+
+This board gets it for free because the PL is already on the other side of the DP controller's DMA port. The BMC functionality is a side effect of where the fabric happens to sit in the memory hierarchy.
+
+### The 448×448 LED Mirror
+
+The top of the sidebar is a live mirror of the 64×64 front-panel LED display, scaled **7× exactly** to 448×448, centered in the 480-wide sidebar with a 16-pixel dark border on each horizontal edge. The integer scaling factor is deliberate: it's pixel-perfect with no interpolation artifacts, and the visible grid between upscaled pixels gives each LED a chunky, deliberate look. The 16-pixel border reads as a bezel around the mirrored display.
+
+**The critical detail is where the mirror source comes from.** It is not the "intended framebuffer" the host library last pushed — because the RP2040 on the front panel is not a dumb slave. It runs its own animations, plays local video (Bad Apple, a Doom demo, boot splashes, idle screensavers), and composites host overlays on top of local content. At any moment, the RP2040 might be lighting up pixels the host never pushed. The only way to know what is *actually* on the physical panel is to ask the RP2040 directly.
+
+So the mirror source is the **SPI MISO readback buffer**: every frame, the RP2040 streams its current framebuffer back to the Zynq over the LED SPI link's MISO line, along with a small status header (current mode, frame counter, underrun flag). The R5 reads that RX buffer in DDR4 every frame, applies the colormap LUT, and writes the scaled 7× mirror into the sidebar region of the DP framebuffer. The mirror is always showing what the RP2040 *reports it is actually displaying*, which is ground truth by construction.
+
+See the "LED Display Pipeline" section below for the full bidirectional protocol. The short version: the SPI link is full-duplex, MOSI carries Zynq commands and optional push-framebuffers, MISO carries the RP2040's authoritative current framebuffer, and the mirror reads from MISO.
+
+This matters because it means the mirror is *always correct in every mode*:
+
+- When a StarC job is running and the panel shows the thermal map, the mirror shows the thermal map → a live portrait of the 4,096 compute nodes
+- When the machine is idle and the RP2040 is playing Bad Apple, the mirror shows Bad Apple → your operator console literally has a music video on it
+- When a job starts, the R5 sends a mode-change command, the panel snaps to thermal mode, and the mirror snaps with it in the same frame
+- When the RP2040 composites a host overlay on top of local content (e.g., "JOB DONE" banner over the idle animation), the mirror shows the composite → whatever the LEDs are showing, the mirror is showing
+
+The "portrait of the hypercube" property is now correctly framed as **a mode the machine can be in**, not a permanent guarantee. When the panel is in thermal mode, the sidebar is a portrait of the machine. When the panel is in Bad Apple mode, the sidebar is Bad Apple. Both are correct reflections of physical reality. The HUD text *below* the mirror is independent and always shows the live machine state regardless of what the LED panel is doing, so the "telemetry about the machine" property is preserved in the HUD even when the LED mirror is showing a music video.
+
+Implementation is cheap. The R5 already has AXI access to DDR4, so it reads the SPI RX buffer in place. A colormap LUT lives in R5 TCM (256 entries × 3 bytes = 768 bytes, negligible). The R5 applies the LUT to each of 4,096 bytes and writes 49 pixels per LED (7×7 nearest-neighbor expansion) into the sidebar region of the DP framebuffer. Total fabric cost for this block: **zero** — it all happens on the R5. The fabric only needs to provide the SPI slave peripheral (which it already does) and the DMA master writing into the framebuffer region (shared with the HUD renderer).
+
+Update rate: match the LED panel at 60 fps, frame-locked to the RP2040's refresh clock. Because the RP2040 drives the SPI transaction on its own v-sync and the Zynq's SPI slave latches the frame immediately, and because the R5 is running a tight loop waiting for that data, there is **sub-frame latency** between the physical front panel and its mirror — typically one 16.6 ms frame in the worst case, often less. Wave your hand in front of the cube, the LEDs update, the mirror updates on the very next monitor refresh.
+
+This is what gives you the canonical demo: you run a Mandelbrot render, and on the same monitor you see your terminal on the left and a live thermal portrait of the hypercube computing it on the right, updating in lockstep with the physical panel you can also see on the front of the machine. And when the machine is idle, you glance up at the operator console and it's playing Bad Apple on the right side while your desktop is on the left, and that is somehow *even better*.
+
+### The 480×600 Telemetry HUD
+
+Below the mirror sits a text-mode operator console. At an 8×16 VGA font, that's **60 columns × 37 rows** of monospace text — enough for a serious telemetry display. A sample layout:
+
+```
+════════════════════════════════════════════════════════════
+  ████████ ██   ██ ██ ███    ██ ██  ██ ██ ███    ██
+     ██    ██   ██ ██ ████   ██ ██ ██  ██ ████   ██
+     ██    ███████ ██ ██ ██  ██ ████   ██ ██ ██  ██
+     ██    ██   ██ ██ ██  ██ ██ ██ ██  ██ ██  ██ ██
+     ██    ██   ██ ██ ██   ████ ██  ██ ██ ██   ████
+                    C O N N E C T I O N
+                     M A C H I N E  II
+  S/N 0001                              FW 0.4.2-alpha
+════════════════════════════════════════════════════════════
+ SYSTEM
+   uptime         04d 17h 23m 41s
+   load avg       0.42  0.38  0.35
+   zynq psu       52°C    pl fabric   67°C
+   ddr4           41°C    nvme        44°C
+   hostname       thinkin.local       ip  192.168.1.217
+════════════════════════════════════════════════════════════
+ HYPERCUBE
+   cards          16 / 16  ALIVE
+   nodes          4096 / 4096  ALIVE
+   tdma           RUNNING    1 kHz    phase  7 / 12
+   backplane      OK   0 errors / hour
+════════════════════════════════════════════════════════════
+ CURRENT JOB   mandelbrot_4k
+   progress     ████████████████▒▒▒▒   82.4%
+   started      14:32:17    elapsed  00:04:18
+   nodes busy   4096        phase    collect
+════════════════════════════════════════════════════════════
+ THERMAL
+   hottest      card 07 node 243    78°C
+   coolest      card 11 node 001    49°C
+   fan rpm      2400  2380  2410  2390
+════════════════════════════════════════════════════════════
+ INTEGRITY
+   cosmic rays  12 hits / 24h   (sipm cpm: 0.14)
+   sem scrub    0 errors corrected
+   uart frames  0 errors / hour
+════════════════════════════════════════════════════════════
+ LAST EVENT
+   14:36:35  job mandelbrot_4k dispatched to all 16 cards
+════════════════════════════════════════════════════════════
+```
+
+Every value on that HUD comes from a different part of the system, and every source is already memory-mapped on the AXI bus:
+
+| HUD Field | Source | AXI Slave |
+| :--- | :--- | :--- |
+| Uptime, load, hostname, IP | Linux → shared mailbox in DDR4 | Mailbox region |
+| Zynq PS temp | Zynq System Monitor (SYSMON) | PS peripheral |
+| PL fabric temp | XADC in PL | XADC block |
+| DDR4 and NVMe temps | I2C temperature sensors | I2C controller |
+| Card/node alive counts | Per-UART stats counters in PL | Stats block |
+| TDMA state, phase, frame | TDMA controller | TDMA UIO block |
+| Backplane error counts | Per-UART error counters | Stats block |
+| Current job info | thinkin-daemon → mailbox | Mailbox region |
+| Hottest/coolest nodes | Per-node temperature readings, gathered via AG32 telemetry through the UART control tree and cached in a thermal table | Thermal table in DDR4 |
+| RP2040 display mode & frame counter | LED SPI MISO status header, updated every frame | LED SPI slave RX buffer |
+| Fan RPM | Fan PWM/tach controller | Fan UIO block |
+| Cosmic ray counter | SiPM counter (if cosmic ray detector is fitted) | Counter block |
+| SEM scrub errors | Xilinx Soft Error Mitigation IP | SEM IP block |
+| UART frame errors | Per-UART error counters | Stats block |
+| Event log | thinkin-daemon → ring buffer in DDR4 | Event ring |
+
+**Not a single one of these readings goes through the Linux kernel.** The HUD renderer reads straight from the AXI slaves and writes pixels straight into the DP framebuffer. The Linux side only contributes to fields that are *only* knowable from userspace (uptime, hostname, current job) and it writes those into a mailbox region that the HUD polls. Everything else is pure fabric.
+
+### The HUD Renderer: The Cortex-R5F
+
+The telemetry HUD is rendered by **one of the Zynq's Cortex-R5F real-time cores**, not by a soft processor in fabric. This is free silicon: the R5F cores are part of the XCZU2EG's Processing System, they've been sitting in the chip the whole time, and until now nothing on the board was using them. They run at up to 600 MHz, have their own TCM (tightly-coupled memory), their own caches, their own interrupt controller, and their own power domain separate from the A53 cluster — meaning the R5 survives A53 crashes by design.
+
+The R5 runs a FreeRTOS image that does nothing except:
+
+1. Read the telemetry values from memory-mapped AXI slaves and PS peripherals (SYSMON, XADC, fan controller, stats counters)
+2. Read the LED SPI slave's **MISO RX buffer** — the authoritative current framebuffer streamed back from the RP2040 every refresh
+3. Format telemetry into strings with `sprintf`-style code
+4. Blit characters from a font ROM into the sidebar region of the DP framebuffer in DDR4
+5. Upscale the RP2040's reported 64×64 framebuffer 7× into the top 448×448 of the sidebar
+6. Sleep for ~16ms (for a 60Hz update rate) and repeat
+
+Because the R5 has direct AXI access to DDR4 and to the LED SPI slave peripheral, it reads the MISO RX buffer in place. This is the **actual, authoritative** current panel content (see the "LED Display Pipeline" section later in the document for why this has to come from the RP2040's readback rather than from a host-written framebuffer). The R5 applies the colormap LUT and writes the scaled mirror into the sidebar region of the DP framebuffer. Zero copies, minimal fabric logic.
+
+The R5 is used instead of a soft core because it is flatly better for this job in every dimension: it's already in the silicon (no fabric cost), it runs ~12× faster than a PicoRV32 at fabric clock rates, it has a hard FPU, it has a full Xilinx BSP with FreeRTOS and lwIP support, and Xilinx explicitly supports "A53 runs Linux + R5 runs FreeRTOS" as a first-class AMP (Asymmetric Multiprocessing) configuration with published reference designs.
+
+The sidebar becomes, in effect, **a completely self-contained embedded system running inside the Zynq PS**, with its own CPU, its own firmware, its own memory, and its own display output. Its sole function is to render the operator console and run the BMC services described in the next section, and it does so independently of anything the A53 cluster is doing. When Linux crashes, the R5 doesn't notice and doesn't care. It just keeps drawing pixels and answering network requests.
+
+### The Killer Demo
+
+The demo that sells this feature:
+
+> Power on the machine. The DisplayPort output shows a boot progress HUD on the right side while U-Boot text scrolls up the left. Ubuntu boots, the desktop appears on the left at 1440×1080 — and the right sidebar has been live the whole time, showing the fabric coming up, cards enumerating one by one, the LED mirror filling in as each card flashes its firmware at boot. You start a Mandelbrot render. The left side is your terminal; the top-right LED mirror shows the fractal forming across the hypercube in real time; the bottom-right telemetry shows the progress bar climbing, the hottest nodes lighting up in the thermal section, elapsed time ticking up. You `kill -9` the X server. The Ubuntu side freezes. **The sidebar keeps going.** You watch the Mandelbrot job finish on the sidebar while the desktop is dead.
+
+### Implementation Cost
+
+| Component | Cost | Notes |
+| :--- | :--- | :--- |
+| Cortex-R5F core | **free** | Already in silicon; currently unused |
+| R5 firmware (FreeRTOS + HUD renderer) | ~50 KB compiled | Lives in PS OCM + DDR4 |
+| AXI HP master / DMA engine | ~500 LUTs | Shared with other fabric blocks; writes into the sidebar DDR4 region |
+| 7× LED mirror scaler + colormap LUT | ~200 LUTs + 1 BRAM | Can also run on the R5 directly — either works |
+| Font ROM (8×16 VGA, 256 glyphs) | 4 KB of R5 firmware | No fabric needed — R5 blits characters from its own RAM |
+| Telemetry AXI slaves (counters, stats) | ~1,000 LUTs total | Shared with other fabric instrumentation |
+| **Total fabric** | **~1,700 LUTs + 1 BRAM** | **~4% of ZU2EG fabric** |
+
+The fabric cost is dramatically lower than a soft-core approach because the R5 is already in the PS and needs no fabric resources at all. The remaining PL logic is just the DMA master and the telemetry AXI slaves, both of which are shared with other fabric instrumentation work.
+
+On the Linux side, the only change is a framebuffer driver patch to set the scanline stride to 1920 while reporting a resolution of 1440×1080. This is a handful of lines in the DTS file. No kernel rebuilding, no driver development.
+
+### Why This Is Worth Doing
+
+Most features on a board like this are either "hardware that makes the software possible" or "hardware that the software exposes to users." The sidebar HUD is a rare third category: **hardware that is better than the software because the software can't reach it**. It's immune to the entire Linux software stack, which means it's immune to every class of bug that plagues every other display on every other computer. Your monitor keeps telling you the truth about the machine even when the machine is lying to itself.
+
+This is the feature that turns the controller board from "a well-engineered embedded host" into a piece of computing *theater*. It belongs on this machine.
+
+## The BMC: Putting the Cortex-R5F to Work
+
+Once you commit to running the HUD on the R5F, the R5 is already a separate processor with its own power domain, running its own RTOS, reading telemetry, and writing pixels that survive Linux crashes. At that point, asking "what *else* could the R5 do while it's awake?" has exactly one answer: **everything a commercial server BMC does.** And when you go through the list of what HP iLO, Dell iDRAC, IBM RSA, and Sun LOM actually provide, the answer turns out to be: services the R5 can already run with no hardware changes to the board whatsoever.
+
+### What a BMC Is, and Why Commercial Silicon Costs Extra
+
+A Baseboard Management Controller is the "second computer" inside a server that exists specifically to manage the first one. It has:
+
+- Its own small CPU, separate from the host CPU
+- Its own network interface with its own MAC and IP address
+- Its own firmware (usually a tiny Linux or FreeRTOS)
+- The ability to read host telemetry (temperatures, fan speeds, voltages) via sideband buses
+- The ability to power-cycle the host, reset it, and observe its serial console
+- A web interface you can point a browser at
+- Remote console access (VNC-style or proprietary)
+- A command shell accessible over SSH
+
+Every enterprise server made in the last 20 years has one. HP calls theirs Integrated Lights-Out (iLO). Dell calls theirs the integrated Dell Remote Access Controller (iDRAC). IBM has RSA. Supermicro has IPMI-over-LAN. Sun called theirs LOM. They all do the same thing — they give a remote administrator a way to reach the machine *when the main operating system can't tell them what's wrong*, which is precisely when it matters most.
+
+Commercial BMC silicon is a separate chip on the motherboard (typically an ASPEED AST2500/AST2600 or similar), with its own RAM, its own flash, its own Ethernet PHY, its own jack on the back of the server, and its own license fee. HP charges extra for "iLO Advanced" to unlock the full feature set. Dell charges $399 for an "iDRAC Enterprise" license. The chips themselves add tens of dollars to the BOM.
+
+**All of that is free on this board because the R5F is already in the silicon, and the rest is just firmware.**
+
+### Zero PCB Changes Required
+
+The key architectural fact: everything in this section is implementable **without changing a single component or trace on the controller board**. The R5F core is already there. The Gigabit Ethernet PHY is already there. The RJ45 is already there. The DDR4 is already there. The only things that change are:
+
+1. A new FreeRTOS firmware image for the R5, loaded alongside Linux at boot
+2. A one-time GEM queue partitioning in the FSBL (First Stage Bootloader) so the R5 can own a hardware queue
+3. A device tree change on the Linux side to yield specific GEM queues to the R5
+
+No components added. No components moved. No traces re-routed. No second PHY. No second RJ45. **The feature is entirely firmware-side.**
+
+### The Shared-GEM Architecture
+
+The Zynq UltraScale+ GEM has hardware support for this exact use case. Each GEM peripheral has up to 16 independent DMA queues, each with its own descriptor ring and interrupt line. The GEM's **Type 1/Type 2 Screener** hardware classifies incoming packets by destination MAC address, VLAN tag, IP address, or protocol, and routes them to specific queues automatically. Different CPU cores can then own different queues with zero software coordination.
+
+The configuration is documented in Xilinx UG1137 (the Zynq UltraScale+ MPSoC Software Developer Guide) and XAPP1306 (Using Ethernet and the OpenAMP Framework), which publishes a reference design for exactly this case: **Linux on the A53 cluster shares GEM3 with FreeRTOS on the R5F core, with each OS owning a subset of the DMA queues, and the GEM's on-chip Screener routing packets to the right queue based on destination MAC address.**
+
+```
+                    ┌────────────────────┐
+                    │   RTL8211EG PHY    │
+                    │   (existing chip)  │◄────► RJ45 (existing)
+                    └─────────┬──────────┘
+                              │ RGMII (existing MIO38-51)
+                    ┌─────────▼──────────┐
+                    │   Zynq GEM3        │
+                    │   ┌────────────┐   │
+                    │   │ Screener   │   │  Hardware classifier
+                    │   │ (MAC addr  │   │  routes incoming
+                    │   │  matching) │   │  packets by MAC
+                    │   └──┬──────┬──┘   │
+                    │      │      │      │
+                    │  Queues  Queues    │
+                    │  0-1     2-3       │
+                    └──┬─────────┬───────┘
+                       │         │
+                       ▼         ▼
+                ┌──────────┐  ┌──────────┐
+                │ A53 /    │  │ R5F /    │
+                │ Linux    │  │ FreeRTOS │
+                │ 192.168. │  │ 192.168. │
+                │   1.100  │  │   1.101  │
+                └──────────┘  └──────────┘
+                   user         BMC
+                   traffic      traffic
+```
+
+At runtime, the FSBL configures GEM3 with:
+- **Queues 0–1** assigned to the A53 cluster, DMA rings in A53-owned DDR4
+- **Queues 2–3** assigned to the R5F, DMA rings in R5-owned DDR4
+- **Screener Type 1** rules: packets with destination MAC = Linux's MAC → queues 0–1; packets with destination MAC = BMC's MAC → queues 2–3; broadcast/multicast → mirrored to both
+
+Linux boots, its GEM driver takes ownership of queues 0–1, pulls DHCP, gets its IP address, behaves like a normal Linux machine on the network. The R5 boots in parallel, its lwIP stack takes ownership of queues 2–3, pulls its own DHCP lease with a different MAC, gets a different IP, and comes up as an independent network endpoint.
+
+**The two operating systems never coordinate at runtime.** Linux's packets and the BMC's packets ride in separate DMA rings, serviced by separate interrupts, processed by separate CPUs, with the hardware Screener doing the multiplexing. Neither OS can see the other's packets, neither OS has to share buffers, and neither OS has to run a software forwarding loop.
+
+This is a documented, Xilinx-supported configuration. It requires zero PCB changes. It requires zero custom hardware. It requires a FreeRTOS image, an lwIP configuration, a device tree tweak, and some FSBL configuration. That is the entirety of the hardware cost.
+
+### Better Than Commercial BMC Sideband Sharing
+
+Enterprise servers that share a single physical RJ45 between the host NIC and the BMC do it through a sideband protocol called **NC-SI (Network Controller Sideband Interface)**, where the BMC sits behind the main NIC and passes packets through it over a dedicated control bus. This has a subtle but important flaw: if the main NIC firmware crashes or its driver misbehaves, the BMC loses network access because its packets are riding on the main NIC's infrastructure.
+
+Commercial vendors call this "shared LOM mode" and offer "dedicated mode" (a second physical port, separate NIC) as the higher-reliability alternative. Real sysadmins frequently pick dedicated mode because shared LOM has caused real outages.
+
+**This board's shared-GEM scheme is architecturally better than shared LOM.** The Screener and the DMA queues are GEM hardware features, below any software. The BMC's traffic does not pass through Linux code, Linux buffers, or Linux driver logic. It doesn't even pass through a shared memory queue. The packets are classified in the GEM silicon itself and dispatched directly to the R5's DMA rings. The only shared component is the GEM peripheral, which has no software to crash.
+
+The only genuine shared failure mode is the GEM hardware itself getting into a wedged state — which, since the GEM is a hardened ARM IP block with decades of silicon hardening behind it, is vanishingly unlikely compared to a firmware crash in a sideband controller. And even in that failure mode, the R5 has full access to GEM3's control registers and can reset the peripheral without needing the A53s to cooperate.
+
+You are, by accident, building a BMC architecture that is *more independent* than what HP charges extra for.
+
+### Two MAC Addresses, Two IP Addresses, One Cable
+
+From the outside, the machine looks like two hosts on the network sharing a physical uplink:
+
+- **Main system:** MAC derived from Zynq eFuse serial, IP via DHCP, mDNS hostname `thinkin.local`, runs Ubuntu
+- **BMC:** MAC derived from Zynq eFuse serial + 1, IP via DHCP, mDNS hostname `thinkin-bmc.local`, runs FreeRTOS
+
+Any computer on the LAN can reach either independently:
+
+```
+$ ping thinkin.local
+64 bytes from thinkin.local (192.168.1.100): icmp_seq=1 ttl=64 time=0.8 ms
+
+$ ping thinkin-bmc.local
+64 bytes from thinkin-bmc.local (192.168.1.101): icmp_seq=1 ttl=64 time=0.4 ms
+
+$ ssh user@thinkin.local               # Ubuntu shell
+$ ssh bmc@thinkin-bmc.local            # FreeRTOS BMC shell
+$ curl http://thinkin-bmc.local/       # BMC web dashboard
+```
+
+Your router, your home switch, and your DHCP server all see two independent clients. None of them know or care that the two clients are riding on the same physical cable. No VLANs, no tagging, no coordination — just two MACs, the way Ethernet has always worked when multiple devices share a segment.
+
+### What Runs on the BMC
+
+Once the R5 has an IP address, the service stack falls into place. All of these are small by modern standards — FreeRTOS + lwIP + these services fits comfortably in 1 MB of compiled code, running out of a combination of R5 TCMs and a dedicated DDR4 region.
+
+**HTTP dashboard on port 80.** A tiny embedded HTTP server (the kind that ships with every FreeRTOS port) exposes:
+
+```
+GET  /                     → HTML dashboard, live-updating sidebar view
+GET  /sidebar.png          → PNG snapshot of the current 480×1080 sidebar
+GET  /led.png              → PNG snapshot of the 64×64 LED panel
+GET  /telemetry.json       → All telemetry as JSON
+GET  /events               → Server-Sent Events stream of the event log
+GET  /eventlog?n=100       → Last N events as JSON
+POST /power/reset          → Hardware reset the main system (A53)
+POST /power/cycle          → Full power cycle
+POST /power/hypercube/off  → Cut hypercube power, leave BMC up
+POST /job/kill             → Abort the current StarC job
+POST /fans/set?speed=80    → Override fan duty cycle
+```
+
+Anyone on the LAN can open `http://thinkin-bmc.local/` in a browser and see a live dashboard identical in content to the physical sidebar on the machine's own monitor — same LED mirror, same telemetry, same event log, same fonts. The difference is that this dashboard is reachable from any computer on the network, including when Linux is dead.
+
+**VNC / RFB server on port 5900.** A minimal RFB (Remote Framebuffer) server running on the R5 reads the sidebar framebuffer region directly from DDR4 and streams it as VNC rectangles. Point any VNC client at `thinkin-bmc.local:5900` and you get a live, pixel-perfect remote mirror of the physical operator console, streamed over TCP. This is literally what HP iLO calls "Integrated Remote Console" — they charge extra for it. You get it because the sidebar framebuffer already exists and the R5 already has access to it.
+
+**SSH server on port 22 — the BMC shell.** An embedded SSH server (wolfSSH or Dropbear in cutdown form) drops you into a FreeRTOS command-line interface:
+
+```
+$ ssh bmc@thinkin-bmc.local
+=== THINKIN MACHINE BMC / FreeRTOS 10.5 ===
+bmc> status
+  uptime       04d 17h 23m
+  linux        ALIVE  pid 1 (systemd) responding
+  hypercube    16/16 cards, 4096/4096 nodes
+  tdma         RUNNING 1 kHz phase 7
+  temps        psu=52°C pl=67°C ddr4=41°C nvme=44°C
+
+bmc> temps --all
+  zynq psu        52°C
+  zynq pl         67°C    <─── from XADC
+  ddr4            41°C
+  nvme            44°C
+  hottest node    card 07 node 243   78°C
+  coolest node    card 11 node 001   49°C
+
+bmc> fans
+  fan0  2400 rpm  45% duty
+  fan1  2380 rpm  45% duty
+  fan2  2410 rpm  45% duty
+  fan3  2390 rpm  45% duty
+
+bmc> eventlog -n 5
+  14:32:17  job mandelbrot_4k dispatched (4096 nodes)
+  14:36:35  job mandelbrot_4k complete (4m 18s)
+  14:37:02  linux syslog: sshd accepted connection from 192.168.1.42
+  14:39:11  thermal reading card 07 node 243 peaked at 78°C
+  14:43:27  BMC ssh session opened from 192.168.1.42
+
+bmc> console
+[attaches to the Linux PS UART0 console — you can now interact with the
+ Linux boot messages, kernel panic output, or rescue shell even though
+ Linux has no working Ethernet of its own]
+
+bmc> power reset
+  resetting main system...
+  PS_SRST_B asserted
+  waiting for FSBL...  OK
+  U-Boot running...    OK
+  kernel handoff...    OK
+  linux alive again
+  done. (took 47s)
+
+bmc> quit
+Connection to thinkin-bmc.local closed.
+```
+
+**Serial-over-LAN (SOL).** The R5 owns a bridge between the Linux PS UART0 (MIO8–9, the Linux console) and the network. When you type `console` in the BMC shell, your SSH session becomes transparent to the Linux kernel's serial console output. You can watch Linux boot, observe kernel panic messages, interact with U-Boot, type into an emergency shell — **all over the network, through the BMC, with no working Linux network stack**. Enterprise vendors call this "Serial over LAN" or "iLO Virtual Serial Port" and it is the single most useful BMC feature in existence for debugging a machine that is half-dead.
+
+**Prometheus exporter on port 9100.** Standard Prometheus text format, scrapable by any Prometheus server, graphable in Grafana:
+
+```
+# HELP thinkin_uptime_seconds Seconds since power-on
+# TYPE thinkin_uptime_seconds counter
+thinkin_uptime_seconds 376421
+
+# HELP thinkin_temp_celsius Temperature readings
+# TYPE thinkin_temp_celsius gauge
+thinkin_temp_celsius{sensor="psu"} 52
+thinkin_temp_celsius{sensor="pl"} 67
+thinkin_temp_celsius{sensor="ddr4"} 41
+thinkin_temp_celsius{sensor="nvme"} 44
+
+# HELP thinkin_hypercube_cards_alive Number of live compute cards
+# TYPE thinkin_hypercube_cards_alive gauge
+thinkin_hypercube_cards_alive 16
+
+# HELP thinkin_hypercube_nodes_alive Number of live AG32 nodes
+# TYPE thinkin_hypercube_nodes_alive gauge
+thinkin_hypercube_nodes_alive 4096
+
+# HELP thinkin_tdma_phase Current TDMA phase (0-11)
+# TYPE thinkin_tdma_phase gauge
+thinkin_tdma_phase 7
+
+# HELP thinkin_tdma_frequency_hz TDMA clock frequency
+# TYPE thinkin_tdma_frequency_hz gauge
+thinkin_tdma_frequency_hz 1000
+
+# HELP thinkin_fan_rpm Fan tachometer readings
+# TYPE thinkin_fan_rpm gauge
+thinkin_fan_rpm{fan="0"} 2400
+thinkin_fan_rpm{fan="1"} 2380
+thinkin_fan_rpm{fan="2"} 2410
+thinkin_fan_rpm{fan="3"} 2390
+
+# HELP thinkin_job_progress_ratio Current job completion 0.0-1.0
+# TYPE thinkin_job_progress_ratio gauge
+thinkin_job_progress_ratio 0.824
+```
+
+Your homebrew supercomputer fits into a standard Prometheus + Grafana monitoring stack as a first-class citizen, graphable alongside everything else in your lab or home.
+
+**Syslog forwarding and persistence.** Linux's rsyslog forwards to the BMC. The BMC writes log messages into a circular buffer in its own DDR4 region and periodically flushes them to the QSPI flash. When Linux crashes hard enough to corrupt its own log files, the BMC still has a record of what happened. When you want to see what happened during last night's crash at 3am, you SSH into the BMC, type `eventlog --since 03:00`, and read the full history — regardless of whether Linux's journal survived.
+
+### The Killer Demo, Network Edition
+
+The original sidebar demo was:
+
+> Kill Xorg. Desktop freezes. Sidebar keeps going. Room gasps.
+
+The BMC upgrades it:
+
+> You power on the machine and plug it into Ethernet. Ubuntu boots on the left side of the monitor, the sidebar updates on the right side, and from your laptop across the room you open two browser tabs: `http://thinkin.local/` (Ubuntu's web services) and `http://thinkin-bmc.local/` (the BMC dashboard). Both load. You start a Mandelbrot render. The left side of the monitor shows your terminal, the right sidebar shows the thermal map forming across the hypercube, and *the BMC dashboard on your laptop shows exactly the same thing*, streamed over the network. You type `sudo pkill -9 Xorg` in the Ubuntu session. The desktop freezes. **The BMC dashboard on your laptop keeps updating in real time.** Your Ubuntu browser tab stops loading. The BMC browser tab keeps working. You `ssh bmc@thinkin-bmc.local`, type `console`, and see the Linux kernel's death rattle on your screen. You type `power reset`. You watch the reset happen both on the sidebar and on your laptop's BMC dashboard in sync. U-Boot runs, the kernel boots, Ubuntu comes back. **You did all of this without ever touching the main machine.**
+
+That's not a homebrew project demo. That's a server demo. That's what an HP engineer would show you about iLO.
+
+### Feature Parity with Enterprise BMC Silicon
+
+| Feature | HP iLO 5 | Dell iDRAC 9 | This board |
+| :--- | :---: | :---: | :---: |
+| HTTP dashboard | ✓ | ✓ | ✓ |
+| Live telemetry (temp, fans, power) | ✓ | ✓ | ✓ |
+| Remote console (VNC/RFB) | ✓ | ✓ | ✓ |
+| SSH BMC shell | ✓ | ✓ | ✓ |
+| Serial-over-LAN | ✓ | ✓ | ✓ |
+| Power control (reset, cycle) | ✓ | ✓ | ✓ |
+| Event log (persistent) | ✓ | ✓ | ✓ |
+| Syslog forwarding | ✓ | ✓ | ✓ |
+| Network-independent of host OS | ✓ | ✓ | ✓ |
+| Prometheus / SNMP telemetry | ✓ (license) | ✓ (license) | ✓ |
+| Dedicated BMC network port | ✓ (extra hardware) | ✓ (extra hardware) | ✓ (shared via GEM Screener) |
+| Survives host OS crash | ✓ | ✓ | ✓ |
+| Hardware cost | Separate ASPEED chip | Separate chip | $0 (R5 already in silicon) |
+| License fee | $$$ | $$$ | $0 |
+
+The only features this board can't easily match are IPMI 2.0 over LAN (a specific IPMI stack implementation, which could be added but is largely obsolete in favor of Redfish) and virtual media redirection (mounting an ISO from the admin's laptop as a CD-ROM on the host, which would require USB gadget mode work). Everything else is straightforward FreeRTOS application code.
+
+### Implementation Plan
+
+All firmware and software work, no hardware:
+
+1. **FSBL modification** — partition GEM3 into A53-owned queues (0–1) and R5-owned queues (2–3), configure the Screener for MAC-based routing. Xilinx provides a reference FSBL that already supports this; it's ~50 lines of C.
+
+2. **R5 FreeRTOS application** — FreeRTOS kernel + lwIP + HTTP server + embedded SSH + RFB server + Prometheus exporter + HUD renderer + telemetry gathering state machine. Rough code size: 100–200 KB of compiled binary, living in a combination of R5 TCMs and a dedicated DDR4 region. Probably 3,000–5,000 lines of C total, most of which is boilerplate service handlers.
+
+3. **Linux device tree changes** — declare GEM3 as `xlnx,shared-gem` (or equivalent) with queues 0–1 claimed, yielding queues 2–3 to the R5. Declare the R5's DDR4 region as reserved memory. Declare the DP framebuffer with a 1920 stride but 1440 resolution. Maybe 30 lines of DTS.
+
+4. **Linux userspace daemon** — a small systemd service that writes live telemetry (uptime, load, job state, hostname, IP) into the shared mailbox region the R5 reads. Maybe 200 lines of Python.
+
+5. **Boot orchestration** — U-Boot loads both the Linux kernel and the R5 FreeRTOS image, starts the R5 via the Zynq's remoteproc framework before handing off to the kernel. This is standard OpenAMP boot flow with published reference designs.
+
+Total software effort: maybe two weeks of focused work by someone who already knows Xilinx AMP. Total hardware effort: **zero**. Total new BOM parts: **zero**. Total PCB changes: **zero**.
+
+### The R5F Budget
+
+| Subsystem | Runs On | Memory |
+| :--- | :--- | :--- |
+| Sidebar HUD renderer | R5 core 0 | 64 KB TCM + shared DDR4 framebuffer |
+| LED mirror scaler | R5 core 0 | In the same loop as HUD |
+| HTTP server + web dashboard | R5 core 0 | ~100 KB DDR4 |
+| SSH server (Dropbear / wolfSSH) | R5 core 0 | ~150 KB DDR4 |
+| VNC / RFB server | R5 core 0 | ~50 KB DDR4 |
+| Serial-over-LAN bridge | R5 core 0 | Small buffers, shared with console |
+| Prometheus exporter | R5 core 0 | ~20 KB DDR4 |
+| Event log (circular buffer) | R5 core 0 | 256 KB DDR4 + periodic QSPI flush |
+| FreeRTOS + lwIP kernel | R5 core 0 | ~200 KB DDR4 |
+| Thermal trip watchdog | R5 core 1 (or fabric) | Minimal, runs independently |
+| Fan control PID loop | R5 core 1 (or fabric) | Minimal |
+
+The machine has two R5F cores. Core 0 runs the full BMC + HUD stack. Core 1 is left either idle for future use, or runs the absolute-safety functions (thermal trip, fan emergency) in a tiny bare-metal loop with no dependencies on anything else. The full stack fits comfortably in the roughly 128 KB of R5 TCM + whatever DDR4 is allocated to the R5 (a few megabytes is more than enough).
+
+### Why This Section Exists
+
+At some point during the design of this board, the R5F cores went from "a bullet point in the silicon spec sheet that I picked because the price was right" to "the single most useful piece of silicon on the entire machine." They give you a full enterprise BMC, a fabric-independent sidebar renderer, a network-accessible operator console, and a set of services indistinguishable from what commercial server vendors charge hundreds of dollars in license fees to unlock — and they give it to you with zero additional hardware, zero PCB changes, and zero soft logic in the FPGA fabric.
+
+The XCZU2EG is a ~$80 chip that includes, as a casual side effect of being a Zynq UltraScale+, a dual-core Cortex-A53 workstation CPU, a Mali-400 GPU, a dual-core Cortex-R5F real-time cluster, 47,000 LUTs of FPGA fabric, and a hardware DisplayPort controller. I originally picked it for the FPGA and the A53. The R5 cores came along for free and now they run the BMC. Nothing in the Zynq UltraScale+ lineup is wasted on this board — every block is doing a job, and some blocks are doing two.
+
+This is why I will never go back to using an off-the-shelf single-board computer for a project like this. A Raspberry Pi does not have a BMC. A Jetson does not have a BMC. An Odroid does not have a BMC. The only way to get one is to build one yourself, and the only reason I can build one is because the Zynq gave me the hardware for free.
+
 ## The 16-Channel Routing Nightmare
 
 Here is the exact reason a standard single-board computer could never run this machine: **I have to talk to 16 separate hypercube boards simultaneously.**
@@ -177,9 +686,11 @@ While the DDR4, the NVMe drive, and the DisplayPort output hog all the high-band
 Xilinx handles this through Multiplexed I/O (MIO). The Zynq has 78 dedicated pins (Banks 500-503) that can be dynamically assigned to internal, hardened hardware controllers inside the Processing System. The MIO budget on this board is fully allocated across six subsystems: QSPI boot flash, UART debug console, NVMe reset, MicroSD card, DisplayPort AUX, Gigabit Ethernet, and the USB ULPI PHY.
 
 ### The Gigabit Gateway
-If this machine is going to operate as an edge-compute server taking job payloads from the internet, it needs a massive pipe to the network. 
+If this machine is going to operate as an edge-compute server taking job payloads from the internet, it needs a massive pipe to the network.
 
-The Zynq Processing System includes four hardened Gigabit Ethernet MACs directly in the silicon, giving the Ubuntu kernel native, zero-overhead networking without burning CPU cycles on software drivers. I routed one of these MACs out through the MIO pins using the RGMII protocol to a dedicated physical transceiver (PHY) chip on the board. The Zynq handles the digital logic, the PHY handles the analog line coding, and the result is flawless, line-rate Gigabit Ethernet straight to the rear IO panel. When you plug a cable in, the host instantly pulls an IP address and is ready to accept SSH connections or web payloads.
+The Zynq Processing System includes four hardened Gigabit Ethernet MACs directly in the silicon, giving the Ubuntu kernel native, zero-overhead networking without burning CPU cycles on software drivers. I routed one of these MACs (GEM3) out through the MIO pins using the RGMII protocol to a dedicated physical transceiver (PHY) chip on the board. The Zynq handles the digital logic, the PHY handles the analog line coding, and the result is flawless, line-rate Gigabit Ethernet straight to the rear IO panel. When you plug a cable in, the host instantly pulls an IP address and is ready to accept SSH connections or web payloads.
+
+The same GEM3 peripheral is also shared with the Cortex-R5F running the BMC, via hardware packet queue partitioning and the GEM's on-chip Screener. A single RJ45 on the back panel therefore carries **two independent network hosts**: Linux on the A53 cluster (hostname `thinkin.local`) and the BMC on the R5F (hostname `thinkin-bmc.local`), each with their own MAC address and IP address, visible to the LAN as two distinct clients on one cable. The hardware Screener classifies incoming packets by destination MAC and routes them to the correct CPU's DMA queues with zero software coordination. See "The BMC: Putting the Cortex-R5F to Work" for the full architecture.
 
 ### The Boot Chain: QSPI, SD, and JTAG
 
@@ -322,15 +833,35 @@ class ThinkinMachine:
             results[i] = card.read_until(b'\n')
         return results
 
-    def update_leds(self, framebuffer):
-        # Push 4,096-byte framebuffer to LED SPI UIO window.
-        # Each byte maps 1:1 to one of the 4,096 AG32 nodes — the
-        # 64x64 display IS the hypercube, with each pixel literally
-        # the node directly behind it.
-        self.led_spi[0:4096] = framebuffer
+    def led_push(self, framebuffer):
+        # Push 4,096-byte framebuffer to the LED SPI TX buffer with
+        # command=PUSH. The RP2040 will display it on the next refresh
+        # (assuming it is currently in HOST mode).
+        self.led_spi[0] = CMD_PUSH
+        self.led_spi[16:16+4096] = framebuffer
+
+    def led_set_mode(self, mode):
+        # Hand control back and forth between host-pushed content and
+        # autonomous RP2040 playback. No framebuffer in the payload.
+        # mode ∈ {'host', 'thermal', 'boot', 'badapple', 'doom', 'overlay'}
+        self.led_spi[0] = MODE_COMMANDS[mode]
+
+    def led_current_frame(self):
+        # Read what the LED panel is ACTUALLY showing right now, as
+        # reported by the RP2040 over MISO. This is ground truth — it
+        # reflects physical reality whether the panel is showing a
+        # Zynq-pushed thermal map, Bad Apple, Doom, or a boot animation.
+        # The sidebar mirror on the operator console reads from this
+        # same buffer.
+        return bytes(self.led_spi[4096+16:4096+16+4096])
+
+    def led_status(self):
+        # Read the RP2040 status header: current mode, frame counter,
+        # underrun flag, local-playing flag.
+        return self.led_spi[4096:4096+16]
 ```
 
-Every StarC host I/O primitive maps to a method on this class. When a StarC program calls `load_from_host(&input, 1)`, `load()` writes one float per node through the appropriate `pyserial` handle. When `store_to_host(&result, 1)` executes, `collect()` drains the results via blocking reads. When `led_set(brightness)` runs on a node, the result propagates up the control tree via UART, and the host library batches these into framebuffer writes through the LED SPI UIO window.
+Every StarC host I/O primitive maps to a method on this class. When a StarC program calls `load_from_host(&input, 1)`, `load()` writes one float per node through the appropriate `pyserial` handle. When `store_to_host(&result, 1)` executes, `collect()` drains the results via blocking reads. When `led_set(brightness)` runs on a node, the result propagates up the control tree via UART, the host library batches these into a 4,096-byte framebuffer, and `led_push()` ships it to the RP2040 via the LED SPI TX window. `led_current_frame()` reads back whatever the RP2040 is *actually* displaying, which is the authoritative source for the sidebar mirror and for any user-visible "what is on the panel right now" queries.
 
 The entire host library is around 300 lines of pure Python. No kernel module, no custom driver, no CFFI bindings, no `/dev/mem` — just `pyserial` and `mmap`, both available in the Python standard library or a single `pip install` away. This is *cleaner* than the alternatives: a Raspberry Pi with 16 USB-FTDI dongles would suffer from USB latency, hub topology pain, flaky connectors, and no hardware synchronization. The Zynq approach gives you 16 fully independent hardware UARTs, interrupt-driven, with zero custom code, and the exact same POSIX interface as any other Linux serial port.
 
@@ -371,11 +902,51 @@ When no job is running, the TDMA clock is halted. The host library writes `TDMA_
 
 ### LED Display Pipeline
 
-The LED display path is: **Linux framebuffer → AXI SPI master (PL) → front-panel connector → RP2040 → 64x64 LED matrix**.
+The LED display path is **bidirectional, full-duplex**. The SPI bus between the Zynq and the front-panel RP2040 carries a full framebuffer in each direction on every refresh: the Zynq tells the RP2040 what it wants displayed, and the RP2040 tells the Zynq what is actually on the panel right now.
 
-The host library maintains a 4,096-byte framebuffer in userspace memory (one byte per LED, mapping directly to the 64x64 grid). When a StarC program calls `led_set(brightness)` on any node, the result propagates up the control tree via UART, and the host library updates the corresponding byte in the framebuffer. A dedicated thread writes the complete framebuffer to the SPI TX register at 60fps. The RP2040 on the front panel receives each frame via SPI, handles PWM drive and row scanning, and the LEDs update.
+This bidirectionality is necessary because the RP2040 is not a pure dumb slave. It runs its own animations, plays back local content (Bad Apple, a Doom playthrough, boot animations, idle screensavers), and composites host-pushed overlays on top of local content. At any given moment, the RP2040 is the authoritative source for what pixels are actually lit on the panel — the Zynq cannot know what the LEDs are showing unless the RP2040 tells it. The operator console sidebar mirror depends on this, because the mirror must reflect the physical panel state, not the host's intent.
 
-This pipeline also runs outside of StarC jobs. The daemon can render status patterns (boot animation, card health visualization, idle patterns) independently of the hypercube.
+**Data flow:**
+
+```
+Zynq command + optional framebuffer ──MOSI──►  RP2040 ──►  64×64 LED matrix
+                                                  │
+Zynq sidebar mirror  ◄──MISO── RP2040 current framebuffer + status
+```
+
+Every SPI transaction exchanges one full frame in each direction. The MOSI payload carries the Zynq's command byte (PUSH, NOP, MODE_HOST, MODE_THERMAL, MODE_BADAPPLE, MODE_DOOM, MODE_BOOT, MODE_OVERLAY, RESET) followed by an optional 4,096-byte framebuffer if the command is PUSH. The MISO payload carries a status header (current mode, frame counter, underrun flag) followed by the 4,096-byte framebuffer that the RP2040 is *currently lighting up* — ground truth for whatever the panel is showing this instant.
+
+**Who is the master:** the RP2040 drives SCK and CS. This flips the conventional "Zynq as master, RP2040 as slave" arrangement, and it's deliberate. The RP2040 owns the LED refresh timer, so it knows when a frame is about to be latched into the panel drivers. Initiating the SPI transaction on the RP2040's own frame-refresh clock gives you free v-sync alignment — every readback corresponds to a specific, completed refresh cycle, with no tearing risk. The Zynq's fabric SPI core runs in slave mode, responding whenever the RP2040 strobes CS. Master/slave selection is a firmware configuration choice, not a wiring change; both modes use the same four wires (SCK, MOSI, MISO, CS) in the same directions.
+
+**Modes of operation:**
+
+| Mode | MOSI content | MISO content | Sidebar mirror shows |
+| :--- | :--- | :--- | :--- |
+| HOST (thermal map, job state) | Zynq pushes new frame | Echoed back | Host content (authoritative portrait of the hypercube) |
+| LOCAL (Bad Apple, Doom, screensaver) | NOP commands | RP2040 local playback frames | Whatever the RP2040 is playing |
+| OVERLAY | Zynq overlay framebuffer | Composited result | Host overlay on top of local content |
+| BOOT | NOPs (Zynq not ready) | RP2040 boot animation | Boot animation |
+
+The sidebar mirror in the operator console reflects **whatever the RP2040 reports it is actually showing**, which is always the physical truth of the LED panel regardless of which side is generating content. When the hypercube is running a StarC job, the panel is in HOST mode displaying the thermal map, and the sidebar is a live portrait of the 4,096 compute nodes. When the machine is idle, the panel drops into LOCAL mode playing Bad Apple, and the sidebar plays Bad Apple. When a job starts, the R5 sends a mode-change command, the panel snaps to HOST mode, and the sidebar follows. The HUD telemetry section below the mirror is independent of any of this — it always shows the machine state no matter what the LED panel is currently displaying.
+
+**Bandwidth budget:** 4,096 bytes per direction × 60 Hz = 246 KB/s per direction, 492 KB/s bidirectional. At a 20 MHz SPI clock the link is running at ~20% utilization. At RGB888 (12,288 bytes per direction) it rises to ~60% utilization, still comfortable. There is plenty of headroom for any reasonable pixel format.
+
+**The host library interface:**
+
+```python
+machine.led.push(framebuffer)        # send a new frame, command=PUSH
+machine.led.set_mode('thermal')      # send mode change, no framebuffer
+machine.led.set_mode('badapple')
+machine.led.set_mode('doom')
+machine.led.current_frame()          # read the RX buffer — what the LEDs
+                                     # are actually showing right now
+machine.led.status()                 # read RP2040 status header:
+                                     # mode, frame counter, underruns
+```
+
+The host library reads `current_frame()` when it wants ground truth (e.g., for logging, screenshots, the sidebar mirror, or debugging an animation discrepancy). It calls `push()` only when it wants to override whatever the RP2040 is currently doing. `set_mode()` is used to hand control back and forth between host-driven content and autonomous RP2040 playback without having to keep streaming frames.
+
+This pipeline also runs outside of StarC jobs. The daemon can push status patterns (boot animation, card health visualization, idle patterns), or it can simply issue `set_mode('badapple')` and let the RP2040 do its thing while the sidebar mirror dutifully reflects the playback in real time.
 
 ## Summary
 
@@ -791,14 +1362,16 @@ Each instance has its own IRQ routed through Vivado IP Integrator to the Zynq's 
 
 ### LED Display SPI (PL HD Bank 24)
 
-Dedicated SPI master in the Programmable Logic for driving the 64×64 front-panel LED display via the RP2040 display controller. All signals are 3.3V LVCMOS on HD Bank 24.
+Dedicated **SPI slave** in the Programmable Logic, connected to the RP2040 LED controller on the front panel. The RP2040 is the SPI master; the Zynq fabric runs in slave mode. This inversion from the conventional arrangement gives free v-sync alignment because the RP2040 initiates transactions on its own LED refresh clock. All signals are 3.3V LVCMOS on HD Bank 24.
+
+The SPI link is **full-duplex and bidirectional every frame**: MOSI carries a Zynq command byte plus an optional push-framebuffer; MISO carries an RP2040 status header plus the 4,096-byte framebuffer currently lit on the physical panel. The sidebar mirror in the operator console reads exclusively from the MISO RX buffer — whatever the RP2040 says is on the panel is authoritative, regardless of whether the RP2040 is displaying host-pushed content, a local animation, Bad Apple, Doom, or a boot splash. See the "LED Display Pipeline" section above for the full protocol and mode system.
 
 | PL Signal | Direction | PL Bank | Connector Pin | Function |
 | :--- | :--- | :--- | :--- | :--- |
-| LED_SPI_SCK | Output | 24 | Front-panel header | SPI clock |
-| LED_SPI_MOSI | Output | 24 | Front-panel header | Zynq → RP2040 frame data |
-| LED_SPI_MISO | Input | 24 | Front-panel header | RP2040 → Zynq status/ack |
-| LED_SPI_CS | Output | 24 | Front-panel header | Chip select (active low) |
+| LED_SPI_SCK  | Input (slave) | 24 | Front-panel header | SPI clock, driven by RP2040 |
+| LED_SPI_MOSI | Output | 24 | Front-panel header | Zynq → RP2040: command byte + optional push framebuffer |
+| LED_SPI_MISO | Input  | 24 | Front-panel header | RP2040 → Zynq: status header + current physical framebuffer (full readback, 4 KB/frame) |
+| LED_SPI_CS   | Input (slave) | 24 | Front-panel header | Chip select, driven by RP2040 at frame refresh boundaries |
 
 ### TDMA Phase Clock (PL HD Bank 44)
 
@@ -1042,6 +1615,7 @@ If implementing in passes:
 - Sacrificial 74LVC244 buffers (~6 chips)
 - VCCO power islands with ferrite beads on Banks 24/25/26/44
 - USB debug console (FT232RL/CP2102N)
+- **Operator Console HUD sidebar + BMC** (pure firmware/software work, zero new hardware, zero PCB changes) — 1440×1080 Linux + 480×1080 R5-owned sidebar with LED mirror and telemetry HUD, rendered by the Cortex-R5F (already in silicon). The same R5 runs a full BMC with HTTP dashboard, VNC remote console, SSH shell, serial-over-LAN, Prometheus exporter, and power control services, reachable over the existing Ethernet via a shared-GEM configuration (no second PHY or second RJ45 required). See "The Operator Console" and "The BMC: Putting the Cortex-R5F to Work" sections above. This is the highest-value feature on the board per dollar (zero) and per hour of PCB work (zero) — everything is firmware.
 
 **Pass 3 — High-value features:**
 - Per-card INA226 power monitoring
