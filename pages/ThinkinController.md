@@ -205,92 +205,143 @@ To keep the Zynq and the 16-card hypercube cool inside the sealed aluminum chass
 
 While the 12V power is provided directly from the main input rail, the control logic is handled by the FPGA fabric. By routing the PWM and Tachometer (Sense) lines to the Programmable Logic, the machine maintains deterministic cooling independent of the Linux kernel state. This allows for a hardware-level "fail-safe" where the fans default to 100% duty cycle if the system monitors detect a thermal runaway or a software hang.
 
-## The Linux Software Stack: From AXI Registers to StarC Jobs
+## The Linux Software Stack: From AXI Peripherals to StarC Jobs
 
-Everything described above is hardware — silicon, copper, and solder. But hardware without software is a paperweight. This section describes what happens on the other side of the AXI bus: the Linux environment that turns 16 memory-mapped UART peripherals and a TDMA clock generator into a programmable supercomputer.
+Everything described above is hardware — silicon, copper, and solder. But hardware without software is a paperweight. This section describes what happens on the other side of the AXI bus: the Linux environment that turns 16 serial ports, a TDMA clock generator, and a custom SPI master into a programmable supercomputer.
 
-### The Device Tree and UIO
+### The Device Tree: Stock IP for UARTs, UIO for Custom Blocks
 
-The 16 UART MACs in the Programmable Logic are not standard 16550-compatible UARTs that Linux can auto-detect. They are custom IP blocks on the AXI interconnect, each mapped to a 4-register window (TX_DATA, RX_DATA, STATUS, BAUD_DIV) at known addresses starting at `0xA000_0000`. The TDMA phase clock generator and LED SPI master are similarly custom blocks at their own AXI addresses.
+The AXI peripherals split cleanly into two classes, and each class gets a different Linux integration strategy.
 
-Rather than writing a full kernel driver for each of these, the initial approach is **Userspace I/O (UIO)**. The Zynq's device tree declares each PL peripheral as a `generic-uio` device with its physical address range. At boot, the kernel creates `/dev/uio0` through `/dev/uio17` (16 UARTs + TDMA controller + LED SPI), and userspace code `mmap()`s the registers directly. No kernel module, no `ioctl()` overhead, no context switch on every byte. The Python host library writes directly to physical registers from userspace at memory-bus speed.
+**Class 1 — Standard peripherals (the 16 backplane UARTs):**
+
+The 16 hypercube control UARTs are instantiated as stock **Xilinx AXI UART Lite** IP blocks (`axi_uartlite`). This is a free Vivado IP block at roughly 150 LUTs per instance — 16 instances fit in about 5% of the ZU2EG's LUT budget — and critically, **mainline Linux ships a driver for it** at `drivers/tty/serial/uartlite.c`. Rolling a custom UART MAC was the original plan, but there is no reason to reinvent a peripheral that Linux already knows how to talk to.
+
+Each UART is declared in the device tree as an `xlnx,xps-uartlite-1.00.a` device, with its own IRQ line routed through the Zynq's PL-to-PS interrupt fabric:
 
 ```
-/* Device tree fragment — one entry per UART channel */
+/* Device tree fragment — 16 instances, one per card */
 hypercube_uart0: serial@a0000000 {
-    compatible = "generic-uio";
+    compatible = "xlnx,xps-uartlite-1.00.a";
     reg = <0x0 0xa0000000 0x0 0x1000>;
-    interrupt-parent = <&gic>;
     interrupts = <0 89 4>;
-};
-
-hypercube_uart1: serial@a0001000 {
-    compatible = "generic-uio";
-    reg = <0x0 0xa0001000 0x0 0x1000>;
     interrupt-parent = <&gic>;
-    interrupts = <0 90 4>;
+    clock = <100000000>;
+    current-speed = <460800>;
+    xlnx,data-bits = <8>;
+    xlnx,use-parity = <0>;
 };
-/* ... through hypercube_uart15 at 0xa000f000 */
+/* ... through hypercube_uart15 at 0xa000f000, IRQ 104 */
+```
 
+The kernel mounts these as `/dev/ttyUL0` through `/dev/ttyUL15`. No custom kernel module, no `mmap()`, no register banging — the host library just opens them with `pyserial`, identical to talking to an Arduino over USB-serial. Every standard Linux serial tool works as well: `picocom /dev/ttyUL5` to interactively poke at card 5, `stty -F /dev/ttyUL3 460800` to reconfigure baud, `cat /dev/ttyUL7` to dump what card 7 is saying. The moment a 16-port design sits on mainline serial infrastructure, it inherits every tool and library ever written for Linux UARTs.
+
+Interrupts are first-class. Each AXI UART Lite instance has its own IRQ wired to the Zynq's `IRQ_F2P` inputs (16 available, exactly enough). The kernel's uartlite driver handles RX-ready and TX-done interrupts automatically — userspace never polls. A blocking `read()` sleeps until data arrives, and the scheduler wakes the host library thread only when there's work to do. At 460800 baud × 16 channels (~7.4 Mbit/s aggregate during flashing), the dual-core A53 does not break a sweat.
+
+If the AXI UART Lite's compile-time baud rate ever becomes limiting — it's set in Vivado at bitstream generation, not at runtime — the drop-in upgrade is **Xilinx AXI UART 16550** (`axi_uart16550`), a full 16550-compatible UART with a runtime baud divider, FIFOs, and a mainline Linux driver via `8250_of.c`. Costs ~500 LUTs per instance instead of 150, but still fits comfortably.
+
+**Class 2 — Custom peripherals (TDMA, LED SPI, fan controller):**
+
+The TDMA phase clock generator, the LED SPI master, and the fan PWM/tach controller have no analog in Linux's peripheral catalog. These are exposed as **Userspace I/O (UIO)** devices using the `generic-uio` driver:
+
+```
 tdma_ctrl: tdma@a0010000 {
     compatible = "generic-uio";
     reg = <0x0 0xa0010000 0x0 0x1000>;
+    interrupt-parent = <&gic>;
+    interrupts = <0 105 4>;
 };
 
 led_spi: spi@a0011000 {
     compatible = "generic-uio";
     reg = <0x0 0xa0011000 0x0 0x1000>;
 };
+
+fan_ctrl: fan@a0012000 {
+    compatible = "generic-uio";
+    reg = <0x0 0xa0012000 0x0 0x1000>;
+};
 ```
 
-Once the machine is stable, a proper platform driver can replace UIO for interrupt coalescing and DMA. But for bringup and development, UIO means the entire host library is pure Python with `mmap` — no kernel recompilation, no module loading, no rebooting.
+The kernel creates `/dev/uio0`, `/dev/uio1`, and `/dev/uio2` for these three blocks. The host library `mmap()`s each register window directly. UIO is the correct abstraction here because each block has a single owner (the daemon), the access patterns are simple (TDMA start/stop, framebuffer push, fan duty update), and there's no existing kernel driver class to defer to.
+
+The total custom kernel code for the entire controller board is **zero lines**. All 19 AXI peripherals (16 UARTs via mainline `uartlite` driver, 3 custom blocks via `generic-uio`) are handled by drivers that already exist in the Linux tree.
 
 ### The Host Library: How Linux Controls the Machine
 
-The Python host library (`thinkin/machine.py`, documented in the [AG32 Gating Document](https://bbenchoff.github.io/pages/AG32Gating.html) as Software Milestone S3) is the single point of control for the entire hypercube. It maps directly onto the hardware described in this document:
+The Python host library (`thinkin/machine.py`, documented in the [AG32 Gating Document](https://bbenchoff.github.io/pages/AG32Gating.html) as Software Milestone S3) is the single point of control for the entire hypercube. It maps directly onto the two Linux abstractions above — `pyserial` for the 16 stock UARTs, `mmap` for the 3 UIO blocks:
 
 ```python
+import os
+import mmap
+import serial
+
 class ThinkinMachine:
     def __init__(self, num_cards=16):
-        # mmap() all 16 UART register blocks via /dev/uio0..15
-        # mmap() TDMA controller via /dev/uio16
-        # mmap() LED SPI via /dev/uio17
+        # 16 stock serial ports — mainline kernel driver, pyserial client.
+        # Identical to opening an Arduino over USB-serial.
+        self.cards = [
+            serial.Serial(f'/dev/ttyUL{i}', 460800, timeout=1)
+            for i in range(num_cards)
+        ]
+
+        # 3 custom UIO peripherals — mmap the register windows.
+        self.tdma    = self._mmap_uio('/dev/uio0', 0x1000)
+        self.led_spi = self._mmap_uio('/dev/uio1', 0x1000)
+        self.fans    = self._mmap_uio('/dev/uio2', 0x1000)
+
+    def _mmap_uio(self, path, size):
+        fd = os.open(path, os.O_RDWR | os.O_SYNC)
+        return mmap.mmap(fd, size, mmap.MAP_SHARED,
+                         mmap.PROT_READ | mmap.PROT_WRITE)
 
     def flash(self, firmware_path):
-        # For each card 0-15:
-        #   Set BAUD_DIV for 460800 (bootloader rate)
-        #   Assert Boot0 high, pulse NRST via GPIO
-        #   Stream _batch.bin through TX_DATA register
-        #   Verify response on RX_DATA
-        #   Release Boot0, pulse NRST to run
+        # For each card: assert Boot0 + pulse NRST (via per-card I2C GPIO
+        # expander on the backplane control bus), then stream firmware
+        # through that card's pyserial handle and verify the echo.
+        with open(firmware_path, 'rb') as f:
+            payload = f.read()
+        for card in self.cards:
+            card.write(payload)
+            card.read(len(payload))  # verify bootloader echo
 
     def load(self, data, dest_pvar):
-        # Distribute data to all 4,096 nodes via control tree
-        # Implements load_from_host() from StarC runtime
+        # Distribute data to all 4,096 nodes via control tree.
+        # Each card's slice is written through its pyserial handle.
+        ...
 
     def run(self):
-        # Write TDMA_ENABLE to TDMA controller
-        # Phase clock starts, all nodes begin execution
+        # Start TDMA phase clock via UIO register write.
+        self.tdma[0:4] = (1).to_bytes(4, 'little')
 
     def collect(self, timeout=5.0):
-        # Poll all 16 UART STATUS registers for RX_FIFO_NOTEMPTY
-        # Drain results from each card into {node_addr: data} dict
+        # Blocking reads on all 16 serial ports — the kernel wakes this
+        # thread when bytes arrive. No polling, no wasted CPU.
+        results = {}
+        for i, card in enumerate(self.cards):
+            results[i] = card.read_until(b'\n')
+        return results
 
     def update_leds(self, framebuffer):
-        # Write 4096-byte framebuffer to LED SPI TX register
-        # RP2040 receives frame, drives 64x64 LED matrix
+        # Push 4,096-byte framebuffer to LED SPI UIO window.
+        # Each byte maps 1:1 to one of the 4,096 AG32 nodes — the
+        # 64x64 display IS the hypercube, with each pixel literally
+        # the node directly behind it.
+        self.led_spi[0:4096] = framebuffer
 ```
 
-Every StarC host I/O primitive maps to a method on this class. When a StarC program calls `load_from_host(&input, 1)`, the host library's `load()` method writes one float per node through the appropriate UART channel. When `store_to_host(&result, 1)` executes, `collect()` drains the results. When `led_set(brightness)` runs on a node, the node sends an LED update up the control tree, and the host library batches these into SPI frame writes to the RP2040.
+Every StarC host I/O primitive maps to a method on this class. When a StarC program calls `load_from_host(&input, 1)`, `load()` writes one float per node through the appropriate `pyserial` handle. When `store_to_host(&result, 1)` executes, `collect()` drains the results via blocking reads. When `led_set(brightness)` runs on a node, the result propagates up the control tree via UART, and the host library batches these into framebuffer writes through the LED SPI UIO window.
+
+The entire host library is around 300 lines of pure Python. No kernel module, no custom driver, no CFFI bindings, no `/dev/mem` — just `pyserial` and `mmap`, both available in the Python standard library or a single `pip install` away. This is *cleaner* than the alternatives: a Raspberry Pi with 16 USB-FTDI dongles would suffer from USB latency, hub topology pain, flaky connectors, and no hardware synchronization. The Zynq approach gives you 16 fully independent hardware UARTs, interrupt-driven, with zero custom code, and the exact same POSIX interface as any other Linux serial port.
 
 ### The Boot Sequence
 
 When the machine powers on, the following happens in order:
 
-1. **Zynq BootROM** reads the MicroSD card, loads FSBL (First Stage Boot Loader) and the PL bitstream. The FPGA fabric comes alive — all 16 UARTs, the TDMA controller, the LED SPI master, and the fan PWM array are now active. Fans spin at 100% (fail-safe default).
+1. **Zynq BootROM** reads the MicroSD card, loads FSBL (First Stage Boot Loader) and the PL bitstream. The FPGA fabric comes alive — all 16 AXI UART Lite instances, the TDMA controller, the LED SPI master, and the fan PWM array are now active. Fans spin at 100% (fail-safe default).
 2. **U-Boot** initializes DDR4, wakes the PCIe transceiver, enumerates the NVMe drive.
-3. **Ubuntu kernel** boots from NVMe. The device tree registers UIO devices for all PL peripherals. Gigabit Ethernet comes up, pulls DHCP. SSH is available.
-4. **`thinkin-daemon`** starts as a systemd service. It `mmap()`s all UIO devices, runs a health check on each UART channel (sends a probe byte, checks for echo), and reports the number of live compute cards. It then opens a Unix socket for local job submission and an HTTP endpoint for remote submission.
+3. **Ubuntu kernel** boots from NVMe. The device tree registers 16 `xlnx,xps-uartlite-1.00.a` serial ports (mainline driver) as `/dev/ttyUL0..15`, and `generic-uio` devices as `/dev/uio0..2` for the TDMA, LED SPI, and fan controllers. Gigabit Ethernet comes up, pulls DHCP. SSH is available.
+4. **`thinkin-daemon`** starts as a systemd service. It opens the 16 serial ports with `pyserial`, `mmap()`s the three UIO register windows, runs a health check on each UART channel (sends a probe byte, checks for echo), and reports the number of live compute cards. It then opens a Unix socket for local job submission and an HTTP endpoint for remote submission.
 5. **Flash firmware** — on first boot or after a firmware update, the daemon calls `machine.flash()` to program all 4,096 AG32 nodes. Each card's 256 nodes are flashed sequentially through that card's UART channel. Total flash time for the full machine is under five minutes.
 6. **Ready** — the machine accepts StarC jobs. The TDMA clock is held stopped until a job is submitted.
 
@@ -300,9 +351,9 @@ A StarC job flows through the following stages:
 
 1. **Submit** — a user sends a `.starc` source file via SSH (`scp` + command) or the HTTP API.
 2. **Compile** — the Zynq runs `starc_pp.py` to preprocess StarC into C, then `riscv-gcc` (installed on the NVMe) cross-compiles to an AG32 binary. This happens natively on the dual-core A53 — no external build server needed.
-3. **Load** — `machine.load()` distributes input data to all 4,096 nodes through the 16 UART channels. Data flows Host → Card Controller → Nodes via the control tree.
-4. **Run** — `machine.run()` enables the TDMA phase clock in the PL fabric. All nodes begin executing simultaneously. The FPGA generates the master phase clock and distributes it across the backplane — jitter-free, independent of Linux scheduling.
-5. **Collect** — the host polls all 16 UART channels for results. As nodes complete their work and call `store_to_host()`, results stream back through the control tree. `machine.collect()` assembles the complete result set.
+3. **Load** — `machine.load()` distributes input data to all 4,096 nodes through the 16 `/dev/ttyUL*` serial ports. Data flows Host → Card Controller → Nodes via the control tree.
+4. **Run** — `machine.run()` enables the TDMA phase clock in the PL fabric via the TDMA UIO register. All nodes begin executing simultaneously. The FPGA generates the master phase clock and distributes it across the backplane — jitter-free, independent of Linux scheduling.
+5. **Collect** — the host does a blocking `read()` on all 16 serial ports. As nodes complete their work and call `store_to_host()`, results stream back through the control tree, the kernel wakes the blocked reader threads, and `machine.collect()` assembles the complete result set without any polling.
 6. **Display** — if the StarC program uses `led_set()`, the host library continuously writes LED state updates to the SPI master, and the RP2040 renders them on the 64x64 front panel at 60fps.
 
 ### TDMA Clock Control
@@ -680,7 +731,9 @@ If not implementing per-port power switching, leave PWRCTL1-4 (pins 36, 35, 33, 
 
 ### 16-Channel Backplane UARTs (PL HD Banks 25 and 26)
 
-16 independent hardware UART MACs instantiated in the Programmable Logic, memory-mapped to the AXI interconnect. Each channel is a dedicated TX/RX pair running at up to 460800 baud (bootloader) or the runtime baud rate configured by the host. All pins are 3.3V LVCMOS, directly compatible with the AG32 UART0 control interface on each compute card.
+16 instances of **Xilinx AXI UART Lite** (`axi_uartlite`) instantiated in the Programmable Logic, each with its own AXI-Lite register window and dedicated IRQ line. Each channel is a dedicated TX/RX pair running at 460800 baud (compile-time configured in Vivado — for a runtime-configurable baud divider, substitute `axi_uart16550`). All pins are 3.3V LVCMOS, directly compatible with the AG32 UART0 control interface on each compute card.
+
+These are stock Xilinx IP blocks with a mainline Linux driver — no custom RTL, no custom kernel code. See the "The Linux Software Stack" section above for the device tree and host library integration.
 
 **Bank 25 — Cards 0–7 (VCCO = 3.3V):**
 
@@ -724,17 +777,17 @@ If not implementing per-port power switching, leave PWRCTL1-4 (pins 36, 35, 33, 
 | 15 | UART_TX_15 | Output | 26 | Card 15 UART0_RX | Host TX → Node RX |
 | 15 | UART_RX_15 | Input | 26 | Card 15 UART0_TX | Node TX → Host RX |
 
-Each UART MAC is mapped to a contiguous 16-byte register block on the AXI bus. Base addresses are spaced at 0x1000 intervals for clean decoding:
+Each AXI UART Lite instance occupies a 4 KB AXI-Lite register window. The Xilinx IP block exposes a standard register layout (RX FIFO at +0x00, TX FIFO at +0x04, STAT_REG at +0x08, CTRL_REG at +0x0C) that the mainline kernel driver knows how to drive. Base addresses are spaced at 0x1000 intervals for clean address decoding in the AXI Interconnect:
 
-| Card | AXI Base Address | Registers |
-| :--- | :--- | :--- |
-| 0 | 0xA000_0000 | TX_DATA, RX_DATA, STATUS, BAUD_DIV |
-| 1 | 0xA000_1000 | TX_DATA, RX_DATA, STATUS, BAUD_DIV |
-| 2 | 0xA000_2000 | TX_DATA, RX_DATA, STATUS, BAUD_DIV |
-| ... | ... | ... |
-| 15 | 0xA000_F000 | TX_DATA, RX_DATA, STATUS, BAUD_DIV |
+| Card | AXI Base Address | Linux Device | IRQ |
+| :--- | :--- | :--- | :--- |
+| 0  | 0xA000_0000 | `/dev/ttyUL0`  | 89  |
+| 1  | 0xA000_1000 | `/dev/ttyUL1`  | 90  |
+| 2  | 0xA000_2000 | `/dev/ttyUL2`  | 91  |
+| ... | ... | ... | ... |
+| 15 | 0xA000_F000 | `/dev/ttyUL15` | 104 |
 
-The Linux kernel sees these as memory-mapped peripherals. A minimal character driver (or direct `/dev/mem` access during bringup) writes to TX_DATA, reads from RX_DATA, and polls STATUS for FIFO full/empty flags. The BAUD_DIV register allows per-channel baud rate configuration — 460800 for bootloader flashing, runtime rate for normal operation.
+Each instance has its own IRQ routed through Vivado IP Integrator to the Zynq's `IRQ_F2P` inputs (16 available, exactly consumed). The `drivers/tty/serial/uartlite.c` kernel driver handles all register access, FIFO management, and interrupt servicing — userspace talks to these through the standard POSIX serial API via `pyserial` or any other Linux serial library. No `/dev/mem`, no custom driver, no polling loops.
 
 ### LED Display SPI (PL HD Bank 24)
 
