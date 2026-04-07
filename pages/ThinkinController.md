@@ -144,7 +144,7 @@ It maxes out around 500 MB/s. It won't break modern PCIe Gen4 benchmark records,
 
 Routing the 100-ohm differential TX and RX pairs was the easy part (along with dropping the mandatory 0.1µF AC coupling capacitors on the transmit lines). The real trap with PCIe on a custom Zynq board is the clocking. 
 
-Bank 505 needs a highly stable reference clock to drive those transceivers. The DisplayPort link needs a 27 MHz clock, but the PCIe specification strictly demands a **100 MHz HCSL reference clock** with incredibly low jitter. You cannot easily synthesize both from the same crystal. To solve this, I had to drop a dedicated 100MHz differential oscillator onto the board and route it into the secondary `PS_MGTREFCLK` inputs on Bank 505. Without that clean clock, the drive simply never enumerates on the bus.
+Bank 505 needs highly stable reference clocks to drive those transceivers, and different protocols demand different frequencies. The PCIe specification strictly demands a **100 MHz HCSL reference clock** with incredibly low jitter, while DisplayPort and USB 3.0 both require a **27 MHz** reference. You cannot synthesize both from the same crystal. To solve this, I dropped two dedicated differential LVDS oscillators onto the board: a **SiTime SIT9121AI-2B1-33E27.000000** (27 MHz, LCSC C17415818) routed to `PS_MGTREFCLK0` (F23/F24) for DisplayPort and USB 3.0, and a **YXC OA1EL89CEIB112YLC-100M** (100 MHz, LCSC C7425450) routed to `PS_MGTREFCLK1` (E21/E22) for PCIe. Both share the same PQFD-6L 3.2x2.5mm footprint, placed adjacent to the Zynq Bank 505 balls. Without those clean clocks, neither the display nor the drive will enumerate.
 
 Toss in a dedicated, high-current 3.3V switching buck converter to handle the massive 3-Amp power spikes that NVMe drives pull during write operations, and the board is transformed from an embedded controller into a fully self-contained workstation.
 
@@ -172,19 +172,30 @@ To get the 0.8mm BGA pitch that makes routing this 8-layer board economically vi
 
 While the DDR4, the NVMe drive, and the DisplayPort output hog all the high-bandwidth dedicated transceivers, a supercomputer still needs to talk to the outside world and manage basic housekeeping. 
 
-Xilinx handles this through Multiplexed I/O (MIO). The Zynq has 78 dedicated pins (Banks 500-503) that can be dynamically assigned to internal, hardened hardware controllers inside the Processing System. This is where I routed the two most critical low-speed interfaces on the board: Gigabit Ethernet and the MicroSD slot.
+Xilinx handles this through Multiplexed I/O (MIO). The Zynq has 78 dedicated pins (Banks 500-503) that can be dynamically assigned to internal, hardened hardware controllers inside the Processing System. The MIO budget on this board is fully allocated across six subsystems: QSPI boot flash, UART debug console, NVMe reset, MicroSD card, DisplayPort AUX, Gigabit Ethernet, and the USB ULPI PHY.
 
 ### The Gigabit Gateway
 If this machine is going to operate as an edge-compute server taking job payloads from the internet, it needs a massive pipe to the network. 
 
 The Zynq Processing System includes four hardened Gigabit Ethernet MACs directly in the silicon, giving the Ubuntu kernel native, zero-overhead networking without burning CPU cycles on software drivers. I routed one of these MACs out through the MIO pins using the RGMII protocol to a dedicated physical transceiver (PHY) chip on the board. The Zynq handles the digital logic, the PHY handles the analog line coding, and the result is flawless, line-rate Gigabit Ethernet straight to the rear IO panel. When you plug a cable in, the host instantly pulls an IP address and is ready to accept SSH connections or web payloads.
 
-### The MicroSD Ignition Key
-While the M.2 NVMe drive is the primary storage engine for compiling StarC and holding datasets, it is too complex for the Zynq's absolute lowest-level BootROM to understand on a cold power-up. The microSD card acts as the physical ignition key. 
+### The Boot Chain: QSPI, SD, and JTAG
 
-By pulling a few mode pins high or low with standard resistors, the Zynq is hardware-strapped to boot from the SD interface. On power-up, it reads the card, loads the First Stage Bootloader (FSBL) and U-Boot, and wakes up the PCIe transceivers. The boot sequence then immediately pivots to the M.2 drive, loading the full Ubuntu workstation OS at 500 MB/s. 
+The M.2 NVMe drive is the primary storage engine, but the Zynq’s BootROM cannot read PCIe — it needs a simpler device to bootstrap from. To solve this, the board supports **three boot sources**, selectable at runtime via a 4-position DIP switch on the `PS_MODE[3:0]` pins:
 
-It’s a slower bus, but it provides a massive development advantage: if I ever completely brick the bootloader while writing custom kernel drivers for the hypercube, I don't need to break out a specialized JTAG programmer. I just pop the SD card out, re-flash it on my laptop, drop it back in, and the motherboard boots.
+| DIP Setting | MODE[3:0] | Boot Source | Use Case |
+| :--- | :--- | :--- | :--- |
+| All OFF | 0000 | JTAG | Board bringup — debugger pushes FSBL directly |
+| SW1 ON | 0010 | QSPI Flash | Production — boots autonomously from soldered flash |
+| SW0+SW1+SW2 ON | 0111 | MicroSD Card | Development — easy reflash from a laptop |
+
+Each MODE pin has a 10kΩ pull-down resistor; the DIP switch overrides individual pins to 3.3V.
+
+**QSPI Flash (Production Boot):** A dedicated QSPI flash chip on MIO0-5 holds the FSBL, U-Boot, and the PL bitstream. On power-up with MODE=0010, the BootROM reads the flash, initializes the Processing System, loads the FPGA fabric, and hands off to U-Boot. U-Boot then wakes up the PCIe transceivers and boots the full Ubuntu workstation OS from the NVMe drive at 500 MB/s. No removable media, nothing to come loose inside the sealed aluminum cube.
+
+**MicroSD Card (Development Boot):** The microSD slot on MIO13-22 acts as the development ignition key. With MODE=0111, the same boot chain runs from the SD card instead. If I ever completely brick the QSPI while writing custom kernel drivers for the hypercube, I flip the DIP switch, pop in an SD card flashed on my laptop, and the board boots. No JTAG programmer required.
+
+**JTAG (Debug Boot):** With MODE=0000, the BootROM halts and waits for a JTAG debugger to push the FSBL over the wire. This is strictly for initial bringup and low-level hardware debugging.
 
 ## Thermal Management: Quad-Fan PWM Array
 
@@ -615,8 +626,8 @@ USB3300-EZK D+ and D- outputs connect directly to TUSB8043A pins 53 (USB_DP_UP) 
 | :--- | :--- | :--- |
 | 58 | USB_SSRXP_UP | ← PS_MGTRTXP3_505 (B23) |
 | 59 | USB_SSRXM_UP | ← PS_MGTRTXN3_505 (B24) |
-| 55 | USB_SSTXP_UP | → PS_MGTRRXP3_505 (B27) |
-| 56 | USB_SSTXM_UP | → PS_MGTRRXN3_505 (B28) |
+| 55 | USB_SSTXP_UP | → PS_MGTRRXP3_505 (A25) |
+| 56 | USB_SSTXM_UP | → PS_MGTRRXN3_505 (A26) |
 | 53 | USB_DP_UP | ↔ USB3300-EZK D+ |
 | 54 | USB_DM_UP | ↔ USB3300-EZK D- |
 | 48 | USB_VBUS | 90.9kΩ to VBUS (5V), 10kΩ to GND (voltage divider) |
@@ -772,3 +783,64 @@ Four-channel PWM fan controller in the PL fabric. Each fan header carries a PWM 
 | 64 | HP | 1.8V | *Unallocated* | 0 | 56 |
 | 65 | HP | 1.8V | *Unallocated* | 0 | 56 |
 | 66 | HP | 1.8V | *Unallocated* | 0 | 56 |
+
+## Schematic TODO — Remaining Work
+
+The following items are not yet wired in the KiCad schematic and must be completed before the board can be fabricated.
+
+### MIO Pin Reassignments
+
+The addition of QSPI boot flash on MIO0-5 requires moving two signals:
+
+| Signal | Current MIO | New MIO | Reason |
+| :--- | :--- | :--- | :--- |
+| M.2 PERST# | MIO2 | MIO6 or MIO7 | MIO2 needed for QSPI_IO0 |
+| UART TX | MIO0 (reserved) | MIO8 | MIO0 needed for QSPI_SCLK |
+| UART RX | MIO1 (reserved) | MIO9 | MIO1 needed for QSPI_CS |
+
+### Updated MIO Map
+
+| MIO Range | Function | Status |
+| :--- | :--- | :--- |
+| MIO0-5 | QSPI flash (SCLK, CS, IO0-IO3) | **TODO — need QSPI chip, wiring** |
+| MIO6 or MIO7 | M.2 NVMe PERST# | **TODO — move from MIO2** |
+| MIO8-9 | UART debug console (TX/RX) | **TODO — need header or level shifter** |
+| MIO10-12 | Available | |
+| MIO13-22 | MicroSD card (SDIO0) | Done |
+| MIO23-26 | Available | |
+| MIO27-30 | DisplayPort AUX + HPD | Done |
+| MIO31-37 | Available | |
+| MIO38-51 | Ethernet RGMII + MDIO | Done |
+| MIO52-63 | USB ULPI | Done |
+| MIO64-77 | Available | |
+
+### Boot and Configuration (Config / PS_MIO Sheets)
+
+| Item | Pins | What to Do | Sheet |
+| :--- | :--- | :--- | :--- |
+| Boot mode DIP switch | PS_MODE0-3 | 4-pos DIP switch + 10kΩ pulldowns on each pin. Switch ON = 3.3V. | PS_MIO |
+| QSPI flash | MIO0-5 | Add QSPI flash chip (TBD part), wire SCLK/CS/IO0-IO3, decoupling | PS_MIO |
+| JTAG debug header | PS_JTAG_TCK/TDI/TDO/TMS | Add 2x7 ARM JTAG header, wire to Zynq JTAG pins | PS_MIO / Config |
+| Power-on reset | PS_POR_B | RC circuit: 10kΩ to 3.3V + 100nF to GND (delay ~1ms) | PS_MIO / Config |
+| System reset | PS_SRST_B | 10kΩ pullup to 3.3V + optional reset button | PS_MIO / Config |
+| PL config handshake | PS_PROG_B, PS_INIT_B, PS_DONE | 10kΩ pullups to 3.3V each | PS_MIO / Config |
+| PS reference clock | PS_REF_CLK (R16) | SiT8008BI-71-33S-33.333330 (LCSC C806182), 2.0x1.6mm | PS_MIO / Config |
+| PUDC_B | PUDC_B | Tied to GND (pull-ups enabled during config) | Config |
+| UART console | MIO8-9 | UART0 TX/RX + pin header or FTDI connector | PS_MIO |
+
+### PL Fabric (PL Bank Sheets + Backplane + Peripherals)
+
+| Item | What to Do |
+| :--- | :--- |
+| Backplane connector | Design and place connector(s) on Backplane.kicad_sch for 16 compute cards. Route 32 UART signals (16 TX + 16 RX) from PL Banks 25/26, plus 5 TDMA signals from Bank 44. |
+| Fan PWM/Tach | Change local labels on Peripherals.kicad_sch to global labels. Add matching global labels on PL_HD.kicad_sch connecting to Bank 44 pins. |
+| PL pin assignment | Assign specific Zynq ball numbers to all PL signals (UARTs, TDMA, SPI, fans) on Banks 24/25/26/44. Currently all 272 PL I/O pins are unassigned. |
+| HP Banks 64/65/66 | 168 HP pins currently unallocated. Add no-connect markers or reserve for future use. |
+
+### Minor Fixes
+
+| Item | What to Do |
+| :--- | :--- |
+| RTL8211EG LED2 (pin 52) | Add no-connect marker |
+| RTL8211EG REG_OUT (pin 3) | Verify 1µF + 0.1µF decoupling cap to GND is present |
+| J5 DisplayPort CONFIG1/CONFIG2 | Check Foxconn 3VD51203 datasheet — may need pull-ups/pull-downs or NC |
