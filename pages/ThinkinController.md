@@ -144,26 +144,30 @@ A PL AXI master on one of the Zynq's High-Performance (HP) AXI ports writes dire
 
 ### The Out-of-Band Console Property
 
-Because the sidebar is painted by a processor that shares nothing with the Linux side except the DDR4 memory controller, it **keeps running when Linux is dead**. When Ubuntu panics, when Xorg hangs, when the A53 cores livelock inside a kernel bug — none of it matters to the sidebar. The R5F core keeps reading telemetry and writing pixels, the DMA path keeps moving bytes to the framebuffer, and the DP controller keeps scanning it all out at 60Hz.
+Because the sidebar is painted by a processor that shares nothing with the Linux side except the DDR4 memory controller, it **keeps running when Linux is dead**. When Ubuntu panics, when Xorg hangs, when the A53 cores livelock inside a kernel bug — none of it matters to the sidebar. R5 core 0 keeps reading telemetry and writing pixels, the DMA path keeps moving bytes to the framebuffer, and the DP controller keeps scanning it all out at 60Hz.
+
+More importantly, **the data the sidebar is displaying is still live**, because R5 core 1 is still running the hypercube. Telemetry keeps streaming into the thermal table, the LED panel keeps displaying an up-to-the-second thermal map, and any job that was in flight when Linux died keeps executing to completion on the compute nodes. See "Hypercube Controller: R5F Core 1" below for the full architecture — the short version is that Linux was never on the hypercube control path in the first place.
 
 The user experience of a crashed system becomes:
 
 - **Left side:** frozen desktop, last image before the crash
-- **Right side:** **still updating.** Still mirroring the LED panel in real time. Still showing live temperatures, TDMA state, card health. Still posting event messages ("14:47:12 KERNEL PANIC — general protection fault").
+- **Right side:** **still updating with live data.** Real thermal map from the 4,096 compute nodes, real temperatures, real TDMA state, real card health. Any in-flight StarC job keeps running to completion and the progress bar keeps climbing. The HUD posts a header reading `LINUX: DEAD (kernel panic at 14:47:12)` so there's no ambiguity about what happened, but everything else on the sidebar is current.
 
 This is exactly what enterprise servers call an **out-of-band management console**. IBM RSA, Dell iDRAC, HP iLO, Sun LOM — every major server vendor ships dedicated BMC silicon just to provide this feature, because the ability to see what's wrong *when the main OS can't tell you* is the difference between "five-hour remote debug session" and "oh, node 7 is on fire." Commercial servers pay hundreds of dollars of BOM cost for a dedicated BMC chip to get this.
 
-This board gets it for free because the PL is already on the other side of the DP controller's DMA port. The BMC functionality is a side effect of where the fabric happens to sit in the memory hierarchy.
+This board gets it for free because the PL is already on the other side of the DP controller's DMA port, and because the R5 cluster is on the other side of Linux entirely. The BMC functionality and the hypercube-survives-Linux-crash property are both side effects of where the fabric and the R5 cores happen to sit in the memory hierarchy.
 
 ### The 448×448 LED Mirror
 
 The top of the sidebar is a live mirror of the 64×64 front-panel LED display, scaled **7× exactly** to 448×448, centered in the 480-wide sidebar with a 16-pixel dark border on each horizontal edge. The integer scaling factor is deliberate: it's pixel-perfect with no interpolation artifacts, and the visible grid between upscaled pixels gives each LED a chunky, deliberate look. The 16-pixel border reads as a bezel around the mirrored display.
 
-**The critical detail is where the mirror source comes from.** It is not the "intended framebuffer" the host library last pushed — because the RP2040 on the front panel is not a dumb slave. It runs its own animations, plays local video (Bad Apple, a Doom demo, boot splashes, idle screensavers), and composites host overlays on top of local content. At any moment, the RP2040 might be lighting up pixels the host never pushed. The only way to know what is *actually* on the physical panel is to ask the RP2040 directly.
+**The critical detail is where the mirror source comes from.** It is not the "intended framebuffer" the host library last pushed — because the RP2040 on the front panel is not a dumb slave. It runs its own animations, plays local video (Bad Apple, a Doom demo, boot splashes, idle screensavers), and composites host overlays on top of local content. At any moment, the RP2040 might be lighting up pixels the Zynq never pushed. The only way to know what is *actually* on the physical panel is to ask the RP2040 directly.
 
-So the mirror source is the **SPI MISO readback buffer**: every frame, the RP2040 streams its current framebuffer back to the Zynq over the LED SPI link's MISO line, along with a small status header (current mode, frame counter, underrun flag). The R5 reads that RX buffer in DDR4 every frame, applies the colormap LUT, and writes the scaled 7× mirror into the sidebar region of the DP framebuffer. The mirror is always showing what the RP2040 *reports it is actually displaying*, which is ground truth by construction.
+So the mirror source is the **SPI MISO readback buffer**: every frame, the RP2040 streams its current framebuffer back to the Zynq over the LED SPI link's MISO line, along with a small status header (current mode, frame counter, underrun flag). R5 core 0 reads that RX buffer in DDR4 every frame, applies the colormap LUT, and writes the scaled 7× mirror into the sidebar region of the DP framebuffer. The mirror is always showing what the RP2040 *reports it is actually displaying*, which is ground truth by construction.
 
-See the "LED Display Pipeline" section below for the full bidirectional protocol. The short version: the SPI link is full-duplex, MOSI carries Zynq commands and optional push-framebuffers, MISO carries the RP2040's authoritative current framebuffer, and the mirror reads from MISO.
+Note that in thermal mode the RP2040 is displaying a framebuffer that was **produced by R5 core 1** (the hypercube controller), not by Linux. Core 1 applies the colormap to the live thermal table and writes the 64×64 image into the LED SPI TX buffer; the RP2040 then latches that frame for display and echoes it back on MISO. The mirror is therefore reflecting R5-rendered live telemetry, and Linux is not in the path. See the "Hypercube Controller: R5F Core 1" section below for the full rendering pipeline.
+
+See the "LED Display Pipeline" section later in the document for the full bidirectional SPI protocol. The short version: the SPI link is full-duplex, MOSI carries Zynq commands and optional push-framebuffers, MISO carries the RP2040's authoritative current framebuffer, and the mirror reads from MISO.
 
 This matters because it means the mirror is *always correct in every mode*:
 
@@ -250,24 +254,27 @@ Every value on that HUD comes from a different part of the system, and every sou
 
 **Not a single one of these readings goes through the Linux kernel.** The HUD renderer reads straight from the AXI slaves and writes pixels straight into the DP framebuffer. The Linux side only contributes to fields that are *only* knowable from userspace (uptime, hostname, current job) and it writes those into a mailbox region that the HUD polls. Everything else is pure fabric.
 
-### The HUD Renderer: The Cortex-R5F
+### The HUD Renderer: Cortex-R5F Core 0
 
-The telemetry HUD is rendered by **one of the Zynq's Cortex-R5F real-time cores**, not by a soft processor in fabric. This is free silicon: the R5F cores are part of the XCZU2EG's Processing System, they've been sitting in the chip the whole time, and until now nothing on the board was using them. They run at up to 600 MHz, have their own TCM (tightly-coupled memory), their own caches, their own interrupt controller, and their own power domain separate from the A53 cluster — meaning the R5 survives A53 crashes by design.
+The telemetry HUD is rendered by **Cortex-R5F core 0**, one of the Zynq's two hardened real-time cores, not by a soft processor in fabric. This is free silicon: the R5F cores are part of the XCZU2EG's Processing System, they've been sitting in the chip the whole time, and until now nothing on the board was using them. They run at up to 600 MHz, have their own TCM (tightly-coupled memory), their own caches, their own interrupt controller, and their own power domain separate from the A53 cluster — meaning the R5 survives A53 crashes by design.
 
-The R5 runs a FreeRTOS image that does nothing except:
+Core 0 runs a FreeRTOS image that does nothing except:
 
-1. Read the telemetry values from memory-mapped AXI slaves and PS peripherals (SYSMON, XADC, fan controller, stats counters)
-2. Read the LED SPI slave's **MISO RX buffer** — the authoritative current framebuffer streamed back from the RP2040 every refresh
-3. Format telemetry into strings with `sprintf`-style code
-4. Blit characters from a font ROM into the sidebar region of the DP framebuffer in DDR4
-5. Upscale the RP2040's reported 64×64 framebuffer 7× into the top 448×448 of the sidebar
-6. Sleep for ~16ms (for a 60Hz update rate) and repeat
+1. Read local telemetry from memory-mapped AXI slaves and PS peripherals (SYSMON, XADC, fan controller, stats counters)
+2. Read the **hypercube thermal table** — a shared DDR4 region maintained by R5 core 1, the hypercube controller, containing live per-node temperatures, alive bitmap, and job state (see "Hypercube Controller: R5F Core 1" below)
+3. Read the LED SPI slave's **MISO RX buffer** — the authoritative current framebuffer streamed back from the RP2040 every refresh
+4. Format telemetry into strings with `sprintf`-style code
+5. Blit characters from a font ROM into the sidebar region of the DP framebuffer in DDR4
+6. Upscale the RP2040's reported 64×64 framebuffer 7× into the top 448×448 of the sidebar
+7. Sleep for ~16ms (for a 60Hz update rate) and repeat
 
-Because the R5 has direct AXI access to DDR4 and to the LED SPI slave peripheral, it reads the MISO RX buffer in place. This is the **actual, authoritative** current panel content (see the "LED Display Pipeline" section later in the document for why this has to come from the RP2040's readback rather than from a host-written framebuffer). The R5 applies the colormap LUT and writes the scaled mirror into the sidebar region of the DP framebuffer. Zero copies, minimal fabric logic.
+Because core 0 has direct AXI access to DDR4 and to the LED SPI slave peripheral, it reads the MISO RX buffer in place. This is the **actual, authoritative** current panel content (see the "LED Display Pipeline" section later in the document for why this has to come from the RP2040's readback rather than from a host-written framebuffer). The R5 applies the colormap LUT and writes the scaled mirror into the sidebar region of the DP framebuffer. Zero copies, minimal fabric logic.
+
+Critically, **none of the data core 0 reads flows through Linux.** Local telemetry comes from hardened PS peripherals; hypercube telemetry comes from core 1's shared table; the LED mirror source comes from the SPI slave's RX buffer. The A53 cluster is not on any of these paths, and a Linux kernel panic does not perturb any of them.
 
 The R5 is used instead of a soft core because it is flatly better for this job in every dimension: it's already in the silicon (no fabric cost), it runs ~12× faster than a PicoRV32 at fabric clock rates, it has a hard FPU, it has a full Xilinx BSP with FreeRTOS and lwIP support, and Xilinx explicitly supports "A53 runs Linux + R5 runs FreeRTOS" as a first-class AMP (Asymmetric Multiprocessing) configuration with published reference designs.
 
-The sidebar becomes, in effect, **a completely self-contained embedded system running inside the Zynq PS**, with its own CPU, its own firmware, its own memory, and its own display output. Its sole function is to render the operator console and run the BMC services described in the next section, and it does so independently of anything the A53 cluster is doing. When Linux crashes, the R5 doesn't notice and doesn't care. It just keeps drawing pixels and answering network requests.
+The sidebar becomes, in effect, **a completely self-contained embedded system running inside the Zynq PS**, with its own CPU, its own firmware, its own memory, and its own display output. Its sole function is to render the operator console and run the BMC services described in the next section, and it does so independently of anything the A53 cluster is doing. When Linux crashes, core 0 doesn't notice and doesn't care. It just keeps drawing pixels and answering network requests — and because core 1 is still running the hypercube, the pixels it draws are still live data, not a frozen screenshot.
 
 ### The Killer Demo
 
@@ -588,37 +595,139 @@ Total software effort: maybe two weeks of focused work by someone who already kn
 | Subsystem | Runs On | Memory |
 | :--- | :--- | :--- |
 | Sidebar HUD renderer | R5 core 0 | 64 KB TCM + shared DDR4 framebuffer |
-| LED mirror scaler | R5 core 0 | In the same loop as HUD |
+| LED mirror scaler (MISO readback) | R5 core 0 | In the same loop as HUD |
 | HTTP server + web dashboard | R5 core 0 | ~100 KB DDR4 |
 | SSH server (Dropbear / wolfSSH) | R5 core 0 | ~150 KB DDR4 |
 | VNC / RFB server | R5 core 0 | ~50 KB DDR4 |
 | Serial-over-LAN bridge | R5 core 0 | Small buffers, shared with console |
 | Prometheus exporter | R5 core 0 | ~20 KB DDR4 |
 | Event log (circular buffer) | R5 core 0 | 256 KB DDR4 + periodic QSPI flush |
-| FreeRTOS + lwIP kernel | R5 core 0 | ~200 KB DDR4 |
-| Thermal trip watchdog | R5 core 1 (or fabric) | Minimal, runs independently |
-| Fan control PID loop | R5 core 1 (or fabric) | Minimal |
+| FreeRTOS kernel + lwIP (core 0) | R5 core 0 | ~200 KB DDR4 |
+| 16-UART hypercube control tree | R5 core 1 | 16 × 4 KB RX rings + per-card state |
+| Autonomous telemetry parser | R5 core 1 | ~8 KB parser state |
+| Hypercube thermal table (4,096 nodes) | R5 core 1 | 4,096 × 8 B = 32 KB shared DDR4 |
+| Thermal map renderer (LED SPI TX) | R5 core 1 | 4 KB framebuffer + 768 B colormap LUT |
+| Job dispatcher + rpmsg responder | R5 core 1 | ~32 KB DDR4 for command/reply rings |
+| TDMA controller driver | R5 core 1 | Small — direct AXI register writes |
+| Fan PID control loop | R5 core 1 | Minimal |
+| FreeRTOS kernel + OpenAMP (core 1) | R5 core 1 | ~150 KB DDR4 |
 
-The machine has two R5F cores. Core 0 runs the full BMC + HUD stack. Core 1 is left either idle for future use, or runs the absolute-safety functions (thermal trip, fan emergency) in a tiny bare-metal loop with no dependencies on anything else. The full stack fits comfortably in the roughly 128 KB of R5 TCM + whatever DDR4 is allocated to the R5 (a few megabytes is more than enough).
+The machine has two R5F cores, and both are fully committed. **Core 0** runs the BMC + HUD stack described above. **Core 1** runs the hypercube controller — it owns the 16 backplane UARTs, the TDMA block, the LED SPI TX buffer, and the fan PWM controller, and it is the CPU that actually orchestrates StarC jobs on the 4,096 compute nodes. The full architecture is described in the "Hypercube Controller: R5F Core 1" section below. The complete firmware for both cores fits comfortably in the available TCM plus a few megabytes of reserved DDR4.
 
 ### Why This Section Exists
 
-At some point during the design of this board, the R5F cores went from "a bullet point in the silicon spec sheet that I picked because the price was right" to "the single most useful piece of silicon on the entire machine." They give you a full enterprise BMC, a fabric-independent sidebar renderer, a network-accessible operator console, and a set of services indistinguishable from what commercial server vendors charge hundreds of dollars in license fees to unlock — and they give it to you with zero additional hardware, zero PCB changes, and zero soft logic in the FPGA fabric.
+At some point during the design of this board, the R5F cores went from "a bullet point in the silicon spec sheet that I picked because the price was right" to "the single most useful piece of silicon on the entire machine." They give you a full enterprise BMC, a fabric-independent sidebar renderer, a network-accessible operator console, and a real-time hypercube controller that keeps the compute nodes running even when Linux is dead — and they give it to you with zero additional hardware, zero PCB changes, and zero soft logic in the FPGA fabric.
 
-The XCZU2EG is a ~$80 chip that includes, as a casual side effect of being a Zynq UltraScale+, a dual-core Cortex-A53 workstation CPU, a Mali-400 GPU, a dual-core Cortex-R5F real-time cluster, 47,000 LUTs of FPGA fabric, and a hardware DisplayPort controller. I originally picked it for the FPGA and the A53. The R5 cores came along for free and now they run the BMC. Nothing in the Zynq UltraScale+ lineup is wasted on this board — every block is doing a job, and some blocks are doing two.
+The XCZU2EG is a ~$80 chip that includes, as a casual side effect of being a Zynq UltraScale+, a dual-core Cortex-A53 workstation CPU, a Mali-400 GPU, a dual-core Cortex-R5F real-time cluster, 47,000 LUTs of FPGA fabric, and a hardware DisplayPort controller. I originally picked it for the FPGA and the A53. The R5 cores came along for free, and between the two of them they run the BMC, the operator console, and the entire real-time supervisor for the hypercube. Nothing in the Zynq UltraScale+ lineup is wasted on this board — every block is doing a job, and most blocks are doing two.
 
-This is why I will never go back to using an off-the-shelf single-board computer for a project like this. A Raspberry Pi does not have a BMC. A Jetson does not have a BMC. An Odroid does not have a BMC. The only way to get one is to build one yourself, and the only reason I can build one is because the Zynq gave me the hardware for free.
+This is why I will never go back to using an off-the-shelf single-board computer for a project like this. A Raspberry Pi does not have a BMC. A Jetson does not have a BMC. An Odroid does not have a BMC. None of them have a pair of hardened real-time cores in a separate power domain sharing a memory controller with the application processor. The only way to get any of these things is to build them yourself, and the only reason I can build them is because the Zynq gave me the hardware for free.
+
+## The Hypercube Controller: R5F Core 1 as the Real-Time Supervisor
+
+Core 0 runs the BMC and the operator console. The natural question is what to do with core 1. The answer turns out to be: **make it the hypercube controller**, the CPU that actually orchestrates StarC jobs on the 4,096 compute nodes. Linux, on the A53 cluster, stops touching the backplane hardware directly and instead submits jobs to core 1 over a shared-memory mailbox. This is the standard HPC split between a "user frontend" and a "service processor," reinvented by accident because the XCZU2EG happens to ship both kinds of CPU in the same package.
+
+### Why Linux Should Not Own the UARTs
+
+The original plan was to have Linux open `/dev/ttyUL0` through `/dev/ttyUL15` with `pyserial` and drive the hypercube directly. This works — the `uartlite` kernel driver is mainline, pyserial is fine, the A53s have plenty of headroom. But it has two problems that get worse the longer you think about them:
+
+1. **Linux scheduling jitter lands on every hypercube interaction.** A Linux process reading a UART can be delayed by a kernel interrupt, a page fault, a scheduler quantum, or a neighbor thread misbehaving. On a machine with microsecond-sensitive TDMA control and a bootloader handshake protocol that needs to stream 460800-baud bytes without gaps, that jitter is actively hostile. The A53 cluster is a workstation CPU optimized for throughput under load, not for bounded latency.
+
+2. **Linux sits on the critical path for every status claim the machine makes about itself.** If Linux owns the UARTs, it owns the telemetry, which means the LED panel content, the sidebar mirror, and the HUD numbers are all downstream of a CPU that can kernel-panic. The sidebar keeping itself alive during an Xorg crash is a real property, but it's only an *accident* as long as the hypercube data feeding it also lives inside Linux. "Survives an Xorg crash" does not imply "survives a kernel panic," and the distinction starts to matter the moment someone types `sudo pkill -9` at the wrong process.
+
+Moving the UARTs to R5 core 1 fixes both problems at once. The R5 is hard real-time with bounded interrupt latency. It has no kernel scheduler to preempt its tight loops. And because it runs in a power domain separate from the A53 cluster, its operation is genuinely independent of Linux's state — not practically independent, but architecturally independent.
+
+### What Core 1 Runs
+
+Core 1 runs its own FreeRTOS image, mapped into its own TCMs and a dedicated DDR4 reserved-memory region declared in the device tree. The firmware does the following:
+
+1. **Owns the 16 AXI UART Lite blocks.** Every UART's interrupt routes to core 1 via the PL-to-PS interrupt fabric. A UART worker task per card handles RX/TX FIFO draining, protocol framing, and bootloader sequencing during flash operations. The sub-microsecond interrupt latency of the R5 makes this dramatically more deterministic than anything Linux can do.
+
+2. **Collects autonomous telemetry from every node.** Each card's AG32 controller sends a heartbeat frame at a fixed rate — say once per second — containing per-node temperatures, the node-alive bitmap, the current job phase, and a sequence counter. Core 1's parser decodes these as they arrive and updates a **thermal table** in shared DDR4: a flat array of 4,096 entries, one per node, with temperature, liveness state, and last-update timestamp. This table is the single source of truth for hypercube status on the entire controller board, and everything downstream (LED panel, HUD, BMC web dashboard, Prometheus exporter) reads from it.
+
+3. **Renders the thermal map for the LED panel.** Core 1 applies a colormap LUT to the thermal table, produces a 64×64 framebuffer, and writes it into the LED SPI TX buffer. The RP2040 picks it up on the next refresh and lights the panel. The thermal-mode content of the front panel is therefore **produced by R5 core 1 from live telemetry, with zero Linux involvement**. The sidebar mirror on the operator console reflects this via the MISO readback path, which means the sidebar thermal view is also independent of Linux.
+
+4. **Executes job commands from Linux.** When Linux wants to run a StarC job, it writes a command descriptor into a shared-memory mailbox and rings a doorbell via the Zynq's inter-processor interrupt mechanism. Core 1 picks up the command, fans the work across the appropriate UARTs, and writes the results back into a reply buffer. Commands are small and well-defined: `FLASH`, `LOAD`, `RUN`, `COLLECT`, `LED_PUSH`, `LED_MODE`, `SET_FAN`, `STATUS`, `RESET_CARD`. Everything the old `ThinkinMachine` Python class did as direct UART I/O becomes a mailbox transaction.
+
+5. **Drives the TDMA clock and the fan PWM.** Both are AXI peripherals with simple register maps. Core 1 writes `TDMA_ENABLE` and `TDMA_DIVIDER` when a job starts and stops, and runs a PID loop over the fan PWM using the thermal table as its setpoint source.
+
+6. **Exposes virtual TTYs to Linux for interactive debug.** Users who want to `picocom /dev/ttyUL5` to manually poke at a card still can — core 1's rpmsg stack exposes `/dev/rpmsg-tty0` through `/dev/rpmsg-tty15`, which behave exactly like real serial ports through the mainline `drivers/tty/rpmsg_tty.c` driver. When a debug session is open on a given virtual tty, core 1 temporarily suspends autonomous telemetry collection on that card so the debug bytes don't collide with heartbeat frames. From Linux userspace, the experience is indistinguishable from opening a direct UART.
+
+### The Mailbox Interface
+
+Linux and R5 core 1 communicate over **Xilinx OpenAMP rpmsg**, a standard Xilinx-supported AMP pattern with mainline Linux drivers and published reference designs. A single rpmsg channel carries command descriptors in one direction and reply descriptors in the other:
+
+```c
+struct hypercube_cmd {
+    uint32_t opcode;       // FLASH, LOAD, RUN, COLLECT, ...
+    uint32_t job_id;
+    uint32_t card_mask;    // which of the 16 cards to act on
+    uint64_t payload_ptr;  // DDR4 pointer to command payload
+    uint32_t payload_len;
+    uint64_t reply_ptr;    // DDR4 pointer to reply buffer
+    uint32_t flags;
+};
+```
+
+The payload and reply buffers live in DDR4 regions that are mapped into both the A53 and R5 address spaces with matching MMU/MPU entries, so there are no extra copies. Linux writes the payload, pushes the descriptor, and waits for the reply doorbell. Core 1 processes the descriptor and rings the completion back via a second IPI. The whole round trip is sub-millisecond for small commands and throughput-limited (not latency-limited) for large ones.
+
+On the Python side, the host library API is unchanged from what users see today:
+
+```python
+machine.flash('firmware.bin')
+machine.load(data, 'input')
+machine.run()
+results = machine.collect()
+```
+
+The implementation underneath switches from 16 `pyserial` handles and three `mmap`'d UIO windows to a single open `/dev/rpmsg-hypercube` character device. The Python binding is a few hundred lines of ctypes wrapping an rpmsg-backed command/reply protocol.
+
+### Why This Is the Correct Architecture
+
+Every real supercomputer eventually arrives at this split. Cray called it the Service Management Workstation. IBM Blue Gene separated "I/O nodes" from "compute nodes" from a dedicated service node. Modern HPC clusters run `slurmctld` on a control node distinct from both the login nodes and the compute nodes. The pattern is universal: **one processor hosts users, another processor runs the machine.**
+
+The XCZU2EG gives you both classes of processor in the same package — a full Linux workstation on the A53 cluster and a dual-core hard-real-time service processor on the R5F cluster — and it is architecturally wrong to run the real-time side as a side effect of a Linux userspace daemon. Moving hypercube control to the R5 is not an optimization or a workaround; it is the configuration the silicon was designed for, and Xilinx publishes reference designs for exactly this case.
+
+### What Linux Still Does
+
+Linux is not demoted by any of this. It is promoted into the role it is genuinely good at:
+
+- **The user frontend.** SSH, HTTPS, web API, desktop environment, terminal, file editing, the whole conventional Ubuntu experience on the Mali-accelerated 1440×1080 half of the DisplayPort output.
+- **StarC compilation.** `starc_pp.py` + `riscv-gcc` + the whole build toolchain runs natively on the A53 cluster with 4 GB of DDR4 and a 500 MB/s NVMe drive.
+- **Job queue and results storage.** Incoming jobs land in a queue on the NVMe, get compiled, and are dispatched to core 1 via rpmsg. Results come back and are stored in a results database on the NVMe.
+- **The primary network stack.** GEM3 queues 0–1 belong to Linux; the BMC's queues 2–3 are shared on the same PHY but belong to core 0.
+- **The desktop display.** The Mali-400 draws the Ubuntu UI on the left 1440×1080 of the screen.
+
+What Linux stops doing is pretending to be a real-time processor. That job moves where it belongs.
+
+### Crash Survival, Stated Honestly
+
+With this architecture, the "sidebar survives Linux crashes" story becomes a subset of a much stronger claim: **the hypercube survives Linux crashes.** In particular:
+
+- **In-flight jobs finish to completion on the R5.** If Linux panics while a Mandelbrot render is running, core 1 keeps orchestrating the TDMA phase clock, keeps pumping the control tree, and keeps collecting results from the nodes. The job finishes. Its output ends up in the reply buffer, waiting for Linux to come back and collect it.
+- **Telemetry keeps flowing.** The thermal table is maintained by core 1 from autonomous heartbeats. Linux is not in that path.
+- **The LED panel keeps displaying a live thermal map.** Core 1 is rendering it and pushing it to the RP2040 every frame. Linux is not in that path.
+- **The sidebar mirror and the HUD stay live.** Core 0 reads the thermal table (written by core 1) and the RP2040 MISO readback, and renders both halves of the operator console. Linux is not in that path either.
+- **The BMC network services stay reachable.** Core 0 owns its own GEM queue via the shared-GEM Screener. Linux is not in that path.
+- **What you actually lose:** the ability to submit *new* jobs, edit files, SSH in, or compile new StarC programs — because those are genuinely Linux-side activities. The machine as a whole degrades to "the currently running job finishes cleanly, the operator console stays live showing real data, and then new work has to wait for a Linux reboot."
+
+The HUD gets a new `LINUX:` line that reads `ALIVE`, `DEAD`, or `REBOOTING` based on whether the Linux-side heartbeat mailbox is still ticking. When it reads `DEAD`, core 0 posts an event to the log (`14:47:12 LINUX: kernel panic — hypercube still running autonomously`) and the BMC dashboard in a browser on the LAN turns the Linux status red while the hypercube status stays green. Both are telling the truth.
+
+This is dramatically better than "the screen keeps drawing pixels of stale data." It is what crash-tolerant supercomputers have always meant by "survivable," and it is only possible because the real-time control path and the user-facing control path live on different CPUs in different power domains.
 
 ## The 16-Channel Routing Nightmare
 
-Here is the exact reason a standard single-board computer could never run this machine: **I have to talk to 16 separate hypercube boards simultaneously.**
+Here is the exact reason a standard single-board computer could never run this machine: **I have to talk to 16 separate hypercube boards simultaneously, in hard real time, with bootloader-level timing discipline on every channel.**
 
-Each of the 16 compute cards requires its own independent, high-speed serial channel (RX/TX) to pass instructions, load StarC binaries, and retrieve data. Each AG32 node on every compute card exposes a dedicated UART0 control interface — this is the permanent link between the Zynq host and every node in the hypercube. The host uses this link for everything: flashing firmware via the AG32 serial bootloader at 460800 baud, loading StarC binaries, broadcasting run commands, and collecting results. The protocol is pure UART, 8N1, because that's what the AG32 silicon speaks natively.
+Each of the 16 compute cards requires its own independent, high-speed serial channel (RX/TX) to pass instructions, load StarC binaries, and retrieve data. Each AG32 node on every compute card exposes a dedicated UART0 control interface — this is the permanent link between the controller board and every node in the hypercube. The controller uses this link for everything: flashing firmware via the AG32 serial bootloader at 460800 baud, loading StarC binaries, broadcasting run commands, and collecting results. The protocol is pure UART, 8N1, because that's what the AG32 silicon speaks natively.
 
-As mentioned, Linux is terrible at this. So, I bypassed the CPU entirely. I went into the FPGA fabric (the Programmable Logic) and manually instantiated **16 independent hardware UART MACs**. I wired these MACs directly to the AXI memory interconnect. 
-* The Linux kernel just sees a block of memory addresses. 
-* When the ARM core wants to send a command to Card #12, it drops a payload into a specific memory address and walks away. 
-* The FPGA hardware picks it up and blasts it out over the physical pins flawlessly, with zero CPU overhead.
+Linux is terrible at this. So the UARTs live in the FPGA fabric as **16 independent hardware AXI UART Lite instances**, each with its own AXI-Lite register window and its own IRQ line routed through the PL-to-PS interrupt fabric. But the *consumer* of those UARTs is not Linux — it is **R5F core 1**, the hypercube controller. The R5 has direct AXI access to the PL, direct ownership of the 16 IRQs via the PS GIC, and bounded sub-microsecond interrupt latency because it has no kernel scheduler sitting between the interrupt and the handler.
+
+- The 16 UARTs show up in the R5's memory map at `0xA000_0000` through `0xA000_F000`, 4 KB apart.
+- Each UART's interrupt wakes a dedicated FreeRTOS task on core 1 that drains the RX FIFO into a per-card ring buffer and feeds the TX FIFO from a per-card TX queue.
+- Linux does not see `/dev/ttyUL*` at all in the device tree. The AXI UART Lite nodes are marked as reserved to the R5, so Linux's `uartlite` driver never probes them.
+- When Linux wants to send something to card 12, it pushes an rpmsg command descriptor into the mailbox, core 1 picks it up in the next mailbox service tick, and the appropriate UART TX task starts streaming bytes out the physical pins. For interactive debug, the `/dev/rpmsg-tty*` bridge exposes each UART as a virtual Linux serial port through `drivers/tty/rpmsg_tty.c` — every standard tool (`picocom`, `cat`, `stty`) still works, just over a mailbox instead of a direct register window.
+
+See the "Hypercube Controller: R5F Core 1" section above for the full architecture. The short version is: the 16 UARTs belong to a CPU that was designed for deterministic real-time I/O, not to a CPU running a multitasking operating system.
 
 ### Physical Pin Allocation: HD Banks 25 and 26
 
@@ -637,11 +746,13 @@ All 41 signals (32 UART + 5 TDMA + 4 LED SPI) exit the controller board through 
 
 ## The Orchestrator: TDMA Sync and the LED Display
 
-The 16 compute cards are just the engines. The Zynq also has to conduct the rest of the orchestra.
+The 16 compute cards are just the engines. The controller board also has to conduct the rest of the orchestra — and, like the UARTs, this is not a Linux job.
 
-First, there is the **TDMA Synchronization**. To prevent the 4,096 RISC-V chips from talking over each other, the entire machine runs on a globally synchronized Time Division Multiple Access (TDMA) schedule. Linux is terrible at microsecond-accurate timing because of kernel preemption. But the FPGA fabric? It *only* operates in hard, deterministic real-time. The PL fabric generates a flawless, jitter-free master phase clock and distributes it across the backplane to all 16 cards simultaneously. 
+First, there is the **TDMA Synchronization**. To prevent the 4,096 RISC-V chips from talking over each other, the entire machine runs on a globally synchronized Time Division Multiple Access (TDMA) schedule. Linux is terrible at microsecond-accurate timing because of kernel preemption. But the FPGA fabric? It *only* operates in hard, deterministic real-time. The PL fabric generates a flawless, jitter-free master phase clock and distributes it across the backplane to all 16 cards simultaneously. The TDMA controller block is an AXI peripheral with a tiny register map (`TDMA_ENABLE`, `TDMA_DIVIDER`, `TDMA_PHASE`, `TDMA_FRAME`), and it is driven by **R5F core 1**, not by Linux. When a StarC job arrives via rpmsg, core 1 programs the divider to match the program's requested phase rate and asserts `TDMA_ENABLE`. When the job finishes, core 1 deasserts it. Linux never touches the TDMA registers.
 
-Second, there is the **LED Display**. The 64x64 front panel is controlled by an RP2040. The Zynq needs to blast display state data to that RP2040 fast enough to maintain a 60fps refresh rate. I spun up a dedicated **SPI master** in the FPGA fabric, running on **HD Bank 24**, wiring it directly to the front-panel connector. The SPI bus carries four signals: SCK, MOSI (Zynq→RP2040), MISO (RP2040→Zynq), and CS. At 60fps, the 64×64 display requires 4,096 pixels per frame — at even a modest SPI clock rate, this is well within the bandwidth budget. The RP2040 receives the frame buffer over SPI, handles the LED multiplexing and PWM drive locally, and the Zynq never thinks about individual LEDs.
+Second, there is the **LED Display**. The 64×64 front panel is controlled by an RP2040. The controller board needs to push display state to that RP2040 fast enough to maintain a 60 fps refresh rate. A dedicated **SPI slave** in the FPGA fabric on **HD Bank 24** talks to the RP2040 — the RP2040 is the SPI master (for v-sync alignment reasons described in the "LED Display Pipeline" section below), and the Zynq fabric latches the transaction on the RP2040's own frame clock. The SPI bus carries four signals: SCK, MOSI (Zynq→RP2040), MISO (RP2040→Zynq), and CS. At 60 fps, the 64×64 display requires 4,096 pixels per frame in each direction, which is trivial bandwidth for even a modest SPI clock.
+
+The SPI TX buffer (MOSI side) is **owned by R5F core 1** during thermal mode. Core 1 applies a colormap to the live thermal table every frame and stuffs the resulting 64×64 image into the TX buffer so the RP2040 picks it up on the next refresh. This makes the thermal-mode LED panel a direct portrait of the compute nodes, rendered by a real-time processor from fresh telemetry, with no Linux involvement. Linux only touches the SPI TX buffer when a StarC program calls `led_set()` to push custom user content — and even then it does so by sending a `LED_PUSH` rpmsg command to core 1, which writes the user framebuffer into the TX buffer on Linux's behalf. Core 1 is the single owner; Linux is a polite petitioner. The RP2040 receives the frame, handles the LED multiplexing and PWM drive locally, and streams its current physical framebuffer back on MISO so R5 core 0 can mirror it into the operator console sidebar.
 
 ## High-Speed Storage: The M.2 NVMe Slot
 
@@ -718,241 +829,299 @@ While the 12V power is provided directly from the main input rail, the control l
 
 ## The Linux Software Stack: From AXI Peripherals to StarC Jobs
 
-Everything described above is hardware — silicon, copper, and solder. But hardware without software is a paperweight. This section describes what happens on the other side of the AXI bus: the Linux environment that turns 16 serial ports, a TDMA clock generator, and a custom SPI master into a programmable supercomputer.
+Everything described above is hardware — silicon, copper, and solder. But hardware without software is a paperweight. This section describes what happens on the other side of the memory controller: the Linux environment that turns a real-time hypercube controller, a Gigabit NIC, and a fast NVMe drive into a programmable supercomputer frontend.
 
-### The Device Tree: Stock IP for UARTs, UIO for Custom Blocks
+The architectural fact that shapes this entire section is that **Linux does not own the hypercube hardware directly**. R5F core 1 owns the 16 AXI UART Lite instances, the TDMA block, the LED SPI TX buffer, and the fan PWM controller, as described in the "Hypercube Controller: R5F Core 1" section above. Linux is a user of that controller, reaching it through an rpmsg mailbox. The Python host library API is exactly what it has always been; the implementation underneath is completely different from what a naive single-CPU design would look like.
 
-The AXI peripherals split cleanly into two classes, and each class gets a different Linux integration strategy.
+### The Device Tree: Reserved Peripherals, Remoteproc, and rpmsg
 
-**Class 1 — Standard peripherals (the 16 backplane UARTs):**
+The controller-board peripherals split into three classes, each with a different Linux integration strategy.
 
-The 16 hypercube control UARTs are instantiated as stock **Xilinx AXI UART Lite** IP blocks (`axi_uartlite`). This is a free Vivado IP block at roughly 150 LUTs per instance — 16 instances fit in about 5% of the ZU2EG's LUT budget — and critically, **mainline Linux ships a driver for it** at `drivers/tty/serial/uartlite.c`. Rolling a custom UART MAC was the original plan, but there is no reason to reinvent a peripheral that Linux already knows how to talk to.
+**Class 1 — Peripherals reserved to the R5 cluster.**
 
-Each UART is declared in the device tree as an `xlnx,xps-uartlite-1.00.a` device, with its own IRQ line routed through the Zynq's PL-to-PS interrupt fabric:
+The 16 AXI UART Lite instances, the TDMA block, the LED SPI slave, and the fan PWM/tach block are all AXI peripherals sitting on the PL side of the interconnect. In a naive single-CPU design these would be declared to Linux with `xlnx,xps-uartlite-1.00.a` or `generic-uio` compatible strings. Under the AMP configuration, they are instead **marked as reserved on the Linux side** so the Linux drivers never probe them:
 
 ```
-/* Device tree fragment — 16 instances, one per card */
+/* Linux device tree — the PL peripherals are reserved for the R5 */
 hypercube_uart0: serial@a0000000 {
     compatible = "xlnx,xps-uartlite-1.00.a";
     reg = <0x0 0xa0000000 0x0 0x1000>;
     interrupts = <0 89 4>;
     interrupt-parent = <&gic>;
-    clock = <100000000>;
-    current-speed = <460800>;
-    xlnx,data-bits = <8>;
-    xlnx,use-parity = <0>;
+    status = "reserved";          /* R5 owns this */
 };
-/* ... through hypercube_uart15 at 0xa000f000, IRQ 104 */
+/* ... through hypercube_uart15, then tdma_ctrl, led_spi, fan_ctrl, all reserved */
 ```
 
-The kernel mounts these as `/dev/ttyUL0` through `/dev/ttyUL15`. No custom kernel module, no `mmap()`, no register banging — the host library just opens them with `pyserial`, identical to talking to an Arduino over USB-serial. Every standard Linux serial tool works as well: `picocom /dev/ttyUL5` to interactively poke at card 5, `stty -F /dev/ttyUL3 460800` to reconfigure baud, `cat /dev/ttyUL7` to dump what card 7 is saying. The moment a 16-port design sits on mainline serial infrastructure, it inherits every tool and library ever written for Linux UARTs.
+None of these devices appear in `/dev` on the Linux side. The `uartlite` kernel driver is still in the kernel tree, but it never binds to any node. The AXI peripherals belong to R5 core 1 exclusively, and core 1's FreeRTOS image drives them directly from its own address space (which is set up in the R5 BSP rather than the Linux device tree).
 
-Interrupts are first-class. Each AXI UART Lite instance has its own IRQ wired to the Zynq's `IRQ_F2P` inputs (16 available, exactly enough). The kernel's uartlite driver handles RX-ready and TX-done interrupts automatically — userspace never polls. A blocking `read()` sleeps until data arrives, and the scheduler wakes the host library thread only when there's work to do. At 460800 baud × 16 channels (~7.4 Mbit/s aggregate during flashing), the dual-core A53 does not break a sweat.
+The IRQs for these peripherals are routed through the PS GIC's SPI lines so that core 1 — not the A53 cluster — is the target. This is a one-line change in the Xilinx IP Integrator design and a matching change in the `interrupt-parent` of the R5's BSP, and it ensures that Linux never even sees the interrupts fire.
 
-If the AXI UART Lite's compile-time baud rate ever becomes limiting — it's set in Vivado at bitstream generation, not at runtime — the drop-in upgrade is **Xilinx AXI UART 16550** (`axi_uart16550`), a full 16550-compatible UART with a runtime baud divider, FIFOs, and a mainline Linux driver via `8250_of.c`. Costs ~500 LUTs per instance instead of 150, but still fits comfortably.
+**Class 2 — Reserved memory regions for the R5 cluster.**
 
-**Class 2 — Custom peripherals (TDMA, LED SPI, fan controller):**
-
-The TDMA phase clock generator, the LED SPI master, and the fan PWM/tach controller have no analog in Linux's peripheral catalog. These are exposed as **Userspace I/O (UIO)** devices using the `generic-uio` driver:
+Core 0's FreeRTOS image, core 1's FreeRTOS image, the shared rpmsg vring buffers, and the shared thermal table all live in specific DDR4 regions that must be carved out from under Linux's normal memory allocator. These are declared in the device tree's `reserved-memory` node:
 
 ```
-tdma_ctrl: tdma@a0010000 {
-    compatible = "generic-uio";
-    reg = <0x0 0xa0010000 0x0 0x1000>;
-    interrupt-parent = <&gic>;
-    interrupts = <0 105 4>;
-};
+reserved-memory {
+    #address-cells = <2>;
+    #size-cells = <2>;
+    ranges;
 
-led_spi: spi@a0011000 {
-    compatible = "generic-uio";
-    reg = <0x0 0xa0011000 0x0 0x1000>;
-};
-
-fan_ctrl: fan@a0012000 {
-    compatible = "generic-uio";
-    reg = <0x0 0xa0012000 0x0 0x1000>;
+    r5_0_code: r5-0-code@70000000 {
+        reg = <0x0 0x70000000 0x0 0x00200000>;  /* 2 MB for core 0 FreeRTOS */
+        no-map;
+    };
+    r5_1_code: r5-1-code@70200000 {
+        reg = <0x0 0x70200000 0x0 0x00200000>;  /* 2 MB for core 1 FreeRTOS */
+        no-map;
+    };
+    rpmsg_vrings: rpmsg@70400000 {
+        reg = <0x0 0x70400000 0x0 0x00100000>;  /* 1 MB for vring buffers */
+        compatible = "shared-dma-pool";
+    };
+    thermal_table: thermal@70500000 {
+        reg = <0x0 0x70500000 0x0 0x00010000>;  /* 64 KB shared thermal table */
+        compatible = "shared-dma-pool";
+    };
+    sidebar_fb: fb@70600000 {
+        reg = <0x0 0x70600000 0x0 0x007e8000>;  /* 480×1080 ARGB sidebar */
+        no-map;
+    };
 };
 ```
 
-The kernel creates `/dev/uio0`, `/dev/uio1`, and `/dev/uio2` for these three blocks. The host library `mmap()`s each register window directly. UIO is the correct abstraction here because each block has a single owner (the daemon), the access patterns are simple (TDMA start/stop, framebuffer push, fan duty update), and there's no existing kernel driver class to defer to.
+Linux is told to stay out of these regions. The A53 MMU is configured to map them as non-cached shared memory so accesses from either cluster see a consistent view of the same bytes. This is the same pattern Xilinx ships in every AMP reference design on the ZU+ platform.
 
-The total custom kernel code for the entire controller board is **zero lines**. All 19 AXI peripherals (16 UARTs via mainline `uartlite` driver, 3 custom blocks via `generic-uio`) are handled by drivers that already exist in the Linux tree.
+**Class 3 — The rpmsg channel to the R5 cluster.**
 
-### The Host Library: How Linux Controls the Machine
+Linux talks to the R5 cores through **remoteproc + rpmsg**, the mainline Linux framework for asymmetric multiprocessing with Xilinx UltraScale+ remote CPUs. Two remoteproc nodes are declared — one for each R5 core — with the firmware images and rpmsg channel descriptors attached:
 
-The Python host library (`thinkin/machine.py`, documented in the [AG32 Gating Document](https://bbenchoff.github.io/pages/AG32Gating.html) as Software Milestone S3) is the single point of control for the entire hypercube. It maps directly onto the two Linux abstractions above — `pyserial` for the 16 stock UARTs, `mmap` for the 3 UIO blocks:
+```
+zynqmp_r5_rproc {
+    compatible = "xlnx,zynqmp-r5-remoteproc";
+    xlnx,cluster-mode = <0>;  /* split mode: core 0 and core 1 independent */
+
+    r5f_0 {
+        memory-region = <&r5_0_code>, <&rpmsg_vrings>;
+        firmware-name = "thinkin-bmc.elf";
+        rpmsg_channels {
+            rpmsg-bmc { /* HUD telemetry mailbox, SoL bridge, etc. */ };
+        };
+    };
+    r5f_1 {
+        memory-region = <&r5_1_code>, <&rpmsg_vrings>, <&thermal_table>;
+        firmware-name = "thinkin-hypercube.elf";
+        rpmsg_channels {
+            rpmsg-hypercube { /* job command / reply channel */ };
+            rpmsg-tty0 { /* virtual TTY for card 0 debug */ };
+            /* ... rpmsg-tty15 ... */
+        };
+    };
+};
+```
+
+At boot, Linux's remoteproc framework loads `thinkin-bmc.elf` onto core 0, loads `thinkin-hypercube.elf` onto core 1, releases both cores from reset, and exposes the rpmsg channels as character devices: `/dev/rpmsg-hypercube` for the job command protocol, `/dev/rpmsg-tty0..15` for interactive per-card debug, and internal channels for BMC telemetry exchange.
+
+The total custom kernel code for the entire controller board is still **zero lines**. Remoteproc and rpmsg are both mainline. The R5 BSPs and FreeRTOS ports are Xilinx-supplied. The AG32 UART control protocol, the thermal parser, and the job dispatcher are implemented in R5 FreeRTOS C code that lives outside the Linux tree entirely. Linux's view of the machine is exactly two character devices and a few virtual TTYs.
+
+### The Host Library: How Linux Talks to the Hypercube Controller
+
+The Python host library (`thinkin/machine.py`, documented in the [AG32 Gating Document](https://bbenchoff.github.io/pages/AG32Gating.html) as Software Milestone S3) is the single point of control for the entire hypercube. From the user's point of view, its API is exactly what it would be in a naive single-CPU design: you construct a `ThinkinMachine` object and call `flash()`, `load()`, `run()`, `collect()`, `led_push()`, and so on. Everything the old design did with `pyserial` and `mmap` still works from the caller's perspective — just in a completely different place.
+
+Under the hood, instead of opening 16 serial ports and mmaping three UIO windows, the library opens a single rpmsg character device and pushes command descriptors to R5 core 1:
 
 ```python
 import os
-import mmap
-import serial
+import struct
+
+# rpmsg opcodes understood by the R5 hypercube controller firmware
+CMD_FLASH    = 0x01
+CMD_LOAD     = 0x02
+CMD_RUN      = 0x03
+CMD_COLLECT  = 0x04
+CMD_LED_PUSH = 0x05
+CMD_LED_MODE = 0x06
+CMD_SET_FAN  = 0x07
+CMD_STATUS   = 0x08
+CMD_RESET    = 0x09
 
 class ThinkinMachine:
-    def __init__(self, num_cards=16):
-        # 16 stock serial ports — mainline kernel driver, pyserial client.
-        # Identical to opening an Arduino over USB-serial.
-        self.cards = [
-            serial.Serial(f'/dev/ttyUL{i}', 460800, timeout=1)
-            for i in range(num_cards)
-        ]
+    def __init__(self):
+        # One character device, one open() call. The rpmsg channel
+        # is backed by a virtio vring in the reserved DDR4 region and
+        # serviced by R5 core 1 on the other side.
+        self.fd = os.open('/dev/rpmsg-hypercube',
+                          os.O_RDWR | os.O_CLOEXEC)
 
-        # 3 custom UIO peripherals — mmap the register windows.
-        self.tdma    = self._mmap_uio('/dev/uio0', 0x1000)
-        self.led_spi = self._mmap_uio('/dev/uio1', 0x1000)
-        self.fans    = self._mmap_uio('/dev/uio2', 0x1000)
-
-    def _mmap_uio(self, path, size):
-        fd = os.open(path, os.O_RDWR | os.O_SYNC)
-        return mmap.mmap(fd, size, mmap.MAP_SHARED,
-                         mmap.PROT_READ | mmap.PROT_WRITE)
+    def _do(self, opcode, payload=b'', card_mask=0xFFFF, job_id=0):
+        # Write a command descriptor, block until the R5 writes a reply.
+        # The kernel's rpmsg character-device driver handles the framing
+        # and the doorbell IPI; userspace just sees read() and write().
+        header = struct.pack('<IIIQI',
+                             opcode, job_id, card_mask,
+                             0,  # payload_ptr unused for inline payloads
+                             len(payload))
+        os.write(self.fd, header + payload)
+        reply = os.read(self.fd, 65536)
+        return reply
 
     def flash(self, firmware_path):
-        # For each card: assert Boot0 + pulse NRST (via per-card I2C GPIO
-        # expander on the backplane control bus), then stream firmware
-        # through that card's pyserial handle and verify the echo.
+        # R5 core 1 handles Boot0/NRST via the I2C GPIO expanders,
+        # streams firmware through each card's UART bootloader at
+        # 460800 baud, verifies the echo, and reports completion.
         with open(firmware_path, 'rb') as f:
             payload = f.read()
-        for card in self.cards:
-            card.write(payload)
-            card.read(len(payload))  # verify bootloader echo
+        return self._do(CMD_FLASH, payload)
 
     def load(self, data, dest_pvar):
-        # Distribute data to all 4,096 nodes via control tree.
-        # Each card's slice is written through its pyserial handle.
-        ...
+        # R5 core 1 fans the data across the 16 UART workers and
+        # walks the control tree down to each node.
+        return self._do(CMD_LOAD, data)
 
-    def run(self):
-        # Start TDMA phase clock via UIO register write.
-        self.tdma[0:4] = (1).to_bytes(4, 'little')
+    def run(self, phase_rate_hz=1000):
+        # R5 core 1 programs TDMA_DIVIDER, asserts TDMA_ENABLE, and
+        # begins watching for completion frames from the cards.
+        return self._do(CMD_RUN,
+                        struct.pack('<I', phase_rate_hz))
 
     def collect(self, timeout=5.0):
-        # Blocking reads on all 16 serial ports — the kernel wakes this
-        # thread when bytes arrive. No polling, no wasted CPU.
-        results = {}
-        for i, card in enumerate(self.cards):
-            results[i] = card.read_until(b'\n')
-        return results
+        # R5 core 1 has been accumulating results in its output ring
+        # as nodes call store_to_host(). COLLECT drains the ring.
+        return self._do(CMD_COLLECT,
+                        struct.pack('<d', timeout))
 
     def led_push(self, framebuffer):
-        # Push 4,096-byte framebuffer to the LED SPI TX buffer with
-        # command=PUSH. The RP2040 will display it on the next refresh
-        # (assuming it is currently in HOST mode).
-        self.led_spi[0] = CMD_PUSH
-        self.led_spi[16:16+4096] = framebuffer
+        # Hand a user framebuffer to R5 core 1, which writes it into
+        # the LED SPI TX buffer for the next RP2040 refresh.
+        return self._do(CMD_LED_PUSH, bytes(framebuffer))
 
     def led_set_mode(self, mode):
-        # Hand control back and forth between host-pushed content and
-        # autonomous RP2040 playback. No framebuffer in the payload.
-        # mode ∈ {'host', 'thermal', 'boot', 'badapple', 'doom', 'overlay'}
-        self.led_spi[0] = MODE_COMMANDS[mode]
+        # R5 core 1 issues the mode-change command byte to the RP2040
+        # on the next SPI transaction.
+        return self._do(CMD_LED_MODE, mode.encode('ascii'))
 
     def led_current_frame(self):
-        # Read what the LED panel is ACTUALLY showing right now, as
-        # reported by the RP2040 over MISO. This is ground truth — it
-        # reflects physical reality whether the panel is showing a
-        # Zynq-pushed thermal map, Bad Apple, Doom, or a boot animation.
-        # The sidebar mirror on the operator console reads from this
-        # same buffer.
-        return bytes(self.led_spi[4096+16:4096+16+4096])
+        # R5 core 0 already has this — the LED SPI MISO readback.
+        # The hypercube controller forwards a snapshot via rpmsg.
+        return self._do(CMD_STATUS,
+                        struct.pack('<I', 1))  # flag: want framebuffer
 
-    def led_status(self):
-        # Read the RP2040 status header: current mode, frame counter,
-        # underrun flag, local-playing flag.
-        return self.led_spi[4096:4096+16]
+    def status(self):
+        # One-shot read of the full machine state: thermal table,
+        # alive bitmap, TDMA phase, current job, fan RPMs.
+        return self._do(CMD_STATUS,
+                        struct.pack('<I', 0))  # flag: telemetry only
 ```
 
-Every StarC host I/O primitive maps to a method on this class. When a StarC program calls `load_from_host(&input, 1)`, `load()` writes one float per node through the appropriate `pyserial` handle. When `store_to_host(&result, 1)` executes, `collect()` drains the results via blocking reads. When `led_set(brightness)` runs on a node, the result propagates up the control tree via UART, the host library batches these into a 4,096-byte framebuffer, and `led_push()` ships it to the RP2040 via the LED SPI TX window. `led_current_frame()` reads back whatever the RP2040 is *actually* displaying, which is the authoritative source for the sidebar mirror and for any user-visible "what is on the panel right now" queries.
+Every StarC host I/O primitive maps to a method on this class exactly as before. When a StarC program calls `load_from_host(&input, 1)`, `load()` sends a `CMD_LOAD` rpmsg to core 1, and core 1 fans the data across the appropriate UART workers. When `store_to_host(&result, 1)` executes, the R5 accumulates the result bytes as they arrive from the control tree; `collect()` drains that accumulated output with a single round trip.
 
-The entire host library is around 300 lines of pure Python. No kernel module, no custom driver, no CFFI bindings, no `/dev/mem` — just `pyserial` and `mmap`, both available in the Python standard library or a single `pip install` away. This is *cleaner* than the alternatives: a Raspberry Pi with 16 USB-FTDI dongles would suffer from USB latency, hub topology pain, flaky connectors, and no hardware synchronization. The Zynq approach gives you 16 fully independent hardware UARTs, interrupt-driven, with zero custom code, and the exact same POSIX interface as any other Linux serial port.
+The entire host library is around 300 lines of pure Python, plus ~200 lines of C in the R5 firmware that decodes rpmsg descriptors and dispatches to the appropriate UART workers. The library code is simpler than the pyserial+mmap version — one open file descriptor instead of 19, one protocol instead of two, no per-UART bookkeeping — because most of the work has moved to the R5 where it belongs.
+
+**For interactive debug**, the `/dev/rpmsg-tty0..15` virtual serial ports are still available and still work with every standard Linux tty tool. `picocom /dev/rpmsg-tty5` opens a bidirectional bridge through core 1 to card 5's UART, and while the bridge is open core 1 suspends autonomous telemetry collection for that one card so the debug bytes don't collide with heartbeat frames. From the user's shell, the experience is indistinguishable from the old direct-UART design.
+
+This architecture is cleaner than the alternatives. A Raspberry Pi with 16 USB-FTDI dongles would suffer from USB latency, hub topology pain, flaky connectors, and no hardware synchronization. A single-CPU Zynq design would work but would put real-time UART servicing on a CPU that runs a preemptive multitasking kernel. The dual-cluster approach gives you 16 fully independent hardware UARTs, serviced by a processor that was designed for real-time work, controlled from Linux through a single mainline rpmsg character device — with no custom kernel code anywhere in the stack.
 
 ### The Boot Sequence
 
 When the machine powers on, the following happens in order:
 
-1. **Zynq BootROM** reads the MicroSD card, loads FSBL (First Stage Boot Loader) and the PL bitstream. The FPGA fabric comes alive — all 16 AXI UART Lite instances, the TDMA controller, the LED SPI master, and the fan PWM array are now active. Fans spin at 100% (fail-safe default).
-2. **U-Boot** initializes DDR4, wakes the PCIe transceiver, enumerates the NVMe drive.
-3. **Ubuntu kernel** boots from NVMe. The device tree registers 16 `xlnx,xps-uartlite-1.00.a` serial ports (mainline driver) as `/dev/ttyUL0..15`, and `generic-uio` devices as `/dev/uio0..2` for the TDMA, LED SPI, and fan controllers. Gigabit Ethernet comes up, pulls DHCP. SSH is available.
-4. **`thinkin-daemon`** starts as a systemd service. It opens the 16 serial ports with `pyserial`, `mmap()`s the three UIO register windows, runs a health check on each UART channel (sends a probe byte, checks for echo), and reports the number of live compute cards. It then opens a Unix socket for local job submission and an HTTP endpoint for remote submission.
-5. **Flash firmware** — on first boot or after a firmware update, the daemon calls `machine.flash()` to program all 4,096 AG32 nodes. Each card's 256 nodes are flashed sequentially through that card's UART channel. Total flash time for the full machine is under five minutes.
-6. **Ready** — the machine accepts StarC jobs. The TDMA clock is held stopped until a job is submitted.
+1. **Zynq BootROM** reads the QSPI flash (or MicroSD in development mode), loads FSBL (First Stage Boot Loader), the ATF, U-Boot, and the PL bitstream. The FPGA fabric comes alive — all 16 AXI UART Lite instances, the TDMA controller, the LED SPI slave, and the fan PWM array are now active. Fans spin at 100% (fail-safe default, enforced by the PL, not by any CPU).
+2. **FSBL optionally starts the R5 cluster early.** The FSBL can be configured to launch R5 core 0's firmware (`thinkin-bmc.elf`) as part of stage-2 boot, before U-Boot runs. This gives you an operator-console boot splash and a functioning BMC within ~1 second of power-on, which is long before Linux has anything to show. The R5 core 0 startup chime also plays here via the I2S path, Sun/Mac style.
+3. **U-Boot** initializes DDR4, wakes the PCIe transceiver, enumerates the NVMe drive, and hands off to the Linux kernel.
+4. **Ubuntu kernel** boots from NVMe. The device tree declares the 16 AXI UART Lite nodes and the TDMA/LED/fan blocks as `status = "reserved"`, so the `uartlite` and `generic-uio` drivers skip them entirely. Linux sees no `/dev/ttyUL*` and no `/dev/uio*` — those peripherals belong to the R5.
+5. **Remoteproc loads the R5 firmware images.** The `zynqmp-r5-remoteproc` kernel driver reads the `firmware-name` properties from the device tree, loads `thinkin-bmc.elf` onto core 0 (if FSBL didn't already) and `thinkin-hypercube.elf` onto core 1, releases both cores from reset, and waits for them to come up. When they do, rpmsg character devices appear: `/dev/rpmsg-hypercube`, `/dev/rpmsg-tty0..15`, and internal BMC telemetry channels.
+6. **Gigabit Ethernet comes up** on GEM3 queues 0–1 (Linux side) and 2–3 (BMC side) via the shared-GEM Screener. Linux pulls its DHCP lease as `thinkin.local`; R5 core 0 pulls a separate lease as `thinkin-bmc.local`. SSH is available on both.
+7. **`thinkin-daemon`** starts as a systemd service. It opens `/dev/rpmsg-hypercube`, sends a `CMD_STATUS` request, and reads back the hypercube's current state — number of live cards, live nodes, any in-flight job state from before the last Linux reboot. It then opens a Unix socket for local job submission and an HTTPS endpoint for remote submission.
+8. **Flash firmware** — on first boot or after a firmware update, the daemon sends `CMD_FLASH` with the new AG32 firmware blob. R5 core 1 asserts Boot0 and NRST across the I2C GPIO expanders, streams the firmware through all 16 UARTs in parallel, verifies each card's bootloader echo, and reports completion. Total flash time for the full machine is under five minutes.
+9. **Ready** — the machine accepts StarC jobs. The TDMA clock is held stopped by core 1 until a job arrives.
+
+Because the R5 cluster can be launched in stage 2 of the FSBL, the order above is slightly flexible: in a typical production boot, core 0 is already rendering the operator console sidebar and core 1 is already drawing a neutral LED boot animation before U-Boot even hands off to Linux. The 15 seconds Linux spends coming up are visible on the right side of the DisplayPort output as a live BMC boot log, not a black screen.
 
 ### The Job Lifecycle
 
-A StarC job flows through the following stages:
+A StarC job flows through the following stages. The Linux-side steps happen on the A53 cluster; the hypercube-side steps happen on R5 core 1:
 
-1. **Submit** — a user sends a `.starc` source file via SSH (`scp` + command) or the HTTP API.
-2. **Compile** — the Zynq runs `starc_pp.py` to preprocess StarC into C, then `riscv-gcc` (installed on the NVMe) cross-compiles to an AG32 binary. This happens natively on the dual-core A53 — no external build server needed.
-3. **Load** — `machine.load()` distributes input data to all 4,096 nodes through the 16 `/dev/ttyUL*` serial ports. Data flows Host → Card Controller → Nodes via the control tree.
-4. **Run** — `machine.run()` enables the TDMA phase clock in the PL fabric via the TDMA UIO register. All nodes begin executing simultaneously. The FPGA generates the master phase clock and distributes it across the backplane — jitter-free, independent of Linux scheduling.
-5. **Collect** — the host does a blocking `read()` on all 16 serial ports. As nodes complete their work and call `store_to_host()`, results stream back through the control tree, the kernel wakes the blocked reader threads, and `machine.collect()` assembles the complete result set without any polling.
-6. **Display** — if the StarC program uses `led_set()`, the host library continuously writes LED state updates to the SPI master, and the RP2040 renders them on the 64x64 front panel at 60fps.
+1. **Submit** (A53) — a user sends a `.starc` source file via SSH (`scp` + command) or the HTTPS API.
+2. **Compile** (A53) — Linux runs `starc_pp.py` to preprocess StarC into C, then `riscv-gcc` (installed on the NVMe) cross-compiles to an AG32 binary. This happens natively on the A53 cluster with 4 GB of DDR4 and a 500 MB/s NVMe drive — no external build server needed.
+3. **Load** (rpmsg → R5 core 1) — `machine.load()` sends a `CMD_LOAD` descriptor to core 1 with a pointer to the input data buffer in DDR4. Core 1 walks the control tree, fanning the input across the 16 UART workers, and each card's controller distributes its slice to its 256 nodes.
+4. **Run** (rpmsg → R5 core 1) — `machine.run()` sends `CMD_RUN`. Core 1 writes `TDMA_DIVIDER` to match the program's phase rate and asserts `TDMA_ENABLE`. All 4,096 nodes begin executing simultaneously. The PL fabric generates the master phase clock and distributes it across the backplane — jitter-free, independent of *either* the A53 or R5 scheduler, because the TDMA generator is pure hardware.
+5. **Collect** (rpmsg → R5 core 1) — `machine.collect()` sends `CMD_COLLECT`. Core 1 has been accumulating `store_to_host()` bytes in its output ring continuously since `RUN` was issued; the collect command simply drains that ring and returns the assembled result buffer over rpmsg.
+6. **Display** (implicit, R5 core 1) — if the StarC program uses `led_set()`, the per-node LED state propagates up the control tree via UART, core 1 assembles it into a 64×64 framebuffer, and writes it into the LED SPI TX buffer. The RP2040 displays the result on the front panel on the next refresh. If the program is not using the LED panel, core 1 is still drawing its own thermal map into the same buffer, so the panel is always showing something live.
+
+The user-visible latency of this split is negligible: an rpmsg round trip for a small command is a few microseconds, and the large payloads (firmware blobs, input data, result buffers) are passed by DDR4 pointer rather than copied through the mailbox. The throughput of the hypercube control path is fundamentally limited by the 460800-baud UARTs, not by the R5, the A53, or rpmsg.
 
 ### TDMA Clock Control
 
-The TDMA phase clock is the heartbeat of the entire machine. It is generated entirely in the PL fabric, but configured by Linux through AXI registers:
+The TDMA phase clock is the heartbeat of the entire machine. It is generated entirely in the PL fabric, and its control registers are owned by **R5 core 1**, not by Linux:
 
-| Register | Address | Function |
+| Register | Address (R5 view) | Function |
 | :--- | :--- | :--- |
 | TDMA_ENABLE | 0xA001_0000 | Start/stop the phase clock (1=run, 0=halt) |
 | TDMA_DIVIDER | 0xA001_0004 | Clock divider (sets phase rate: 100/1000/10000 Hz) |
 | TDMA_PHASE | 0xA001_0008 | Current phase counter (read-only, 0–23) |
 | TDMA_FRAME | 0xA001_000C | Superframe counter (read-only, counts from reset) |
 
-When no job is running, the TDMA clock is halted. The host library writes `TDMA_DIVIDER` based on the StarC program's `star_set_phase_rate()` configuration, then sets `TDMA_ENABLE` to start execution. The PL fabric generates the phase select signals (`TDMA_PHASE[3:0]`) on Bank 44, which propagate through the backplane to every AG32's FPGA mux. Every node in the machine switches dimension links in lockstep, because the timing comes from hardware, not software.
+When no job is running, the TDMA clock is halted. When a `CMD_RUN` descriptor arrives from Linux over rpmsg with a `phase_rate_hz` field, core 1 writes `TDMA_DIVIDER` to match, then sets `TDMA_ENABLE`. When the job completes (either because all nodes have reported via `store_to_host()` or because `CMD_STOP` arrives), core 1 clears `TDMA_ENABLE`. The PL fabric generates the phase select signals (`TDMA_PHASE[3:0]`) on Bank 44, which propagate through the backplane to every AG32's FPGA mux. Every node in the machine switches dimension links in lockstep, because the timing comes from hardware, not software — and because the CPU that commands the start/stop lives in a real-time power domain, there is no scheduler jitter even on the control transitions.
+
+Linux never sees these registers. It does not map them, does not know their addresses, and cannot write them even accidentally. The A53's MMU is configured to exclude the AXI peripheral region from Linux's accessible memory map, so a stray `/dev/mem` write cannot reach the TDMA controller. This is both a correctness guarantee and a security guarantee.
 
 ### LED Display Pipeline
 
 The LED display path is **bidirectional, full-duplex**. The SPI bus between the Zynq and the front-panel RP2040 carries a full framebuffer in each direction on every refresh: the Zynq tells the RP2040 what it wants displayed, and the RP2040 tells the Zynq what is actually on the panel right now.
 
-This bidirectionality is necessary because the RP2040 is not a pure dumb slave. It runs its own animations, plays back local content (Bad Apple, a Doom playthrough, boot animations, idle screensavers), and composites host-pushed overlays on top of local content. At any given moment, the RP2040 is the authoritative source for what pixels are actually lit on the panel — the Zynq cannot know what the LEDs are showing unless the RP2040 tells it. The operator console sidebar mirror depends on this, because the mirror must reflect the physical panel state, not the host's intent.
+This bidirectionality is necessary because the RP2040 is not a pure dumb slave. It runs its own animations, plays back local content (Bad Apple, a Doom playthrough, boot animations, idle screensavers), and composites host-pushed overlays on top of local content. At any given moment, the RP2040 is the authoritative source for what pixels are actually lit on the panel — the controller cannot know what the LEDs are showing unless the RP2040 tells it. The operator console sidebar mirror depends on this, because the mirror must reflect the physical panel state, not the controller's intent.
+
+**Who owns what on the Zynq side.** The SPI slave peripheral in the PL fabric is the physical link. **R5 core 1** owns the TX buffer (what gets sent on MOSI) — in thermal mode it's rendering a live thermal map from its own telemetry table every frame. **R5 core 0** owns the RX buffer readback (what comes in on MISO) — it consumes this for the 448×448 sidebar mirror in the operator console. Linux does not touch the SPI peripheral at all. When Linux wants to push user content (a `led_set()` from a StarC program, or a status pattern from a systemd unit, or a custom animation from a daemon), it sends a `CMD_LED_PUSH` rpmsg descriptor to core 1, and core 1 writes the user framebuffer into the TX buffer on Linux's behalf.
 
 **Data flow:**
 
 ```
-Zynq command + optional framebuffer ──MOSI──►  RP2040 ──►  64×64 LED matrix
-                                                  │
-Zynq sidebar mirror  ◄──MISO── RP2040 current framebuffer + status
+R5 core 1 command + optional framebuffer ──MOSI──►  RP2040 ──►  64×64 LED matrix
+                                                       │
+R5 core 0 sidebar mirror  ◄──MISO── RP2040 current framebuffer + status
 ```
 
-Every SPI transaction exchanges one full frame in each direction. The MOSI payload carries the Zynq's command byte (PUSH, NOP, MODE_HOST, MODE_THERMAL, MODE_BADAPPLE, MODE_DOOM, MODE_BOOT, MODE_OVERLAY, RESET) followed by an optional 4,096-byte framebuffer if the command is PUSH. The MISO payload carries a status header (current mode, frame counter, underrun flag) followed by the 4,096-byte framebuffer that the RP2040 is *currently lighting up* — ground truth for whatever the panel is showing this instant.
+Every SPI transaction exchanges one full frame in each direction. The MOSI payload carries a command byte (PUSH, NOP, MODE_HOST, MODE_THERMAL, MODE_BADAPPLE, MODE_DOOM, MODE_BOOT, MODE_OVERLAY, MODE_CRASH, RESET) followed by an optional 4,096-byte framebuffer if the command is PUSH. The MISO payload carries a status header (current mode, frame counter, underrun flag) followed by the 4,096-byte framebuffer that the RP2040 is *currently lighting up* — ground truth for whatever the panel is showing this instant.
 
-**Who is the master:** the RP2040 drives SCK and CS. This flips the conventional "Zynq as master, RP2040 as slave" arrangement, and it's deliberate. The RP2040 owns the LED refresh timer, so it knows when a frame is about to be latched into the panel drivers. Initiating the SPI transaction on the RP2040's own frame-refresh clock gives you free v-sync alignment — every readback corresponds to a specific, completed refresh cycle, with no tearing risk. The Zynq's fabric SPI core runs in slave mode, responding whenever the RP2040 strobes CS. Master/slave selection is a firmware configuration choice, not a wiring change; both modes use the same four wires (SCK, MOSI, MISO, CS) in the same directions.
+**Who is the SPI master:** the RP2040 drives SCK and CS. This flips the conventional "Zynq as master, RP2040 as slave" arrangement, and it's deliberate. The RP2040 owns the LED refresh timer, so it knows when a frame is about to be latched into the panel drivers. Initiating the SPI transaction on the RP2040's own frame-refresh clock gives you free v-sync alignment — every readback corresponds to a specific, completed refresh cycle, with no tearing risk. The Zynq's fabric SPI core runs in slave mode, responding whenever the RP2040 strobes CS. Master/slave selection is a firmware configuration choice, not a wiring change; both modes use the same four wires (SCK, MOSI, MISO, CS) in the same directions.
 
 **Modes of operation:**
 
-| Mode | MOSI content | MISO content | Sidebar mirror shows |
+| Mode | Who writes the TX buffer | MISO content | Sidebar mirror shows |
 | :--- | :--- | :--- | :--- |
-| HOST (thermal map, job state) | Zynq pushes new frame | Echoed back | Host content (authoritative portrait of the hypercube) |
-| LOCAL (Bad Apple, Doom, screensaver) | NOP commands | RP2040 local playback frames | Whatever the RP2040 is playing |
-| OVERLAY | Zynq overlay framebuffer | Composited result | Host overlay on top of local content |
-| BOOT | NOPs (Zynq not ready) | RP2040 boot animation | Boot animation |
+| THERMAL (normal running state) | R5 core 1 from thermal table | Echoed back | Live portrait of the 4,096 compute nodes |
+| HOST (user StarC content) | R5 core 1 on behalf of Linux | Echoed back | Whatever the user program pushed |
+| LOCAL (Bad Apple, Doom, screensaver) | NOP (RP2040 ignores MOSI) | RP2040 local playback frames | Whatever the RP2040 is playing |
+| OVERLAY | R5 core 1 composites overlay | Composited result | Host overlay on top of local content |
+| BOOT | NOP (Zynq not ready yet) | RP2040 boot animation | Boot animation |
+| CRASH (Linux dead) | R5 core 1 thermal + red border | Echoed back | Live thermal map with a crash indicator |
 
-The sidebar mirror in the operator console reflects **whatever the RP2040 reports it is actually showing**, which is always the physical truth of the LED panel regardless of which side is generating content. When the hypercube is running a StarC job, the panel is in HOST mode displaying the thermal map, and the sidebar is a live portrait of the 4,096 compute nodes. When the machine is idle, the panel drops into LOCAL mode playing Bad Apple, and the sidebar plays Bad Apple. When a job starts, the R5 sends a mode-change command, the panel snaps to HOST mode, and the sidebar follows. The HUD telemetry section below the mirror is independent of any of this — it always shows the machine state no matter what the LED panel is currently displaying.
+The sidebar mirror in the operator console reflects **whatever the RP2040 reports it is actually showing**, which is always the physical truth of the LED panel regardless of which side is generating content. When the hypercube is running a StarC job, the panel is in THERMAL mode displaying a live rendering produced by R5 core 1 from the thermal table, and the sidebar is a portrait of the 4,096 compute nodes. When the machine is idle, the panel drops into LOCAL mode playing Bad Apple, and the sidebar plays Bad Apple. When a job starts, core 1 sends a mode-change command, the panel snaps to THERMAL mode, and the sidebar follows within one frame. The HUD telemetry section below the mirror is independent of any of this — it always shows machine state no matter what the LED panel is currently displaying.
 
 **Bandwidth budget:** 4,096 bytes per direction × 60 Hz = 246 KB/s per direction, 492 KB/s bidirectional. At a 20 MHz SPI clock the link is running at ~20% utilization. At RGB888 (12,288 bytes per direction) it rises to ~60% utilization, still comfortable. There is plenty of headroom for any reasonable pixel format.
 
-**The host library interface:**
+**The host library interface** remains identical to the previous design from the caller's perspective:
 
 ```python
-machine.led.push(framebuffer)        # send a new frame, command=PUSH
-machine.led.set_mode('thermal')      # send mode change, no framebuffer
+machine.led.push(framebuffer)        # CMD_LED_PUSH rpmsg to core 1
+machine.led.set_mode('thermal')      # CMD_LED_MODE rpmsg to core 1
 machine.led.set_mode('badapple')
 machine.led.set_mode('doom')
-machine.led.current_frame()          # read the RX buffer — what the LEDs
-                                     # are actually showing right now
-machine.led.status()                 # read RP2040 status header:
-                                     # mode, frame counter, underruns
+machine.led.current_frame()          # CMD_STATUS rpmsg with framebuffer flag
+machine.led.status()                 # CMD_STATUS rpmsg, telemetry only
 ```
 
-The host library reads `current_frame()` when it wants ground truth (e.g., for logging, screenshots, the sidebar mirror, or debugging an animation discrepancy). It calls `push()` only when it wants to override whatever the RP2040 is currently doing. `set_mode()` is used to hand control back and forth between host-driven content and autonomous RP2040 playback without having to keep streaming frames.
+Underneath, every call is an rpmsg descriptor to core 1. The host library does not have direct access to the LED SPI peripheral, and it does not need it — core 1 is the single source of truth for what goes out on MOSI, and it handles user-content push requests as well as its own autonomous thermal rendering. `current_frame()` returns whatever the RP2040 *actually* has on the panel, because the LED mirror has to be a portrait of physical reality regardless of which side last wrote the TX buffer.
 
-This pipeline also runs outside of StarC jobs. The daemon can push status patterns (boot animation, card health visualization, idle patterns), or it can simply issue `set_mode('badapple')` and let the RP2040 do its thing while the sidebar mirror dutifully reflects the playback in real time.
+This pipeline also runs outside of StarC jobs. The `thinkin-daemon` can push status patterns, boot splashes, or card health visualizations by sending `CMD_LED_PUSH` commands. It can hand control back to the RP2040 at any time by sending `CMD_LED_MODE` with `MODE_BADAPPLE` or similar, and the sidebar mirror dutifully reflects the playback in real time.
 
 ## Summary
 
-This is a custom 8-layer 64-bit Linux motherboard. The Processing System runs Ubuntu, compiles StarC natively, and serves the network. The Programmable Logic handles the 16-channel backplane, TDMA synchronization, and LED display — all in deterministic hardware, independent of the kernel. Four PS-GTR transceiver lanes are fully allocated across DisplayPort, NVMe, and USB 3.0. The board boots from MicroSD, runs from NVMe, and memory-maps the entire 65,536-core hypercube directly into the Linux address space via AXI.
+This is a custom 8-layer 64-bit AMP motherboard. The **A53 cluster** runs Ubuntu, compiles StarC natively, serves the network, and drives the left 1440×1080 of the DisplayPort output as a normal Linux desktop. **R5F core 0** runs a FreeRTOS BMC image that paints the right 480×1080 of the display as an out-of-band operator console and serves HTTP/SSH/VNC/SoL/Prometheus on its own shared-GEM network queue. **R5F core 1** runs a FreeRTOS hypercube controller image that owns the 16 backplane UARTs, the TDMA block, the LED SPI TX buffer, and the fan PWM — it is the CPU that actually orchestrates StarC jobs on the 4,096 compute nodes, and Linux reaches it over a mainline rpmsg mailbox. The Programmable Logic handles the 16-channel backplane, TDMA synchronization, LED SPI, and fan PWM in deterministic hardware, under the control of R5 core 1 rather than Linux. Four PS-GTR transceiver lanes are fully allocated across DisplayPort, NVMe, and USB 3.0. The board boots from QSPI flash (or MicroSD in development), runs Ubuntu from NVMe, and brings the R5 cluster up via Xilinx remoteproc alongside the Linux kernel.
 
-The original CM-1 required a VAX 11/780 or a Symbolics 3600 Lisp Machine as its front-end. This replaces that with a single 23mm BGA on a board that fits inside the cube.
+Because real-time hypercube control lives on a processor that shares nothing with Linux except the memory controller, in-flight StarC jobs keep running to completion when Linux panics, the LED panel keeps displaying live telemetry, and the BMC network services stay reachable — a survival property most enterprise servers charge extra for, achieved here as a side effect of putting every block of the XCZU2EG to work.
+
+The original CM-1 required a VAX 11/780 or a Symbolics 3600 Lisp Machine as its front-end. This replaces both with a single 23mm BGA on a board that fits inside the cube, with the VAX-style "service processor" role filled by a pair of hardened real-time cores that Xilinx shipped in the same package almost as an afterthought.
 
 ## Appendix: Hardware Reference — Pin Mapping and Wiring Tables
 
@@ -1348,17 +1517,17 @@ These are stock Xilinx IP blocks with a mainline Linux driver — no custom RTL,
 | 15 | UART_TX_15 | Output | 26 | Card 15 UART0_RX | Host TX → Node RX |
 | 15 | UART_RX_15 | Input | 26 | Card 15 UART0_TX | Node TX → Host RX |
 
-Each AXI UART Lite instance occupies a 4 KB AXI-Lite register window. The Xilinx IP block exposes a standard register layout (RX FIFO at +0x00, TX FIFO at +0x04, STAT_REG at +0x08, CTRL_REG at +0x0C) that the mainline kernel driver knows how to drive. Base addresses are spaced at 0x1000 intervals for clean address decoding in the AXI Interconnect:
+Each AXI UART Lite instance occupies a 4 KB AXI-Lite register window. The Xilinx IP block exposes a standard register layout (RX FIFO at +0x00, TX FIFO at +0x04, STAT_REG at +0x08, CTRL_REG at +0x0C). Base addresses are spaced at 0x1000 intervals for clean address decoding in the AXI Interconnect, and both CPU clusters see the same physical addresses:
 
-| Card | AXI Base Address | Linux Device | IRQ |
-| :--- | :--- | :--- | :--- |
-| 0  | 0xA000_0000 | `/dev/ttyUL0`  | 89  |
-| 1  | 0xA000_1000 | `/dev/ttyUL1`  | 90  |
-| 2  | 0xA000_2000 | `/dev/ttyUL2`  | 91  |
-| ... | ... | ... | ... |
-| 15 | 0xA000_F000 | `/dev/ttyUL15` | 104 |
+| Card | AXI Base Address | Owning CPU | Linux View | IRQ Target |
+| :--- | :--- | :--- | :--- | :--- |
+| 0  | 0xA000_0000 | R5F core 1 | `/dev/rpmsg-tty0`  | R5F core 1 |
+| 1  | 0xA000_1000 | R5F core 1 | `/dev/rpmsg-tty1`  | R5F core 1 |
+| 2  | 0xA000_2000 | R5F core 1 | `/dev/rpmsg-tty2`  | R5F core 1 |
+| ... | ... | ... | ... | ... |
+| 15 | 0xA000_F000 | R5F core 1 | `/dev/rpmsg-tty15` | R5F core 1 |
 
-Each instance has its own IRQ routed through Vivado IP Integrator to the Zynq's `IRQ_F2P` inputs (16 available, exactly consumed). The `drivers/tty/serial/uartlite.c` kernel driver handles all register access, FIFO management, and interrupt servicing — userspace talks to these through the standard POSIX serial API via `pyserial` or any other Linux serial library. No `/dev/mem`, no custom driver, no polling loops.
+Each instance has its own IRQ routed through Vivado IP Integrator to the Zynq's `IRQ_F2P` inputs (16 available, exactly consumed). The IRQs target **R5F core 1's GIC view** via the PS GIC SPI lines, not the A53 cluster — the hypercube controller firmware running on core 1 is the direct owner of all 16 UART interrupts. The AXI UART Lite device tree nodes on the Linux side are marked `status = "reserved"` so the mainline `drivers/tty/serial/uartlite.c` driver never binds to them. Linux reaches the UARTs indirectly through the `/dev/rpmsg-hypercube` command channel (for job control) or through the `/dev/rpmsg-tty0..15` virtual TTYs (for interactive debug), both backed by the OpenAMP rpmsg framework and serviced by core 1 on the other side of the mailbox.
 
 ### LED Display SPI (PL HD Bank 24)
 
@@ -1615,7 +1784,7 @@ If implementing in passes:
 - Sacrificial 74LVC244 buffers (~6 chips)
 - VCCO power islands with ferrite beads on Banks 24/25/26/44
 - USB debug console (FT232RL/CP2102N)
-- **Operator Console HUD sidebar + BMC** (pure firmware/software work, zero new hardware, zero PCB changes) — 1440×1080 Linux + 480×1080 R5-owned sidebar with LED mirror and telemetry HUD, rendered by the Cortex-R5F (already in silicon). The same R5 runs a full BMC with HTTP dashboard, VNC remote console, SSH shell, serial-over-LAN, Prometheus exporter, and power control services, reachable over the existing Ethernet via a shared-GEM configuration (no second PHY or second RJ45 required). See "The Operator Console" and "The BMC: Putting the Cortex-R5F to Work" sections above. This is the highest-value feature on the board per dollar (zero) and per hour of PCB work (zero) — everything is firmware.
+- **Operator Console HUD + BMC + Hypercube Controller on the R5F cluster** (pure firmware/software work, zero new hardware, zero PCB changes) — 1440×1080 Linux + 480×1080 R5-owned sidebar with LED mirror and telemetry HUD, rendered by R5 core 0. The same core runs a full BMC with HTTP dashboard, VNC remote console, SSH shell, serial-over-LAN, Prometheus exporter, and power control services, reachable over the existing Ethernet via a shared-GEM configuration (no second PHY or second RJ45 required). **R5 core 1** runs the real-time hypercube controller — it owns all 16 backplane UARTs, the TDMA block, the LED SPI TX path, and the fan PWM, and Linux drives it over a mainline rpmsg mailbox. This splits the machine into a proper HPC-style user frontend (A53/Linux) and service processor (R5F cluster), with the consequence that in-flight StarC jobs keep running to completion even when Linux kernel-panics. See "The Operator Console," "The BMC: Putting the Cortex-R5F to Work," and "The Hypercube Controller: R5F Core 1 as the Real-Time Supervisor" sections above. This is the highest-value feature on the board per dollar (zero) and per hour of PCB work (zero) — everything is firmware.
 
 **Pass 3 — High-value features:**
 - Per-card INA226 power monitoring
