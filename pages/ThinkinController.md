@@ -63,7 +63,7 @@ Choosing this specific piece of silicon was a highly calculated exercise in bala
 
 ### The Pin-Compatible Upgrade Path
 
-The beauty of Xilinx’s UltraScale+ architecture is pin compatibility. Because I designed this entire motherboard around the 0.8mm `SFVC784` footprint, I could later drop in an **XCZU3EG** if I ever need quad-core A53 performance. Same package, same pinout, zero rerouting. For now, the dual-core ZU2EG with its integrated GPU is more than enough to run a Linux desktop while the real work happens in the FPGA fabric.
+The beauty of Xilinx's UltraScale+ architecture is pin compatibility. Because I designed this entire motherboard around the 0.8mm `SFVC784` footprint, I could later drop in an **XCZU3EG** if I ever need quad-core A53 performance. Same package, same pinout, zero rerouting. For now, the dual-core ZU2EG with its integrated GPU is more than enough to run a Linux desktop while the real work happens in the FPGA fabric.
 
 Because the Internet is going to compare this to a Raspberry Pi, let's do that now, instead. The XCZU2EG is a Dual-Core A53 with a Mali 400 GPU. These specs alone put it somewhere within spitting distance of a Raspberry Pi 3. However, the Pi 3 has LPDDR2 RAM, this board has 4GB of DDR4 RAM. The Pi 3 has 100 Mbit Ethernet, this board has Gigabit Ethernet. The Pi 3 has an SD card for storage, this board has has a 1TB NVMe drive connected over PCIe Gen2 x1, with about 500 MB/s of bandwidth. The Pi 3 has USB 2, this board has four ports of USB 3.0 with 5 Gbps of bandwidth. It also has an FPGA tacked onto it for talking to the "hypercube coprocessor". 
 
@@ -83,7 +83,7 @@ Because the Internet is going to compare this to a Raspberry Pi, let's do that n
 
 ## System Memory: 4 Gigabytes of DDR4
 
-There are two distinct memory domains in this machine. The entire 4,096-node hypercube possesses a grand total of **32 Megabytes** of distributed SRAM—a mathematically perfect match to the original 1985 CM-1. 
+There are two distinct memory domains in this machine. The entire 4,096-node hypercube possesses a grand total of **32 Megabytes** of distributed SRAM--a mathematically perfect match to the original 1985 CM-1. 
 
 However, the Linux host needs real breathing room. I gave the Zynq 4 Gigabytes of system RAM using two **Micron MT40A1G16TB-062E** DDR4 chips. 
 
@@ -96,47 +96,47 @@ The lower 16 data bits (DQ0-DQ15) go point-to-point to Chip 1. The upper 16 data
 
 ## The Display Interface
 
-The Zynq Processing System's hardened video controller outputs native DisplayPort. Rather than adding an expensive, hard-to-source active converter chip to translate to HDMI, I put a standard full-size **DisplayPort receptacle** (Foxconn 3VD51203-3D6A-7H) directly on the rear I/O panel. Two high-speed GTR lanes from Bank 505 drive the DisplayPort signal directly to the connector—no protocol conversion, no converter IC, no wasted board space. Users who need HDMI can use a standard $10 active DP-to-HDMI dongle.
+The Zynq Processing System's hardened video controller outputs native DisplayPort. Rather than adding an expensive, hard-to-source active converter chip to translate to HDMI, I put a standard full-size **DisplayPort receptacle** (Foxconn 3VD51203-3D6A-7H) directly on the rear I/O panel. Two high-speed GTR lanes from Bank 505 drive the DisplayPort signal directly to the connector--no protocol conversion, no converter IC, no wasted board space. Users who need HDMI can use a standard $10 active DP-to-HDMI dongle.
 
-The DisplayPort AUX channel (a bidirectional sideband for EDID and link training) is routed through MIO pins 27, 28, 29, and 30. MIO27 drives AUX data out through a 100Ω series resistor, MIO30 reads the return signal tapped from the same net, MIO29 controls the output enable, and MIO28 reads the Hot Plug Detect signal from the connector.
+The DisplayPort AUX channel (a bidirectional sideband for EDID and link training) is routed through MIO pins 27, 28, 29, and 30. MIO27 drives AUX data out through a 100-ohm series resistor, MIO30 reads the return signal tapped from the same net, MIO29 controls the output enable, and MIO28 reads the Hot Plug Detect signal from the connector.
 
 ## The Operator Console: A Fabric-Owned Display Sidebar
 
-The DisplayPort output is not just for running Ubuntu. Modern single-board computers hand the entire display to the operating system and call it a day — on this machine, the fabric claims part of the screen for itself, permanently, and Linux isn't even told it exists. The result is a hardware operator console that runs at all times and survives any software state, including complete kernel panics.
+The DisplayPort output is not just for running Ubuntu. Modern single-board computers hand the entire display to the operating system and call it a day -- on this machine, the fabric claims part of the screen for itself, permanently, and Linux isn't even told it exists. The result is a hardware operator console that runs at all times and survives any software state, including complete kernel panics.
 
 ### The Partition
 
-The physical DisplayPort link runs at **1920×1080 @ 60Hz**. Rather than handing all 2,073,600 pixels to Linux, the framebuffer is split into two vertical regions:
+The physical DisplayPort link runs at **1920x1080 @ 60Hz**. Rather than handing all 2,073,600 pixels to Linux, the framebuffer is split into two vertical regions:
 
 ```
-┌────────────────────────────────────────────────────┐
-│  DisplayPort output: 1920×1080 @ 60Hz              │
-│  ┌─────────────────────────────┬──────────────────┐│
-│  │                             │ ┌──────────────┐ ││
-│  │                             │ │              │ ││
-│  │                             │ │  448×448     │ ││
-│  │                             │ │  LED PANEL   │ ││
-│  │   1440×1080 Ubuntu          │ │  MIRROR      │ ││
-│  │   (4:3, Mali-400 GPU,       │ │  (7× exact)  │ ││
-│  │    Xorg / Wayland)          │ │              │ ││
-│  │                             │ └──────────────┘ ││
-│  │                             │ ──────────────── ││
-│  │                             │  TELEMETRY HUD   ││
-│  │                             │  (fabric text    ││
-│  │                             │   480×600)       ││
-│  │                             │                  ││
-│  └─────────────────────────────┴──────────────────┘│
-│            Linux side                sidebar       │
-│            (PS owns)              (fabric owns)    │
-└────────────────────────────────────────────────────┘
++----------------------------------------------------+
+|  DisplayPort output: 1920x1080 @ 60Hz              |
+|  +-----------------------------+------------------+ |
+|  |                             | +--------------+ | |
+|  |                             | |              | | |
+|  |                             | |  448x448     | | |
+|  |                             | |  LED PANEL   | | |
+|  |   1440x1080 Ubuntu          | |  MIRROR      | | |
+|  |   (4:3, Mali-400 GPU,       | |  (7x exact)  | | |
+|  |    Xorg / Wayland)          | |              | | |
+|  |                             | +--------------+ | |
+|  |                             | ---------------- | |
+|  |                             |  TELEMETRY HUD   | |
+|  |                             |  (fabric text    | |
+|  |                             |   480x600)       | |
+|  |                             |                  | |
+|  +-----------------------------+------------------+ |
+|            Linux side                sidebar        |
+|            (PS owns)              (fabric owns)     |
++----------------------------------------------------+
 ```
 
-- **Left region: 1440×1080** — exact 4:3 aspect ratio, the same aspect every 1980s workstation monitor had (VGA, Sun 3, NeXTstation, SPARCstation). This is what Linux/Xorg/Wayland sees as its entire display. The Mali-400 GPU renders the Ubuntu desktop into this region exactly as it would on any other machine. Applications, window managers, and the kernel framebuffer console believe the screen is 1440×1080 and nothing more.
-- **Right region: 480×1080** — owned exclusively by the Programmable Logic. Split into two sub-regions: a **448×448 LED panel mirror** at the top (centered with a 16-pixel decorative border on each side) and a **480×600 telemetry HUD** below it. Linux has no knowledge of these pixels and no way to draw on them.
+- **Left region: 1440x1080** -- exact 4:3 aspect ratio, the same aspect every 1980s workstation monitor had (VGA, Sun 3, NeXTstation, SPARCstation). This is what Linux/Xorg/Wayland sees as its entire display. The Mali-400 GPU renders the Ubuntu desktop into this region exactly as it would on any other machine. Applications, window managers, and the kernel framebuffer console believe the screen is 1440x1080 and nothing more.
+- **Right region: 480x1080** -- owned exclusively by the Programmable Logic. Split into two sub-regions: a **448x448 LED panel mirror** at the top (centered with a 16-pixel decorative border on each side) and a **480x600 telemetry HUD** below it. Linux has no knowledge of these pixels and no way to draw on them.
 
 ### How the Partition Works
 
-The PS DisplayPort controller is configured for 1920×1080 and scans out a single contiguous framebuffer from DDR4. Linux is then told via the framebuffer driver that the screen is **1440×1080** but that the scanline stride is **1920 × 4 bytes = 7680 bytes** instead of the expected 5760. This is a standard trick: Xorg writes 1440 pixels per line, leaves the remaining 480 pixels of each scanline untouched, and the DP hardware happily pulls all 1920 pixels per line anyway. Linux has no idea the extra 480 pixels exist because they're outside the framebuffer size it was configured with.
+The PS DisplayPort controller is configured for 1920x1080 and scans out a single contiguous framebuffer from DDR4. Linux is then told via the framebuffer driver that the screen is **1440x1080** but that the scanline stride is **1920 x 4 bytes = 7680 bytes** instead of the expected 5760. This is a standard trick: Xorg writes 1440 pixels per line, leaves the remaining 480 pixels of each scanline untouched, and the DP hardware happily pulls all 1920 pixels per line anyway. Linux has no idea the extra 480 pixels exist because they're outside the framebuffer size it was configured with.
 
 A PL AXI master on one of the Zynq's High-Performance (HP) AXI ports writes directly into those otherwise-untouched 480 pixels per line. The DP controller, reading the same DDR4 region, scans the fabric-written pixels out on the right side of the display. Both writers (PS GPU on the left, PL DMA on the right) share the DDR4 memory controller but never touch each other's regions. Zero conflict, zero coordination, zero software involvement.
 
@@ -144,143 +144,143 @@ A PL AXI master on one of the Zynq's High-Performance (HP) AXI ports writes dire
 
 ### The Out-of-Band Console Property
 
-Because the sidebar is painted by a processor that shares nothing with the Linux side except the DDR4 memory controller, it **keeps running when Linux is dead**. When Ubuntu panics, when Xorg hangs, when the A53 cores livelock inside a kernel bug — none of it matters to the sidebar. R5 core 0 keeps reading telemetry and writing pixels, the DMA path keeps moving bytes to the framebuffer, and the DP controller keeps scanning it all out at 60Hz.
+Because the sidebar is painted by a processor that shares nothing with the Linux side except the DDR4 memory controller, it **keeps running when Linux is dead**. When Ubuntu panics, when Xorg hangs, when the A53 cores livelock inside a kernel bug -- none of it matters to the sidebar. R5 core 0 keeps reading telemetry and writing pixels, the DMA path keeps moving bytes to the framebuffer, and the DP controller keeps scanning it all out at 60Hz.
 
-More importantly, **the data the sidebar is displaying is still live**, because R5 core 1 is still running the hypercube. Telemetry keeps streaming into the thermal table, the LED panel keeps displaying an up-to-the-second thermal map, and any job that was in flight when Linux died keeps executing to completion on the compute nodes. See "Hypercube Controller: R5F Core 1" below for the full architecture — the short version is that Linux was never on the hypercube control path in the first place.
+More importantly, **the data the sidebar is displaying is still live**, because R5 core 1 is still running the hypercube. Telemetry keeps streaming into the thermal table, the LED panel keeps displaying an up-to-the-second thermal map, and any job that was in flight when Linux died keeps executing to completion on the compute nodes. See "Hypercube Controller: R5F Core 1" below for the full architecture -- the short version is that Linux was never on the hypercube control path in the first place.
 
 The user experience of a crashed system becomes:
 
 - **Left side:** frozen desktop, last image before the crash
 - **Right side:** **still updating with live data.** Real thermal map from the 4,096 compute nodes, real temperatures, real TDMA state, real card health. Any in-flight StarC job keeps running to completion and the progress bar keeps climbing. The HUD posts a header reading `LINUX: DEAD (kernel panic at 14:47:12)` so there's no ambiguity about what happened, but everything else on the sidebar is current.
 
-This is exactly what enterprise servers call an **out-of-band management console**. IBM RSA, Dell iDRAC, HP iLO, Sun LOM — every major server vendor ships dedicated BMC silicon just to provide this feature, because the ability to see what's wrong *when the main OS can't tell you* is the difference between "five-hour remote debug session" and "oh, node 7 is on fire." Commercial servers pay hundreds of dollars of BOM cost for a dedicated BMC chip to get this.
+This is exactly what enterprise servers call an **out-of-band management console**. IBM RSA, Dell iDRAC, HP iLO, Sun LOM -- every major server vendor ships dedicated BMC silicon just to provide this feature, because the ability to see what's wrong *when the main OS can't tell you* is the difference between "five-hour remote debug session" and "oh, node 7 is on fire." Commercial servers pay hundreds of dollars of BOM cost for a dedicated BMC chip to get this.
 
 This board gets it for free because the PL is already on the other side of the DP controller's DMA port, and because the R5 cluster is on the other side of Linux entirely. The BMC functionality and the hypercube-survives-Linux-crash property are both side effects of where the fabric and the R5 cores happen to sit in the memory hierarchy.
 
-### The 448×448 LED Mirror
+### The 448x448 LED Mirror
 
-The top of the sidebar is a live mirror of the 64×64 front-panel LED display, scaled **7× exactly** to 448×448, centered in the 480-wide sidebar with a 16-pixel dark border on each horizontal edge. The integer scaling factor is deliberate: it's pixel-perfect with no interpolation artifacts, and the visible grid between upscaled pixels gives each LED a chunky, deliberate look. The 16-pixel border reads as a bezel around the mirrored display.
+The top of the sidebar is a live mirror of the 64x64 front-panel LED display, scaled **7x exactly** to 448x448, centered in the 480-wide sidebar with a 16-pixel dark border on each horizontal edge. The integer scaling factor is deliberate: it's pixel-perfect with no interpolation artifacts, and the visible grid between upscaled pixels gives each LED a chunky, deliberate look. The 16-pixel border reads as a bezel around the mirrored display.
 
-**The critical detail is where the mirror source comes from.** It is not the "intended framebuffer" the host library last pushed — because the RP2040 on the front panel is not a dumb slave. It runs its own animations, plays local video (Bad Apple, a Doom demo, boot splashes, idle screensavers), and composites host overlays on top of local content. At any moment, the RP2040 might be lighting up pixels the Zynq never pushed. The only way to know what is *actually* on the physical panel is to ask the RP2040 directly.
+**The critical detail is where the mirror source comes from.** It is not the "intended framebuffer" the host library last pushed -- because the RP2040 on the front panel is not a dumb slave. It runs its own animations, plays local video (Bad Apple, a Doom demo, boot splashes, idle screensavers), and composites host overlays on top of local content. At any moment, the RP2040 might be lighting up pixels the Zynq never pushed. The only way to know what is *actually* on the physical panel is to ask the RP2040 directly.
 
-So the mirror source is the **SPI MISO readback buffer**: every frame, the RP2040 streams its current framebuffer back to the Zynq over the LED SPI link's MISO line, along with a small status header (current mode, frame counter, underrun flag). R5 core 0 reads that RX buffer in DDR4 every frame, applies the colormap LUT, and writes the scaled 7× mirror into the sidebar region of the DP framebuffer. The mirror is always showing what the RP2040 *reports it is actually displaying*, which is ground truth by construction.
+So the mirror source is the **SPI MISO readback buffer**: every frame, the RP2040 streams its current framebuffer back to the Zynq over the LED SPI link's MISO line, along with a small status header (current mode, frame counter, underrun flag). R5 core 0 reads that RX buffer in DDR4 every frame, applies the colormap LUT, and writes the scaled 7x mirror into the sidebar region of the DP framebuffer. The mirror is always showing what the RP2040 *reports it is actually displaying*, which is ground truth by construction.
 
-Note that in thermal mode the RP2040 is displaying a framebuffer that was **produced by R5 core 1** (the hypercube controller), not by Linux. Core 1 applies the colormap to the live thermal table and writes the 64×64 image into the LED SPI TX buffer; the RP2040 then latches that frame for display and echoes it back on MISO. The mirror is therefore reflecting R5-rendered live telemetry, and Linux is not in the path. See the "Hypercube Controller: R5F Core 1" section below for the full rendering pipeline.
+Note that in thermal mode the RP2040 is displaying a framebuffer that was **produced by R5 core 1** (the hypercube controller), not by Linux. Core 1 applies the colormap to the live thermal table and writes the 64x64 image into the LED SPI TX buffer; the RP2040 then latches that frame for display and echoes it back on MISO. The mirror is therefore reflecting R5-rendered live telemetry, and Linux is not in the path. See the "Hypercube Controller: R5F Core 1" section below for the full rendering pipeline.
 
 See the "LED Display Pipeline" section later in the document for the full bidirectional SPI protocol. The short version: the SPI link is full-duplex, MOSI carries Zynq commands and optional push-framebuffers, MISO carries the RP2040's authoritative current framebuffer, and the mirror reads from MISO.
 
 This matters because it means the mirror is *always correct in every mode*:
 
-- When a StarC job is running and the panel shows the thermal map, the mirror shows the thermal map → a live portrait of the 4,096 compute nodes
-- When the machine is idle and the RP2040 is playing Bad Apple, the mirror shows Bad Apple → your operator console literally has a music video on it
+- When a StarC job is running and the panel shows the thermal map, the mirror shows the thermal map -- a live portrait of the 4,096 compute nodes
+- When the machine is idle and the RP2040 is playing Bad Apple, the mirror shows Bad Apple -- your operator console literally has a music video on it
 - When a job starts, the R5 sends a mode-change command, the panel snaps to thermal mode, and the mirror snaps with it in the same frame
-- When the RP2040 composites a host overlay on top of local content (e.g., "JOB DONE" banner over the idle animation), the mirror shows the composite → whatever the LEDs are showing, the mirror is showing
+- When the RP2040 composites a host overlay on top of local content (e.g., "JOB DONE" banner over the idle animation), the mirror shows the composite -- whatever the LEDs are showing, the mirror is showing
 
 The "portrait of the hypercube" property is now correctly framed as **a mode the machine can be in**, not a permanent guarantee. When the panel is in thermal mode, the sidebar is a portrait of the machine. When the panel is in Bad Apple mode, the sidebar is Bad Apple. Both are correct reflections of physical reality. The HUD text *below* the mirror is independent and always shows the live machine state regardless of what the LED panel is doing, so the "telemetry about the machine" property is preserved in the HUD even when the LED mirror is showing a music video.
 
-Implementation is cheap. The R5 already has AXI access to DDR4, so it reads the SPI RX buffer in place. A colormap LUT lives in R5 TCM (256 entries × 3 bytes = 768 bytes, negligible). The R5 applies the LUT to each of 4,096 bytes and writes 49 pixels per LED (7×7 nearest-neighbor expansion) into the sidebar region of the DP framebuffer. Total fabric cost for this block: **zero** — it all happens on the R5. The fabric only needs to provide the SPI slave peripheral (which it already does) and the DMA master writing into the framebuffer region (shared with the HUD renderer).
+Implementation is cheap. The R5 already has AXI access to DDR4, so it reads the SPI RX buffer in place. A colormap LUT lives in R5 TCM (256 entries x 3 bytes = 768 bytes, negligible). The R5 applies the LUT to each of 4,096 bytes and writes 49 pixels per LED (7x7 nearest-neighbor expansion) into the sidebar region of the DP framebuffer. Total fabric cost for this block: **zero** -- it all happens on the R5. The fabric only needs to provide the SPI slave peripheral (which it already does) and the DMA master writing into the framebuffer region (shared with the HUD renderer).
 
-Update rate: match the LED panel at 60 fps, frame-locked to the RP2040's refresh clock. Because the RP2040 drives the SPI transaction on its own v-sync and the Zynq's SPI slave latches the frame immediately, and because the R5 is running a tight loop waiting for that data, there is **sub-frame latency** between the physical front panel and its mirror — typically one 16.6 ms frame in the worst case, often less. Wave your hand in front of the cube, the LEDs update, the mirror updates on the very next monitor refresh.
+Update rate: match the LED panel at 60 fps, frame-locked to the RP2040's refresh clock. Because the RP2040 drives the SPI transaction on its own v-sync and the Zynq's SPI slave latches the frame immediately, and because the R5 is running a tight loop waiting for that data, there is **sub-frame latency** between the physical front panel and its mirror -- typically one 16.6 ms frame in the worst case, often less. Wave your hand in front of the cube, the LEDs update, the mirror updates on the very next monitor refresh.
 
 This is what gives you the canonical demo: you run a Mandelbrot render, and on the same monitor you see your terminal on the left and a live thermal portrait of the hypercube computing it on the right, updating in lockstep with the physical panel you can also see on the front of the machine. And when the machine is idle, you glance up at the operator console and it's playing Bad Apple on the right side while your desktop is on the left, and that is somehow *even better*.
 
-### The 480×600 Telemetry HUD
+### The 480x600 Telemetry HUD
 
-Below the mirror sits a text-mode operator console. At an 8×16 VGA font, that's **60 columns × 37 rows** of monospace text — enough for a serious telemetry display. A sample layout:
+Below the mirror sits a text-mode operator console. At an 8x16 VGA font, that's **60 columns x 37 rows** of monospace text -- enough for a serious telemetry display. A sample layout:
 
 ```
-════════════════════════════════════════════════════════════
-  ████████ ██   ██ ██ ███    ██ ██  ██ ██ ███    ██
-     ██    ██   ██ ██ ████   ██ ██ ██  ██ ████   ██
-     ██    ███████ ██ ██ ██  ██ ████   ██ ██ ██  ██
-     ██    ██   ██ ██ ██  ██ ██ ██ ██  ██ ██  ██ ██
-     ██    ██   ██ ██ ██   ████ ██  ██ ██ ██   ████
+============================================================
+  ######## ##   ## ## ###    ## ##  ## ## ###    ##
+     ##    ##   ## ## ####   ## ## ##  ## ####   ##
+     ##    ######## ## ## ##  ## ####   ## ## ##  ##
+     ##    ##   ## ## ##  ## ## ## ##  ## ##  ## ##
+     ##    ##   ## ## ##   #### ##  ## ## ##   ####
                     C O N N E C T I O N
                      M A C H I N E  II
   S/N 0001                              FW 0.4.2-alpha
-════════════════════════════════════════════════════════════
+============================================================
  SYSTEM
    uptime         04d 17h 23m 41s
    load avg       0.42  0.38  0.35
-   zynq psu       52°C    pl fabric   67°C
-   ddr4           41°C    nvme        44°C
+   zynq psu       52 C    pl fabric   67 C
+   ddr4           41 C    nvme        44 C
    hostname       thinkin.local       ip  192.168.1.217
-════════════════════════════════════════════════════════════
+============================================================
  HYPERCUBE
    cards          16 / 16  ALIVE
    nodes          4096 / 4096  ALIVE
    tdma           RUNNING    1 kHz    phase  7 / 12
    backplane      OK   0 errors / hour
-════════════════════════════════════════════════════════════
+============================================================
  CURRENT JOB   mandelbrot_4k
-   progress     ████████████████▒▒▒▒   82.4%
+   progress     ################....   82.4%
    started      14:32:17    elapsed  00:04:18
    nodes busy   4096        phase    collect
-════════════════════════════════════════════════════════════
+============================================================
  THERMAL
-   hottest      card 07 node 243    78°C
-   coolest      card 11 node 001    49°C
+   hottest      card 07 node 243    78 C
+   coolest      card 11 node 001    49 C
    fan rpm      2400  2380  2410  2390
-════════════════════════════════════════════════════════════
+============================================================
  INTEGRITY
    cosmic rays  12 hits / 24h   (sipm cpm: 0.14)
    sem scrub    0 errors corrected
    uart frames  0 errors / hour
-════════════════════════════════════════════════════════════
+============================================================
  LAST EVENT
    14:36:35  job mandelbrot_4k dispatched to all 16 cards
-════════════════════════════════════════════════════════════
+============================================================
 ```
 
 Every value on that HUD comes from a different part of the system, and every source is already memory-mapped on the AXI bus:
 
 | HUD Field | Source | AXI Slave |
 | :--- | :--- | :--- |
-| Uptime, load, hostname, IP | Linux → shared mailbox in DDR4 | Mailbox region |
+| Uptime, load, hostname, IP | Linux -> shared mailbox in DDR4 | Mailbox region |
 | Zynq PS temp | Zynq System Monitor (SYSMON) | PS peripheral |
 | PL fabric temp | XADC in PL | XADC block |
 | DDR4 and NVMe temps | I2C temperature sensors | I2C controller |
 | Card/node alive counts | Per-UART stats counters in PL | Stats block |
 | TDMA state, phase, frame | TDMA controller | TDMA UIO block |
 | Backplane error counts | Per-UART error counters | Stats block |
-| Current job info | thinkin-daemon → mailbox | Mailbox region |
+| Current job info | thinkin-daemon -> mailbox | Mailbox region |
 | Hottest/coolest nodes | Per-node temperature readings, gathered via AG32 telemetry through the UART control tree and cached in a thermal table | Thermal table in DDR4 |
 | RP2040 display mode & frame counter | LED SPI MISO status header, updated every frame | LED SPI slave RX buffer |
 | Fan RPM | Fan PWM/tach controller | Fan UIO block |
 | Cosmic ray counter | SiPM counter (if cosmic ray detector is fitted) | Counter block |
 | SEM scrub errors | Xilinx Soft Error Mitigation IP | SEM IP block |
 | UART frame errors | Per-UART error counters | Stats block |
-| Event log | thinkin-daemon → ring buffer in DDR4 | Event ring |
+| Event log | thinkin-daemon -> ring buffer in DDR4 | Event ring |
 
 **Not a single one of these readings goes through the Linux kernel.** The HUD renderer reads straight from the AXI slaves and writes pixels straight into the DP framebuffer. The Linux side only contributes to fields that are *only* knowable from userspace (uptime, hostname, current job) and it writes those into a mailbox region that the HUD polls. Everything else is pure fabric.
 
 ### The HUD Renderer: Cortex-R5F Core 0
 
-The telemetry HUD is rendered by **Cortex-R5F core 0**, one of the Zynq's two hardened real-time cores, not by a soft processor in fabric. This is free silicon: the R5F cores are part of the XCZU2EG's Processing System, they've been sitting in the chip the whole time, and until now nothing on the board was using them. They run at up to 600 MHz, have their own TCM (tightly-coupled memory), their own caches, their own interrupt controller, and their own power domain separate from the A53 cluster — meaning the R5 survives A53 crashes by design.
+The telemetry HUD is rendered by **Cortex-R5F core 0**, one of the Zynq's two hardened real-time cores, not by a soft processor in fabric. This is free silicon: the R5F cores are part of the XCZU2EG's Processing System, they've been sitting in the chip the whole time, and until now nothing on the board was using them. They run at up to 600 MHz, have their own TCM (tightly-coupled memory), their own caches, their own interrupt controller, and their own power domain separate from the A53 cluster -- meaning the R5 survives A53 crashes by design.
 
 Core 0 runs a FreeRTOS image that does nothing except:
 
 1. Read local telemetry from memory-mapped AXI slaves and PS peripherals (SYSMON, XADC, fan controller, stats counters)
-2. Read the **hypercube thermal table** — a shared DDR4 region maintained by R5 core 1, the hypercube controller, containing live per-node temperatures, alive bitmap, and job state (see "Hypercube Controller: R5F Core 1" below)
-3. Read the LED SPI slave's **MISO RX buffer** — the authoritative current framebuffer streamed back from the RP2040 every refresh
+2. Read the **hypercube thermal table** -- a shared DDR4 region maintained by R5 core 1, the hypercube controller, containing live per-node temperatures, alive bitmap, and job state (see "Hypercube Controller: R5F Core 1" below)
+3. Read the LED SPI slave's **MISO RX buffer** -- the authoritative current framebuffer streamed back from the RP2040 every refresh
 4. Format telemetry into strings with `sprintf`-style code
 5. Blit characters from a font ROM into the sidebar region of the DP framebuffer in DDR4
-6. Upscale the RP2040's reported 64×64 framebuffer 7× into the top 448×448 of the sidebar
+6. Upscale the RP2040's reported 64x64 framebuffer 7x into the top 448x448 of the sidebar
 7. Sleep for ~16ms (for a 60Hz update rate) and repeat
 
 Because core 0 has direct AXI access to DDR4 and to the LED SPI slave peripheral, it reads the MISO RX buffer in place. This is the **actual, authoritative** current panel content (see the "LED Display Pipeline" section later in the document for why this has to come from the RP2040's readback rather than from a host-written framebuffer). The R5 applies the colormap LUT and writes the scaled mirror into the sidebar region of the DP framebuffer. Zero copies, minimal fabric logic.
 
 Critically, **none of the data core 0 reads flows through Linux.** Local telemetry comes from hardened PS peripherals; hypercube telemetry comes from core 1's shared table; the LED mirror source comes from the SPI slave's RX buffer. The A53 cluster is not on any of these paths, and a Linux kernel panic does not perturb any of them.
 
-The R5 is used instead of a soft core because it is flatly better for this job in every dimension: it's already in the silicon (no fabric cost), it runs ~12× faster than a PicoRV32 at fabric clock rates, it has a hard FPU, it has a full Xilinx BSP with FreeRTOS and lwIP support, and Xilinx explicitly supports "A53 runs Linux + R5 runs FreeRTOS" as a first-class AMP (Asymmetric Multiprocessing) configuration with published reference designs.
+The R5 is used instead of a soft core because it is flatly better for this job in every dimension: it's already in the silicon (no fabric cost), it runs ~12x faster than a PicoRV32 at fabric clock rates, it has a hard FPU, it has a full Xilinx BSP with FreeRTOS and lwIP support, and Xilinx explicitly supports "A53 runs Linux + R5 runs FreeRTOS" as a first-class AMP (Asymmetric Multiprocessing) configuration with published reference designs.
 
-The sidebar becomes, in effect, **a completely self-contained embedded system running inside the Zynq PS**, with its own CPU, its own firmware, its own memory, and its own display output. Its sole function is to render the operator console and run the BMC services described in the next section, and it does so independently of anything the A53 cluster is doing. When Linux crashes, core 0 doesn't notice and doesn't care. It just keeps drawing pixels and answering network requests — and because core 1 is still running the hypercube, the pixels it draws are still live data, not a frozen screenshot.
+The sidebar becomes, in effect, **a completely self-contained embedded system running inside the Zynq PS**, with its own CPU, its own firmware, its own memory, and its own display output. Its sole function is to render the operator console and run the BMC services described in the next section, and it does so independently of anything the A53 cluster is doing. When Linux crashes, core 0 doesn't notice and doesn't care. It just keeps drawing pixels and answering network requests -- and because core 1 is still running the hypercube, the pixels it draws are still live data, not a frozen screenshot.
 
 ### The Killer Demo
 
 The demo that sells this feature:
 
-> Power on the machine. The DisplayPort output shows a boot progress HUD on the right side while U-Boot text scrolls up the left. Ubuntu boots, the desktop appears on the left at 1440×1080 — and the right sidebar has been live the whole time, showing the fabric coming up, cards enumerating one by one, the LED mirror filling in as each card flashes its firmware at boot. You start a Mandelbrot render. The left side is your terminal; the top-right LED mirror shows the fractal forming across the hypercube in real time; the bottom-right telemetry shows the progress bar climbing, the hottest nodes lighting up in the thermal section, elapsed time ticking up. You `kill -9` the X server. The Ubuntu side freezes. **The sidebar keeps going.** You watch the Mandelbrot job finish on the sidebar while the desktop is dead.
+> Power on the machine. The DisplayPort output shows a boot progress HUD on the right side while U-Boot text scrolls up the left. Ubuntu boots, the desktop appears on the left at 1440x1080 -- and the right sidebar has been live the whole time, showing the fabric coming up, cards enumerating one by one, the LED mirror filling in as each card flashes its firmware at boot. You start a Mandelbrot render. The left side is your terminal; the top-right LED mirror shows the fractal forming across the hypercube in real time; the bottom-right telemetry shows the progress bar climbing, the hottest nodes lighting up in the thermal section, elapsed time ticking up. You `kill -9` the X server. The Ubuntu side freezes. **The sidebar keeps going.** You watch the Mandelbrot job finish on the sidebar while the desktop is dead.
 
 ### Implementation Cost
 
@@ -289,14 +289,14 @@ The demo that sells this feature:
 | Cortex-R5F core | **free** | Already in silicon; currently unused |
 | R5 firmware (FreeRTOS + HUD renderer) | ~50 KB compiled | Lives in PS OCM + DDR4 |
 | AXI HP master / DMA engine | ~500 LUTs | Shared with other fabric blocks; writes into the sidebar DDR4 region |
-| 7× LED mirror scaler + colormap LUT | ~200 LUTs + 1 BRAM | Can also run on the R5 directly — either works |
-| Font ROM (8×16 VGA, 256 glyphs) | 4 KB of R5 firmware | No fabric needed — R5 blits characters from its own RAM |
+| 7x LED mirror scaler + colormap LUT | ~200 LUTs + 1 BRAM | Can also run on the R5 directly -- either works |
+| Font ROM (8x16 VGA, 256 glyphs) | 4 KB of R5 firmware | No fabric needed -- R5 blits characters from its own RAM |
 | Telemetry AXI slaves (counters, stats) | ~1,000 LUTs total | Shared with other fabric instrumentation |
 | **Total fabric** | **~1,700 LUTs + 1 BRAM** | **~4% of ZU2EG fabric** |
 
 The fabric cost is dramatically lower than a soft-core approach because the R5 is already in the PS and needs no fabric resources at all. The remaining PL logic is just the DMA master and the telemetry AXI slaves, both of which are shared with other fabric instrumentation work.
 
-On the Linux side, the only change is a framebuffer driver patch to set the scanline stride to 1920 while reporting a resolution of 1440×1080. This is a handful of lines in the DTS file. No kernel rebuilding, no driver development.
+On the Linux side, the only change is a framebuffer driver patch to set the scanline stride to 1920 while reporting a resolution of 1440x1080. This is a handful of lines in the DTS file. No kernel rebuilding, no driver development.
 
 ### Why This Is Worth Doing
 
@@ -321,7 +321,7 @@ A Baseboard Management Controller is the "second computer" inside a server that 
 - Remote console access (VNC-style or proprietary)
 - A command shell accessible over SSH
 
-Every enterprise server made in the last 20 years has one. HP calls theirs Integrated Lights-Out (iLO). Dell calls theirs the integrated Dell Remote Access Controller (iDRAC). IBM has RSA. Supermicro has IPMI-over-LAN. Sun called theirs LOM. They all do the same thing — they give a remote administrator a way to reach the machine *when the main operating system can't tell them what's wrong*, which is precisely when it matters most.
+Every enterprise server made in the last 20 years has one. HP calls theirs Integrated Lights-Out (iLO). Dell calls theirs the integrated Dell Remote Access Controller (iDRAC). IBM has RSA. Supermicro has IPMI-over-LAN. Sun called theirs LOM. They all do the same thing -- they give a remote administrator a way to reach the machine *when the main operating system can't tell them what's wrong*, which is precisely when it matters most.
 
 Commercial BMC silicon is a separate chip on the motherboard (typically an ASPEED AST2500/AST2600 or similar), with its own RAM, its own flash, its own Ethernet PHY, its own jack on the back of the server, and its own license fee. HP charges extra for "iLO Advanced" to unlock the full feature set. Dell charges $399 for an "iDRAC Enterprise" license. The chips themselves add tens of dollars to the BOM.
 
@@ -344,40 +344,40 @@ The Zynq UltraScale+ GEM has hardware support for this exact use case. Each GEM 
 The configuration is documented in Xilinx UG1137 (the Zynq UltraScale+ MPSoC Software Developer Guide) and XAPP1306 (Using Ethernet and the OpenAMP Framework), which publishes a reference design for exactly this case: **Linux on the A53 cluster shares GEM3 with FreeRTOS on the R5F core, with each OS owning a subset of the DMA queues, and the GEM's on-chip Screener routing packets to the right queue based on destination MAC address.**
 
 ```
-                    ┌────────────────────┐
-                    │   RTL8211EG PHY    │
-                    │   (existing chip)  │◄────► RJ45 (existing)
-                    └─────────┬──────────┘
-                              │ RGMII (existing MIO38-51)
-                    ┌─────────▼──────────┐
-                    │   Zynq GEM3        │
-                    │   ┌────────────┐   │
-                    │   │ Screener   │   │  Hardware classifier
-                    │   │ (MAC addr  │   │  routes incoming
-                    │   │  matching) │   │  packets by MAC
-                    │   └──┬──────┬──┘   │
-                    │      │      │      │
-                    │  Queues  Queues    │
-                    │  0-1     2-3       │
-                    └──┬─────────┬───────┘
-                       │         │
-                       ▼         ▼
-                ┌──────────┐  ┌──────────┐
-                │ A53 /    │  │ R5F /    │
-                │ Linux    │  │ FreeRTOS │
-                │ 192.168. │  │ 192.168. │
-                │   1.100  │  │   1.101  │
-                └──────────┘  └──────────┘
+                    +--------------------+
+                    |   RTL8211EG PHY    |
+                    |   (existing chip)  |<----> RJ45 (existing)
+                    +---------+----------+
+                              | RGMII (existing MIO38-51)
+                    +---------v----------+
+                    |   Zynq GEM3        |
+                    |   +------------+   |
+                    |   | Screener   |   |  Hardware classifier
+                    |   | (MAC addr  |   |  routes incoming
+                    |   |  matching) |   |  packets by MAC
+                    |   +--+------+--+   |
+                    |      |      |      |
+                    |  Queues  Queues    |
+                    |  0-1     2-3       |
+                    +--+---------+-------+
+                       |         |
+                       v         v
+                +----------+  +----------+
+                | A53 /    |  | R5F /    |
+                | Linux    |  | FreeRTOS |
+                | 192.168. |  | 192.168. |
+                |   1.100  |  |   1.101  |
+                +----------+  +----------+
                    user         BMC
                    traffic      traffic
 ```
 
 At runtime, the FSBL configures GEM3 with:
-- **Queues 0–1** assigned to the A53 cluster, DMA rings in A53-owned DDR4
-- **Queues 2–3** assigned to the R5F, DMA rings in R5-owned DDR4
-- **Screener Type 1** rules: packets with destination MAC = Linux's MAC → queues 0–1; packets with destination MAC = BMC's MAC → queues 2–3; broadcast/multicast → mirrored to both
+- **Queues 0-1** assigned to the A53 cluster, DMA rings in A53-owned DDR4
+- **Queues 2-3** assigned to the R5F, DMA rings in R5-owned DDR4
+- **Screener Type 1** rules: packets with destination MAC = Linux's MAC -> queues 0-1; packets with destination MAC = BMC's MAC -> queues 2-3; broadcast/multicast -> mirrored to both
 
-Linux boots, its GEM driver takes ownership of queues 0–1, pulls DHCP, gets its IP address, behaves like a normal Linux machine on the network. The R5 boots in parallel, its lwIP stack takes ownership of queues 2–3, pulls its own DHCP lease with a different MAC, gets a different IP, and comes up as an independent network endpoint.
+Linux boots, its GEM driver takes ownership of queues 0-1, pulls DHCP, gets its IP address, behaves like a normal Linux machine on the network. The R5 boots in parallel, its lwIP stack takes ownership of queues 2-3, pulls its own DHCP lease with a different MAC, gets a different IP, and comes up as an independent network endpoint.
 
 **The two operating systems never coordinate at runtime.** Linux's packets and the BMC's packets ride in separate DMA rings, serviced by separate interrupts, processed by separate CPUs, with the hardware Screener doing the multiplexing. Neither OS can see the other's packets, neither OS has to share buffers, and neither OS has to run a software forwarding loop.
 
@@ -391,7 +391,7 @@ Commercial vendors call this "shared LOM mode" and offer "dedicated mode" (a sec
 
 **This board's shared-GEM scheme is architecturally better than shared LOM.** The Screener and the DMA queues are GEM hardware features, below any software. The BMC's traffic does not pass through Linux code, Linux buffers, or Linux driver logic. It doesn't even pass through a shared memory queue. The packets are classified in the GEM silicon itself and dispatched directly to the R5's DMA rings. The only shared component is the GEM peripheral, which has no software to crash.
 
-The only genuine shared failure mode is the GEM hardware itself getting into a wedged state — which, since the GEM is a hardened ARM IP block with decades of silicon hardening behind it, is vanishingly unlikely compared to a firmware crash in a sideband controller. And even in that failure mode, the R5 has full access to GEM3's control registers and can reset the peripheral without needing the A53s to cooperate.
+The only genuine shared failure mode is the GEM hardware itself getting into a wedged state -- which, since the GEM is a hardened ARM IP block with decades of silicon hardening behind it, is vanishingly unlikely compared to a firmware crash in a sideband controller. And even in that failure mode, the R5 has full access to GEM3's control registers and can reset the peripheral without needing the A53s to cooperate.
 
 You are, by accident, building a BMC architecture that is *more independent* than what HP charges extra for.
 
@@ -416,33 +416,33 @@ $ ssh bmc@thinkin-bmc.local            # FreeRTOS BMC shell
 $ curl http://thinkin-bmc.local/       # BMC web dashboard
 ```
 
-Your router, your home switch, and your DHCP server all see two independent clients. None of them know or care that the two clients are riding on the same physical cable. No VLANs, no tagging, no coordination — just two MACs, the way Ethernet has always worked when multiple devices share a segment.
+Your router, your home switch, and your DHCP server all see two independent clients. None of them know or care that the two clients are riding on the same physical cable. No VLANs, no tagging, no coordination -- just two MACs, the way Ethernet has always worked when multiple devices share a segment.
 
 ### What Runs on the BMC
 
-Once the R5 has an IP address, the service stack falls into place. All of these are small by modern standards — FreeRTOS + lwIP + these services fits comfortably in 1 MB of compiled code, running out of a combination of R5 TCMs and a dedicated DDR4 region.
+Once the R5 has an IP address, the service stack falls into place. All of these are small by modern standards -- FreeRTOS + lwIP + these services fits comfortably in 1 MB of compiled code, running out of a combination of R5 TCMs and a dedicated DDR4 region.
 
 **HTTP dashboard on port 80.** A tiny embedded HTTP server (the kind that ships with every FreeRTOS port) exposes:
 
 ```
-GET  /                     → HTML dashboard, live-updating sidebar view
-GET  /sidebar.png          → PNG snapshot of the current 480×1080 sidebar
-GET  /led.png              → PNG snapshot of the 64×64 LED panel
-GET  /telemetry.json       → All telemetry as JSON
-GET  /events               → Server-Sent Events stream of the event log
-GET  /eventlog?n=100       → Last N events as JSON
-POST /power/reset          → Hardware reset the main system (A53)
-POST /power/cycle          → Full power cycle
-POST /power/hypercube/off  → Cut hypercube power, leave BMC up
-POST /job/kill             → Abort the current StarC job
-POST /fans/set?speed=80    → Override fan duty cycle
+GET  /                     -> HTML dashboard, live-updating sidebar view
+GET  /sidebar.png          -> PNG snapshot of the current 480x1080 sidebar
+GET  /led.png              -> PNG snapshot of the 64x64 LED panel
+GET  /telemetry.json       -> All telemetry as JSON
+GET  /events               -> Server-Sent Events stream of the event log
+GET  /eventlog?n=100       -> Last N events as JSON
+POST /power/reset          -> Hardware reset the main system (A53)
+POST /power/cycle          -> Full power cycle
+POST /power/hypercube/off  -> Cut hypercube power, leave BMC up
+POST /job/kill             -> Abort the current StarC job
+POST /fans/set?speed=80    -> Override fan duty cycle
 ```
 
-Anyone on the LAN can open `http://thinkin-bmc.local/` in a browser and see a live dashboard identical in content to the physical sidebar on the machine's own monitor — same LED mirror, same telemetry, same event log, same fonts. The difference is that this dashboard is reachable from any computer on the network, including when Linux is dead.
+Anyone on the LAN can open `http://thinkin-bmc.local/` in a browser and see a live dashboard identical in content to the physical sidebar on the machine's own monitor -- same LED mirror, same telemetry, same event log, same fonts. The difference is that this dashboard is reachable from any computer on the network, including when Linux is dead.
 
-**VNC / RFB server on port 5900.** A minimal RFB (Remote Framebuffer) server running on the R5 reads the sidebar framebuffer region directly from DDR4 and streams it as VNC rectangles. Point any VNC client at `thinkin-bmc.local:5900` and you get a live, pixel-perfect remote mirror of the physical operator console, streamed over TCP. This is literally what HP iLO calls "Integrated Remote Console" — they charge extra for it. You get it because the sidebar framebuffer already exists and the R5 already has access to it.
+**VNC / RFB server on port 5900.** A minimal RFB (Remote Framebuffer) server running on the R5 reads the sidebar framebuffer region directly from DDR4 and streams it as VNC rectangles. Point any VNC client at `thinkin-bmc.local:5900` and you get a live, pixel-perfect remote mirror of the physical operator console, streamed over TCP. This is literally what HP iLO calls "Integrated Remote Console" -- they charge extra for it. You get it because the sidebar framebuffer already exists and the R5 already has access to it.
 
-**SSH server on port 22 — the BMC shell.** An embedded SSH server (wolfSSH or Dropbear in cutdown form) drops you into a FreeRTOS command-line interface:
+**SSH server on port 22 -- the BMC shell.** An embedded SSH server (wolfSSH or Dropbear in cutdown form) drops you into a FreeRTOS command-line interface:
 
 ```
 $ ssh bmc@thinkin-bmc.local
@@ -452,15 +452,15 @@ bmc> status
   linux        ALIVE  pid 1 (systemd) responding
   hypercube    16/16 cards, 4096/4096 nodes
   tdma         RUNNING 1 kHz phase 7
-  temps        psu=52°C pl=67°C ddr4=41°C nvme=44°C
+  temps        psu=52 C pl=67 C ddr4=41 C nvme=44 C
 
 bmc> temps --all
-  zynq psu        52°C
-  zynq pl         67°C    <─── from XADC
-  ddr4            41°C
-  nvme            44°C
-  hottest node    card 07 node 243   78°C
-  coolest node    card 11 node 001   49°C
+  zynq psu        52 C
+  zynq pl         67 C    <--- from XADC
+  ddr4            41 C
+  nvme            44 C
+  hottest node    card 07 node 243   78 C
+  coolest node    card 11 node 001   49 C
 
 bmc> fans
   fan0  2400 rpm  45% duty
@@ -472,11 +472,11 @@ bmc> eventlog -n 5
   14:32:17  job mandelbrot_4k dispatched (4096 nodes)
   14:36:35  job mandelbrot_4k complete (4m 18s)
   14:37:02  linux syslog: sshd accepted connection from 192.168.1.42
-  14:39:11  thermal reading card 07 node 243 peaked at 78°C
+  14:39:11  thermal reading card 07 node 243 peaked at 78 C
   14:43:27  BMC ssh session opened from 192.168.1.42
 
 bmc> console
-[attaches to the Linux PS UART0 console — you can now interact with the
+[attaches to the Linux PS UART0 console -- you can now interact with the
  Linux boot messages, kernel panic output, or rescue shell even though
  Linux has no working Ethernet of its own]
 
@@ -493,7 +493,7 @@ bmc> quit
 Connection to thinkin-bmc.local closed.
 ```
 
-**Serial-over-LAN (SOL).** The R5 owns a bridge between the Linux PS UART0 (MIO8–9, the Linux console) and the network. When you type `console` in the BMC shell, your SSH session becomes transparent to the Linux kernel's serial console output. You can watch Linux boot, observe kernel panic messages, interact with U-Boot, type into an emergency shell — **all over the network, through the BMC, with no working Linux network stack**. Enterprise vendors call this "Serial over LAN" or "iLO Virtual Serial Port" and it is the single most useful BMC feature in existence for debugging a machine that is half-dead.
+**Serial-over-LAN (SOL).** The R5 owns a bridge between the Linux PS UART0 (MIO8-9, the Linux console) and the network. When you type `console` in the BMC shell, your SSH session becomes transparent to the Linux kernel's serial console output. You can watch Linux boot, observe kernel panic messages, interact with U-Boot, type into an emergency shell -- **all over the network, through the BMC, with no working Linux network stack**. Enterprise vendors call this "Serial over LAN" or "iLO Virtual Serial Port" and it is the single most useful BMC feature in existence for debugging a machine that is half-dead.
 
 **Prometheus exporter on port 9100.** Standard Prometheus text format, scrapable by any Prometheus server, graphable in Grafana:
 
@@ -539,7 +539,7 @@ thinkin_job_progress_ratio 0.824
 
 Your homebrew supercomputer fits into a standard Prometheus + Grafana monitoring stack as a first-class citizen, graphable alongside everything else in your lab or home.
 
-**Syslog forwarding and persistence.** Linux's rsyslog forwards to the BMC. The BMC writes log messages into a circular buffer in its own DDR4 region and periodically flushes them to the QSPI flash. When Linux crashes hard enough to corrupt its own log files, the BMC still has a record of what happened. When you want to see what happened during last night's crash at 3am, you SSH into the BMC, type `eventlog --since 03:00`, and read the full history — regardless of whether Linux's journal survived.
+**Syslog forwarding and persistence.** Linux's rsyslog forwards to the BMC. The BMC writes log messages into a circular buffer in its own DDR4 region and periodically flushes them to the QSPI flash. When Linux crashes hard enough to corrupt its own log files, the BMC still has a record of what happened. When you want to see what happened during last night's crash at 3am, you SSH into the BMC, type `eventlog --since 03:00`, and read the full history -- regardless of whether Linux's journal survived.
 
 ### The Killer Demo, Network Edition
 
@@ -557,68 +557,28 @@ That's not a homebrew project demo. That's a server demo. That's what an HP engi
 
 | Feature | HP iLO 5 | Dell iDRAC 9 | This board |
 | :--- | :---: | :---: | :---: |
-| HTTP dashboard | ✓ | ✓ | ✓ |
-| Live telemetry (temp, fans, power) | ✓ | ✓ | ✓ |
-| Remote console (VNC/RFB) | ✓ | ✓ | ✓ |
-| SSH BMC shell | ✓ | ✓ | ✓ |
-| Serial-over-LAN | ✓ | ✓ | ✓ |
-| Power control (reset, cycle) | ✓ | ✓ | ✓ |
-| Event log (persistent) | ✓ | ✓ | ✓ |
-| Syslog forwarding | ✓ | ✓ | ✓ |
-| Network-independent of host OS | ✓ | ✓ | ✓ |
-| Prometheus / SNMP telemetry | ✓ (license) | ✓ (license) | ✓ |
-| Dedicated BMC network port | ✓ (extra hardware) | ✓ (extra hardware) | ✓ (shared via GEM Screener) |
-| Survives host OS crash | ✓ | ✓ | ✓ |
+| HTTP dashboard | Y | Y | Y |
+| Live telemetry (temp, fans, power) | Y | Y | Y |
+| Remote console (VNC/RFB) | Y | Y | Y |
+| SSH BMC shell | Y | Y | Y |
+| Serial-over-LAN | Y | Y | Y |
+| Power control (reset, cycle) | Y | Y | Y |
+| Event log (persistent) | Y | Y | Y |
+| Syslog forwarding | Y | Y | Y |
+| Network-independent of host OS | Y | Y | Y |
+| Prometheus / SNMP telemetry | Y (license) | Y (license) | Y |
+| Dedicated BMC network port | Y (extra hardware) | Y (extra hardware) | Y (shared via GEM Screener) |
+| Survives host OS crash | Y | Y | Y |
 | Hardware cost | Separate ASPEED chip | Separate chip | $0 (R5 already in silicon) |
 | License fee | $$$ | $$$ | $0 |
 
 The only features this board can't easily match are IPMI 2.0 over LAN (a specific IPMI stack implementation, which could be added but is largely obsolete in favor of Redfish) and virtual media redirection (mounting an ISO from the admin's laptop as a CD-ROM on the host, which would require USB gadget mode work). Everything else is straightforward FreeRTOS application code.
 
-### Implementation Plan
-
-All firmware and software work, no hardware:
-
-1. **FSBL modification** — partition GEM3 into A53-owned queues (0–1) and R5-owned queues (2–3), configure the Screener for MAC-based routing. Xilinx provides a reference FSBL that already supports this; it's ~50 lines of C.
-
-2. **R5 FreeRTOS application** — FreeRTOS kernel + lwIP + HTTP server + embedded SSH + RFB server + Prometheus exporter + HUD renderer + telemetry gathering state machine. Rough code size: 100–200 KB of compiled binary, living in a combination of R5 TCMs and a dedicated DDR4 region. Probably 3,000–5,000 lines of C total, most of which is boilerplate service handlers.
-
-3. **Linux device tree changes** — declare GEM3 as `xlnx,shared-gem` (or equivalent) with queues 0–1 claimed, yielding queues 2–3 to the R5. Declare the R5's DDR4 region as reserved memory. Declare the DP framebuffer with a 1920 stride but 1440 resolution. Maybe 30 lines of DTS.
-
-4. **Linux userspace daemon** — a small systemd service that writes live telemetry (uptime, load, job state, hostname, IP) into the shared mailbox region the R5 reads. Maybe 200 lines of Python.
-
-5. **Boot orchestration** — U-Boot loads both the Linux kernel and the R5 FreeRTOS image, starts the R5 via the Zynq's remoteproc framework before handing off to the kernel. This is standard OpenAMP boot flow with published reference designs.
-
-Total software effort: maybe two weeks of focused work by someone who already knows Xilinx AMP. Total hardware effort: **zero**. Total new BOM parts: **zero**. Total PCB changes: **zero**.
-
-### The R5F Budget
-
-| Subsystem | Runs On | Memory |
-| :--- | :--- | :--- |
-| Sidebar HUD renderer | R5 core 0 | 64 KB TCM + shared DDR4 framebuffer |
-| LED mirror scaler (MISO readback) | R5 core 0 | In the same loop as HUD |
-| HTTP server + web dashboard | R5 core 0 | ~100 KB DDR4 |
-| SSH server (Dropbear / wolfSSH) | R5 core 0 | ~150 KB DDR4 |
-| VNC / RFB server | R5 core 0 | ~50 KB DDR4 |
-| Serial-over-LAN bridge | R5 core 0 | Small buffers, shared with console |
-| Prometheus exporter | R5 core 0 | ~20 KB DDR4 |
-| Event log (circular buffer) | R5 core 0 | 256 KB DDR4 + periodic QSPI flush |
-| FreeRTOS kernel + lwIP (core 0) | R5 core 0 | ~200 KB DDR4 |
-| 16-UART hypercube control tree | R5 core 1 | 16 × 4 KB RX rings + per-card state |
-| Autonomous telemetry parser | R5 core 1 | ~8 KB parser state |
-| Hypercube thermal table (4,096 nodes) | R5 core 1 | 4,096 × 8 B = 32 KB shared DDR4 |
-| Thermal map renderer (LED SPI TX) | R5 core 1 | 4 KB framebuffer + 768 B colormap LUT |
-| Job dispatcher + rpmsg responder | R5 core 1 | ~32 KB DDR4 for command/reply rings |
-| TDMA controller driver | R5 core 1 | Small — direct AXI register writes |
-| Fan PID control loop | R5 core 1 | Minimal |
-| FreeRTOS kernel + OpenAMP (core 1) | R5 core 1 | ~150 KB DDR4 |
-
-The machine has two R5F cores, and both are fully committed. **Core 0** runs the BMC + HUD stack described above. **Core 1** runs the hypercube controller — it owns the 16 backplane UARTs, the TDMA block, the LED SPI TX buffer, and the fan PWM controller, and it is the CPU that actually orchestrates StarC jobs on the 4,096 compute nodes. The full architecture is described in the "Hypercube Controller: R5F Core 1" section below. The complete firmware for both cores fits comfortably in the available TCM plus a few megabytes of reserved DDR4.
-
 ### Why This Section Exists
 
-At some point during the design of this board, the R5F cores went from "a bullet point in the silicon spec sheet that I picked because the price was right" to "the single most useful piece of silicon on the entire machine." They give you a full enterprise BMC, a fabric-independent sidebar renderer, a network-accessible operator console, and a real-time hypercube controller that keeps the compute nodes running even when Linux is dead — and they give it to you with zero additional hardware, zero PCB changes, and zero soft logic in the FPGA fabric.
+At some point during the design of this board, the R5F cores went from "a bullet point in the silicon spec sheet that I picked because the price was right" to "the single most useful piece of silicon on the entire machine." They give you a full enterprise BMC, a fabric-independent sidebar renderer, a network-accessible operator console, and a real-time hypercube controller that keeps the compute nodes running even when Linux is dead -- and they give it to you with zero additional hardware, zero PCB changes, and zero soft logic in the FPGA fabric.
 
-The XCZU2EG is a ~$80 chip that includes, as a casual side effect of being a Zynq UltraScale+, a dual-core Cortex-A53 workstation CPU, a Mali-400 GPU, a dual-core Cortex-R5F real-time cluster, 47,000 LUTs of FPGA fabric, and a hardware DisplayPort controller. I originally picked it for the FPGA and the A53. The R5 cores came along for free, and between the two of them they run the BMC, the operator console, and the entire real-time supervisor for the hypercube. Nothing in the Zynq UltraScale+ lineup is wasted on this board — every block is doing a job, and most blocks are doing two.
+The XCZU2EG is a ~$80 chip that includes, as a casual side effect of being a Zynq UltraScale+, a dual-core Cortex-A53 workstation CPU, a Mali-400 GPU, a dual-core Cortex-R5F real-time cluster, 47,000 LUTs of FPGA fabric, and a hardware DisplayPort controller. I originally picked it for the FPGA and the A53. The R5 cores came along for free, and between the two of them they run the BMC, the operator console, and the entire real-time supervisor for the hypercube. Nothing in the Zynq UltraScale+ lineup is wasted on this board -- every block is doing a job, and most blocks are doing two.
 
 This is why I will never go back to using an off-the-shelf single-board computer for a project like this. A Raspberry Pi does not have a BMC. A Jetson does not have a BMC. An Odroid does not have a BMC. None of them have a pair of hardened real-time cores in a separate power domain sharing a memory controller with the application processor. The only way to get any of these things is to build them yourself, and the only reason I can build them is because the Zynq gave me the hardware for free.
 
@@ -628,13 +588,13 @@ Core 0 runs the BMC and the operator console. The natural question is what to do
 
 ### Why Linux Should Not Own the UARTs
 
-The original plan was to have Linux open `/dev/ttyUL0` through `/dev/ttyUL15` with `pyserial` and drive the hypercube directly. This works — the `uartlite` kernel driver is mainline, pyserial is fine, the A53s have plenty of headroom. But it has two problems that get worse the longer you think about them:
+The original plan was to have Linux open `/dev/ttyUL0` through `/dev/ttyUL15` with `pyserial` and drive the hypercube directly. This works -- the `uartlite` kernel driver is mainline, pyserial is fine, the A53s have plenty of headroom. But it has two problems that get worse the longer you think about them:
 
 1. **Linux scheduling jitter lands on every hypercube interaction.** A Linux process reading a UART can be delayed by a kernel interrupt, a page fault, a scheduler quantum, or a neighbor thread misbehaving. On a machine with microsecond-sensitive TDMA control and a bootloader handshake protocol that needs to stream 460800-baud bytes without gaps, that jitter is actively hostile. The A53 cluster is a workstation CPU optimized for throughput under load, not for bounded latency.
 
 2. **Linux sits on the critical path for every status claim the machine makes about itself.** If Linux owns the UARTs, it owns the telemetry, which means the LED panel content, the sidebar mirror, and the HUD numbers are all downstream of a CPU that can kernel-panic. The sidebar keeping itself alive during an Xorg crash is a real property, but it's only an *accident* as long as the hypercube data feeding it also lives inside Linux. "Survives an Xorg crash" does not imply "survives a kernel panic," and the distinction starts to matter the moment someone types `sudo pkill -9` at the wrong process.
 
-Moving the UARTs to R5 core 1 fixes both problems at once. The R5 is hard real-time with bounded interrupt latency. It has no kernel scheduler to preempt its tight loops. And because it runs in a power domain separate from the A53 cluster, its operation is genuinely independent of Linux's state — not practically independent, but architecturally independent.
+Moving the UARTs to R5 core 1 fixes both problems at once. The R5 is hard real-time with bounded interrupt latency. It has no kernel scheduler to preempt its tight loops. And because it runs in a power domain separate from the A53 cluster, its operation is genuinely independent of Linux's state -- not practically independent, but architecturally independent.
 
 ### What Core 1 Runs
 
@@ -642,60 +602,31 @@ Core 1 runs its own FreeRTOS image, mapped into its own TCMs and a dedicated DDR
 
 1. **Owns the 16 AXI UART Lite blocks.** Every UART's interrupt routes to core 1 via the PL-to-PS interrupt fabric. A UART worker task per card handles RX/TX FIFO draining, protocol framing, and bootloader sequencing during flash operations. The sub-microsecond interrupt latency of the R5 makes this dramatically more deterministic than anything Linux can do.
 
-2. **Collects autonomous telemetry from every node.** Each card's AG32 controller sends a heartbeat frame at a fixed rate — say once per second — containing per-node temperatures, the node-alive bitmap, the current job phase, and a sequence counter. Core 1's parser decodes these as they arrive and updates a **thermal table** in shared DDR4: a flat array of 4,096 entries, one per node, with temperature, liveness state, and last-update timestamp. This table is the single source of truth for hypercube status on the entire controller board, and everything downstream (LED panel, HUD, BMC web dashboard, Prometheus exporter) reads from it.
+2. **Collects autonomous telemetry from every node.** Each card's AG32 controller sends a heartbeat frame at a fixed rate -- say once per second -- containing per-node temperatures, the node-alive bitmap, the current job phase, and a sequence counter. Core 1's parser decodes these as they arrive and updates a **thermal table** in shared DDR4: a flat array of 4,096 entries, one per node, with temperature, liveness state, and last-update timestamp. This table is the single source of truth for hypercube status on the entire controller board, and everything downstream (LED panel, HUD, BMC web dashboard, Prometheus exporter) reads from it.
 
-3. **Renders the thermal map for the LED panel.** Core 1 applies a colormap LUT to the thermal table, produces a 64×64 framebuffer, and writes it into the LED SPI TX buffer. The RP2040 picks it up on the next refresh and lights the panel. The thermal-mode content of the front panel is therefore **produced by R5 core 1 from live telemetry, with zero Linux involvement**. The sidebar mirror on the operator console reflects this via the MISO readback path, which means the sidebar thermal view is also independent of Linux.
+3. **Renders the thermal map for the LED panel.** Core 1 applies a colormap LUT to the thermal table, produces a 64x64 framebuffer, and writes it into the LED SPI TX buffer. The RP2040 picks it up on the next refresh and lights the panel. The thermal-mode content of the front panel is therefore **produced by R5 core 1 from live telemetry, with zero Linux involvement**. The sidebar mirror on the operator console reflects this via the MISO readback path, which means the sidebar thermal view is also independent of Linux.
 
 4. **Executes job commands from Linux.** When Linux wants to run a StarC job, it writes a command descriptor into a shared-memory mailbox and rings a doorbell via the Zynq's inter-processor interrupt mechanism. Core 1 picks up the command, fans the work across the appropriate UARTs, and writes the results back into a reply buffer. Commands are small and well-defined: `FLASH`, `LOAD`, `RUN`, `COLLECT`, `LED_PUSH`, `LED_MODE`, `SET_FAN`, `STATUS`, `RESET_CARD`. Everything the old `ThinkinMachine` Python class did as direct UART I/O becomes a mailbox transaction.
 
 5. **Drives the TDMA clock and the fan PWM.** Both are AXI peripherals with simple register maps. Core 1 writes `TDMA_ENABLE` and `TDMA_DIVIDER` when a job starts and stops, and runs a PID loop over the fan PWM using the thermal table as its setpoint source.
 
-6. **Exposes virtual TTYs to Linux for interactive debug.** Users who want to `picocom /dev/ttyUL5` to manually poke at a card still can — core 1's rpmsg stack exposes `/dev/rpmsg-tty0` through `/dev/rpmsg-tty15`, which behave exactly like real serial ports through the mainline `drivers/tty/rpmsg_tty.c` driver. When a debug session is open on a given virtual tty, core 1 temporarily suspends autonomous telemetry collection on that card so the debug bytes don't collide with heartbeat frames. From Linux userspace, the experience is indistinguishable from opening a direct UART.
-
-### The Mailbox Interface
-
-Linux and R5 core 1 communicate over **Xilinx OpenAMP rpmsg**, a standard Xilinx-supported AMP pattern with mainline Linux drivers and published reference designs. A single rpmsg channel carries command descriptors in one direction and reply descriptors in the other:
-
-```c
-struct hypercube_cmd {
-    uint32_t opcode;       // FLASH, LOAD, RUN, COLLECT, ...
-    uint32_t job_id;
-    uint32_t card_mask;    // which of the 16 cards to act on
-    uint64_t payload_ptr;  // DDR4 pointer to command payload
-    uint32_t payload_len;
-    uint64_t reply_ptr;    // DDR4 pointer to reply buffer
-    uint32_t flags;
-};
-```
-
-The payload and reply buffers live in DDR4 regions that are mapped into both the A53 and R5 address spaces with matching MMU/MPU entries, so there are no extra copies. Linux writes the payload, pushes the descriptor, and waits for the reply doorbell. Core 1 processes the descriptor and rings the completion back via a second IPI. The whole round trip is sub-millisecond for small commands and throughput-limited (not latency-limited) for large ones.
-
-On the Python side, the host library API is unchanged from what users see today:
-
-```python
-machine.flash('firmware.bin')
-machine.load(data, 'input')
-machine.run()
-results = machine.collect()
-```
-
-The implementation underneath switches from 16 `pyserial` handles and three `mmap`'d UIO windows to a single open `/dev/rpmsg-hypercube` character device. The Python binding is a few hundred lines of ctypes wrapping an rpmsg-backed command/reply protocol.
+6. **Exposes virtual TTYs to Linux for interactive debug.** Users who want to `picocom /dev/ttyUL5` to manually poke at a card still can -- core 1's rpmsg stack exposes `/dev/rpmsg-tty0` through `/dev/rpmsg-tty15`, which behave exactly like real serial ports through the mainline `drivers/tty/rpmsg_tty.c` driver. When a debug session is open on a given virtual tty, core 1 temporarily suspends autonomous telemetry collection on that card so the debug bytes don't collide with heartbeat frames. From Linux userspace, the experience is indistinguishable from opening a direct UART.
 
 ### Why This Is the Correct Architecture
 
 Every real supercomputer eventually arrives at this split. Cray called it the Service Management Workstation. IBM Blue Gene separated "I/O nodes" from "compute nodes" from a dedicated service node. Modern HPC clusters run `slurmctld` on a control node distinct from both the login nodes and the compute nodes. The pattern is universal: **one processor hosts users, another processor runs the machine.**
 
-The XCZU2EG gives you both classes of processor in the same package — a full Linux workstation on the A53 cluster and a dual-core hard-real-time service processor on the R5F cluster — and it is architecturally wrong to run the real-time side as a side effect of a Linux userspace daemon. Moving hypercube control to the R5 is not an optimization or a workaround; it is the configuration the silicon was designed for, and Xilinx publishes reference designs for exactly this case.
+The XCZU2EG gives you both classes of processor in the same package -- a full Linux workstation on the A53 cluster and a dual-core hard-real-time service processor on the R5F cluster -- and it is architecturally wrong to run the real-time side as a side effect of a Linux userspace daemon. Moving hypercube control to the R5 is not an optimization or a workaround; it is the configuration the silicon was designed for, and Xilinx publishes reference designs for exactly this case.
 
 ### What Linux Still Does
 
 Linux is not demoted by any of this. It is promoted into the role it is genuinely good at:
 
-- **The user frontend.** SSH, HTTPS, web API, desktop environment, terminal, file editing, the whole conventional Ubuntu experience on the Mali-accelerated 1440×1080 half of the DisplayPort output.
+- **The user frontend.** SSH, HTTPS, web API, desktop environment, terminal, file editing, the whole conventional Ubuntu experience on the Mali-accelerated 1440x1080 half of the DisplayPort output.
 - **StarC compilation.** `starc_pp.py` + `riscv-gcc` + the whole build toolchain runs natively on the A53 cluster with 4 GB of DDR4 and a 500 MB/s NVMe drive.
 - **Job queue and results storage.** Incoming jobs land in a queue on the NVMe, get compiled, and are dispatched to core 1 via rpmsg. Results come back and are stored in a results database on the NVMe.
-- **The primary network stack.** GEM3 queues 0–1 belong to Linux; the BMC's queues 2–3 are shared on the same PHY but belong to core 0.
-- **The desktop display.** The Mali-400 draws the Ubuntu UI on the left 1440×1080 of the screen.
+- **The primary network stack.** GEM3 queues 0-1 belong to Linux; the BMC's queues 2-3 are shared on the same PHY but belong to core 0.
+- **The desktop display.** The Mali-400 draws the Ubuntu UI on the left 1440x1080 of the screen.
 
 What Linux stops doing is pretending to be a real-time processor. That job moves where it belongs.
 
@@ -708,9 +639,9 @@ With this architecture, the "sidebar survives Linux crashes" story becomes a sub
 - **The LED panel keeps displaying a live thermal map.** Core 1 is rendering it and pushing it to the RP2040 every frame. Linux is not in that path.
 - **The sidebar mirror and the HUD stay live.** Core 0 reads the thermal table (written by core 1) and the RP2040 MISO readback, and renders both halves of the operator console. Linux is not in that path either.
 - **The BMC network services stay reachable.** Core 0 owns its own GEM queue via the shared-GEM Screener. Linux is not in that path.
-- **What you actually lose:** the ability to submit *new* jobs, edit files, SSH in, or compile new StarC programs — because those are genuinely Linux-side activities. The machine as a whole degrades to "the currently running job finishes cleanly, the operator console stays live showing real data, and then new work has to wait for a Linux reboot."
+- **What you actually lose:** the ability to submit *new* jobs, edit files, SSH in, or compile new StarC programs -- because those are genuinely Linux-side activities. The machine as a whole degrades to "the currently running job finishes cleanly, the operator console stays live showing real data, and then new work has to wait for a Linux reboot."
 
-The HUD gets a new `LINUX:` line that reads `ALIVE`, `DEAD`, or `REBOOTING` based on whether the Linux-side heartbeat mailbox is still ticking. When it reads `DEAD`, core 0 posts an event to the log (`14:47:12 LINUX: kernel panic — hypercube still running autonomously`) and the BMC dashboard in a browser on the LAN turns the Linux status red while the hypercube status stays green. Both are telling the truth.
+The HUD gets a new `LINUX:` line that reads `ALIVE`, `DEAD`, or `REBOOTING` based on whether the Linux-side heartbeat mailbox is still ticking. When it reads `DEAD`, core 0 posts an event to the log (`14:47:12 LINUX: kernel panic -- hypercube still running autonomously`) and the BMC dashboard in a browser on the LAN turns the Linux status red while the hypercube status stays green. Both are telling the truth.
 
 This is dramatically better than "the screen keeps drawing pixels of stale data." It is what crash-tolerant supercomputers have always meant by "survivable," and it is only possible because the real-time control path and the user-facing control path live on different CPUs in different power domains.
 
@@ -718,16 +649,9 @@ This is dramatically better than "the screen keeps drawing pixels of stale data.
 
 Here is the exact reason a standard single-board computer could never run this machine: **I have to talk to 16 separate hypercube boards simultaneously, in hard real time, with bootloader-level timing discipline on every channel.**
 
-Each of the 16 compute cards requires its own independent, high-speed serial channel (RX/TX) to pass instructions, load StarC binaries, and retrieve data. Each AG32 node on every compute card exposes a dedicated UART0 control interface — this is the permanent link between the controller board and every node in the hypercube. The controller uses this link for everything: flashing firmware via the AG32 serial bootloader at 460800 baud, loading StarC binaries, broadcasting run commands, and collecting results. The protocol is pure UART, 8N1, because that's what the AG32 silicon speaks natively.
+Each of the 16 compute cards requires its own independent, high-speed serial channel (RX/TX) to pass instructions, load StarC binaries, and retrieve data. Each AG32 node on every compute card exposes a dedicated UART0 control interface -- this is the permanent link between the controller board and every node in the hypercube. The controller uses this link for everything: flashing firmware via the AG32 serial bootloader at 460800 baud, loading StarC binaries, broadcasting run commands, and collecting results. The protocol is pure UART, 8N1, because that's what the AG32 silicon speaks natively.
 
-Linux is terrible at this. So the UARTs live in the FPGA fabric as **16 independent hardware AXI UART Lite instances**, each with its own AXI-Lite register window and its own IRQ line routed through the PL-to-PS interrupt fabric. But the *consumer* of those UARTs is not Linux — it is **R5F core 1**, the hypercube controller. The R5 has direct AXI access to the PL, direct ownership of the 16 IRQs via the PS GIC, and bounded sub-microsecond interrupt latency because it has no kernel scheduler sitting between the interrupt and the handler.
-
-- The 16 UARTs show up in the R5's memory map at `0xA000_0000` through `0xA000_F000`, 4 KB apart.
-- Each UART's interrupt wakes a dedicated FreeRTOS task on core 1 that drains the RX FIFO into a per-card ring buffer and feeds the TX FIFO from a per-card TX queue.
-- Linux does not see `/dev/ttyUL*` at all in the device tree. The AXI UART Lite nodes are marked as reserved to the R5, so Linux's `uartlite` driver never probes them.
-- When Linux wants to send something to card 12, it pushes an rpmsg command descriptor into the mailbox, core 1 picks it up in the next mailbox service tick, and the appropriate UART TX task starts streaming bytes out the physical pins. For interactive debug, the `/dev/rpmsg-tty*` bridge exposes each UART as a virtual Linux serial port through `drivers/tty/rpmsg_tty.c` — every standard tool (`picocom`, `cat`, `stty`) still works, just over a mailbox instead of a direct register window.
-
-See the "Hypercube Controller: R5F Core 1" section above for the full architecture. The short version is: the 16 UARTs belong to a CPU that was designed for deterministic real-time I/O, not to a CPU running a multitasking operating system.
+Linux is terrible at this. So the UARTs live in the FPGA fabric as **16 independent hardware AXI UART Lite instances**, each with its own AXI-Lite register window and its own IRQ line routed through the PL-to-PS interrupt fabric. But the *consumer* of those UARTs is not Linux -- it is **R5F core 1**, the hypercube controller. The R5 has direct AXI access to the PL, direct ownership of the 16 IRQs via the PS GIC, and bounded sub-microsecond interrupt latency because it has no kernel scheduler sitting between the interrupt and the handler.
 
 ### Physical Pin Allocation: HD Banks 25 and 26
 
@@ -735,24 +659,24 @@ All 16 UART channels are routed through the Zynq's **High-Density (HD) I/O banks
 
 The 32 UART signals (16 TX + 16 RX) are split across two banks:
 
-* **Bank 25** carries Cards 0–7 (16 pins: 8 TX + 8 RX)
-* **Bank 26** carries Cards 8–15 (16 pins: 8 TX + 8 RX)
+* **Bank 25** carries Cards 0-7 (16 pins: 8 TX + 8 RX)
+* **Bank 26** carries Cards 8-15 (16 pins: 8 TX + 8 RX)
 
-This split keeps the fanout balanced and avoids overloading a single bank's I/O driver budget. Each bank is powered at **3.3V VCCO** with bulk and per-pin decoupling, matching the AG32's native logic levels — no level shifters required.
+This split keeps the fanout balanced and avoids overloading a single bank's I/O driver budget. Each bank is powered at **3.3V VCCO** with bulk and per-pin decoupling, matching the AG32's native logic levels -- no level shifters required.
 
-The remaining HD pins on Banks 24 and 44 are allocated to the TDMA phase clock outputs, the LED display SPI interface, and the quad-fan PWM array — all of which also run at 3.3V.
+The remaining HD pins on Banks 24 and 44 are allocated to the TDMA phase clock outputs, the LED display SPI interface, and the quad-fan PWM array -- all of which also run at 3.3V.
 
-All 41 signals (32 UART + 5 TDMA + 4 LED SPI) exit the controller board through a single **100-pin shrouded IDC header** at 1.27mm pitch (2x50) connected to the backplane via a 2-inch ribbon cable. The fine pitch keeps the connector compact while providing 100 pins — enough for every signal to have its own dedicated adjacent ground return, with 18 spare pins. At this cable length and at UART baud rates, no termination resistors are needed — the signals are clean 3.3V LVCMOS driven straight from the PL fabric.
+All 41 signals (32 UART + 5 TDMA + 4 LED SPI) exit the controller board through a single **100-pin shrouded IDC header** at 1.27mm pitch (2x50) connected to the backplane via a 2-inch ribbon cable. The fine pitch keeps the connector compact while providing 100 pins -- enough for every signal to have its own dedicated adjacent ground return, with 18 spare pins. At this cable length and at UART baud rates, no termination resistors are needed -- the signals are clean 3.3V LVCMOS driven straight from the PL fabric.
 
 ## The Orchestrator: TDMA Sync and the LED Display
 
-The 16 compute cards are just the engines. The controller board also has to conduct the rest of the orchestra — and, like the UARTs, this is not a Linux job.
+The 16 compute cards are just the engines. The controller board also has to conduct the rest of the orchestra -- and, like the UARTs, this is not a Linux job.
 
 First, there is the **TDMA Synchronization**. To prevent the 4,096 RISC-V chips from talking over each other, the entire machine runs on a globally synchronized Time Division Multiple Access (TDMA) schedule. Linux is terrible at microsecond-accurate timing because of kernel preemption. But the FPGA fabric? It *only* operates in hard, deterministic real-time. The PL fabric generates a flawless, jitter-free master phase clock and distributes it across the backplane to all 16 cards simultaneously. The TDMA controller block is an AXI peripheral with a tiny register map (`TDMA_ENABLE`, `TDMA_DIVIDER`, `TDMA_PHASE`, `TDMA_FRAME`), and it is driven by **R5F core 1**, not by Linux. When a StarC job arrives via rpmsg, core 1 programs the divider to match the program's requested phase rate and asserts `TDMA_ENABLE`. When the job finishes, core 1 deasserts it. Linux never touches the TDMA registers.
 
-Second, there is the **LED Display**. The 64×64 front panel is controlled by an RP2040. The controller board needs to push display state to that RP2040 fast enough to maintain a 60 fps refresh rate. A dedicated **SPI slave** in the FPGA fabric on **HD Bank 24** talks to the RP2040 — the RP2040 is the SPI master (for v-sync alignment reasons described in the "LED Display Pipeline" section below), and the Zynq fabric latches the transaction on the RP2040's own frame clock. The SPI bus carries four signals: SCK, MOSI (Zynq→RP2040), MISO (RP2040→Zynq), and CS. At 60 fps, the 64×64 display requires 4,096 pixels per frame in each direction, which is trivial bandwidth for even a modest SPI clock.
+Second, there is the **LED Display**. The 64x64 front panel is controlled by an RP2040. The controller board needs to push display state to that RP2040 fast enough to maintain a 60 fps refresh rate. A dedicated **SPI slave** in the FPGA fabric on **HD Bank 24** talks to the RP2040 -- the RP2040 is the SPI master (for v-sync alignment reasons described in the "LED Display Pipeline" section below), and the Zynq fabric latches the transaction on the RP2040's own frame clock. The SPI bus carries four signals: SCK, MOSI, MISO, and CS. At 60 fps, the 64x64 display requires 4,096 pixels per frame in each direction, which is trivial bandwidth for even a modest SPI clock.
 
-The SPI TX buffer (MOSI side) is **owned by R5F core 1** during thermal mode. Core 1 applies a colormap to the live thermal table every frame and stuffs the resulting 64×64 image into the TX buffer so the RP2040 picks it up on the next refresh. This makes the thermal-mode LED panel a direct portrait of the compute nodes, rendered by a real-time processor from fresh telemetry, with no Linux involvement. Linux only touches the SPI TX buffer when a StarC program calls `led_set()` to push custom user content — and even then it does so by sending a `LED_PUSH` rpmsg command to core 1, which writes the user framebuffer into the TX buffer on Linux's behalf. Core 1 is the single owner; Linux is a polite petitioner. The RP2040 receives the frame, handles the LED multiplexing and PWM drive locally, and streams its current physical framebuffer back on MISO so R5 core 0 can mirror it into the operator console sidebar.
+The SPI TX buffer (MOSI side) is **owned by R5F core 1** during thermal mode. Core 1 applies a colormap to the live thermal table every frame and stuffs the resulting 64x64 image into the TX buffer so the RP2040 picks it up on the next refresh. This makes the thermal-mode LED panel a direct portrait of the compute nodes, rendered by a real-time processor from fresh telemetry, with no Linux involvement. Linux only touches the SPI TX buffer when a StarC program calls `led_set()` to push custom user content -- and even then it does so by sending a `LED_PUSH` rpmsg command to core 1, which writes the user framebuffer into the TX buffer on Linux's behalf. Core 1 is the single owner; Linux is a polite petitioner. The RP2040 receives the frame, handles the LED multiplexing and PWM drive locally, and streams its current physical framebuffer back on MISO so R5 core 0 can mirror it into the operator console sidebar.
 
 ## High-Speed Storage: The M.2 NVMe Slot
 
@@ -764,7 +688,7 @@ It maxes out around 500 MB/s. It won't break modern PCIe Gen4 benchmark records,
 
 ### Surviving the Clocking Trap
 
-Routing the 100-ohm differential TX and RX pairs was the easy part (along with dropping the mandatory 0.1µF AC coupling capacitors on the transmit lines). The real trap with PCIe on a custom Zynq board is the clocking. 
+Routing the 100-ohm differential TX and RX pairs was the easy part (along with dropping the mandatory 0.1uF AC coupling capacitors on the transmit lines). The real trap with PCIe on a custom Zynq board is the clocking. 
 
 Bank 505 needs highly stable reference clocks to drive those transceivers, and different protocols demand different frequencies. The PCIe specification strictly demands a **100 MHz HCSL reference clock** with incredibly low jitter, while DisplayPort and USB 3.0 both require a **27 MHz** reference. You cannot synthesize both from the same crystal. To solve this, I dropped two dedicated differential LVDS oscillators onto the board: a **SiTime SIT9121AI-2B1-33E27.000000** (27 MHz, LCSC C17415818) routed to `PS_MGTREFCLK0` (F23/F24) for DisplayPort and USB 3.0, and a **YXC OA1EL89CEIB112YLC-100M** (100 MHz, LCSC C7425450) routed to `PS_MGTREFCLK1` (E21/E22) for PCIe. Both share the same PQFD-6L 3.2x2.5mm footprint, placed adjacent to the Zynq Bank 505 balls. Without those clean clocks, neither the display nor the drive will enumerate.
 
@@ -794,7 +718,7 @@ To get the 0.8mm BGA pitch that makes routing this 8-layer board economically vi
 
 While the DDR4, the NVMe drive, and the DisplayPort output hog all the high-bandwidth dedicated transceivers, a supercomputer still needs to talk to the outside world and manage basic housekeeping. 
 
-Xilinx handles this through Multiplexed I/O (MIO). The Zynq has 78 dedicated pins (Banks 500-503) that can be dynamically assigned to internal, hardened hardware controllers inside the Processing System. The MIO budget on this board is fully allocated across six subsystems: QSPI boot flash, UART debug console, NVMe reset, MicroSD card, DisplayPort AUX, Gigabit Ethernet, and the USB ULPI PHY.
+Xilinx handles this through Multiplexed I/O (MIO). The Zynq has 78 dedicated pins (Banks 500-503) that can be dynamically assigned to internal, hardened hardware controllers inside the Processing System. The MIO budget on this board is fully allocated across seven subsystems: QSPI boot flash, UART debug console, NVMe reset, MicroSD card, DisplayPort AUX, Gigabit Ethernet, and the USB ULPI PHY.
 
 ### The Gigabit Gateway
 If this machine is going to operate as an edge-compute server taking job payloads from the internet, it needs a massive pipe to the network.
@@ -805,15 +729,15 @@ The same GEM3 peripheral is also shared with the Cortex-R5F running the BMC, via
 
 ### The Boot Chain: QSPI, SD, and JTAG
 
-The M.2 NVMe drive is the primary storage engine, but the Zynq’s BootROM cannot read PCIe — it needs a simpler device to bootstrap from. To solve this, the board supports **three boot sources**, selectable at runtime via a 4-position DIP switch on the `PS_MODE[3:0]` pins:
+The M.2 NVMe drive is the primary storage engine, but the Zynq's BootROM cannot read PCIe -- it needs a simpler device to bootstrap from. To solve this, the board supports **three boot sources**, selectable at runtime via a 4-position DIP switch on the `PS_MODE[3:0]` pins:
 
 | DIP Setting | MODE[3:0] | Boot Source | Use Case |
 | :--- | :--- | :--- | :--- |
-| All OFF | 0000 | JTAG | Board bringup — debugger pushes FSBL directly |
-| SW1 ON | 0010 | QSPI Flash | Production — boots autonomously from soldered flash |
-| SW0+SW1+SW2 ON | 0111 | MicroSD Card | Development — easy reflash from a laptop |
+| All OFF | 0000 | JTAG | Board bringup -- debugger pushes FSBL directly |
+| SW1 ON | 0010 | QSPI Flash | Production -- boots autonomously from soldered flash |
+| SW0+SW1+SW2 ON | 0111 | MicroSD Card | Development -- easy reflash from a laptop |
 
-Each MODE pin has a 10kΩ pull-down resistor; the DIP switch overrides individual pins to 3.3V.
+Each MODE pin has a 10k-ohm pull-down resistor; the DIP switch overrides individual pins to 3.3V.
 
 **QSPI Flash (Production Boot):** A dedicated QSPI flash chip on MIO0-5 holds the FSBL, U-Boot, and the PL bitstream. On power-up with MODE=0010, the BootROM reads the flash, initializes the Processing System, loads the FPGA fabric, and hands off to U-Boot. U-Boot then wakes up the PCIe transceivers and boots the full Ubuntu workstation OS from the NVMe drive at 500 MB/s. No removable media, nothing to come loose inside the sealed aluminum cube.
 
@@ -827,22 +751,810 @@ To keep the Zynq and the 16-card hypercube cool inside the sealed aluminum chass
 
 While the 12V power is provided directly from the main input rail, the control logic is handled by the FPGA fabric. By routing the PWM and Tachometer (Sense) lines to the Programmable Logic, the machine maintains deterministic cooling independent of the Linux kernel state. This allows for a hardware-level "fail-safe" where the fans default to 100% duty cycle if the system monitors detect a thermal runaway or a software hang.
 
-## The Linux Software Stack: From AXI Peripherals to StarC Jobs
+## Real-Time Clock
 
-Everything described above is hardware — silicon, copper, and solder. But hardware without software is a paperweight. This section describes what happens on the other side of the memory controller: the Linux environment that turns a real-time hypercube controller, a Gigabit NIC, and a fast NVMe drive into a programmable supercomputer frontend.
+A **Maxim DS3231** battery-backed RTC provides accurate wall-clock time independent of Linux, NTP, or even main power. The DS3231 connects via its own dedicated I2C bus on **MIO10 (SCL) and MIO11 (SDA)**, using the Zynq's hardened PS I2C0 controller — no FPGA fabric required. A **CR2032 coin cell** provides backup power, keeping the clock running when the machine is unplugged.
 
-The architectural fact that shapes this entire section is that **Linux does not own the hypercube hardware directly**. R5F core 1 owns the 16 AXI UART Lite instances, the TDMA block, the LED SPI TX buffer, and the fan PWM controller, as described in the "Hypercube Controller: R5F Core 1" section above. Linux is a user of that controller, reaching it through an rpmsg mailbox. The Python host library API is exactly what it has always been; the implementation underneath is completely different from what a naive single-CPU design would look like.
+Because the I2C0 controller is a PS peripheral, both the R5 cluster and the A53 can access it directly. The BMC on R5 core 0 reads the RTC for event log timestamps, syslog entries, and "time since last power cycle" — all without depending on Linux or network time. Linux accesses the same RTC through the mainline `rtc-ds1307` driver (which supports the DS3231) and the standard `hwclock` path. On boot, Linux sets its system clock from the RTC before NTP is available.
 
-### The Device Tree: Reserved Peripherals, Remoteproc, and rpmsg
+The DS3231's ±2ppm TCXO means the clock drifts less than a minute per year without NTP correction. The INT/SQW output is left unconnected — if a wakeup alarm or precision 32kHz reference is ever needed, it can be routed to a spare MIO in a future revision. SDA and SCL have 4.7kΩ pullups to 3.3V.
+
+## Audio Output
+
+The machine has two independent audio paths: digital audio over DisplayPort, and a dedicated analog output with an internal speaker.
+
+**DisplayPort Audio** requires zero additional hardware. The Zynq's DP controller supports native audio over the DP link — any monitor with speakers or a DP-to-HDMI dongle receives audio automatically.
+
+**Analog Audio** is driven by a **TI PCM5102A** I2S DAC connected to 3 PL pins on HD Bank 24 (I2S_BCK, I2S_DIN, I2S_LRCK on balls W14, W13, Y14). The DAC outputs line-level stereo through 470Ω series resistors to a **switched 3.5mm TRS jack** on the rear panel. When headphones are plugged in, the jack's normally-closed switch contacts open and the headphones receive stereo directly from the DAC.
+
+When nothing is plugged in, the switch contacts remain closed and route both channels through a passive mono mixing network (two 1kΩ resistors summing L+R) into a **Diodes PAM8302A** 2.5W Class-D mono amplifier, which drives a small internal speaker. The amp runs from 5V provided by an **AMS1117-5.0** LDO regulator tapped from the 12V input rail. Plugging in headphones physically disconnects the speaker — no software mute logic needed.
+
+The I2S transmitter is instantiated in the PL fabric (~200 LUTs) and fed PCM samples over AXI by the A53 (for Linux ALSA audio) or the R5 (for BMC alert tones, boot chimes, or system event sounds). The PCM5102A's SCK pin is tied to GND, enabling its internal PLL to recover the system clock from BCK — no fourth signal line required.
+
+## Summary
+
+This is a custom 8-layer 64-bit AMP motherboard. The **A53 cluster** runs Ubuntu, compiles StarC natively, serves the network, and drives the left 1440x1080 of the DisplayPort output as a normal Linux desktop. **R5F core 0** runs a FreeRTOS BMC image that paints the right 480x1080 of the display as an out-of-band operator console and serves HTTP/SSH/VNC/SoL/Prometheus on its own shared-GEM network queue. **R5F core 1** runs a FreeRTOS hypercube controller image that owns the 16 backplane UARTs, the TDMA block, the LED SPI TX buffer, and the fan PWM -- it is the CPU that actually orchestrates StarC jobs on the 4,096 compute nodes, and Linux reaches it over a mainline rpmsg mailbox. The Programmable Logic handles the 16-channel backplane, TDMA synchronization, LED SPI, and fan PWM in deterministic hardware, under the control of R5 core 1 rather than Linux. Four PS-GTR transceiver lanes are fully allocated across DisplayPort, NVMe, and USB 3.0. The board boots from QSPI flash (or MicroSD in development), runs Ubuntu from NVMe, and brings the R5 cluster up via Xilinx remoteproc alongside the Linux kernel.
+
+Because real-time hypercube control lives on a processor that shares nothing with Linux except the memory controller, in-flight StarC jobs keep running to completion when Linux panics, the LED panel keeps displaying live telemetry, and the BMC network services stay reachable -- a survival property most enterprise servers charge extra for, achieved here as a side effect of putting every block of the XCZU2EG to work.
+
+The original CM-1 required a VAX 11/780 or a Symbolics 3600 Lisp Machine as its front-end. This replaces both with a single 23mm BGA on a board that fits inside the cube, with the VAX-style "service processor" role filled by a pair of hardened real-time cores that Xilinx shipped in the same package almost as an afterthought.
+
+---
+
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+## Hardware Reference: Pin Mapping and Wiring Tables
+
+This section documents the exact pin-level wiring between every major component on the controller board. Every connection listed here was routed by hand on an 8-layer PCB.
+
+### Zynq Schematic Organization
+
+The XCZU2EG-2SFVC784I symbol is split into 9 functional units across hierarchical schematic sheets, organized by Xilinx silicon bank:
+
+| Unit | Sheet | Bank(s) | Pin Count | Function |
+| :--- | :--- | :--- | :--- | :--- |
+| A | PS_MIO | 500-503 | 105 | Ethernet RGMII, SD card, USB, UART, DP AUX |
+| B | PS_DDR | 504 | 143 | DDR4 memory interface |
+| C | PS_GTR | 505 | 24 | DisplayPort, PCIe NVMe, USB 3.0 |
+| D | PL_Bank64 | 64 | 56 | Programmable Logic HP I/O |
+| E | PL_Bank65 | 65 | 56 | Programmable Logic HP I/O |
+| F | PL_Bank66 | 66 | 56 | Programmable Logic HP I/O |
+| G | PL_HD | 24/25/26/44 | 104 | Programmable Logic HD I/O |
+| H | Config | 0 | 8 | JTAG, boot mode, reset |
+| I | Power_Zynq | NA | 233 | All VCC, GND, and NC pins |
+
+### MIO Master Map
+
+| MIO Range | Function | Status |
+| :--- | :--- | :--- |
+| MIO0-5 | QSPI flash (SCLK, CS, IO0-IO3) | **TODO -- need QSPI chip, wiring** |
+| MIO6 or MIO7 | M.2 NVMe PERST# | **TODO -- move from MIO2** |
+| MIO8-9 | UART debug console (TX/RX) | **TODO -- need header or level shifter** |
+| MIO10-12 | Available | |
+| MIO13-22 | MicroSD card (SDIO0) | Done |
+| MIO23-26 | Available | |
+| MIO27-30 | DisplayPort AUX + HPD | Done |
+| MIO31-37 | Available | |
+| MIO38-51 | Ethernet RGMII + MDIO | Done |
+| MIO52-63 | USB ULPI | Done |
+| MIO64-77 | Available | |
+
+### Gigabit Ethernet PHY (PS_MIO Sheet)
+
+**Realtek RTL8211EG-VB-CG** Gigabit PHY (QFN-64) connected via RGMII to Zynq GEM3 MAC. The internal 1.0V switching regulator is enabled (ENSWREG tied to 3.3V), so only a 3.3V supply is required externally.
+
+**RGMII bus (Zynq -> PHY):**
+
+| Zynq MIO | Zynq Ball | Function | RTL8211EG Pin |
+| :--- | :--- | :--- | :--- |
+| PS_MIO38 | H18 | GEM_TX_CLK | 34 (GTX_CLK) |
+| PS_MIO39 | H19 | GEM_TXD0 | 36 (TXD0) |
+| PS_MIO40 | K18 | GEM_TXD1 | 39 (TXD1) |
+| PS_MIO41 | J19 | GEM_TXD2 | 40 (TXD2) |
+| PS_MIO42 | L18 | GEM_TXD3 | 41 (TXD3) |
+| PS_MIO43 | K19 | GEM_TX_CTL | 35 (TXEN) |
+| PS_MIO44 | J20 | GEM_RX_CLK | 24 (RXC) -- 22-ohm series resistor at PHY |
+| PS_MIO45 | K20 | GEM_RXD0 | 19 (RXD0) |
+| PS_MIO46 | L20 | GEM_RXD1 | 21 (RXD1) |
+| PS_MIO47 | H21 | GEM_RXD2 | 22 (RXD2) |
+| PS_MIO48 | J21 | GEM_RXD3 | 23 (RXD3) |
+| PS_MIO49 | M18 | GEM_RX_CTL | 18 (RXDV/PHY_AD2) |
+| PS_MIO50 | M19 | GEM_MDC | 53 (MDC) |
+| PS_MIO51 | L21 | GEM_MDIO | 54 (MDIO) -- 10k-ohm pullup to 3.3V |
+
+**GMII strap pins (sampled at reset, select RGMII mode):**
+
+| RTL Pin | Signal | Strap |
+| :--- | :--- | :--- |
+| 25 | RXD4/SELRGV | 10k-ohm to 3.3V (selects RGMII) |
+| 27 | RXD5/TXDLY | 10k-ohm to 3.3V (enables TX clock delay) |
+| 28 | RXD6/RXDLY | 10k-ohm to 3.3V (enables RX clock delay) |
+| 29 | RXD7/AN0 | 10k-ohm to 3.3V (autoneg: advertise all speeds) |
+| 30 | RXER/AN1 | 10k-ohm to 3.3V (autoneg: advertise all speeds) |
+| 31 | COL/MODE | 10k-ohm to GND (selects RGMII mode) |
+| 47 | TXER | Direct to GND |
+
+**Unused GMII pins (no-connect):** 42 (TXCLK), 43-46 (TXD4-TXD7), 32 (CRS), 1 (CLK125).
+
+**PHY control and configuration:**
+
+| RTL Pin | Signal | Connection |
+| :--- | :--- | :--- |
+| 38 | ~{PHYRST} | 10k-ohm to 3.3V + 100nF to GND (RC power-on reset, ~1ms delay) |
+| 56 | ~{INT} | 10k-ohm pullup to 3.3V |
+| 55 | ~{PME} | 10k-ohm pullup to 3.3V |
+| 58 | RSET | 12.1k-ohm to GND (sets internal bias -- value per Realtek spec) |
+| 57 | ENSWREG | Tied to 3.3V (enables internal 1.0V switching regulator) |
+| 3 | REG_OUT | 1uF + 0.1uF to GND (internal regulator output -- do NOT connect elsewhere) |
+| 64 | VDDREG | 0.1uF to GND (regulator bypass) |
+| 61 | CKXTAL1 | 25 MHz crystal (YXC X322525MOB4SI, LCSC C9006) + 22pF load cap to GND |
+| 62 | CKXTAL2 | 25 MHz crystal + 22pF load cap to GND |
+
+**PHY address and LED pins (dual-function, strap at reset then LED output):**
+
+| RTL Pin | Signal | Strap | LED Function | Connection |
+| :--- | :--- | :--- | :--- | :--- |
+| 50 | LED0/PHY_AD0 | 10k-ohm to 3.3V (AD0=1) | Green LED (Link) | Cathode of green RJ45 LED |
+| 51 | LED1/PHY_AD1 | 10k-ohm to GND (AD1=0) | Yellow LED (Activity) | Cathode of yellow RJ45 LED |
+| 52 | LED2 | -- | Speed | NC or third LED |
+
+PHY address = 0x01. LED anodes share a common 330-ohm resistor to 3.3V.
+
+**PHY to RJ45 jack (UDE RB1-125B8G1A, LCSC C363353):**
+
+| RTL8211EG Pin | Signal | RJ45 Pin | Pair |
+| :--- | :--- | :--- | :--- |
+| 5 | MDI[0]+ | R2 | Pair A+ |
+| 6 | MDI[0]- | R3 | Pair A- |
+| 8 | MDI[1]+ | R4 | Pair B+ |
+| 9 | MDI[1]- | R5 | Pair B- |
+| 11 | MDI[2]+ | R6 | Pair C+ |
+| 12 | MDI[2]- | R7 | Pair C- |
+| 14 | MDI[3]+ | R8 | Pair D+ |
+| 15 | MDI[3]- | R9 | Pair D- |
+
+R1 (PHY-side center tap): 3.3V through ferrite bead + 0.1uF to ground. R10 (cable-side center tap): 0.1uF to ground.
+
+**Power pins:**
+
+| RTL Pin(s) | Signal | Rail |
+| :--- | :--- | :--- |
+| 10, 60 | AVDD33 | 3.3V + 0.1uF decoupling each |
+| 20, 26, 37, 49 | DVDD33 | 3.3V + 0.1uF decoupling each |
+| 7, 13, 59 | AVDD10 | Internal 1.0V (from ENSWREG regulator) + 0.1uF each |
+| 33, 48 | DVDD10 | Internal 1.0V + 0.1uF each |
+| 2, 4, 63, 65 | GND | Ground (pin 65 is exposed pad) |
+
+### QSPI Flash (PS_MIO Sheet)
+
+QSPI flash chip on MIO0-5 holds the FSBL, U-Boot, and the PL bitstream. Part TBD.
+
+### SD Card (PS_MIO Sheet)
+
+MicroSD slot on MIO13-22 (SDIO0). Development boot source.
+
+### UART Debug Console (PS_MIO Sheet)
+
+**FT230XS** USB-serial bridge on MIO8-9 (UART0 TX/RX). Exposes the Zynq PS UART0 console as a USB device port on the rear panel. Plug a laptop in, get a console -- no 3.3V USB-TTL dongle needed.
+
+### DisplayPort AUX (PS_MIO Sheet)
+
+MIO27 drives AUX data out through a 100-ohm series resistor, MIO30 reads the return signal tapped from the same net, MIO29 controls the output enable (tied to 3.3V via 10k-ohm pullup), and MIO28 reads the Hot Plug Detect signal from the connector.
+
+### DDR4 Memory (PS_DDR Sheet)
+
+Two **Micron MT40A1G16TB-062E** chips (U2 and U3) in 96-ball FBGA packages form a 32-bit DDR4-2400 bus. Data lines are point-to-point; address/command/clock lines are fly-by terminated with 39.2-ohm resistor networks to a 0.6V VTT tracking regulator.
+
+**Chip 1 (U2) -- Lower 16 bits, point-to-point:**
+
+| Zynq Signal | Zynq Ball | U2 Ball | U2 Signal |
+| :--- | :--- | :--- | :--- |
+| PS_DDR_DQ0 | AD21 | G2 | DQ0 |
+| PS_DDR_DQ1 | AE20 | F7 | DQ1 |
+| PS_DDR_DQ2 | AD20 | H3 | DQ2 |
+| PS_DDR_DQ3 | AF20 | H7 | DQ3 |
+| PS_DDR_DQ4 | AH21 | H2 | DQ4 |
+| PS_DDR_DQ5 | AH20 | H8 | DQ5 |
+| PS_DDR_DQ6 | AH19 | J3 | DQ6 |
+| PS_DDR_DQ7 | AG19 | J7 | DQ7 |
+| PS_DDR_DQS_P0 | AF21 | G3 | LDQS |
+| PS_DDR_DQS_N0 | AG21 | F3 | LDQS# |
+| PS_DDR_DM0 | AG20 | E7 | LDM#/LDBI# |
+| PS_DDR_DQ8 | AF22 | A3 | DQ8 |
+| PS_DDR_DQ9 | AH22 | B8 | DQ9 |
+| PS_DDR_DQ10 | AE22 | C3 | DQ10 |
+| PS_DDR_DQ11 | AD22 | C7 | DQ11 |
+| PS_DDR_DQ12 | AH23 | C2 | DQ12 |
+| PS_DDR_DQ13 | AH24 | C8 | DQ13 |
+| PS_DDR_DQ14 | AE24 | D3 | DQ14 |
+| PS_DDR_DQ15 | AG24 | D7 | DQ15 |
+| PS_DDR_DQS_P1 | AF23 | B7 | UDQS |
+| PS_DDR_DQS_N1 | AG23 | A7 | UDQS# |
+| PS_DDR_DM1 | AE23 | E2 | UDM#/UDBI# |
+
+**Chip 2 (U3) -- Upper 16 bits, point-to-point:**
+
+| Zynq Signal | Zynq Ball | U3 Ball | U3 Signal |
+| :--- | :--- | :--- | :--- |
+| PS_DDR_DQ16 | AC26 | G2 | DQ0 |
+| PS_DDR_DQ17 | AD26 | F7 | DQ1 |
+| PS_DDR_DQ18 | AD25 | H3 | DQ2 |
+| PS_DDR_DQ19 | AD24 | H7 | DQ3 |
+| PS_DDR_DQ20 | AG26 | H2 | DQ4 |
+| PS_DDR_DQ21 | AH25 | H8 | DQ5 |
+| PS_DDR_DQ22 | AH26 | J3 | DQ6 |
+| PS_DDR_DQ23 | AG25 | J7 | DQ7 |
+| PS_DDR_DQS_P2 | AF25 | G3 | LDQS |
+| PS_DDR_DQS_N2 | AF26 | F3 | LDQS# |
+| PS_DDR_DM2 | AE25 | E7 | LDM#/LDBI# |
+| PS_DDR_DQ24 | AH27 | A3 | DQ8 |
+| PS_DDR_DQ25 | AH28 | B8 | DQ9 |
+| PS_DDR_DQ26 | AF28 | C3 | DQ10 |
+| PS_DDR_DQ27 | AG28 | C7 | DQ11 |
+| PS_DDR_DQ28 | AC27 | C2 | DQ12 |
+| PS_DDR_DQ29 | AD27 | C8 | DQ13 |
+| PS_DDR_DQ30 | AD28 | D3 | DQ14 |
+| PS_DDR_DQ31 | AC28 | D7 | DQ15 |
+| PS_DDR_DQS_P3 | AE27 | B7 | UDQS |
+| PS_DDR_DQS_N3 | AF27 | A7 | UDQS# |
+| PS_DDR_DM3 | AE28 | E2 | UDM#/UDBI# |
+
+**Fly-by address/command/clock (Zynq -> U2 -> U3 -> 39.2-ohm to VTT):**
+
+| Zynq Signal | Zynq Ball | DDR4 Pin | Function |
+| :--- | :--- | :--- | :--- |
+| PS_DDR_A0 | W28 | A0 (P3) | Address |
+| PS_DDR_A1 | Y28 | A1 (P7) | Address |
+| PS_DDR_A2 | AB28 | A2 (R3) | Address |
+| PS_DDR_A3 | AA28 | A3 (N7) | Address |
+| PS_DDR_A4 | Y27 | A4 (N3) | Address |
+| PS_DDR_A5 | AA27 | A5 (P8) | Address |
+| PS_DDR_A6 | Y22 | A6 (P2) | Address |
+| PS_DDR_A7 | AA23 | A7 (R8) | Address |
+| PS_DDR_A8 | AA22 | A8 (R2) | Address |
+| PS_DDR_A9 | AB23 | A9 (R7) | Address |
+| PS_DDR_A10 | AA25 | A10/AP (M3) | Address / Auto-Precharge |
+| PS_DDR_A11 | AA26 | A11 (T2) | Address |
+| PS_DDR_A12 | AB25 | A12/BC# (M7) | Address / Burst Chop |
+| PS_DDR_A13 | AB26 | A13 (T8) | Address |
+| PS_DDR_A14 | AB24 | WE#/A14 (L2) | Write Enable |
+| PS_DDR_A15 | AC24 | CAS#/A15 (M8) | Column Address Strobe |
+| PS_DDR_A16 | AC23 | RAS#/A16 (L8) | Row Address Strobe |
+| PS_DDR_BA0 | V23 | BA0 (N2) | Bank Address |
+| PS_DDR_BA1 | W22 | BA1 (N8) | Bank Address |
+| PS_DDR_BG0 | W24 | BG0 (M2) | Bank Group |
+| PS_DDR_ACT_N | Y23 | ACT# (L3) | Activate |
+| PS_DDR_CK0 | W25 | CK (K7) | Clock+ |
+| PS_DDR_CK_N0 | W26 | CK# (K8) | Clock- |
+| PS_DDR_CKE0 | V28 | CKE (K2) | Clock Enable |
+| PS_DDR_CS_N0 | W27 | CS# (L7) | Chip Select |
+| PS_DDR_ODT0 | U28 | ODT (K3) | On-Die Termination |
+| PS_DDR_PARITY | V24 | PAR (T3) | Parity |
+| PS_DDR_RAM_RST_N | U23 | RESET# (P1) | DDR Reset |
+
+**Per-chip passive components:**
+
+| Component | Connection |
+| :--- | :--- |
+| ZQ (F9) on each chip | 240-ohm resistor to ground (3 total including Zynq PS_DDR_ZQ at U24) |
+| VREFCA (M1) on each chip | 10k-ohm/10k-ohm divider to VDDQ/2 (0.6V) + 100nF filter cap |
+| TEN (N9) on each chip | Tied to ground |
+| ALERT# (P9) on each chip | 10k-ohm pullup to VDDQ, shared net to PS_DDR_ALERT_N (U25) |
+
+**Unused Zynq DDR pins (no-connect):** PS_DDR_A17, PS_DDR_BG1, PS_DDR_CK1/CK_N1, PS_DDR_CKE1, PS_DDR_CS_N1, PS_DDR_ODT1, PS_DDR_DQ32-71, PS_DDR_DM4-8, PS_DDR_DQS_P4-8/N4-8.
+
+### PS-GTR Transceiver Allocation (PS_GTR Sheet, Bank 505)
+
+| GTR Lane | Function | Zynq TX+/TX- | Zynq RX+/RX- | Destination |
+| :--- | :--- | :--- | :--- | :--- |
+| Lane 0 | PCIe Gen2 x1 (NVMe) | E25/E26 | F27/F28 | M.2 M-Key Connector (J5) |
+| Lane 1 | DisplayPort Lane 0 | D23/D24 | -- | DP Connector (J6) Pin 1/3 |
+| Lane 2 | DisplayPort Lane 1 | C25/C26 | -- | DP Connector (J6) Pin 4/6 |
+| Lane 3 | USB 3.0 SuperSpeed | B23/B24 | B27/B28 | TUSB8043A hub -> 4x USB-A 3.0 |
+
+### M.2 NVMe Slot (PCIe x1)
+
+**Amphenol MDT275M02001** M-Key M.2 connector. PCIe Lane 0 only; Lanes 1-3 are no-connect.
+
+| M.2 Pin | Signal | Connection |
+| :--- | :--- | :--- |
+| 49 (PETp0) | Drive TX+ | -> PS_MGTRRXP0_505 (F27) |
+| 47 (PETn0) | Drive TX- | -> PS_MGTRRXN0_505 (F28) |
+| 43 (PERp0) | Drive RX+ | <- PS_MGTRTXP0_505 (E25) via 0.1uF AC cap |
+| 41 (PERn0) | Drive RX- | <- PS_MGTRTXN0_505 (E26) via 0.1uF AC cap |
+| 55 (REFCLKp) | 100 MHz ref+ | From LVDS oscillator (YXC OA1EL89CEIB112YLC-100M) |
+| 53 (REFCLKn) | 100 MHz ref- | From LVDS oscillator |
+| 50 (PERST#) | PCIe Reset | Driven from Zynq MIO/PL GPIO |
+| 52 (CLKREQ#) | Clock Request | 10k-ohm pullup to 3.3V |
+| 54 (PEWAKE#) | Wake | 10k-ohm pullup to 3.3V |
+| 69 (PEDET) | Presence Detect | 10k-ohm pullup to 3.3V |
+| 2,4,12,14,16,18,70,72,74 | +3.3V | Dedicated high-current 3.3V NVMe buck converter |
+
+The 100 MHz LVDS oscillator also feeds PS_MGTREFCLK1P/N (E21/E22) on the Zynq for PCIe clock recovery.
+
+### DisplayPort Output
+
+**Foxconn 3VD51203-3D6A-7H** (J6) full-size DisplayPort receptacle (LCSC C2761456). 2-lane native DisplayPort from Zynq GTR.
+
+| DP Pin | Signal | Connection |
+| :--- | :--- | :--- |
+| 1 | ML_Lane0+ | <- PS_MGTRTXP1_505 (D23) via 0.1uF AC cap |
+| 3 | ML_Lane0- | <- PS_MGTRTXN1_505 (D24) via 0.1uF AC cap |
+| 4 | ML_Lane1+ | <- PS_MGTRTXP2_505 (C25) via 0.1uF AC cap |
+| 6 | ML_Lane1- | <- PS_MGTRTXN2_505 (C26) via 0.1uF AC cap |
+| 15 | AUX_CH+ | MIO27 (TX out, 100-ohm series) + MIO30 (RX in, tapped cable-side) |
+| 17 | AUX_CH- | Ground |
+| 18 | HPD | MIO28, 100k-ohm pull-down |
+| 20 | DP_PWR | 3.3V through ferrite bead |
+| 7,9,10,12 | Lanes 2-3 | No-connect (2-lane config) |
+
+MIO29 (AUX enable) tied to 3.3V via 10k-ohm pullup.
+
+### USB 3.0 -- 4-Port Hub (PS_GTR + PS_MIO Sheets)
+
+The Zynq has one USB 3.0 controller but no built-in USB 2.0 PHY. Two external chips are required: a **Microchip USB3300-EZK** ULPI PHY for USB 2.0 signaling, and a **TI TUSB8043A** 4-port hub to fan out to four USB-A 3.0 ports on the rear panel.
+
+Signal path:
+
+```
+Zynq GTR Lane 3 (SS 5Gbps) -----------------> TUSB8043A pin 58/59 (upstream SS RX)
+TUSB8043A pin 55/56 (upstream SS TX) ---------> Zynq GTR Lane 3 RX
+Zynq MIO52-63 (ULPI) -> USB3300-EZK -> D+/D- -> TUSB8043A pin 53/54 (upstream USB2)
+                                                    +-> USB-A Port 1 (J7)
+                                                    +-> USB-A Port 2 (J8)
+                                                    +-> USB-A Port 3 (J9)
+                                                    +-> USB-A Port 4 (J10)
+```
+
+**USB3300-EZK ULPI PHY -- Zynq MIO connections:**
+
+| Zynq MIO | Zynq Ball | Function | USB3300 Pin |
+| :--- | :--- | :--- | :--- |
+| PS_MIO52 | G18 | ULPI_CLK | CLKOUT |
+| PS_MIO53 | D16 | ULPI_DIR | DIR |
+| PS_MIO54 | F17 | ULPI_STP | STP |
+| PS_MIO55 | B16 | ULPI_NXT | NXT |
+| PS_MIO56 | C16 | ULPI_DATA0 | DATA0 |
+| PS_MIO57 | A16 | ULPI_DATA1 | DATA1 |
+| PS_MIO58 | F18 | ULPI_DATA2 | DATA2 |
+| PS_MIO59 | E17 | ULPI_DATA3 | DATA3 |
+| PS_MIO60 | C17 | ULPI_DATA4 | DATA4 |
+| PS_MIO61 | D17 | ULPI_DATA5 | DATA5 |
+| PS_MIO62 | A17 | ULPI_DATA6 | DATA6 |
+| PS_MIO63 | E18 | ULPI_DATA7 | DATA7 |
+
+USB3300-EZK D+ and D- outputs connect directly to TUSB8043A pins 53 (USB_DP_UP) and 54 (USB_DM_UP).
+
+**TUSB8043A upstream SuperSpeed -- Zynq GTR Lane 3:**
+
+| TUSB8043A Pin | Signal | Connection |
+| :--- | :--- | :--- |
+| 58 | USB_SSRXP_UP | <- PS_MGTRTXP3_505 (B23) |
+| 59 | USB_SSRXM_UP | <- PS_MGTRTXN3_505 (B24) |
+| 55 | USB_SSTXP_UP | -> PS_MGTRRXP3_505 (A25) |
+| 56 | USB_SSTXM_UP | -> PS_MGTRRXN3_505 (A26) |
+| 53 | USB_DP_UP | <-> USB3300-EZK D+ |
+| 54 | USB_DM_UP | <-> USB3300-EZK D- |
+| 48 | USB_VBUS | 90.9k-ohm to VBUS (5V), 10k-ohm to GND (voltage divider) |
+
+**TUSB8043A downstream ports -- to four USB-A 3.0 connectors:**
+
+| Port | SS TX+/- | SS RX+/- | D+/D- | Connector |
+| :--- | :--- | :--- | :--- | :--- |
+| 1 | Pin 3/4 | Pin 6/7 | Pin 1/2 | J7 |
+| 2 | Pin 11/12 | Pin 14/15 | Pin 9/10 | J8 |
+| 3 | Pin 19/20 | Pin 22/23 | Pin 17/18 | J9 |
+| 4 | Pin 26/27 | Pin 29/30 | Pin 24/25 | J10 |
+
+**TUSB8043A clock:**
+
+| Pin | Signal | Connection |
+| :--- | :--- | :--- |
+| 62 | XI | 24 MHz crystal + 1M-ohm feedback resistor between XI and XO |
+| 61 | XO | 24 MHz crystal (other leg) |
+
+**TUSB8043A control and strap pins:**
+
+| Pin | Signal | Connection |
+| :--- | :--- | :--- |
+| 50 | GRSTz | 10k-ohm to 3.3V + 100nF to GND (RC power-on reset) |
+| 49 | TEST | 10k-ohm to GND |
+| 64 | USB_R1 | 9.53k-ohm 1% to GND (precision reference) |
+| 41 | PWRCTL_POL | Strap per power switch polarity |
+| 42 | GANGED | GND (per-port power control) |
+| 40 | FULLPWRMGMTz | GND (enable power switching + overcurrent) |
+| 45 | AUTOENz/HS_SUSPEND | 3.3V (disable auto-charge) |
+| 39 | SMBUSz/SS_SUSPEND | 3.3V (I2C mode, or NC if no EEPROM) |
+| 38 | SCL/SMBCLK | NC (no EEPROM) |
+| 37 | SDA/SMBDAT | NC (no EEPROM) |
+| 60 | NC | No connect |
+
+**TUSB8043A per-port power and overcurrent:**
+
+If not implementing per-port power switching, leave PWRCTL1-4 (pins 36, 35, 33, 32) unconnected and pull OVERCUR1-4z (pins 46, 47, 44, 43) to 3.3V with 10k-ohm each.
+
+**TUSB8043A power:**
+
+| Pin(s) | Signal | Rail |
+| :--- | :--- | :--- |
+| 5, 8, 13, 21, 28, 31, 51, 57 | VDD | 1.1V (external regulator required) + 0.1uF each |
+| 16, 34, 52, 63 | VDD33 | 3.3V + 0.1uF each |
+| Thermal pad | VSS | GND |
+
+### 16-Channel Backplane UARTs (PL HD Banks 25 and 26)
+
+16 instances of **Xilinx AXI UART Lite** (`axi_uartlite`) instantiated in the Programmable Logic, each with its own AXI-Lite register window and dedicated IRQ line. Each channel is a dedicated TX/RX pair running at 460800 baud (compile-time configured in Vivado -- for a runtime-configurable baud divider, substitute `axi_uart16550`). All pins are 3.3V LVCMOS, directly compatible with the AG32 UART0 control interface on each compute card.
+
+These are stock Xilinx IP blocks with a mainline Linux driver -- no custom RTL, no custom kernel code.
+
+**Bank 25 -- Cards 0-7 (VCCO = 3.3V):**
+
+| Card | PL Signal | Direction | PL Bank | Backplane Pin | Function |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| 0 | UART_TX_0 | Output | 25 | Card 0 UART0_RX | Host TX -> Node RX |
+| 0 | UART_RX_0 | Input | 25 | Card 0 UART0_TX | Node TX -> Host RX |
+| 1 | UART_TX_1 | Output | 25 | Card 1 UART0_RX | Host TX -> Node RX |
+| 1 | UART_RX_1 | Input | 25 | Card 1 UART0_TX | Node TX -> Host RX |
+| 2 | UART_TX_2 | Output | 25 | Card 2 UART0_RX | Host TX -> Node RX |
+| 2 | UART_RX_2 | Input | 25 | Card 2 UART0_TX | Node TX -> Host RX |
+| 3 | UART_TX_3 | Output | 25 | Card 3 UART0_RX | Host TX -> Node RX |
+| 3 | UART_RX_3 | Input | 25 | Card 3 UART0_TX | Node TX -> Host RX |
+| 4 | UART_TX_4 | Output | 25 | Card 4 UART0_RX | Host TX -> Node RX |
+| 4 | UART_RX_4 | Input | 25 | Card 4 UART0_TX | Node TX -> Host RX |
+| 5 | UART_TX_5 | Output | 25 | Card 5 UART0_RX | Host TX -> Node RX |
+| 5 | UART_RX_5 | Input | 25 | Card 5 UART0_TX | Node TX -> Host RX |
+| 6 | UART_TX_6 | Output | 25 | Card 6 UART0_RX | Host TX -> Node RX |
+| 6 | UART_RX_6 | Input | 25 | Card 6 UART0_TX | Node TX -> Host RX |
+| 7 | UART_TX_7 | Output | 25 | Card 7 UART0_RX | Host TX -> Node RX |
+| 7 | UART_RX_7 | Input | 25 | Card 7 UART0_TX | Node TX -> Host RX |
+
+**Bank 26 -- Cards 8-15 (VCCO = 3.3V):**
+
+| Card | PL Signal | Direction | PL Bank | Backplane Pin | Function |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| 8 | UART_TX_8 | Output | 26 | Card 8 UART0_RX | Host TX -> Node RX |
+| 8 | UART_RX_8 | Input | 26 | Card 8 UART0_TX | Node TX -> Host RX |
+| 9 | UART_TX_9 | Output | 26 | Card 9 UART0_RX | Host TX -> Node RX |
+| 9 | UART_RX_9 | Input | 26 | Card 9 UART0_TX | Node TX -> Host RX |
+| 10 | UART_TX_10 | Output | 26 | Card 10 UART0_RX | Host TX -> Node RX |
+| 10 | UART_RX_10 | Input | 26 | Card 10 UART0_TX | Node TX -> Host RX |
+| 11 | UART_TX_11 | Output | 26 | Card 11 UART0_RX | Host TX -> Node RX |
+| 11 | UART_RX_11 | Input | 26 | Card 11 UART0_TX | Node TX -> Host RX |
+| 12 | UART_TX_12 | Output | 26 | Card 12 UART0_RX | Host TX -> Node RX |
+| 12 | UART_RX_12 | Input | 26 | Card 12 UART0_TX | Node TX -> Host RX |
+| 13 | UART_TX_13 | Output | 26 | Card 13 UART0_RX | Host TX -> Node RX |
+| 13 | UART_RX_13 | Input | 26 | Card 13 UART0_TX | Node TX -> Host RX |
+| 14 | UART_TX_14 | Output | 26 | Card 14 UART0_RX | Host TX -> Node RX |
+| 14 | UART_RX_14 | Input | 26 | Card 14 UART0_TX | Node TX -> Host RX |
+| 15 | UART_TX_15 | Output | 26 | Card 15 UART0_RX | Host TX -> Node RX |
+| 15 | UART_RX_15 | Input | 26 | Card 15 UART0_TX | Node TX -> Host RX |
+
+### UART AXI Register Map
+
+Each AXI UART Lite instance occupies a 4 KB AXI-Lite register window. The Xilinx IP block exposes a standard register layout (RX FIFO at +0x00, TX FIFO at +0x04, STAT_REG at +0x08, CTRL_REG at +0x0C). Base addresses are spaced at 0x1000 intervals for clean address decoding in the AXI Interconnect, and both CPU clusters see the same physical addresses:
+
+| Card | AXI Base Address | Owning CPU | Linux View | IRQ Target |
+| :--- | :--- | :--- | :--- | :--- |
+| 0  | 0xA000_0000 | R5F core 1 | `/dev/rpmsg-tty0`  | R5F core 1 |
+| 1  | 0xA000_1000 | R5F core 1 | `/dev/rpmsg-tty1`  | R5F core 1 |
+| 2  | 0xA000_2000 | R5F core 1 | `/dev/rpmsg-tty2`  | R5F core 1 |
+| ... | ... | ... | ... | ... |
+| 15 | 0xA000_F000 | R5F core 1 | `/dev/rpmsg-tty15` | R5F core 1 |
+
+Each instance has its own IRQ routed through Vivado IP Integrator to the Zynq's `IRQ_F2P` inputs (16 available, exactly consumed). The IRQs target **R5F core 1's GIC view** via the PS GIC SPI lines, not the A53 cluster.
+
+### LED Display SPI (PL HD Bank 24)
+
+Dedicated **SPI slave** in the Programmable Logic, connected to the RP2040 LED controller on the front panel. The RP2040 is the SPI master; the Zynq fabric runs in slave mode. This inversion from the conventional arrangement gives free v-sync alignment because the RP2040 initiates transactions on its own LED refresh clock. All signals are 3.3V LVCMOS on HD Bank 24.
+
+The SPI link is **full-duplex and bidirectional every frame**: MOSI carries a Zynq command byte plus an optional push-framebuffer; MISO carries an RP2040 status header plus the 4,096-byte framebuffer currently lit on the physical panel.
+
+| PL Signal | Direction | PL Bank | Connector Pin | Function |
+| :--- | :--- | :--- | :--- | :--- |
+| LED_SPI_SCK  | Input (slave) | 24 | Front-panel header | SPI clock, driven by RP2040 |
+| LED_SPI_MOSI | Output | 24 | Front-panel header | Zynq -> RP2040: command byte + optional push framebuffer |
+| LED_SPI_MISO | Input  | 24 | Front-panel header | RP2040 -> Zynq: status header + current physical framebuffer (full readback, 4 KB/frame) |
+| LED_SPI_CS   | Input (slave) | 24 | Front-panel header | Chip select, driven by RP2040 at frame refresh boundaries |
+
+### TDMA Phase Clock (PL HD Bank 44)
+
+The master TDMA phase clock is generated in the PL fabric and distributed to all 16 compute cards via the backplane. The phase select lines encode the current TDMA phase, telling every AG32 node which dimension link is active.
+
+| PL Signal | Direction | PL Bank | Function |
+| :--- | :--- | :--- | :--- |
+| TDMA_PHASE[0] | Output | 44 | Phase select bit 0 (to backplane) |
+| TDMA_PHASE[1] | Output | 44 | Phase select bit 1 (to backplane) |
+| TDMA_PHASE[2] | Output | 44 | Phase select bit 2 (extended for 12D) |
+| TDMA_PHASE[3] | Output | 44 | Phase select bit 3 (extended for 12D) |
+| TDMA_SYNC | Output | 44 | Frame sync pulse (marks phase 0) |
+
+### Fan PWM Array (PL HD Bank 44)
+
+Four-channel PWM fan controller in the PL fabric. Each fan header carries a PWM drive signal and a tachometer sense input. Fans default to 100% duty cycle if the PL fabric detects a thermal fault or software hang.
+
+| PL Signal | Direction | PL Bank | Connector | Function |
+| :--- | :--- | :--- | :--- | :--- |
+| FAN_PWM_0 | Output | 44 | Fan header J11 | PWM drive (25 kHz) |
+| FAN_TACH_0 | Input | 44 | Fan header J11 | Tachometer sense |
+| FAN_PWM_1 | Output | 44 | Fan header J12 | PWM drive (25 kHz) |
+| FAN_TACH_1 | Input | 44 | Fan header J12 | Tachometer sense |
+| FAN_PWM_2 | Output | 44 | Fan header J13 | PWM drive (25 kHz) |
+| FAN_TACH_2 | Input | 44 | Fan header J13 | Tachometer sense |
+| FAN_PWM_3 | Output | 44 | Fan header J14 | PWM drive (25 kHz) |
+| FAN_TACH_3 | Input | 44 | Fan header J14 | Tachometer sense |
+
+### I2C Bus (PL HD Bank 44)
+
+Shared I2C bus on Bank 44 for per-card reset/boot control (PCA9555 GPIO expanders), battery-backed RTC (DS3231), optional per-card INA226 power monitoring, and other slow-control peripherals. Two pins (SDA, SCL) plus ground reference routed to the backplane connector.
+
+### PL I/O Budget Summary
+
+| PL Bank | Type | VCCO | Allocated Signals | Pins Used | Pins Remaining |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| 24 | HD | 3.3V | LED SPI (4 pins) | 4 | ~22 |
+| 25 | HD | 3.3V | Backplane UARTs 0-7 (16 pins) | 16 | ~10 |
+| 26 | HD | 3.3V | Backplane UARTs 8-15 (16 pins) | 16 | ~10 |
+| 44 | HD | 3.3V | TDMA phase clock (5), Fan PWM (8), I2C (2) | 15 | ~11 |
+| 64 | HP | 1.8V | *Unallocated* | 0 | 56 |
+| 65 | HP | 1.8V | *Unallocated* | 0 | 56 |
+| 66 | HP | 1.8V | *Unallocated* | 0 | 56 |
+
+### Boot and Configuration (Config / PS_MIO Sheets)
+
+| Item | Pins | What to Do | Sheet |
+| :--- | :--- | :--- | :--- |
+| Boot mode DIP switch | PS_MODE0-3 | 4-pos DIP switch + 10k-ohm pulldowns on each pin. Switch ON = 3.3V. | PS_MIO |
+| QSPI flash | MIO0-5 | Add QSPI flash chip (TBD part), wire SCLK/CS/IO0-IO3, decoupling | PS_MIO |
+| JTAG debug header | PS_JTAG_TCK/TDI/TDO/TMS | Add 2x7 ARM JTAG header, wire to Zynq JTAG pins | PS_MIO / Config |
+| Power-on reset | PS_POR_B | RC circuit: 10k-ohm to 3.3V + 100nF to GND (delay ~1ms) | PS_MIO / Config |
+| System reset | PS_SRST_B | 10k-ohm pullup to 3.3V + optional reset button | PS_MIO / Config |
+| PL config handshake | PS_PROG_B, PS_INIT_B, PS_DONE | 10k-ohm pullups to 3.3V each | PS_MIO / Config |
+| PS reference clock | PS_REF_CLK (R16) | SiT8008BI-71-33S-33.333330 (LCSC C806182), 2.0x1.6mm | PS_MIO / Config |
+| PUDC_B | PUDC_B | Tied to GND (pull-ups enabled during config) | Config |
+| UART console | MIO8-9 | UART0 TX/RX + FT230XS USB-serial bridge | PS_MIO |
+
+### Backplane Connector (100-pin IDC, Pending)
+
+**100-pin shrouded IDC header** (2x50, 1.27mm pitch). Pin assignment: 32 UART (Banks 25/26), 5 TDMA (Bank 44), 4 LED SPI (Bank 24), 8 Fan PWM/Tach (Bank 44), 2 I2C (Bank 44), 41 GND (one per signal), remaining spare. 2-inch ribbon cable to backplane. Reclaim 3 spare pins for the per-card I2C control bus (SDA, SCL, GND ref).
+
+### Backplane Signal Conditioning (Planned)
+
+The 49 backplane signals fall into six groups:
+
+| Group | Count | Direction (FPGA POV) | Bank |
+| :--- | :--- | :--- | :--- |
+| UART_TX_0..15 | 16 | Output | 25/26 |
+| UART_RX_0..15 | 16 | Input | 25/26 |
+| SPI_SCK, SPI_MOSI, SPI_CS | 3 | Output | 24 |
+| SPI_MISO | 1 | Input | 24 |
+| TDMA_PHASE[0..3], TDMA_SYNC | 5 | Output | 44 |
+| FAN_PWM_0..3 | 4 | Output | 44 |
+| FAN_TACH_0..3 | 4 | Input | 44 |
+
+Outputs from the FPGA: 28. Inputs to the FPGA: 21. Every signal is single-ended 3.3V LVCMOS, unidirectional, and runs at relatively low speed (<=10 MHz worst case for SPI; 460800 baud or slower for UART).
+
+**Layer 1 -- Series source termination (Zynq side, output lines only)**
+
+A 22-ohm 0402 resistor in series with every Zynq output, placed within ~5mm of the BGA. This is *not* about UART bit timing -- it is about taming the ~1ns LVCMOS edge rates of the HD bank drivers. Without source termination, those edges will ring and overshoot at the receiver, couple into adjacent traces, and radiate as EMI from the ribbon cable.
+
+Apply to all 28 output lines: 16x UART_TX, 3x SPI outputs, 5x TDMA, 4x FAN_PWM. Suggested part: RC0402FR-0722RL or equivalent.
+
+Input lines (UART_RX, SPI_MISO, FAN_TACH) do not need series termination -- the driver is on the other end of the cable.
+
+**Layer 2 -- Sacrificial unidirectional buffers (mid-board)**
+
+Insert 74LVC244-style octal buffers between the Zynq and the connector. Every backplane signal is unidirectional, so simple 244-class buffers work -- no bidirectional bus transceivers needed. The 74LVC244 has 8 independent buffers in two banks of four, each bank with its own active-low output enable. Direction within a chip can be mixed (each buffer has a distinct A->Y signal path), so a single chip can carry both FPGA-driven and backplane-driven lines.
+
+Approximate chip count: **~6x 74LVC244** to cover all 49 signals (49 / 8 = 7, but with some packing efficiency 6 is achievable). Place them between the Zynq side (after the series resistors) and the connector side (before the TVS arrays).
+
+Tie all OE# pins to a single "system ready" signal driven from a Zynq MIO GPIO (or PS_DONE). This keeps the entire backplane in high-Z during FPGA configuration so cards see clean idle instead of garbage transitions during boot.
+
+The buffers serve three purposes:
+- **Sacrificial protection** -- a $0.40 chip absorbs damage instead of a $200 BGA bank
+- **Defined startup state** via OE# control
+- **Higher drive strength** if the ribbon cable is ever lengthened or replaced with something lossier
+
+**Layer 3 -- TVS diode arrays (connector side)**
+
+Place a low-capacitance TVS array on every backplane signal, located within ~3mm of the IDC connector pins so the strike is clamped before it reaches any meaningful trace inductance. Trace length between the strike point and the clamp matters more than the diode response time.
+
+Suggested part: **TPD4E1B06DCKR** (4-channel, 5pF, 5.5V working voltage) or PESD3V3L4UG. Roughly **13x quad arrays** to cover all 49 signals. Place each array directly under or adjacent to the connector pins it protects.
+
+**Pull Resistors**
+
+Every input from the backplane should have a 10k-ohm 0402 pull-up to 3.3V, placed on the Zynq side of the buffer:
+
+- **16x UART_RX** -- UART idles high. Pullups prevent noise from being interpreted as a start bit when a card is dead, missing, or in reset.
+- **1x SPI_MISO** -- prevents float when CS is deasserted.
+- **4x FAN_TACH** -- fan tach outputs are open-collector and require external pullups.
+
+Total: 21 pull-up resistors.
+
+**Test Points**
+
+Drop a test point on every backplane signal, placed between the buffer chip and the connector. SMD round test points (Keystone 5015 or similar 0.040" diameter pads) on a uniform grid. **This is critical for bringup** -- you will be probing every line with a logic analyzer and a scope, and trying to clip onto 49 individual signals without dedicated test points is miserable.
+
+In addition to individual test points, place a **2x25 0.05"-pitch shrouded header** that taps every backplane signal between the buffer and the connector. This gives you a single connector for a Saleae Logic Pro 16 / Kingst LA5016 / similar logic analyzer, so you can scope all 49 signals through one ribbon cable instead of 49 individual probes. Place it accessible from the top of the board for easy clip-on.
+
+**Power Filtering for HD Banks**
+
+With up to 16 LVCMOS outputs potentially switching simultaneously on Banks 25 and 26, simultaneous switching output (SSO) noise on VCCO can be significant. Add a localized power island per bank:
+
+- Ferrite bead (BLM18PG471SN1D, ~470-ohm @ 100 MHz, 3A rated) between the main 3.3V plane and each local VCCO_25 / VCCO_26 / VCCO_24 / VCCO_44 island
+- 10uF + 1uF + per-pin 100nF on the bank side of the bead
+
+Cheap, takes minimal space, and noticeably quiets switching transients on bank power. Worth doing.
+
+### Per-Card Reset and Boot Control (Currently Missing)
+
+The host library's `flash()` method describes "Assert Boot0 high, pulse NRST via GPIO" -- but **the current schematic does not allocate any backplane pins or Zynq GPIO for these signals**. This is a real gap that must be closed before flashing will work.
+
+Three options, in increasing complexity:
+
+**Option A -- Shared broadcast Boot0 + NRST (2 backplane pins, simplest)**
+
+One global NRST and one global Boot0 broadcast to all 16 cards. The host puts the entire machine into bootloader mode in one operation, then flashes each card in parallel through its dedicated UART. After flashing, NRST is released and all cards run their new firmware simultaneously.
+
+Limitation: cannot reset individual cards. If one card hangs mid-job, the only recovery is rebooting the whole machine. Acceptable if cards are reliable and recovery is rare.
+
+Implementation: 2 additional output lines from PL Bank 44 (or any spare HD bank pin) -> series R -> buffer -> TVS -> backplane. Add to the 100-pin connector by reclaiming 2 of the 18 currently-spare pins.
+
+**Option B -- Per-card Boot0 + NRST via I2C GPIO expander (recommended)**
+
+Add an I2C bus to the backplane (2 wires + GND = 3 pins) and place a PCA9555 16-bit I2C GPIO expander on each compute card. Each expander drives its own card's NRST and Boot0 locally. The host writes to the expanders over I2C to assert/release reset and bootloader mode on individual cards.
+
+Bonus: the same I2C bus can carry temperature sensors, INA226 power monitors, EEPROM card-ID storage, and any future per-card slow-control signals.
+
+Implementation: 2 additional MIO pins from the Zynq (one of the unused MIO64-77 range) brought out to backplane through buffers + TVS. Each card gets a PCA9555 with 4 address-strap pins to give it a unique I2C address.
+
+This is the right answer. It costs 3 backplane pins instead of 32, scales to additional control signals, and keeps the master fully in control of every card individually.
+
+**Option C -- 32 dedicated GPIO lines (16 NRST + 16 Boot0)**
+
+Direct point-to-point control. Most flexible, simplest software model, but requires 32 additional backplane pins + ~32 more grounds = 64 more connector pins. The current 100-pin IDC won't fit it; you would need to upgrade to a 200-pin or split into two connectors. Not recommended unless I2C is unworkable for some reason.
+
+**Verdict:** implement Option B. It's the only one that scales and reuses existing connector pins.
+
+### Optional Hardware Subsystems
+
+Beyond the required signal conditioning and the missing per-card reset control, the board area between the Zynq BGA and the 100-pin backplane connector can host several independent subsystems. Each is genuinely useful; implement as appetite and complexity budget allow.
+
+**Per-Card Power Monitoring (INA226 over I2C)**
+
+If Option B above is implemented, you already have an I2C bus on the backplane. Add an INA226 current/voltage sensor on each compute card's power input. INA226 supports 16 selectable I2C addresses -- exactly enough for 16 cards on a single bus. The host can then detect:
+- Failed cards (zero current draw)
+- Thermal runaway (current spike)
+- Per-card power consumption for job profiling
+
+Cost: ~$1.50/card for the chip + shunt resistor. High value for diagnostics.
+
+**Per-Card Power Switching (Load Switches)**
+
+Drop a TPS22918 or AP2161 load switch inline with each card's main power input, controlled from the same per-card PCA9555. This lets the host:
+- Power-cycle a flaky card without rebooting the entire machine
+- Sequentially bring up cards during boot to spread inrush current
+- Cut power to cards that draw excessive current (closed-loop with INA226)
+
+Combined with INA226, this gives you full per-card power management.
+
+**RP2040 SWD Passthrough**
+
+The RP2040 on the LED panel needs to be flashable. Currently there is no documented path. Add either:
+- A passive SWD header routed through the front-panel connector to the RP2040's SWDIO/SWCLK pins, accessible from outside the cube
+- An active path: Zynq MIO bit-banged SWD or an FT2232H USB-SWD bridge controlled by the host
+
+The passive header is cheaper; the active path lets the host reflash the RP2040 over the network without opening the case. Worth doing.
+
+**External Watchdog Timer**
+
+The Zynq has internal watchdogs, but they share fate with the silicon they're trying to reset. An external watchdog (TPS3823, MAX6369) tied to PS_SRST_B gives you a true hardware reset path if the kernel locks hard enough to disable internal watchdogs. A userspace daemon toggles a Zynq GPIO every second; if the toggle stops for >1.6s, the watchdog yanks SRST and the whole system reboots.
+
+**Status / Diagnostic LEDs**
+
+A bank of LEDs visible inside the cube or on the rear panel, driven from PL GPIO via a TLC59116 I2C LED driver (16 channels, brightness control, $1):
+- 16x per-card link/activity LEDs (one per UART channel -- blink on TX/RX)
+- 1x Zynq heartbeat
+- 1x TDMA running indicator
+- 1x thermal warning
+- 1x job-in-progress
+
+Charlieplexed alternatives use fewer driver pins but are harder to debug. TLC59116 is the easy path.
+
+**Front-Panel Buttons**
+
+Reset and mode-select pushbuttons routed through a 74HC14 Schmitt-trigger debouncer (with RC) to Zynq GPIO. Useful for forcing reboots without yanking power or holding the SD card eject.
+
+**Ambient Light Sensor (BH1750 / VEML7700)**
+
+I2C ambient light sensor lets the LED display auto-dim. ~$0.50 of parts. Cute and slightly useful.
+
+**Small OLED Status Display**
+
+A 0.96" or 1.3" I2C OLED visible through a slot in the cube showing:
+- IP address
+- Boot status / kernel version
+- Last job ID and result
+- CPU/FPGA temperature
+- Number of live cards
+
+Lets you operate the machine headless without `nmap`-ing your network to find it. ~$3 of parts.
+
+**Spare HD Bank Breakout**
+
+Banks 25, 26, and 44 have ~10-13 unused pins each (per the I/O budget table above). Bring them out to a 0.1" header for future expansion -- extra GPIO, additional UARTs, debug signals. Free real estate that's currently wasted.
+
+### Implementation Priority Passes
+
+**Pass 1 -- Do not fab without these:**
+- Series source termination (~28 resistors)
+- TVS arrays at the connector (~13 chips)
+- Pull-ups on RX / MISO / TACH inputs (~21 resistors)
+- Test points + logic analyzer breakout header
+- Per-card reset/boot control (Option B: I2C bus + PCA9555 per card) -- this is currently missing from the design
+
+**Pass 2 -- Strongly recommended:**
+- Sacrificial 74LVC244 buffers (~6 chips)
+- VCCO power islands with ferrite beads on Banks 24/25/26/44
+- USB debug console (FT230XS)
+- **Operator Console HUD + BMC + Hypercube Controller on the R5F cluster** (pure firmware/software work, zero new hardware, zero PCB changes) -- 1440x1080 Linux + 480x1080 R5-owned sidebar with LED mirror and telemetry HUD, rendered by R5 core 0. The same core runs a full BMC with HTTP dashboard, VNC remote console, SSH shell, serial-over-LAN, Prometheus exporter, and power control services, reachable over the existing Ethernet via a shared-GEM configuration (no second PHY or second RJ45 required). **R5 core 1** runs the real-time hypercube controller -- it owns all 16 backplane UARTs, the TDMA block, the LED SPI TX path, and the fan PWM, and Linux drives it over a mainline rpmsg mailbox. This splits the machine into a proper HPC-style user frontend (A53/Linux) and service processor (R5F cluster), with the consequence that in-flight StarC jobs keep running to completion even when Linux kernel-panics. This is the highest-value feature on the board per dollar (zero) and per hour of PCB work (zero) -- everything is firmware.
+
+**Pass 3 -- High-value features:**
+- Per-card INA226 power monitoring
+- Per-card load switches
+- External watchdog timer
+- Battery-backed RTC (DS3231)
+
+**Pass 4 -- Convenience and cosmetic:**
+- TLC59116 status LED bank
+- OLED status display
+- Front-panel buttons
+- Ambient light sensor
+- RP2040 SWD passthrough
+- Spare HD bank breakout header
+
+Pass 1 items address actual hardware risks (FPGA destruction, missing GPIO functionality, undebuggable bringup). Pass 2 items significantly improve robustness and SI. Passes 3 and 4 add features rather than fix problems, but everything in Pass 3 is high-value-per-dollar diagnostics worth including in the first board spin if board space is truly unlimited.
+
+### Schematic TODO -- Remaining Work
+
+The following items are not yet wired in the KiCad schematic and must be completed before the board can be fabricated.
+
+**MIO Pin Reassignments**
+
+The addition of QSPI boot flash on MIO0-5 requires moving two signals:
+
+| Signal | Current MIO | New MIO | Reason |
+| :--- | :--- | :--- | :--- |
+| M.2 PERST# | MIO2 | MIO6 or MIO7 | MIO2 needed for QSPI_IO0 |
+| UART TX | MIO0 (reserved) | MIO8 | MIO0 needed for QSPI_SCLK |
+| UART RX | MIO1 (reserved) | MIO9 | MIO1 needed for QSPI_CS |
+
+**PL Fabric TODO**
+
+| Item | What to Do |
+| :--- | :--- |
+| Backplane connector | Place 100-pin shrouded IDC header (2x50, 1.27mm pitch) on Backplane.kicad_sch. Assign all 100 pins: 32 UART (Banks 25/26), 5 TDMA (Bank 44), 4 LED SPI (Bank 24), 41 GND (one per signal), 18 spare. 2-inch ribbon cable to backplane. **Reclaim 3 spare pins for the per-card I2C control bus (SDA, SCL, GND ref).** |
+| Fan PWM/Tach | Change local labels on Peripherals.kicad_sch to global labels. Add matching global labels on PL_HD.kicad_sch connecting to Bank 44 pins. |
+| PL pin assignment | Assign specific Zynq ball numbers to all PL signals (UARTs, TDMA, SPI, fans) on Banks 24/25/26/44. Currently all 272 PL I/O pins are unassigned. |
+| HP Banks 64/65/66 | 168 HP pins currently unallocated. Add no-connect markers or reserve for future use. |
+| Backplane signal conditioning | Series R + 74LVC244 buffers + TVS arrays + pullups + test points on all 49 backplane signals. **Currently absent from schematic.** |
+| Per-card reset/boot control | Currently missing. The host `flash()` method needs Boot0/NRST control per card -- see Option B (I2C + PCA9555 per card). |
+
+**Minor Fixes**
+
+| Item | What to Do |
+| :--- | :--- |
+| RTL8211EG LED2 (pin 52) | Add no-connect marker |
+| RTL8211EG REG_OUT (pin 3) | Verify 1uF + 0.1uF decoupling cap to GND is present |
+| J5 DisplayPort CONFIG1/CONFIG2 | Check Foxconn 3VD51203 datasheet -- may need pull-ups/pull-downs or NC |
+
+---
+
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+## Firmware & Software Architecture
+
+Everything in this section lives in a bitstream, FSBL, device tree, or application binary. This is the code side of the controller board.
+
+### The Three-CPU AMP Architecture
+
+The controller board runs three independent CPUs in Asymmetric Multiprocessing (AMP) mode:
+
+- **A53 cluster (2 cores)** -- runs Ubuntu Linux. The user frontend: SSH, desktop, web API, StarC compilation, job queue management, NVMe storage, primary network stack. Drives the left 1440x1080 of the DisplayPort output via the Mali-400 GPU.
+- **R5F core 0** -- runs FreeRTOS. The BMC and HUD renderer: paints the right 480x1080 operator console sidebar (448x448 LED mirror + 480x600 telemetry HUD), runs HTTP/SSH/VNC/SoL/Prometheus services on its own shared-GEM network queue. Survives Linux crashes by design.
+- **R5F core 1** -- runs FreeRTOS. The hypercube controller: owns 16 AXI UART Lite blocks, TDMA controller, LED SPI TX buffer, fan PWM. Orchestrates StarC jobs on the 4,096 compute nodes. Linux reaches it through rpmsg, not direct hardware access.
+
+Linux talks to the hypercube through rpmsg, not direct serial or UIO. In-flight jobs survive Linux crashes because the R5 cluster owns the control path.
+
+### Device Tree: Reserved Memory and Remoteproc
 
 The controller-board peripherals split into three classes, each with a different Linux integration strategy.
 
-**Class 1 — Peripherals reserved to the R5 cluster.**
+**Class 1 -- Peripherals reserved to the R5 cluster.**
 
-The 16 AXI UART Lite instances, the TDMA block, the LED SPI slave, and the fan PWM/tach block are all AXI peripherals sitting on the PL side of the interconnect. In a naive single-CPU design these would be declared to Linux with `xlnx,xps-uartlite-1.00.a` or `generic-uio` compatible strings. Under the AMP configuration, they are instead **marked as reserved on the Linux side** so the Linux drivers never probe them:
+The 16 AXI UART Lite instances, the TDMA block, the LED SPI slave, and the fan PWM/tach block are all AXI peripherals sitting on the PL side of the interconnect. Under the AMP configuration, they are **marked as reserved on the Linux side** so the Linux drivers never probe them:
 
 ```
-/* Linux device tree — the PL peripherals are reserved for the R5 */
+/* Linux device tree -- the PL peripherals are reserved for the R5 */
 hypercube_uart0: serial@a0000000 {
     compatible = "xlnx,xps-uartlite-1.00.a";
     reg = <0x0 0xa0000000 0x0 0x1000>;
@@ -855,11 +1567,11 @@ hypercube_uart0: serial@a0000000 {
 
 None of these devices appear in `/dev` on the Linux side. The `uartlite` kernel driver is still in the kernel tree, but it never binds to any node. The AXI peripherals belong to R5 core 1 exclusively, and core 1's FreeRTOS image drives them directly from its own address space (which is set up in the R5 BSP rather than the Linux device tree).
 
-The IRQs for these peripherals are routed through the PS GIC's SPI lines so that core 1 — not the A53 cluster — is the target. This is a one-line change in the Xilinx IP Integrator design and a matching change in the `interrupt-parent` of the R5's BSP, and it ensures that Linux never even sees the interrupts fire.
+The IRQs for these peripherals are routed through the PS GIC's SPI lines so that core 1 -- not the A53 cluster -- is the target. This is a one-line change in the Xilinx IP Integrator design and a matching change in the `interrupt-parent` of the R5's BSP, and it ensures that Linux never even sees the interrupts fire.
 
-**Class 2 — Reserved memory regions for the R5 cluster.**
+**Class 2 -- Reserved memory regions for the R5 cluster.**
 
-Core 0's FreeRTOS image, core 1's FreeRTOS image, the shared rpmsg vring buffers, and the shared thermal table all live in specific DDR4 regions that must be carved out from under Linux's normal memory allocator. These are declared in the device tree's `reserved-memory` node:
+Core 0's FreeRTOS image, core 1's FreeRTOS image, the shared rpmsg vring buffers, and the shared thermal table all live in specific DDR4 regions that must be carved out from under Linux's normal memory allocator:
 
 ```
 reserved-memory {
@@ -884,7 +1596,7 @@ reserved-memory {
         compatible = "shared-dma-pool";
     };
     sidebar_fb: fb@70600000 {
-        reg = <0x0 0x70600000 0x0 0x007e8000>;  /* 480×1080 ARGB sidebar */
+        reg = <0x0 0x70600000 0x0 0x007e8000>;  /* 480x1080 ARGB sidebar */
         no-map;
     };
 };
@@ -892,9 +1604,9 @@ reserved-memory {
 
 Linux is told to stay out of these regions. The A53 MMU is configured to map them as non-cached shared memory so accesses from either cluster see a consistent view of the same bytes. This is the same pattern Xilinx ships in every AMP reference design on the ZU+ platform.
 
-**Class 3 — The rpmsg channel to the R5 cluster.**
+**Class 3 -- The rpmsg channel to the R5 cluster.**
 
-Linux talks to the R5 cores through **remoteproc + rpmsg**, the mainline Linux framework for asymmetric multiprocessing with Xilinx UltraScale+ remote CPUs. Two remoteproc nodes are declared — one for each R5 core — with the firmware images and rpmsg channel descriptors attached:
+Linux talks to the R5 cores through **remoteproc + rpmsg**, the mainline Linux framework for asymmetric multiprocessing with Xilinx UltraScale+ remote CPUs. Two remoteproc nodes are declared -- one for each R5 core -- with the firmware images and rpmsg channel descriptors attached:
 
 ```
 zynqmp_r5_rproc {
@@ -922,19 +1634,37 @@ zynqmp_r5_rproc {
 
 At boot, Linux's remoteproc framework loads `thinkin-bmc.elf` onto core 0, loads `thinkin-hypercube.elf` onto core 1, releases both cores from reset, and exposes the rpmsg channels as character devices: `/dev/rpmsg-hypercube` for the job command protocol, `/dev/rpmsg-tty0..15` for interactive per-card debug, and internal channels for BMC telemetry exchange.
 
-The total custom kernel code for the entire controller board is still **zero lines**. Remoteproc and rpmsg are both mainline. The R5 BSPs and FreeRTOS ports are Xilinx-supplied. The AG32 UART control protocol, the thermal parser, and the job dispatcher are implemented in R5 FreeRTOS C code that lives outside the Linux tree entirely. Linux's view of the machine is exactly two character devices and a few virtual TTYs.
+The total custom kernel code for the entire controller board is **zero lines**. Remoteproc and rpmsg are both mainline. The R5 BSPs and FreeRTOS ports are Xilinx-supplied.
 
-### The Host Library: How Linux Talks to the Hypercube Controller
+### Linux Software Stack
 
-The Python host library (`thinkin/machine.py`, documented in the [AG32 Gating Document](https://bbenchoff.github.io/pages/AG32Gating.html) as Software Milestone S3) is the single point of control for the entire hypercube. From the user's point of view, its API is exactly what it would be in a naive single-CPU design: you construct a `ThinkinMachine` object and call `flash()`, `load()`, `run()`, `collect()`, `led_push()`, and so on. Everything the old design did with `pyserial` and `mmap` still works from the caller's perspective — just in a completely different place.
+Linux does not own the hypercube hardware directly. R5F core 1 owns the 16 AXI UART Lite instances, the TDMA block, the LED SPI TX buffer, and the fan PWM controller. Linux is a user of that controller, reaching it through an rpmsg mailbox. The AXI UART Lite device tree nodes on the Linux side are marked `status = "reserved"` so the mainline `drivers/tty/serial/uartlite.c` driver never binds to them. Linux reaches the UARTs indirectly through the `/dev/rpmsg-hypercube` command channel (for job control) or through the `/dev/rpmsg-tty0..15` virtual TTYs (for interactive debug), both backed by the OpenAMP rpmsg framework and serviced by core 1 on the other side of the mailbox.
 
-Under the hood, instead of opening 16 serial ports and mmaping three UIO windows, the library opens a single rpmsg character device and pushes command descriptors to R5 core 1:
+**For interactive debug**, the `/dev/rpmsg-tty0..15` virtual serial ports are still available and still work with every standard Linux tty tool. `picocom /dev/rpmsg-tty5` opens a bidirectional bridge through core 1 to card 5's UART, and while the bridge is open core 1 suspends autonomous telemetry collection for that one card so the debug bytes don't collide with heartbeat frames. From the user's shell, the experience is indistinguishable from the old direct-UART design.
+
+This architecture is cleaner than the alternatives. A Raspberry Pi with 16 USB-FTDI dongles would suffer from USB latency, hub topology pain, flaky connectors, and no hardware synchronization. A single-CPU Zynq design would work but would put real-time UART servicing on a CPU that runs a preemptive multitasking kernel. The dual-cluster approach gives you 16 fully independent hardware UARTs, serviced by a processor that was designed for real-time work, controlled from Linux through a single mainline rpmsg character device -- with no custom kernel code anywhere in the stack.
+
+### The rpmsg Command Protocol
+
+Linux and R5 core 1 communicate over **Xilinx OpenAMP rpmsg**, a standard Xilinx-supported AMP pattern with mainline Linux drivers and published reference designs. A single rpmsg channel carries command descriptors in one direction and reply descriptors in the other:
+
+```c
+struct hypercube_cmd {
+    uint32_t opcode;       // FLASH, LOAD, RUN, COLLECT, ...
+    uint32_t job_id;
+    uint32_t card_mask;    // which of the 16 cards to act on
+    uint64_t payload_ptr;  // DDR4 pointer to command payload
+    uint32_t payload_len;
+    uint64_t reply_ptr;    // DDR4 pointer to reply buffer
+    uint32_t flags;
+};
+```
+
+The payload and reply buffers live in DDR4 regions that are mapped into both the A53 and R5 address spaces with matching MMU/MPU entries, so there are no extra copies. Linux writes the payload, pushes the descriptor, and waits for the reply doorbell. Core 1 processes the descriptor and rings the completion back via a second IPI. The whole round trip is sub-millisecond for small commands and throughput-limited (not latency-limited) for large ones.
+
+**rpmsg opcodes understood by the R5 hypercube controller firmware:**
 
 ```python
-import os
-import struct
-
-# rpmsg opcodes understood by the R5 hypercube controller firmware
 CMD_FLASH    = 0x01
 CMD_LOAD     = 0x02
 CMD_RUN      = 0x03
@@ -944,6 +1674,17 @@ CMD_LED_MODE = 0x06
 CMD_SET_FAN  = 0x07
 CMD_STATUS   = 0x08
 CMD_RESET    = 0x09
+```
+
+### The Host Library: How Linux Talks to the Hypercube Controller
+
+The Python host library (`thinkin/machine.py`, documented in the [AG32 Gating Document](https://bbenchoff.github.io/pages/AG32Gating.html) as Software Milestone S3) is the single point of control for the entire hypercube. From the user's point of view, its API is exactly what it would be in a naive single-CPU design: you construct a `ThinkinMachine` object and call `flash()`, `load()`, `run()`, `collect()`, `led_push()`, and so on. Everything the old design did with `pyserial` and `mmap` still works from the caller's perspective -- just in a completely different place.
+
+Under the hood, instead of opening 16 serial ports and mmaping three UIO windows, the library opens a single rpmsg character device and pushes command descriptors to R5 core 1:
+
+```python
+import os
+import struct
 
 class ThinkinMachine:
     def __init__(self):
@@ -1001,7 +1742,7 @@ class ThinkinMachine:
         return self._do(CMD_LED_MODE, mode.encode('ascii'))
 
     def led_current_frame(self):
-        # R5 core 0 already has this — the LED SPI MISO readback.
+        # R5 core 0 already has this -- the LED SPI MISO readback.
         # The hypercube controller forwards a snapshot via rpmsg.
         return self._do(CMD_STATUS,
                         struct.pack('<I', 1))  # flag: want framebuffer
@@ -1015,25 +1756,36 @@ class ThinkinMachine:
 
 Every StarC host I/O primitive maps to a method on this class exactly as before. When a StarC program calls `load_from_host(&input, 1)`, `load()` sends a `CMD_LOAD` rpmsg to core 1, and core 1 fans the data across the appropriate UART workers. When `store_to_host(&result, 1)` executes, the R5 accumulates the result bytes as they arrive from the control tree; `collect()` drains that accumulated output with a single round trip.
 
-The entire host library is around 300 lines of pure Python, plus ~200 lines of C in the R5 firmware that decodes rpmsg descriptors and dispatches to the appropriate UART workers. The library code is simpler than the pyserial+mmap version — one open file descriptor instead of 19, one protocol instead of two, no per-UART bookkeeping — because most of the work has moved to the R5 where it belongs.
+The entire host library is around 300 lines of pure Python, plus ~200 lines of C in the R5 firmware that decodes rpmsg descriptors and dispatches to the appropriate UART workers. The library code is simpler than the pyserial+mmap version -- one open file descriptor instead of 19, one protocol instead of two, no per-UART bookkeeping -- because most of the work has moved to the R5 where it belongs.
 
-**For interactive debug**, the `/dev/rpmsg-tty0..15` virtual serial ports are still available and still work with every standard Linux tty tool. `picocom /dev/rpmsg-tty5` opens a bidirectional bridge through core 1 to card 5's UART, and while the bridge is open core 1 suspends autonomous telemetry collection for that one card so the debug bytes don't collide with heartbeat frames. From the user's shell, the experience is indistinguishable from the old direct-UART design.
+**LED display host library interface:**
 
-This architecture is cleaner than the alternatives. A Raspberry Pi with 16 USB-FTDI dongles would suffer from USB latency, hub topology pain, flaky connectors, and no hardware synchronization. A single-CPU Zynq design would work but would put real-time UART servicing on a CPU that runs a preemptive multitasking kernel. The dual-cluster approach gives you 16 fully independent hardware UARTs, serviced by a processor that was designed for real-time work, controlled from Linux through a single mainline rpmsg character device — with no custom kernel code anywhere in the stack.
+```python
+machine.led.push(framebuffer)        # CMD_LED_PUSH rpmsg to core 1
+machine.led.set_mode('thermal')      # CMD_LED_MODE rpmsg to core 1
+machine.led.set_mode('badapple')
+machine.led.set_mode('doom')
+machine.led.current_frame()          # CMD_STATUS rpmsg with framebuffer flag
+machine.led.status()                 # CMD_STATUS rpmsg, telemetry only
+```
+
+Underneath, every call is an rpmsg descriptor to core 1. The host library does not have direct access to the LED SPI peripheral, and it does not need it -- core 1 is the single source of truth for what goes out on MOSI, and it handles user-content push requests as well as its own autonomous thermal rendering. `current_frame()` returns whatever the RP2040 *actually* has on the panel, because the LED mirror has to be a portrait of physical reality regardless of which side last wrote the TX buffer.
+
+This pipeline also runs outside of StarC jobs. The `thinkin-daemon` can push status patterns, boot splashes, or card health visualizations by sending `CMD_LED_PUSH` commands. It can hand control back to the RP2040 at any time by sending `CMD_LED_MODE` with `MODE_BADAPPLE` or similar, and the sidebar mirror dutifully reflects the playback in real time.
 
 ### The Boot Sequence
 
 When the machine powers on, the following happens in order:
 
-1. **Zynq BootROM** reads the QSPI flash (or MicroSD in development mode), loads FSBL (First Stage Boot Loader), the ATF, U-Boot, and the PL bitstream. The FPGA fabric comes alive — all 16 AXI UART Lite instances, the TDMA controller, the LED SPI slave, and the fan PWM array are now active. Fans spin at 100% (fail-safe default, enforced by the PL, not by any CPU).
+1. **Zynq BootROM** reads the QSPI flash (or MicroSD in development mode), loads FSBL (First Stage Boot Loader), the ATF, U-Boot, and the PL bitstream. The FPGA fabric comes alive -- all 16 AXI UART Lite instances, the TDMA controller, the LED SPI slave, and the fan PWM array are now active. Fans spin at 100% (fail-safe default, enforced by the PL, not by any CPU).
 2. **FSBL optionally starts the R5 cluster early.** The FSBL can be configured to launch R5 core 0's firmware (`thinkin-bmc.elf`) as part of stage-2 boot, before U-Boot runs. This gives you an operator-console boot splash and a functioning BMC within ~1 second of power-on, which is long before Linux has anything to show. The R5 core 0 startup chime also plays here via the I2S path, Sun/Mac style.
 3. **U-Boot** initializes DDR4, wakes the PCIe transceiver, enumerates the NVMe drive, and hands off to the Linux kernel.
-4. **Ubuntu kernel** boots from NVMe. The device tree declares the 16 AXI UART Lite nodes and the TDMA/LED/fan blocks as `status = "reserved"`, so the `uartlite` and `generic-uio` drivers skip them entirely. Linux sees no `/dev/ttyUL*` and no `/dev/uio*` — those peripherals belong to the R5.
+4. **Ubuntu kernel** boots from NVMe. The device tree declares the 16 AXI UART Lite nodes and the TDMA/LED/fan blocks as `status = "reserved"`, so the `uartlite` and `generic-uio` drivers skip them entirely. Linux sees no `/dev/ttyUL*` and no `/dev/uio*` -- those peripherals belong to the R5.
 5. **Remoteproc loads the R5 firmware images.** The `zynqmp-r5-remoteproc` kernel driver reads the `firmware-name` properties from the device tree, loads `thinkin-bmc.elf` onto core 0 (if FSBL didn't already) and `thinkin-hypercube.elf` onto core 1, releases both cores from reset, and waits for them to come up. When they do, rpmsg character devices appear: `/dev/rpmsg-hypercube`, `/dev/rpmsg-tty0..15`, and internal BMC telemetry channels.
-6. **Gigabit Ethernet comes up** on GEM3 queues 0–1 (Linux side) and 2–3 (BMC side) via the shared-GEM Screener. Linux pulls its DHCP lease as `thinkin.local`; R5 core 0 pulls a separate lease as `thinkin-bmc.local`. SSH is available on both.
-7. **`thinkin-daemon`** starts as a systemd service. It opens `/dev/rpmsg-hypercube`, sends a `CMD_STATUS` request, and reads back the hypercube's current state — number of live cards, live nodes, any in-flight job state from before the last Linux reboot. It then opens a Unix socket for local job submission and an HTTPS endpoint for remote submission.
-8. **Flash firmware** — on first boot or after a firmware update, the daemon sends `CMD_FLASH` with the new AG32 firmware blob. R5 core 1 asserts Boot0 and NRST across the I2C GPIO expanders, streams the firmware through all 16 UARTs in parallel, verifies each card's bootloader echo, and reports completion. Total flash time for the full machine is under five minutes.
-9. **Ready** — the machine accepts StarC jobs. The TDMA clock is held stopped by core 1 until a job arrives.
+6. **Gigabit Ethernet comes up** on GEM3 queues 0-1 (Linux side) and 2-3 (BMC side) via the shared-GEM Screener. Linux pulls its DHCP lease as `thinkin.local`; R5 core 0 pulls a separate lease as `thinkin-bmc.local`. SSH is available on both.
+7. **`thinkin-daemon`** starts as a systemd service. It opens `/dev/rpmsg-hypercube`, sends a `CMD_STATUS` request, and reads back the hypercube's current state -- number of live cards, live nodes, any in-flight job state from before the last Linux reboot. It then opens a Unix socket for local job submission and an HTTPS endpoint for remote submission.
+8. **Flash firmware** -- on first boot or after a firmware update, the daemon sends `CMD_FLASH` with the new AG32 firmware blob. R5 core 1 asserts Boot0 and NRST across the I2C GPIO expanders, streams the firmware through all 16 UARTs in parallel, verifies each card's bootloader echo, and reports completion. Total flash time for the full machine is under five minutes.
+9. **Ready** -- the machine accepts StarC jobs. The TDMA clock is held stopped by core 1 until a job arrives.
 
 Because the R5 cluster can be launched in stage 2 of the FSBL, the order above is slightly flexible: in a typical production boot, core 0 is already rendering the operator console sidebar and core 1 is already drawing a neutral LED boot animation before U-Boot even hands off to Linux. The 15 seconds Linux spends coming up are visible on the right side of the DisplayPort output as a live BMC boot log, not a black screen.
 
@@ -1041,12 +1793,12 @@ Because the R5 cluster can be launched in stage 2 of the FSBL, the order above i
 
 A StarC job flows through the following stages. The Linux-side steps happen on the A53 cluster; the hypercube-side steps happen on R5 core 1:
 
-1. **Submit** (A53) — a user sends a `.starc` source file via SSH (`scp` + command) or the HTTPS API.
-2. **Compile** (A53) — Linux runs `starc_pp.py` to preprocess StarC into C, then `riscv-gcc` (installed on the NVMe) cross-compiles to an AG32 binary. This happens natively on the A53 cluster with 4 GB of DDR4 and a 500 MB/s NVMe drive — no external build server needed.
-3. **Load** (rpmsg → R5 core 1) — `machine.load()` sends a `CMD_LOAD` descriptor to core 1 with a pointer to the input data buffer in DDR4. Core 1 walks the control tree, fanning the input across the 16 UART workers, and each card's controller distributes its slice to its 256 nodes.
-4. **Run** (rpmsg → R5 core 1) — `machine.run()` sends `CMD_RUN`. Core 1 writes `TDMA_DIVIDER` to match the program's phase rate and asserts `TDMA_ENABLE`. All 4,096 nodes begin executing simultaneously. The PL fabric generates the master phase clock and distributes it across the backplane — jitter-free, independent of *either* the A53 or R5 scheduler, because the TDMA generator is pure hardware.
-5. **Collect** (rpmsg → R5 core 1) — `machine.collect()` sends `CMD_COLLECT`. Core 1 has been accumulating `store_to_host()` bytes in its output ring continuously since `RUN` was issued; the collect command simply drains that ring and returns the assembled result buffer over rpmsg.
-6. **Display** (implicit, R5 core 1) — if the StarC program uses `led_set()`, the per-node LED state propagates up the control tree via UART, core 1 assembles it into a 64×64 framebuffer, and writes it into the LED SPI TX buffer. The RP2040 displays the result on the front panel on the next refresh. If the program is not using the LED panel, core 1 is still drawing its own thermal map into the same buffer, so the panel is always showing something live.
+1. **Submit** (A53) -- a user sends a `.starc` source file via SSH (`scp` + command) or the HTTPS API.
+2. **Compile** (A53) -- Linux runs `starc_pp.py` to preprocess StarC into C, then `riscv-gcc` (installed on the NVMe) cross-compiles to an AG32 binary. This happens natively on the A53 cluster with 4 GB of DDR4 and a 500 MB/s NVMe drive -- no external build server needed.
+3. **Load** (rpmsg -> R5 core 1) -- `machine.load()` sends a `CMD_LOAD` descriptor to core 1 with a pointer to the input data buffer in DDR4. Core 1 walks the control tree, fanning the input across the 16 UART workers, and each card's controller distributes its slice to its 256 nodes.
+4. **Run** (rpmsg -> R5 core 1) -- `machine.run()` sends `CMD_RUN`. Core 1 writes `TDMA_DIVIDER` to match the program's phase rate and asserts `TDMA_ENABLE`. All 4,096 nodes begin executing simultaneously. The PL fabric generates the master phase clock and distributes it across the backplane -- jitter-free, independent of *either* the A53 or R5 scheduler, because the TDMA generator is pure hardware.
+5. **Collect** (rpmsg -> R5 core 1) -- `machine.collect()` sends `CMD_COLLECT`. Core 1 has been accumulating `store_to_host()` bytes in its output ring continuously since `RUN` was issued; the collect command simply drains that ring and returns the assembled result buffer over rpmsg.
+6. **Display** (implicit, R5 core 1) -- if the StarC program uses `led_set()`, the per-node LED state propagates up the control tree via UART, core 1 assembles it into a 64x64 framebuffer, and writes it into the LED SPI TX buffer. The RP2040 displays the result on the front panel on the next refresh. If the program is not using the LED panel, core 1 is still drawing its own thermal map into the same buffer, so the panel is always showing something live.
 
 The user-visible latency of this split is negligible: an rpmsg round trip for a small command is a few microseconds, and the large payloads (firmware blobs, input data, result buffers) are passed by DDR4 pointer rather than copied through the mailbox. The throughput of the hypercube control path is fundamentally limited by the 460800-baud UARTs, not by the R5, the A53, or rpmsg.
 
@@ -1058,10 +1810,10 @@ The TDMA phase clock is the heartbeat of the entire machine. It is generated ent
 | :--- | :--- | :--- |
 | TDMA_ENABLE | 0xA001_0000 | Start/stop the phase clock (1=run, 0=halt) |
 | TDMA_DIVIDER | 0xA001_0004 | Clock divider (sets phase rate: 100/1000/10000 Hz) |
-| TDMA_PHASE | 0xA001_0008 | Current phase counter (read-only, 0–23) |
+| TDMA_PHASE | 0xA001_0008 | Current phase counter (read-only, 0-23) |
 | TDMA_FRAME | 0xA001_000C | Superframe counter (read-only, counts from reset) |
 
-When no job is running, the TDMA clock is halted. When a `CMD_RUN` descriptor arrives from Linux over rpmsg with a `phase_rate_hz` field, core 1 writes `TDMA_DIVIDER` to match, then sets `TDMA_ENABLE`. When the job completes (either because all nodes have reported via `store_to_host()` or because `CMD_STOP` arrives), core 1 clears `TDMA_ENABLE`. The PL fabric generates the phase select signals (`TDMA_PHASE[3:0]`) on Bank 44, which propagate through the backplane to every AG32's FPGA mux. Every node in the machine switches dimension links in lockstep, because the timing comes from hardware, not software — and because the CPU that commands the start/stop lives in a real-time power domain, there is no scheduler jitter even on the control transitions.
+When no job is running, the TDMA clock is halted. When a `CMD_RUN` descriptor arrives from Linux over rpmsg with a `phase_rate_hz` field, core 1 writes `TDMA_DIVIDER` to match, then sets `TDMA_ENABLE`. When the job completes (either because all nodes have reported via `store_to_host()` or because `CMD_STOP` arrives), core 1 clears `TDMA_ENABLE`. The PL fabric generates the phase select signals (`TDMA_PHASE[3:0]`) on Bank 44, which propagate through the backplane to every AG32's FPGA mux. Every node in the machine switches dimension links in lockstep, because the timing comes from hardware, not software -- and because the CPU that commands the start/stop lives in a real-time power domain, there is no scheduler jitter even on the control transitions.
 
 Linux never sees these registers. It does not map them, does not know their addresses, and cannot write them even accidentally. The A53's MMU is configured to exclude the AXI peripheral region from Linux's accessible memory map, so a stray `/dev/mem` write cannot reach the TDMA controller. This is both a correctness guarantee and a security guarantee.
 
@@ -1069,21 +1821,21 @@ Linux never sees these registers. It does not map them, does not know their addr
 
 The LED display path is **bidirectional, full-duplex**. The SPI bus between the Zynq and the front-panel RP2040 carries a full framebuffer in each direction on every refresh: the Zynq tells the RP2040 what it wants displayed, and the RP2040 tells the Zynq what is actually on the panel right now.
 
-This bidirectionality is necessary because the RP2040 is not a pure dumb slave. It runs its own animations, plays back local content (Bad Apple, a Doom playthrough, boot animations, idle screensavers), and composites host-pushed overlays on top of local content. At any given moment, the RP2040 is the authoritative source for what pixels are actually lit on the panel — the controller cannot know what the LEDs are showing unless the RP2040 tells it. The operator console sidebar mirror depends on this, because the mirror must reflect the physical panel state, not the controller's intent.
+This bidirectionality is necessary because the RP2040 is not a pure dumb slave. It runs its own animations, plays back local content (Bad Apple, a Doom playthrough, boot animations, idle screensavers), and composites host-pushed overlays on top of local content. At any given moment, the RP2040 is the authoritative source for what pixels are actually lit on the panel -- the controller cannot know what the LEDs are showing unless the RP2040 tells it. The operator console sidebar mirror depends on this, because the mirror must reflect the physical panel state, not the controller's intent.
 
-**Who owns what on the Zynq side.** The SPI slave peripheral in the PL fabric is the physical link. **R5 core 1** owns the TX buffer (what gets sent on MOSI) — in thermal mode it's rendering a live thermal map from its own telemetry table every frame. **R5 core 0** owns the RX buffer readback (what comes in on MISO) — it consumes this for the 448×448 sidebar mirror in the operator console. Linux does not touch the SPI peripheral at all. When Linux wants to push user content (a `led_set()` from a StarC program, or a status pattern from a systemd unit, or a custom animation from a daemon), it sends a `CMD_LED_PUSH` rpmsg descriptor to core 1, and core 1 writes the user framebuffer into the TX buffer on Linux's behalf.
+**Who owns what on the Zynq side.** The SPI slave peripheral in the PL fabric is the physical link. **R5 core 1** owns the TX buffer (what gets sent on MOSI) -- in thermal mode it's rendering a live thermal map from its own telemetry table every frame. **R5 core 0** owns the RX buffer readback (what comes in on MISO) -- it consumes this for the 448x448 sidebar mirror in the operator console. Linux does not touch the SPI peripheral at all. When Linux wants to push user content (a `led_set()` from a StarC program, or a status pattern from a systemd unit, or a custom animation from a daemon), it sends a `CMD_LED_PUSH` rpmsg descriptor to core 1, and core 1 writes the user framebuffer into the TX buffer on Linux's behalf.
 
 **Data flow:**
 
 ```
-R5 core 1 command + optional framebuffer ──MOSI──►  RP2040 ──►  64×64 LED matrix
-                                                       │
-R5 core 0 sidebar mirror  ◄──MISO── RP2040 current framebuffer + status
+R5 core 1 command + optional framebuffer --MOSI-->  RP2040 -->  64x64 LED matrix
+                                                       |
+R5 core 0 sidebar mirror  <--MISO-- RP2040 current framebuffer + status
 ```
 
-Every SPI transaction exchanges one full frame in each direction. The MOSI payload carries a command byte (PUSH, NOP, MODE_HOST, MODE_THERMAL, MODE_BADAPPLE, MODE_DOOM, MODE_BOOT, MODE_OVERLAY, MODE_CRASH, RESET) followed by an optional 4,096-byte framebuffer if the command is PUSH. The MISO payload carries a status header (current mode, frame counter, underrun flag) followed by the 4,096-byte framebuffer that the RP2040 is *currently lighting up* — ground truth for whatever the panel is showing this instant.
+Every SPI transaction exchanges one full frame in each direction. The MOSI payload carries a command byte (PUSH, NOP, MODE_HOST, MODE_THERMAL, MODE_BADAPPLE, MODE_DOOM, MODE_BOOT, MODE_OVERLAY, MODE_CRASH, RESET) followed by an optional 4,096-byte framebuffer if the command is PUSH. The MISO payload carries a status header (current mode, frame counter, underrun flag) followed by the 4,096-byte framebuffer that the RP2040 is *currently lighting up* -- ground truth for whatever the panel is showing this instant.
 
-**Who is the SPI master:** the RP2040 drives SCK and CS. This flips the conventional "Zynq as master, RP2040 as slave" arrangement, and it's deliberate. The RP2040 owns the LED refresh timer, so it knows when a frame is about to be latched into the panel drivers. Initiating the SPI transaction on the RP2040's own frame-refresh clock gives you free v-sync alignment — every readback corresponds to a specific, completed refresh cycle, with no tearing risk. The Zynq's fabric SPI core runs in slave mode, responding whenever the RP2040 strobes CS. Master/slave selection is a firmware configuration choice, not a wiring change; both modes use the same four wires (SCK, MOSI, MISO, CS) in the same directions.
+**Who is the SPI master:** the RP2040 drives SCK and CS. This flips the conventional "Zynq as master, RP2040 as slave" arrangement, and it's deliberate. The RP2040 owns the LED refresh timer, so it knows when a frame is about to be latched into the panel drivers. Initiating the SPI transaction on the RP2040's own frame-refresh clock gives you free v-sync alignment -- every readback corresponds to a specific, completed refresh cycle, with no tearing risk. The Zynq's fabric SPI core runs in slave mode, responding whenever the RP2040 strobes CS. Master/slave selection is a firmware configuration choice, not a wiring change; both modes use the same four wires (SCK, MOSI, MISO, CS) in the same directions.
 
 **Modes of operation:**
 
@@ -1096,771 +1848,85 @@ Every SPI transaction exchanges one full frame in each direction. The MOSI paylo
 | BOOT | NOP (Zynq not ready yet) | RP2040 boot animation | Boot animation |
 | CRASH (Linux dead) | R5 core 1 thermal + red border | Echoed back | Live thermal map with a crash indicator |
 
-The sidebar mirror in the operator console reflects **whatever the RP2040 reports it is actually showing**, which is always the physical truth of the LED panel regardless of which side is generating content. When the hypercube is running a StarC job, the panel is in THERMAL mode displaying a live rendering produced by R5 core 1 from the thermal table, and the sidebar is a portrait of the 4,096 compute nodes. When the machine is idle, the panel drops into LOCAL mode playing Bad Apple, and the sidebar plays Bad Apple. When a job starts, core 1 sends a mode-change command, the panel snaps to THERMAL mode, and the sidebar follows within one frame. The HUD telemetry section below the mirror is independent of any of this — it always shows machine state no matter what the LED panel is currently displaying.
+The sidebar mirror in the operator console reflects **whatever the RP2040 reports it is actually showing**, which is always the physical truth of the LED panel regardless of which side is generating content.
 
-**Bandwidth budget:** 4,096 bytes per direction × 60 Hz = 246 KB/s per direction, 492 KB/s bidirectional. At a 20 MHz SPI clock the link is running at ~20% utilization. At RGB888 (12,288 bytes per direction) it rises to ~60% utilization, still comfortable. There is plenty of headroom for any reasonable pixel format.
+**Bandwidth budget:** 4,096 bytes per direction x 60 Hz = 246 KB/s per direction, 492 KB/s bidirectional. At a 20 MHz SPI clock the link is running at ~20% utilization. At RGB888 (12,288 bytes per direction) it rises to ~60% utilization, still comfortable. There is plenty of headroom for any reasonable pixel format.
 
-**The host library interface** remains identical to the previous design from the caller's perspective:
+### R5F Core 0: BMC and HUD Firmware
 
-```python
-machine.led.push(framebuffer)        # CMD_LED_PUSH rpmsg to core 1
-machine.led.set_mode('thermal')      # CMD_LED_MODE rpmsg to core 1
-machine.led.set_mode('badapple')
-machine.led.set_mode('doom')
-machine.led.current_frame()          # CMD_STATUS rpmsg with framebuffer flag
-machine.led.status()                 # CMD_STATUS rpmsg, telemetry only
-```
+Core 0 runs a FreeRTOS image that handles:
 
-Underneath, every call is an rpmsg descriptor to core 1. The host library does not have direct access to the LED SPI peripheral, and it does not need it — core 1 is the single source of truth for what goes out on MOSI, and it handles user-content push requests as well as its own autonomous thermal rendering. `current_frame()` returns whatever the RP2040 *actually* has on the panel, because the LED mirror has to be a portrait of physical reality regardless of which side last wrote the TX buffer.
+**HUD renderer** -- reads local telemetry from AXI slaves and PS peripherals (SYSMON, XADC, fan controller, stats counters), reads the hypercube thermal table from shared DDR4 (written by core 1), reads the LED SPI MISO RX buffer, formats everything into strings, blits characters from a font ROM into the sidebar framebuffer, and upscales the RP2040's 64x64 readback 7x into the LED mirror. Runs at 60 Hz.
 
-This pipeline also runs outside of StarC jobs. The `thinkin-daemon` can push status patterns, boot splashes, or card health visualizations by sending `CMD_LED_PUSH` commands. It can hand control back to the RP2040 at any time by sending `CMD_LED_MODE` with `MODE_BADAPPLE` or similar, and the sidebar mirror dutifully reflects the playback in real time.
+**BMC services** -- all running on the R5's own shared-GEM network queue:
+- HTTP dashboard on port 80
+- VNC/RFB server on port 5900
+- SSH server on port 22 (wolfSSH or Dropbear)
+- Serial-over-LAN bridge (UART0 console to network)
+- Prometheus exporter on port 9100
+- Syslog receiver and persistent event log
 
-## Summary
+**Implementation plan:**
 
-This is a custom 8-layer 64-bit AMP motherboard. The **A53 cluster** runs Ubuntu, compiles StarC natively, serves the network, and drives the left 1440×1080 of the DisplayPort output as a normal Linux desktop. **R5F core 0** runs a FreeRTOS BMC image that paints the right 480×1080 of the display as an out-of-band operator console and serves HTTP/SSH/VNC/SoL/Prometheus on its own shared-GEM network queue. **R5F core 1** runs a FreeRTOS hypercube controller image that owns the 16 backplane UARTs, the TDMA block, the LED SPI TX buffer, and the fan PWM — it is the CPU that actually orchestrates StarC jobs on the 4,096 compute nodes, and Linux reaches it over a mainline rpmsg mailbox. The Programmable Logic handles the 16-channel backplane, TDMA synchronization, LED SPI, and fan PWM in deterministic hardware, under the control of R5 core 1 rather than Linux. Four PS-GTR transceiver lanes are fully allocated across DisplayPort, NVMe, and USB 3.0. The board boots from QSPI flash (or MicroSD in development), runs Ubuntu from NVMe, and brings the R5 cluster up via Xilinx remoteproc alongside the Linux kernel.
+1. **FSBL modification** -- partition GEM3 into A53-owned queues (0-1) and R5-owned queues (2-3), configure the Screener for MAC-based routing. Xilinx provides a reference FSBL that already supports this; it's ~50 lines of C.
 
-Because real-time hypercube control lives on a processor that shares nothing with Linux except the memory controller, in-flight StarC jobs keep running to completion when Linux panics, the LED panel keeps displaying live telemetry, and the BMC network services stay reachable — a survival property most enterprise servers charge extra for, achieved here as a side effect of putting every block of the XCZU2EG to work.
+2. **R5 FreeRTOS application** -- FreeRTOS kernel + lwIP + HTTP server + embedded SSH + RFB server + Prometheus exporter + HUD renderer + telemetry gathering state machine. Rough code size: 100-200 KB of compiled binary, living in a combination of R5 TCMs and a dedicated DDR4 region. Probably 3,000-5,000 lines of C total, most of which is boilerplate service handlers.
 
-The original CM-1 required a VAX 11/780 or a Symbolics 3600 Lisp Machine as its front-end. This replaces both with a single 23mm BGA on a board that fits inside the cube, with the VAX-style "service processor" role filled by a pair of hardened real-time cores that Xilinx shipped in the same package almost as an afterthought.
+3. **Linux device tree changes** -- declare GEM3 as `xlnx,shared-gem` (or equivalent) with queues 0-1 claimed, yielding queues 2-3 to the R5. Declare the R5's DDR4 region as reserved memory. Declare the DP framebuffer with a 1920 stride but 1440 resolution. Maybe 30 lines of DTS.
 
-## Appendix: Hardware Reference — Pin Mapping and Wiring Tables
+4. **Linux userspace daemon** -- a small systemd service that writes live telemetry (uptime, load, job state, hostname, IP) into the shared mailbox region the R5 reads. Maybe 200 lines of Python.
 
-This section documents the exact pin-level wiring between every major component on the controller board. Every connection listed here was routed by hand on an 8-layer PCB.
+5. **Boot orchestration** -- U-Boot loads both the Linux kernel and the R5 FreeRTOS image, starts the R5 via the Zynq's remoteproc framework before handing off to the kernel. This is standard OpenAMP boot flow with published reference designs.
 
-### Zynq Schematic Organization
+Total software effort: maybe two weeks of focused work by someone who already knows Xilinx AMP. Total hardware effort: **zero**. Total new BOM parts: **zero**. Total PCB changes: **zero**.
 
-The XCZU2EG-2SFVC784I symbol is split into 9 functional units across hierarchical schematic sheets, organized by Xilinx silicon bank:
+### R5F Core 1: Hypercube Controller Firmware
 
-| Unit | Sheet | Bank(s) | Pin Count | Function |
-| :--- | :--- | :--- | :--- | :--- |
-| A | PS_MIO | 500-503 | 105 | Ethernet RGMII, SD card, USB, UART, DP AUX |
-| B | PS_DDR | 504 | 143 | DDR4 memory interface |
-| C | PS_GTR | 505 | 24 | DisplayPort, PCIe NVMe, USB 3.0 |
-| D | PL_Bank64 | 64 | 56 | Programmable Logic HP I/O |
-| E | PL_Bank65 | 65 | 56 | Programmable Logic HP I/O |
-| F | PL_Bank66 | 66 | 56 | Programmable Logic HP I/O |
-| G | PL_HD | 24/25/26/44 | 104 | Programmable Logic HD I/O |
-| H | Config | 0 | 8 | JTAG, boot mode, reset |
-| I | Power_Zynq | NA | 233 | All VCC, GND, and NC pins |
+Core 1 runs its own FreeRTOS image with the following subsystems:
 
-### DDR4 Memory (PS_DDR Sheet)
+- **16-UART worker tasks** -- one per card. Each task owns its UART's IRQ, drains RX FIFO into a per-card ring buffer, feeds TX FIFO from a per-card TX queue. Handles protocol framing and bootloader sequencing during flash operations.
+- **Autonomous telemetry parser** -- decodes heartbeat frames from each card's AG32 controller (per-node temperatures, alive bitmap, job phase, sequence counter). Updates the **thermal table** in shared DDR4: 4,096 entries x 8 bytes = 32 KB.
+- **Thermal map renderer** -- applies colormap LUT to thermal table, produces 64x64 framebuffer, writes to LED SPI TX buffer every frame.
+- **Job dispatcher** -- receives `CMD_FLASH`, `CMD_LOAD`, `CMD_RUN`, `CMD_COLLECT`, etc. over rpmsg from Linux. Fans work across UART workers, accumulates results in output ring.
+- **rpmsg responder** -- services the `/dev/rpmsg-hypercube` command channel and the `/dev/rpmsg-tty0..15` virtual TTY bridges.
+- **TDMA controller driver** -- programs `TDMA_ENABLE` and `TDMA_DIVIDER` on job start/stop.
+- **Fan PID control loop** -- reads thermal table, drives fan PWM duty cycle.
 
-Two **Micron MT40A1G16TB-062E** chips (U2 and U3) in 96-ball FBGA packages form a 32-bit DDR4-2400 bus. Data lines are point-to-point; address/command/clock lines are fly-by terminated with 39.2Ω resistor networks to a 0.6V VTT tracking regulator.
+### R5F Budget (Both Cores)
 
-**Chip 1 (U2) — Lower 16 bits, point-to-point:**
-
-| Zynq Signal | Zynq Ball | U2 Ball | U2 Signal |
-| :--- | :--- | :--- | :--- |
-| PS_DDR_DQ0 | AD21 | G2 | DQ0 |
-| PS_DDR_DQ1 | AE20 | F7 | DQ1 |
-| PS_DDR_DQ2 | AD20 | H3 | DQ2 |
-| PS_DDR_DQ3 | AF20 | H7 | DQ3 |
-| PS_DDR_DQ4 | AH21 | H2 | DQ4 |
-| PS_DDR_DQ5 | AH20 | H8 | DQ5 |
-| PS_DDR_DQ6 | AH19 | J3 | DQ6 |
-| PS_DDR_DQ7 | AG19 | J7 | DQ7 |
-| PS_DDR_DQS_P0 | AF21 | G3 | LDQS |
-| PS_DDR_DQS_N0 | AG21 | F3 | LDQS# |
-| PS_DDR_DM0 | AG20 | E7 | LDM#/LDBI# |
-| PS_DDR_DQ8 | AF22 | A3 | DQ8 |
-| PS_DDR_DQ9 | AH22 | B8 | DQ9 |
-| PS_DDR_DQ10 | AE22 | C3 | DQ10 |
-| PS_DDR_DQ11 | AD22 | C7 | DQ11 |
-| PS_DDR_DQ12 | AH23 | C2 | DQ12 |
-| PS_DDR_DQ13 | AH24 | C8 | DQ13 |
-| PS_DDR_DQ14 | AE24 | D3 | DQ14 |
-| PS_DDR_DQ15 | AG24 | D7 | DQ15 |
-| PS_DDR_DQS_P1 | AF23 | B7 | UDQS |
-| PS_DDR_DQS_N1 | AG23 | A7 | UDQS# |
-| PS_DDR_DM1 | AE23 | E2 | UDM#/UDBI# |
-
-**Chip 2 (U3) — Upper 16 bits, point-to-point:**
-
-| Zynq Signal | Zynq Ball | U3 Ball | U3 Signal |
-| :--- | :--- | :--- | :--- |
-| PS_DDR_DQ16 | AC26 | G2 | DQ0 |
-| PS_DDR_DQ17 | AD26 | F7 | DQ1 |
-| PS_DDR_DQ18 | AD25 | H3 | DQ2 |
-| PS_DDR_DQ19 | AD24 | H7 | DQ3 |
-| PS_DDR_DQ20 | AG26 | H2 | DQ4 |
-| PS_DDR_DQ21 | AH25 | H8 | DQ5 |
-| PS_DDR_DQ22 | AH26 | J3 | DQ6 |
-| PS_DDR_DQ23 | AG25 | J7 | DQ7 |
-| PS_DDR_DQS_P2 | AF25 | G3 | LDQS |
-| PS_DDR_DQS_N2 | AF26 | F3 | LDQS# |
-| PS_DDR_DM2 | AE25 | E7 | LDM#/LDBI# |
-| PS_DDR_DQ24 | AH27 | A3 | DQ8 |
-| PS_DDR_DQ25 | AH28 | B8 | DQ9 |
-| PS_DDR_DQ26 | AF28 | C3 | DQ10 |
-| PS_DDR_DQ27 | AG28 | C7 | DQ11 |
-| PS_DDR_DQ28 | AC27 | C2 | DQ12 |
-| PS_DDR_DQ29 | AD27 | C8 | DQ13 |
-| PS_DDR_DQ30 | AD28 | D3 | DQ14 |
-| PS_DDR_DQ31 | AC28 | D7 | DQ15 |
-| PS_DDR_DQS_P3 | AE27 | B7 | UDQS |
-| PS_DDR_DQS_N3 | AF27 | A7 | UDQS# |
-| PS_DDR_DM3 | AE28 | E2 | UDM#/UDBI# |
-
-**Fly-by address/command/clock (Zynq → U2 → U3 → 39.2Ω to VTT):**
-
-| Zynq Signal | Zynq Ball | DDR4 Pin | Function |
-| :--- | :--- | :--- | :--- |
-| PS_DDR_A0 | W28 | A0 (P3) | Address |
-| PS_DDR_A1 | Y28 | A1 (P7) | Address |
-| PS_DDR_A2 | AB28 | A2 (R3) | Address |
-| PS_DDR_A3 | AA28 | A3 (N7) | Address |
-| PS_DDR_A4 | Y27 | A4 (N3) | Address |
-| PS_DDR_A5 | AA27 | A5 (P8) | Address |
-| PS_DDR_A6 | Y22 | A6 (P2) | Address |
-| PS_DDR_A7 | AA23 | A7 (R8) | Address |
-| PS_DDR_A8 | AA22 | A8 (R2) | Address |
-| PS_DDR_A9 | AB23 | A9 (R7) | Address |
-| PS_DDR_A10 | AA25 | A10/AP (M3) | Address / Auto-Precharge |
-| PS_DDR_A11 | AA26 | A11 (T2) | Address |
-| PS_DDR_A12 | AB25 | A12/BC# (M7) | Address / Burst Chop |
-| PS_DDR_A13 | AB26 | A13 (T8) | Address |
-| PS_DDR_A14 | AB24 | WE#/A14 (L2) | Write Enable |
-| PS_DDR_A15 | AC24 | CAS#/A15 (M8) | Column Address Strobe |
-| PS_DDR_A16 | AC23 | RAS#/A16 (L8) | Row Address Strobe |
-| PS_DDR_BA0 | V23 | BA0 (N2) | Bank Address |
-| PS_DDR_BA1 | W22 | BA1 (N8) | Bank Address |
-| PS_DDR_BG0 | W24 | BG0 (M2) | Bank Group |
-| PS_DDR_ACT_N | Y23 | ACT# (L3) | Activate |
-| PS_DDR_CK0 | W25 | CK (K7) | Clock+ |
-| PS_DDR_CK_N0 | W26 | CK# (K8) | Clock- |
-| PS_DDR_CKE0 | V28 | CKE (K2) | Clock Enable |
-| PS_DDR_CS_N0 | W27 | CS# (L7) | Chip Select |
-| PS_DDR_ODT0 | U28 | ODT (K3) | On-Die Termination |
-| PS_DDR_PARITY | V24 | PAR (T3) | Parity |
-| PS_DDR_RAM_RST_N | U23 | RESET# (P1) | DDR Reset |
-
-**Per-chip passive components:**
-
-| Component | Connection |
-| :--- | :--- |
-| ZQ (F9) on each chip | 240Ω resistor to ground (3 total including Zynq PS_DDR_ZQ at U24) |
-| VREFCA (M1) on each chip | 10kΩ/10kΩ divider to VDDQ/2 (0.6V) + 100nF filter cap |
-| TEN (N9) on each chip | Tied to ground |
-| ALERT# (P9) on each chip | 10kΩ pullup to VDDQ, shared net to PS_DDR_ALERT_N (U25) |
-
-**Unused Zynq DDR pins (no-connect):** PS_DDR_A17, PS_DDR_BG1, PS_DDR_CK1/CK_N1, PS_DDR_CKE1, PS_DDR_CS_N1, PS_DDR_ODT1, PS_DDR_DQ32–71, PS_DDR_DM4–8, PS_DDR_DQS_P4–8/N4–8.
-
-### PS-GTR Transceiver Allocation (PS_GTR Sheet, Bank 505)
-
-| GTR Lane | Function | Zynq TX+/TX- | Zynq RX+/RX- | Destination |
-| :--- | :--- | :--- | :--- | :--- |
-| Lane 0 | PCIe Gen2 x1 (NVMe) | E25/E26 | F27/F28 | M.2 M-Key Connector (J5) |
-| Lane 1 | DisplayPort Lane 0 | D23/D24 | — | DP Connector (J6) Pin 1/3 |
-| Lane 2 | DisplayPort Lane 1 | C25/C26 | — | DP Connector (J6) Pin 4/6 |
-| Lane 3 | USB 3.0 SuperSpeed | B23/B24 | B27/B28 | TUSB8043A hub → 4x USB-A 3.0 |
-
-### M.2 NVMe Slot (PCIe x1)
-
-**Amphenol MDT275M02001** M-Key M.2 connector. PCIe Lane 0 only; Lanes 1–3 are no-connect.
-
-| M.2 Pin | Signal | Connection |
+| Subsystem | Runs On | Memory |
 | :--- | :--- | :--- |
-| 49 (PETp0) | Drive TX+ | → PS_MGTRRXP0_505 (F27) |
-| 47 (PETn0) | Drive TX- | → PS_MGTRRXN0_505 (F28) |
-| 43 (PERp0) | Drive RX+ | ← PS_MGTRTXP0_505 (E25) via 0.1µF AC cap |
-| 41 (PERn0) | Drive RX- | ← PS_MGTRTXN0_505 (E26) via 0.1µF AC cap |
-| 55 (REFCLKp) | 100 MHz ref+ | From LVDS oscillator (YXC OA1EL89CEIB112YLC-100M) |
-| 53 (REFCLKn) | 100 MHz ref- | From LVDS oscillator |
-| 50 (PERST#) | PCIe Reset | Driven from Zynq MIO/PL GPIO |
-| 52 (CLKREQ#) | Clock Request | 10kΩ pullup to 3.3V |
-| 54 (PEWAKE#) | Wake | 10kΩ pullup to 3.3V |
-| 69 (PEDET) | Presence Detect | 10kΩ pullup to 3.3V |
-| 2,4,12,14,16,18,70,72,74 | +3.3V | Dedicated high-current 3.3V NVMe buck converter |
+| Sidebar HUD renderer | R5 core 0 | 64 KB TCM + shared DDR4 framebuffer |
+| LED mirror scaler (MISO readback) | R5 core 0 | In the same loop as HUD |
+| HTTP server + web dashboard | R5 core 0 | ~100 KB DDR4 |
+| SSH server (Dropbear / wolfSSH) | R5 core 0 | ~150 KB DDR4 |
+| VNC / RFB server | R5 core 0 | ~50 KB DDR4 |
+| Serial-over-LAN bridge | R5 core 0 | Small buffers, shared with console |
+| Prometheus exporter | R5 core 0 | ~20 KB DDR4 |
+| Event log (circular buffer) | R5 core 0 | 256 KB DDR4 + periodic QSPI flush |
+| FreeRTOS kernel + lwIP (core 0) | R5 core 0 | ~200 KB DDR4 |
+| 16-UART hypercube control tree | R5 core 1 | 16 x 4 KB RX rings + per-card state |
+| Autonomous telemetry parser | R5 core 1 | ~8 KB parser state |
+| Hypercube thermal table (4,096 nodes) | R5 core 1 | 4,096 x 8 B = 32 KB shared DDR4 |
+| Thermal map renderer (LED SPI TX) | R5 core 1 | 4 KB framebuffer + 768 B colormap LUT |
+| Job dispatcher + rpmsg responder | R5 core 1 | ~32 KB DDR4 for command/reply rings |
+| TDMA controller driver | R5 core 1 | Small -- direct AXI register writes |
+| Fan PID control loop | R5 core 1 | Minimal |
+| FreeRTOS kernel + OpenAMP (core 1) | R5 core 1 | ~150 KB DDR4 |
 
-The 100 MHz LVDS oscillator also feeds PS_MGTREFCLK1P/N (E21/E22) on the Zynq for PCIe clock recovery.
+The machine has two R5F cores, and both are fully committed. **Core 0** runs the BMC + HUD stack. **Core 1** runs the hypercube controller. The complete firmware for both cores fits comfortably in the available TCM plus a few megabytes of reserved DDR4.
 
-### DisplayPort Output
+### BMC Implementation Plan and Effort Estimates
 
-**Foxconn 3VD51203-3D6A-7H** (J6) full-size DisplayPort receptacle (LCSC C2761456). 2-lane native DisplayPort from Zynq GTR.
+All firmware and software work, no hardware:
 
-| DP Pin | Signal | Connection |
+| Step | Description | Effort |
 | :--- | :--- | :--- |
-| 1 | ML_Lane0+ | ← PS_MGTRTXP1_505 (D23) via 0.1µF AC cap |
-| 3 | ML_Lane0- | ← PS_MGTRTXN1_505 (D24) via 0.1µF AC cap |
-| 4 | ML_Lane1+ | ← PS_MGTRTXP2_505 (C25) via 0.1µF AC cap |
-| 6 | ML_Lane1- | ← PS_MGTRTXN2_505 (C26) via 0.1µF AC cap |
-| 15 | AUX_CH+ | MIO27 (TX out, 100Ω series) + MIO30 (RX in, tapped cable-side) |
-| 17 | AUX_CH- | Ground |
-| 18 | HPD | MIO28, 100kΩ pull-down |
-| 20 | DP_PWR | 3.3V through ferrite bead |
-| 7,9,10,12 | Lanes 2-3 | No-connect (2-lane config) |
-
-MIO29 (AUX enable) tied to 3.3V via 10kΩ pullup.
-
-### Gigabit Ethernet (PS_MIO Sheet)
-
-**Realtek RTL8211EG-VB-CG** Gigabit PHY (QFN-64) connected via RGMII to Zynq GEM3 MAC. The internal 1.0V switching regulator is enabled (ENSWREG tied to 3.3V), so only a 3.3V supply is required externally.
-
-**RGMII bus (Zynq → PHY):**
-
-| Zynq MIO | Zynq Ball | Function | RTL8211EG Pin |
-| :--- | :--- | :--- | :--- |
-| PS_MIO38 | H18 | GEM_TX_CLK | 34 (GTX_CLK) |
-| PS_MIO39 | H19 | GEM_TXD0 | 36 (TXD0) |
-| PS_MIO40 | K18 | GEM_TXD1 | 39 (TXD1) |
-| PS_MIO41 | J19 | GEM_TXD2 | 40 (TXD2) |
-| PS_MIO42 | L18 | GEM_TXD3 | 41 (TXD3) |
-| PS_MIO43 | K19 | GEM_TX_CTL | 35 (TXEN) |
-| PS_MIO44 | J20 | GEM_RX_CLK | 24 (RXC) — 22Ω series resistor at PHY |
-| PS_MIO45 | K20 | GEM_RXD0 | 19 (RXD0) |
-| PS_MIO46 | L20 | GEM_RXD1 | 21 (RXD1) |
-| PS_MIO47 | H21 | GEM_RXD2 | 22 (RXD2) |
-| PS_MIO48 | J21 | GEM_RXD3 | 23 (RXD3) |
-| PS_MIO49 | M18 | GEM_RX_CTL | 18 (RXDV/PHY_AD2) |
-| PS_MIO50 | M19 | GEM_MDC | 53 (MDC) |
-| PS_MIO51 | L21 | GEM_MDIO | 54 (MDIO) — 10kΩ pullup to 3.3V |
-
-**GMII strap pins (sampled at reset, select RGMII mode):**
-
-| RTL Pin | Signal | Strap |
-| :--- | :--- | :--- |
-| 25 | RXD4/SELRGV | 10kΩ to 3.3V (selects RGMII) |
-| 27 | RXD5/TXDLY | 10kΩ to 3.3V (enables TX clock delay) |
-| 28 | RXD6/RXDLY | 10kΩ to 3.3V (enables RX clock delay) |
-| 29 | RXD7/AN0 | 10kΩ to 3.3V (autoneg: advertise all speeds) |
-| 30 | RXER/AN1 | 10kΩ to 3.3V (autoneg: advertise all speeds) |
-| 31 | COL/MODE | 10kΩ to GND (selects RGMII mode) |
-| 47 | TXER | Direct to GND |
-
-**Unused GMII pins (no-connect):** 42 (TXCLK), 43–46 (TXD4–TXD7), 32 (CRS), 1 (CLK125).
-
-**PHY control and configuration:**
-
-| RTL Pin | Signal | Connection |
-| :--- | :--- | :--- |
-| 38 | ~{PHYRST} | 10kΩ to 3.3V + 100nF to GND (RC power-on reset, ~1ms delay) |
-| 56 | ~{INT} | 10kΩ pullup to 3.3V |
-| 55 | ~{PME} | 10kΩ pullup to 3.3V |
-| 58 | RSET | 12.1kΩ to GND (sets internal bias — value per Realtek spec) |
-| 57 | ENSWREG | Tied to 3.3V (enables internal 1.0V switching regulator) |
-| 3 | REG_OUT | 1µF + 0.1µF to GND (internal regulator output — do NOT connect elsewhere) |
-| 64 | VDDREG | 0.1µF to GND (regulator bypass) |
-| 61 | CKXTAL1 | 25 MHz crystal (YXC X322525MOB4SI, LCSC C9006) + 22pF load cap to GND |
-| 62 | CKXTAL2 | 25 MHz crystal + 22pF load cap to GND |
-
-**PHY address and LED pins (dual-function, strap at reset then LED output):**
-
-| RTL Pin | Signal | Strap | LED Function | Connection |
-| :--- | :--- | :--- | :--- | :--- |
-| 50 | LED0/PHY_AD0 | 10kΩ to 3.3V (AD0=1) | Green LED (Link) | Cathode of green RJ45 LED |
-| 51 | LED1/PHY_AD1 | 10kΩ to GND (AD1=0) | Yellow LED (Activity) | Cathode of yellow RJ45 LED |
-| 52 | LED2 | — | Speed | NC or third LED |
-
-PHY address = 0x01. LED anodes share a common 330Ω resistor to 3.3V.
-
-**PHY to RJ45 jack (UDE RB1-125B8G1A, LCSC C363353):**
-
-| RTL8211EG Pin | Signal | RJ45 Pin | Pair |
-| :--- | :--- | :--- | :--- |
-| 5 | MDI[0]+ | R2 | Pair A+ |
-| 6 | MDI[0]- | R3 | Pair A- |
-| 8 | MDI[1]+ | R4 | Pair B+ |
-| 9 | MDI[1]- | R5 | Pair B- |
-| 11 | MDI[2]+ | R6 | Pair C+ |
-| 12 | MDI[2]- | R7 | Pair C- |
-| 14 | MDI[3]+ | R8 | Pair D+ |
-| 15 | MDI[3]- | R9 | Pair D- |
-
-R1 (PHY-side center tap): 3.3V through ferrite bead + 0.1µF to ground. R10 (cable-side center tap): 0.1µF to ground.
-
-**Power pins:**
-
-| RTL Pin(s) | Signal | Rail |
-| :--- | :--- | :--- |
-| 10, 60 | AVDD33 | 3.3V + 0.1µF decoupling each |
-| 20, 26, 37, 49 | DVDD33 | 3.3V + 0.1µF decoupling each |
-| 7, 13, 59 | AVDD10 | Internal 1.0V (from ENSWREG regulator) + 0.1µF each |
-| 33, 48 | DVDD10 | Internal 1.0V + 0.1µF each |
-| 2, 4, 63, 65 | GND | Ground (pin 65 is exposed pad) |
-
-### USB 3.0 — 4-Port Hub (PS_GTR + PS_MIO Sheets)
-
-The Zynq has one USB 3.0 controller but no built-in USB 2.0 PHY. Two external chips are required: a **Microchip USB3300-EZK** ULPI PHY for USB 2.0 signaling, and a **TI TUSB8043A** 4-port hub to fan out to four USB-A 3.0 ports on the rear panel.
-
-Signal path:
-
-```
-Zynq GTR Lane 3 (SS 5Gbps) ──────────────→ TUSB8043A pin 58/59 (upstream SS RX)
-TUSB8043A pin 55/56 (upstream SS TX) ─────→ Zynq GTR Lane 3 RX
-Zynq MIO52-63 (ULPI) → USB3300-EZK → D+/D- → TUSB8043A pin 53/54 (upstream USB2)
-                                                    ├→ USB-A Port 1 (J7)
-                                                    ├→ USB-A Port 2 (J8)
-                                                    ├→ USB-A Port 3 (J9)
-                                                    └→ USB-A Port 4 (J10)
-```
-
-**USB3300-EZK ULPI PHY — Zynq MIO connections:**
-
-| Zynq MIO | Zynq Ball | Function | USB3300 Pin |
-| :--- | :--- | :--- | :--- |
-| PS_MIO52 | G18 | ULPI_CLK | CLKOUT |
-| PS_MIO53 | D16 | ULPI_DIR | DIR |
-| PS_MIO54 | F17 | ULPI_STP | STP |
-| PS_MIO55 | B16 | ULPI_NXT | NXT |
-| PS_MIO56 | C16 | ULPI_DATA0 | DATA0 |
-| PS_MIO57 | A16 | ULPI_DATA1 | DATA1 |
-| PS_MIO58 | F18 | ULPI_DATA2 | DATA2 |
-| PS_MIO59 | E17 | ULPI_DATA3 | DATA3 |
-| PS_MIO60 | C17 | ULPI_DATA4 | DATA4 |
-| PS_MIO61 | D17 | ULPI_DATA5 | DATA5 |
-| PS_MIO62 | A17 | ULPI_DATA6 | DATA6 |
-| PS_MIO63 | E18 | ULPI_DATA7 | DATA7 |
-
-USB3300-EZK D+ and D- outputs connect directly to TUSB8043A pins 53 (USB_DP_UP) and 54 (USB_DM_UP).
-
-**TUSB8043A upstream SuperSpeed — Zynq GTR Lane 3:**
-
-| TUSB8043A Pin | Signal | Connection |
-| :--- | :--- | :--- |
-| 58 | USB_SSRXP_UP | ← PS_MGTRTXP3_505 (B23) |
-| 59 | USB_SSRXM_UP | ← PS_MGTRTXN3_505 (B24) |
-| 55 | USB_SSTXP_UP | → PS_MGTRRXP3_505 (A25) |
-| 56 | USB_SSTXM_UP | → PS_MGTRRXN3_505 (A26) |
-| 53 | USB_DP_UP | ↔ USB3300-EZK D+ |
-| 54 | USB_DM_UP | ↔ USB3300-EZK D- |
-| 48 | USB_VBUS | 90.9kΩ to VBUS (5V), 10kΩ to GND (voltage divider) |
-
-**TUSB8043A downstream ports — to four USB-A 3.0 connectors:**
-
-| Port | SS TX+/- | SS RX+/- | D+/D- | Connector |
-| :--- | :--- | :--- | :--- | :--- |
-| 1 | Pin 3/4 | Pin 6/7 | Pin 1/2 | J7 |
-| 2 | Pin 11/12 | Pin 14/15 | Pin 9/10 | J8 |
-| 3 | Pin 19/20 | Pin 22/23 | Pin 17/18 | J9 |
-| 4 | Pin 26/27 | Pin 29/30 | Pin 24/25 | J10 |
-
-**TUSB8043A clock:**
-
-| Pin | Signal | Connection |
-| :--- | :--- | :--- |
-| 62 | XI | 24 MHz crystal + 1MΩ feedback resistor between XI and XO |
-| 61 | XO | 24 MHz crystal (other leg) |
-
-**TUSB8043A control and strap pins:**
-
-| Pin | Signal | Connection |
-| :--- | :--- | :--- |
-| 50 | GRSTz | 10kΩ to 3.3V + 100nF to GND (RC power-on reset) |
-| 49 | TEST | 10kΩ to GND |
-| 64 | USB_R1 | 9.53kΩ 1% to GND (precision reference) |
-| 41 | PWRCTL_POL | Strap per power switch polarity |
-| 42 | GANGED | GND (per-port power control) |
-| 40 | FULLPWRMGMTz | GND (enable power switching + overcurrent) |
-| 45 | AUTOENz/HS_SUSPEND | 3.3V (disable auto-charge) |
-| 39 | SMBUSz/SS_SUSPEND | 3.3V (I2C mode, or NC if no EEPROM) |
-| 38 | SCL/SMBCLK | NC (no EEPROM) |
-| 37 | SDA/SMBDAT | NC (no EEPROM) |
-| 60 | NC | No connect |
-
-**TUSB8043A per-port power and overcurrent:**
-
-If not implementing per-port power switching, leave PWRCTL1-4 (pins 36, 35, 33, 32) unconnected and pull OVERCUR1-4z (pins 46, 47, 44, 43) to 3.3V with 10kΩ each.
-
-**TUSB8043A power:**
-
-| Pin(s) | Signal | Rail |
-| :--- | :--- | :--- |
-| 5, 8, 13, 21, 28, 31, 51, 57 | VDD | 1.1V (external regulator required) + 0.1µF each |
-| 16, 34, 52, 63 | VDD33 | 3.3V + 0.1µF each |
-| Thermal pad | VSS | GND |
-
-### 16-Channel Backplane UARTs (PL HD Banks 25 and 26)
-
-16 instances of **Xilinx AXI UART Lite** (`axi_uartlite`) instantiated in the Programmable Logic, each with its own AXI-Lite register window and dedicated IRQ line. Each channel is a dedicated TX/RX pair running at 460800 baud (compile-time configured in Vivado — for a runtime-configurable baud divider, substitute `axi_uart16550`). All pins are 3.3V LVCMOS, directly compatible with the AG32 UART0 control interface on each compute card.
-
-These are stock Xilinx IP blocks with a mainline Linux driver — no custom RTL, no custom kernel code. See the "The Linux Software Stack" section above for the device tree and host library integration.
-
-**Bank 25 — Cards 0–7 (VCCO = 3.3V):**
-
-| Card | PL Signal | Direction | PL Bank | Backplane Pin | Function |
-| :--- | :--- | :--- | :--- | :--- | :--- |
-| 0 | UART_TX_0 | Output | 25 | Card 0 UART0_RX | Host TX → Node RX |
-| 0 | UART_RX_0 | Input | 25 | Card 0 UART0_TX | Node TX → Host RX |
-| 1 | UART_TX_1 | Output | 25 | Card 1 UART0_RX | Host TX → Node RX |
-| 1 | UART_RX_1 | Input | 25 | Card 1 UART0_TX | Node TX → Host RX |
-| 2 | UART_TX_2 | Output | 25 | Card 2 UART0_RX | Host TX → Node RX |
-| 2 | UART_RX_2 | Input | 25 | Card 2 UART0_TX | Node TX → Host RX |
-| 3 | UART_TX_3 | Output | 25 | Card 3 UART0_RX | Host TX → Node RX |
-| 3 | UART_RX_3 | Input | 25 | Card 3 UART0_TX | Node TX → Host RX |
-| 4 | UART_TX_4 | Output | 25 | Card 4 UART0_RX | Host TX → Node RX |
-| 4 | UART_RX_4 | Input | 25 | Card 4 UART0_TX | Node TX → Host RX |
-| 5 | UART_TX_5 | Output | 25 | Card 5 UART0_RX | Host TX → Node RX |
-| 5 | UART_RX_5 | Input | 25 | Card 5 UART0_TX | Node TX → Host RX |
-| 6 | UART_TX_6 | Output | 25 | Card 6 UART0_RX | Host TX → Node RX |
-| 6 | UART_RX_6 | Input | 25 | Card 6 UART0_TX | Node TX → Host RX |
-| 7 | UART_TX_7 | Output | 25 | Card 7 UART0_RX | Host TX → Node RX |
-| 7 | UART_RX_7 | Input | 25 | Card 7 UART0_TX | Node TX → Host RX |
-
-**Bank 26 — Cards 8–15 (VCCO = 3.3V):**
-
-| Card | PL Signal | Direction | PL Bank | Backplane Pin | Function |
-| :--- | :--- | :--- | :--- | :--- | :--- |
-| 8 | UART_TX_8 | Output | 26 | Card 8 UART0_RX | Host TX → Node RX |
-| 8 | UART_RX_8 | Input | 26 | Card 8 UART0_TX | Node TX → Host RX |
-| 9 | UART_TX_9 | Output | 26 | Card 9 UART0_RX | Host TX → Node RX |
-| 9 | UART_RX_9 | Input | 26 | Card 9 UART0_TX | Node TX → Host RX |
-| 10 | UART_TX_10 | Output | 26 | Card 10 UART0_RX | Host TX → Node RX |
-| 10 | UART_RX_10 | Input | 26 | Card 10 UART0_TX | Node TX → Host RX |
-| 11 | UART_TX_11 | Output | 26 | Card 11 UART0_RX | Host TX → Node RX |
-| 11 | UART_RX_11 | Input | 26 | Card 11 UART0_TX | Node TX → Host RX |
-| 12 | UART_TX_12 | Output | 26 | Card 12 UART0_RX | Host TX → Node RX |
-| 12 | UART_RX_12 | Input | 26 | Card 12 UART0_TX | Node TX → Host RX |
-| 13 | UART_TX_13 | Output | 26 | Card 13 UART0_RX | Host TX → Node RX |
-| 13 | UART_RX_13 | Input | 26 | Card 13 UART0_TX | Node TX → Host RX |
-| 14 | UART_TX_14 | Output | 26 | Card 14 UART0_RX | Host TX → Node RX |
-| 14 | UART_RX_14 | Input | 26 | Card 14 UART0_TX | Node TX → Host RX |
-| 15 | UART_TX_15 | Output | 26 | Card 15 UART0_RX | Host TX → Node RX |
-| 15 | UART_RX_15 | Input | 26 | Card 15 UART0_TX | Node TX → Host RX |
-
-Each AXI UART Lite instance occupies a 4 KB AXI-Lite register window. The Xilinx IP block exposes a standard register layout (RX FIFO at +0x00, TX FIFO at +0x04, STAT_REG at +0x08, CTRL_REG at +0x0C). Base addresses are spaced at 0x1000 intervals for clean address decoding in the AXI Interconnect, and both CPU clusters see the same physical addresses:
-
-| Card | AXI Base Address | Owning CPU | Linux View | IRQ Target |
-| :--- | :--- | :--- | :--- | :--- |
-| 0  | 0xA000_0000 | R5F core 1 | `/dev/rpmsg-tty0`  | R5F core 1 |
-| 1  | 0xA000_1000 | R5F core 1 | `/dev/rpmsg-tty1`  | R5F core 1 |
-| 2  | 0xA000_2000 | R5F core 1 | `/dev/rpmsg-tty2`  | R5F core 1 |
-| ... | ... | ... | ... | ... |
-| 15 | 0xA000_F000 | R5F core 1 | `/dev/rpmsg-tty15` | R5F core 1 |
-
-Each instance has its own IRQ routed through Vivado IP Integrator to the Zynq's `IRQ_F2P` inputs (16 available, exactly consumed). The IRQs target **R5F core 1's GIC view** via the PS GIC SPI lines, not the A53 cluster — the hypercube controller firmware running on core 1 is the direct owner of all 16 UART interrupts. The AXI UART Lite device tree nodes on the Linux side are marked `status = "reserved"` so the mainline `drivers/tty/serial/uartlite.c` driver never binds to them. Linux reaches the UARTs indirectly through the `/dev/rpmsg-hypercube` command channel (for job control) or through the `/dev/rpmsg-tty0..15` virtual TTYs (for interactive debug), both backed by the OpenAMP rpmsg framework and serviced by core 1 on the other side of the mailbox.
-
-### LED Display SPI (PL HD Bank 24)
-
-Dedicated **SPI slave** in the Programmable Logic, connected to the RP2040 LED controller on the front panel. The RP2040 is the SPI master; the Zynq fabric runs in slave mode. This inversion from the conventional arrangement gives free v-sync alignment because the RP2040 initiates transactions on its own LED refresh clock. All signals are 3.3V LVCMOS on HD Bank 24.
-
-The SPI link is **full-duplex and bidirectional every frame**: MOSI carries a Zynq command byte plus an optional push-framebuffer; MISO carries an RP2040 status header plus the 4,096-byte framebuffer currently lit on the physical panel. The sidebar mirror in the operator console reads exclusively from the MISO RX buffer — whatever the RP2040 says is on the panel is authoritative, regardless of whether the RP2040 is displaying host-pushed content, a local animation, Bad Apple, Doom, or a boot splash. See the "LED Display Pipeline" section above for the full protocol and mode system.
-
-| PL Signal | Direction | PL Bank | Connector Pin | Function |
-| :--- | :--- | :--- | :--- | :--- |
-| LED_SPI_SCK  | Input (slave) | 24 | Front-panel header | SPI clock, driven by RP2040 |
-| LED_SPI_MOSI | Output | 24 | Front-panel header | Zynq → RP2040: command byte + optional push framebuffer |
-| LED_SPI_MISO | Input  | 24 | Front-panel header | RP2040 → Zynq: status header + current physical framebuffer (full readback, 4 KB/frame) |
-| LED_SPI_CS   | Input (slave) | 24 | Front-panel header | Chip select, driven by RP2040 at frame refresh boundaries |
-
-### TDMA Phase Clock (PL HD Bank 44)
-
-The master TDMA phase clock is generated in the PL fabric and distributed to all 16 compute cards via the backplane. The phase select lines encode the current TDMA phase, telling every AG32 node which dimension link is active.
-
-| PL Signal | Direction | PL Bank | Function |
-| :--- | :--- | :--- | :--- |
-| TDMA_PHASE[0] | Output | 44 | Phase select bit 0 (to backplane) |
-| TDMA_PHASE[1] | Output | 44 | Phase select bit 1 (to backplane) |
-| TDMA_PHASE[2] | Output | 44 | Phase select bit 2 (extended for 12D) |
-| TDMA_PHASE[3] | Output | 44 | Phase select bit 3 (extended for 12D) |
-| TDMA_SYNC | Output | 44 | Frame sync pulse (marks phase 0) |
-
-### Fan PWM Array (PL HD Bank 44)
-
-Four-channel PWM fan controller in the PL fabric. Each fan header carries a PWM drive signal and a tachometer sense input. Fans default to 100% duty cycle if the PL fabric detects a thermal fault or software hang.
-
-| PL Signal | Direction | PL Bank | Connector | Function |
-| :--- | :--- | :--- | :--- | :--- |
-| FAN_PWM_0 | Output | 44 | Fan header J11 | PWM drive (25 kHz) |
-| FAN_TACH_0 | Input | 44 | Fan header J11 | Tachometer sense |
-| FAN_PWM_1 | Output | 44 | Fan header J12 | PWM drive (25 kHz) |
-| FAN_TACH_1 | Input | 44 | Fan header J12 | Tachometer sense |
-| FAN_PWM_2 | Output | 44 | Fan header J13 | PWM drive (25 kHz) |
-| FAN_TACH_2 | Input | 44 | Fan header J13 | Tachometer sense |
-| FAN_PWM_3 | Output | 44 | Fan header J14 | PWM drive (25 kHz) |
-| FAN_TACH_3 | Input | 44 | Fan header J14 | Tachometer sense |
-
-### PL I/O Budget Summary
-
-| PL Bank | Type | VCCO | Allocated Signals | Pins Used | Pins Remaining |
-| :--- | :--- | :--- | :--- | :--- | :--- |
-| 24 | HD | 3.3V | LED SPI (4 pins) | 4 | ~22 |
-| 25 | HD | 3.3V | Backplane UARTs 0–7 (16 pins) | 16 | ~10 |
-| 26 | HD | 3.3V | Backplane UARTs 8–15 (16 pins) | 16 | ~10 |
-| 44 | HD | 3.3V | TDMA phase clock (5), Fan PWM (8) | 13 | ~13 |
-| 64 | HP | 1.8V | *Unallocated* | 0 | 56 |
-| 65 | HP | 1.8V | *Unallocated* | 0 | 56 |
-| 66 | HP | 1.8V | *Unallocated* | 0 | 56 |
-
-## Backplane Region Buildout (Planned)
-
-The board area between the Zynq BGA and the 100-pin backplane connector is currently empty. This section documents the signal conditioning, protection, and optional features that should populate that region. **Nothing in this section is currently in the schematic** — this is the design intent for the next round of schematic work, written so the next person (or LLM) picking up the project knows what belongs there and why.
-
-The 49 backplane signals fall into six groups:
-
-| Group | Count | Direction (FPGA POV) | Bank |
-| :--- | :--- | :--- | :--- |
-| UART_TX_0..15 | 16 | Output | 25/26 |
-| UART_RX_0..15 | 16 | Input | 25/26 |
-| SPI_SCK, SPI_MOSI, SPI_CS | 3 | Output | 24 |
-| SPI_MISO | 1 | Input | 24 |
-| TDMA_PHASE[0..3], TDMA_SYNC | 5 | Output | 44 |
-| FAN_PWM_0..3 | 4 | Output | 44 |
-| FAN_TACH_0..3 | 4 | Input | 44 |
-
-Outputs from the FPGA: 28. Inputs to the FPGA: 21. Every signal is single-ended 3.3V LVCMOS, unidirectional, and runs at relatively low speed (≤10 MHz worst case for SPI; 460800 baud or slower for UART).
-
-### Signal Conditioning and Protection (Required)
-
-Every backplane signal should pass through three layers of protection between the Zynq and the IDC connector. This is not optional — the FPGA is a $200 BGA on a custom 8-layer board with no socket. Protection components are cheap insurance.
-
-**Layer 1 — Series source termination (Zynq side, output lines only)**
-
-A 22Ω 0402 resistor in series with every Zynq output, placed within ~5mm of the BGA. This is *not* about UART bit timing — it is about taming the ~1ns LVCMOS edge rates of the HD bank drivers. Without source termination, those edges will ring and overshoot at the receiver, couple into adjacent traces, and radiate as EMI from the ribbon cable.
-
-Apply to all 28 output lines: 16× UART_TX, 3× SPI outputs, 5× TDMA, 4× FAN_PWM. Suggested part: RC0402FR-0722RL or equivalent.
-
-Input lines (UART_RX, SPI_MISO, FAN_TACH) do not need series termination — the driver is on the other end of the cable.
-
-**Layer 2 — Sacrificial unidirectional buffers (mid-board)**
-
-Insert 74LVC244-style octal buffers between the Zynq and the connector. Every backplane signal is unidirectional, so simple 244-class buffers work — no bidirectional bus transceivers needed. The 74LVC244 has 8 independent buffers in two banks of four, each bank with its own active-low output enable. Direction within a chip can be mixed (each buffer has a distinct A→Y signal path), so a single chip can carry both FPGA-driven and backplane-driven lines.
-
-Approximate chip count: **~6× 74LVC244** to cover all 49 signals (49 / 8 = 7, but with some packing efficiency 6 is achievable). Place them between the Zynq side (after the series resistors) and the connector side (before the TVS arrays).
-
-Tie all OE# pins to a single "system ready" signal driven from a Zynq MIO GPIO (or PS_DONE). This keeps the entire backplane in high-Z during FPGA configuration so cards see clean idle instead of garbage transitions during boot.
-
-The buffers serve three purposes:
-- **Sacrificial protection** — a $0.40 chip absorbs damage instead of a $200 BGA bank
-- **Defined startup state** via OE# control
-- **Higher drive strength** if the ribbon cable is ever lengthened or replaced with something lossier
-
-**Layer 3 — TVS diode arrays (connector side)**
-
-Place a low-capacitance TVS array on every backplane signal, located within ~3mm of the IDC connector pins so the strike is clamped before it reaches any meaningful trace inductance. Trace length between the strike point and the clamp matters more than the diode response time.
-
-Suggested part: **TPD4E1B06DCKR** (4-channel, 5pF, 5.5V working voltage) or PESD3V3L4UG. Roughly **13× quad arrays** to cover all 49 signals. Place each array directly under or adjacent to the connector pins it protects.
-
-### Pull Resistors
-
-Every input from the backplane should have a 10kΩ 0402 pull-up to 3.3V, placed on the Zynq side of the buffer:
-
-- **16× UART_RX** — UART idles high. Pullups prevent noise from being interpreted as a start bit when a card is dead, missing, or in reset.
-- **1× SPI_MISO** — prevents float when CS is deasserted.
-- **4× FAN_TACH** — fan tach outputs are open-collector and require external pullups.
-
-Total: 21 pull-up resistors.
-
-### Test Points
-
-Drop a test point on every backplane signal, placed between the buffer chip and the connector. SMD round test points (Keystone 5015 or similar 0.040" diameter pads) on a uniform grid. **This is critical for bringup** — you will be probing every line with a logic analyzer and a scope, and trying to clip onto 49 individual signals without dedicated test points is miserable.
-
-In addition to individual test points, place a **2x25 0.05"-pitch shrouded header** that taps every backplane signal between the buffer and the connector. This gives you a single connector for a Saleae Logic Pro 16 / Kingst LA5016 / similar logic analyzer, so you can scope all 49 signals through one ribbon cable instead of 49 individual probes. Place it accessible from the top of the board for easy clip-on.
-
-### Power Filtering for HD Banks
-
-With up to 16 LVCMOS outputs potentially switching simultaneously on Banks 25 and 26, simultaneous switching output (SSO) noise on VCCO can be significant. Add a localized power island per bank:
-
-- Ferrite bead (BLM18PG471SN1D, ~470Ω @ 100 MHz, 3A rated) between the main 3.3V plane and each local VCCO_25 / VCCO_26 / VCCO_24 / VCCO_44 island
-- 10µF + 1µF + per-pin 100nF on the bank side of the bead
-
-Cheap, takes minimal space, and noticeably quiets switching transients on bank power. Worth doing.
-
----
-
-### Per-Card Reset and Boot Control (Currently Missing)
-
-The host library's `flash()` method (`pages/ThinkinController.md` line ~263) describes "Assert Boot0 high, pulse NRST via GPIO" — but **the current schematic does not allocate any backplane pins or Zynq GPIO for these signals**. This is a real gap that must be closed before flashing will work.
-
-Three options, in increasing complexity:
-
-**Option A — Shared broadcast Boot0 + NRST (2 backplane pins, simplest)**
-
-One global NRST and one global Boot0 broadcast to all 16 cards. The host puts the entire machine into bootloader mode in one operation, then flashes each card in parallel through its dedicated UART. After flashing, NRST is released and all cards run their new firmware simultaneously.
-
-Limitation: cannot reset individual cards. If one card hangs mid-job, the only recovery is rebooting the whole machine. Acceptable if cards are reliable and recovery is rare.
-
-Implementation: 2 additional output lines from PL Bank 44 (or any spare HD bank pin) → series R → buffer → TVS → backplane. Add to the 100-pin connector by reclaiming 2 of the 18 currently-spare pins.
-
-**Option B — Per-card Boot0 + NRST via I2C GPIO expander (recommended)**
-
-Add an I2C bus to the backplane (2 wires + GND = 3 pins) and place a PCA9555 16-bit I2C GPIO expander on each compute card. Each expander drives its own card's NRST and Boot0 locally. The host writes to the expanders over I2C to assert/release reset and bootloader mode on individual cards.
-
-Bonus: the same I2C bus can carry temperature sensors, INA226 power monitors, EEPROM card-ID storage, and any future per-card slow-control signals.
-
-Implementation: 2 additional MIO pins from the Zynq (one of the unused MIO64-77 range) brought out to backplane through buffers + TVS. Each card gets a PCA9555 with 4 address-strap pins to give it a unique I2C address.
-
-This is the right answer. It costs 3 backplane pins instead of 32, scales to additional control signals, and keeps the master fully in control of every card individually.
-
-**Option C — 32 dedicated GPIO lines (16 NRST + 16 Boot0)**
-
-Direct point-to-point control. Most flexible, simplest software model, but requires 32 additional backplane pins + ~32 more grounds = 64 more connector pins. The current 100-pin IDC won't fit it; you would need to upgrade to a 200-pin or split into two connectors. Not recommended unless I2C is unworkable for some reason.
-
-**Verdict:** implement Option B. It's the only one that scales and reuses existing connector pins.
-
----
-
-### Optional Subsystems for the Empty Board Region
-
-Beyond the required signal conditioning and the missing per-card reset control, the board area can host several independent subsystems. Each is genuinely useful; implement as appetite and complexity budget allow.
-
-**Per-Card Power Monitoring (INA226 over I2C)**
-
-If Option B above is implemented, you already have an I2C bus on the backplane. Add an INA226 current/voltage sensor on each compute card's power input. INA226 supports 16 selectable I2C addresses — exactly enough for 16 cards on a single bus. The host can then detect:
-- Failed cards (zero current draw)
-- Thermal runaway (current spike)
-- Per-card power consumption for job profiling
-
-Cost: ~$1.50/card for the chip + shunt resistor. High value for diagnostics.
-
-**Per-Card Power Switching (Load Switches)**
-
-Drop a TPS22918 or AP2161 load switch inline with each card's main power input, controlled from the same per-card PCA9555. This lets the host:
-- Power-cycle a flaky card without rebooting the entire machine
-- Sequentially bring up cards during boot to spread inrush current
-- Cut power to cards that draw excessive current (closed-loop with INA226)
-
-Combined with INA226, this gives you full per-card power management.
-
-**RP2040 SWD Passthrough**
-
-The RP2040 on the LED panel needs to be flashable. Currently there is no documented path. Add either:
-- A passive SWD header routed through the front-panel connector to the RP2040's SWDIO/SWCLK pins, accessible from outside the cube
-- An active path: Zynq MIO bit-banged SWD or an FT2232H USB-SWD bridge controlled by the host
-
-The passive header is cheaper; the active path lets the host reflash the RP2040 over the network without opening the case. Worth doing.
-
-**USB Debug Console (FT232 / CP2102)**
-
-The current MIO map plans to bring out the UART0 console on MIO8-9 to a header. Upgrade this: add an FT232RL or CP2102N USB-serial bridge directly on the controller board, exposing the Zynq console as a micro-USB or USB-C port on the rear panel. Plug a laptop in, get a console — no 3.3V USB-TTL dongle needed.
-
-This is independent of the four USB 3.0 host ports — the FT232 acts as a USB *device* on a separate connector.
-
-**External Watchdog Timer**
-
-The Zynq has internal watchdogs, but they share fate with the silicon they're trying to reset. An external watchdog (TPS3823, MAX6369) tied to PS_SRST_B gives you a true hardware reset path if the kernel locks hard enough to disable internal watchdogs. A userspace daemon toggles a Zynq GPIO every second; if the toggle stops for >1.6s, the watchdog yanks SRST and the whole system reboots.
-
-**Battery-Backed RTC**
-
-The Zynq has no battery-backed RTC. Add a DS3231 (I2C) + CR2032 holder. Without this, every power-on starts at 1970-01-01 until NTP catches up — bad for log timestamping and useless if the machine ever runs offline.
-
-**Status / Diagnostic LEDs**
-
-A bank of LEDs visible inside the cube or on the rear panel, driven from PL GPIO via a TLC59116 I2C LED driver (16 channels, brightness control, $1):
-- 16× per-card link/activity LEDs (one per UART channel — blink on TX/RX)
-- 1× Zynq heartbeat
-- 1× TDMA running indicator
-- 1× thermal warning
-- 1× job-in-progress
-
-Charlieplexed alternatives use fewer driver pins but are harder to debug. TLC59116 is the easy path.
-
-**Front-Panel Buttons**
-
-Reset and mode-select pushbuttons routed through a 74HC14 Schmitt-trigger debouncer (with RC) to Zynq GPIO. Useful for forcing reboots without yanking power or holding the SD card eject.
-
-**Ambient Light Sensor (BH1750 / VEML7700)**
-
-I2C ambient light sensor lets the LED display auto-dim. ~$0.50 of parts. Cute and slightly useful.
-
-**Small OLED Status Display**
-
-A 0.96" or 1.3" I2C OLED visible through a slot in the cube showing:
-- IP address
-- Boot status / kernel version
-- Last job ID and result
-- CPU/FPGA temperature
-- Number of live cards
-
-Lets you operate the machine headless without `nmap`-ing your network to find it. ~$3 of parts.
-
-**Spare HD Bank Breakout**
-
-Banks 25, 26, and 44 have ~10–13 unused pins each (per the I/O budget table above). Bring them out to a 0.1" header for future expansion — extra GPIO, additional UARTs, debug signals. Free real estate that's currently wasted.
-
----
-
-### Implementation Priority
-
-If implementing in passes:
-
-**Pass 1 — Do not fab without these:**
-- Series source termination (~28 resistors)
-- TVS arrays at the connector (~13 chips)
-- Pull-ups on RX / MISO / TACH inputs (~21 resistors)
-- Test points + logic analyzer breakout header
-- Per-card reset/boot control (Option B: I2C bus + PCA9555 per card) — this is currently missing from the design
-
-**Pass 2 — Strongly recommended:**
-- Sacrificial 74LVC244 buffers (~6 chips)
-- VCCO power islands with ferrite beads on Banks 24/25/26/44
-- USB debug console (FT232RL/CP2102N)
-- **Operator Console HUD + BMC + Hypercube Controller on the R5F cluster** (pure firmware/software work, zero new hardware, zero PCB changes) — 1440×1080 Linux + 480×1080 R5-owned sidebar with LED mirror and telemetry HUD, rendered by R5 core 0. The same core runs a full BMC with HTTP dashboard, VNC remote console, SSH shell, serial-over-LAN, Prometheus exporter, and power control services, reachable over the existing Ethernet via a shared-GEM configuration (no second PHY or second RJ45 required). **R5 core 1** runs the real-time hypercube controller — it owns all 16 backplane UARTs, the TDMA block, the LED SPI TX path, and the fan PWM, and Linux drives it over a mainline rpmsg mailbox. This splits the machine into a proper HPC-style user frontend (A53/Linux) and service processor (R5F cluster), with the consequence that in-flight StarC jobs keep running to completion even when Linux kernel-panics. See "The Operator Console," "The BMC: Putting the Cortex-R5F to Work," and "The Hypercube Controller: R5F Core 1 as the Real-Time Supervisor" sections above. This is the highest-value feature on the board per dollar (zero) and per hour of PCB work (zero) — everything is firmware.
-
-**Pass 3 — High-value features:**
-- Per-card INA226 power monitoring
-- Per-card load switches
-- External watchdog timer
-- Battery-backed RTC (DS3231)
-
-**Pass 4 — Convenience and cosmetic:**
-- TLC59116 status LED bank
-- OLED status display
-- Front-panel buttons
-- Ambient light sensor
-- RP2040 SWD passthrough
-- Spare HD bank breakout header
-
-Pass 1 items address actual hardware risks (FPGA destruction, missing GPIO functionality, undebuggable bringup). Pass 2 items significantly improve robustness and SI. Passes 3 and 4 add features rather than fix problems, but everything in Pass 3 is high-value-per-dollar diagnostics worth including in the first board spin if board space is truly unlimited.
-
-## Schematic TODO — Remaining Work
-
-The following items are not yet wired in the KiCad schematic and must be completed before the board can be fabricated.
-
-### MIO Pin Reassignments
-
-The addition of QSPI boot flash on MIO0-5 requires moving two signals:
-
-| Signal | Current MIO | New MIO | Reason |
-| :--- | :--- | :--- | :--- |
-| M.2 PERST# | MIO2 | MIO6 or MIO7 | MIO2 needed for QSPI_IO0 |
-| UART TX | MIO0 (reserved) | MIO8 | MIO0 needed for QSPI_SCLK |
-| UART RX | MIO1 (reserved) | MIO9 | MIO1 needed for QSPI_CS |
-
-### Updated MIO Map
-
-| MIO Range | Function | Status |
-| :--- | :--- | :--- |
-| MIO0-5 | QSPI flash (SCLK, CS, IO0-IO3) | **TODO — need QSPI chip, wiring** |
-| MIO6 or MIO7 | M.2 NVMe PERST# | **TODO — move from MIO2** |
-| MIO8-9 | UART debug console (TX/RX) | **TODO — need header or level shifter** |
-| MIO10-12 | Available | |
-| MIO13-22 | MicroSD card (SDIO0) | Done |
-| MIO23-26 | Available | |
-| MIO27-30 | DisplayPort AUX + HPD | Done |
-| MIO31-37 | Available | |
-| MIO38-51 | Ethernet RGMII + MDIO | Done |
-| MIO52-63 | USB ULPI | Done |
-| MIO64-77 | Available | |
-
-### Boot and Configuration (Config / PS_MIO Sheets)
-
-| Item | Pins | What to Do | Sheet |
-| :--- | :--- | :--- | :--- |
-| Boot mode DIP switch | PS_MODE0-3 | 4-pos DIP switch + 10kΩ pulldowns on each pin. Switch ON = 3.3V. | PS_MIO |
-| QSPI flash | MIO0-5 | Add QSPI flash chip (TBD part), wire SCLK/CS/IO0-IO3, decoupling | PS_MIO |
-| JTAG debug header | PS_JTAG_TCK/TDI/TDO/TMS | Add 2x7 ARM JTAG header, wire to Zynq JTAG pins | PS_MIO / Config |
-| Power-on reset | PS_POR_B | RC circuit: 10kΩ to 3.3V + 100nF to GND (delay ~1ms) | PS_MIO / Config |
-| System reset | PS_SRST_B | 10kΩ pullup to 3.3V + optional reset button | PS_MIO / Config |
-| PL config handshake | PS_PROG_B, PS_INIT_B, PS_DONE | 10kΩ pullups to 3.3V each | PS_MIO / Config |
-| PS reference clock | PS_REF_CLK (R16) | SiT8008BI-71-33S-33.333330 (LCSC C806182), 2.0x1.6mm | PS_MIO / Config |
-| PUDC_B | PUDC_B | Tied to GND (pull-ups enabled during config) | Config |
-| UART console | MIO8-9 | UART0 TX/RX + pin header or FTDI connector | PS_MIO |
-
-### PL Fabric (PL Bank Sheets + Backplane + Peripherals)
-
-| Item | What to Do |
-| :--- | :--- |
-| Backplane connector | Place 100-pin shrouded IDC header (2x50, 1.27mm pitch) on Backplane.kicad_sch. Assign all 100 pins: 32 UART (Banks 25/26), 5 TDMA (Bank 44), 4 LED SPI (Bank 24), 41 GND (one per signal), 18 spare. 2-inch ribbon cable to backplane. **Reclaim 3 spare pins for the per-card I2C control bus (SDA, SCL, GND ref) — see Backplane Region Buildout section.** |
-| Fan PWM/Tach | Change local labels on Peripherals.kicad_sch to global labels. Add matching global labels on PL_HD.kicad_sch connecting to Bank 44 pins. |
-| PL pin assignment | Assign specific Zynq ball numbers to all PL signals (UARTs, TDMA, SPI, fans) on Banks 24/25/26/44. Currently all 272 PL I/O pins are unassigned. |
-| HP Banks 64/65/66 | 168 HP pins currently unallocated. Add no-connect markers or reserve for future use. |
-| Backplane signal conditioning | Series R + 74LVC244 buffers + TVS arrays + pullups + test points on all 49 backplane signals. See "Backplane Region Buildout (Planned)" section above for full part list and rationale. **Currently absent from schematic.** |
-| Per-card reset/boot control | Currently missing. The host `flash()` method needs Boot0/NRST control per card — see Backplane Region Buildout section, Option B (I2C + PCA9555 per card). |
-
-### Minor Fixes
-
-| Item | What to Do |
-| :--- | :--- |
-| RTL8211EG LED2 (pin 52) | Add no-connect marker |
-| RTL8211EG REG_OUT (pin 3) | Verify 1µF + 0.1µF decoupling cap to GND is present |
-| J5 DisplayPort CONFIG1/CONFIG2 | Check Foxconn 3VD51203 datasheet — may need pull-ups/pull-downs or NC |
+| 1 | FSBL modification -- partition GEM3, configure Screener | ~50 lines of C, reference FSBL exists |
+| 2 | R5 core 0 FreeRTOS application (HUD + BMC services) | 3,000-5,000 lines of C, 100-200 KB compiled |
+| 3 | R5 core 1 FreeRTOS application (hypercube controller) | ~2,000-3,000 lines of C |
+| 4 | Linux device tree changes (reserved memory, shared-GEM, DP stride) | ~30 lines of DTS |
+| 5 | Linux userspace daemon (telemetry mailbox writer) | ~200 lines of Python |
+| 6 | Boot orchestration (remoteproc loading of R5 images) | Standard OpenAMP boot flow |
+
+Total software effort: approximately two weeks of focused work for someone who already knows Xilinx AMP. Total hardware effort: **zero**. Total new BOM parts: **zero**. Total PCB changes: **zero**.
