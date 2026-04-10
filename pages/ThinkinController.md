@@ -811,7 +811,7 @@ For the idle state, the RP2040 can stream compressed audio data alongside its fr
 
 ## Power Supply Architecture
 
-The controller board requires seven distinct voltage rails, all derived from a single 12V input. The Zynq UltraScale+ has strict power sequencing requirements — rails must come up in a specific order or the chip can be damaged — so the power supply isn't just a collection of regulators, it's a timed sequence.
+The controller board requires seven distinct voltage rails, all derived from a single 12V input through a **JST VH (3.96mm pitch) 2-pin connector** with 16 AWG wire. The JST VH is rated for 10A per contact, providing comfortable margin for the ~5A worst-case draw. The Zynq UltraScale+ has strict power sequencing requirements — rails must come up in a specific order or the chip can be damaged — so the power supply isn't just a collection of regulators, it's a timed sequence.
 
 ### The Power Budget
 
@@ -899,7 +899,8 @@ The XCZU2EG-2SFVC784I symbol is split into 9 functional units across hierarchica
 | MIO0-5 | QSPI flash (SCLK, CS, IO0-IO3) | **TODO -- need QSPI chip, wiring** |
 | MIO6 or MIO7 | M.2 NVMe PERST# | **TODO -- move from MIO2** |
 | MIO8-9 | UART debug console (TX/RX) | **TODO -- need header or level shifter** |
-| MIO10-12 | Available | |
+| MIO10-11 | RTC I2C (DS3231 via PS I2C0) | Done |
+| MIO12 | Available | |
 | MIO13-22 | MicroSD card (SDIO0) | Done |
 | MIO23-26 | Available | |
 | MIO27-30 | DisplayPort AUX + HPD | Done |
@@ -1004,7 +1005,7 @@ MicroSD slot on MIO13-22 (SDIO0). Development boot source.
 
 ### UART Debug Console (PS_MIO Sheet)
 
-**FT230XS** USB-serial bridge on MIO8-9 (UART0 TX/RX). Exposes the Zynq PS UART0 console as a USB device port on the rear panel. Plug a laptop in, get a console -- no 3.3V USB-TTL dongle needed.
+**FT230XS** USB-serial bridge on MIO8-9 (UART0 TX/RX). Exposes the Zynq PS UART0 console as a USB device port on the rear panel via a **USB-C connector**. Plug a laptop in, get a console -- no 3.3V USB-TTL dongle needed. The FT230XS speaks USB 2.0 Full Speed only; the USB-C receptacle requires **5.1kΩ pull-down resistors on both CC1 and CC2** so a USB-C host recognizes it as a USB 2.0 device and provides VBUS. Without these resistors the port will not enumerate.
 
 ### DisplayPort AUX (PS_MIO Sheet)
 
@@ -1352,15 +1353,15 @@ Four-channel PWM fan controller in the PL fabric. Each fan header carries a PWM 
 | FAN_PWM_3 | Output | 44 | Fan header J14 | PWM drive (25 kHz) |
 | FAN_TACH_3 | Input | 44 | Fan header J14 | Tachometer sense |
 
-### I2C Bus (PL HD Bank 44)
+### Backplane I2C Bus (PL HD Bank 44)
 
-Shared I2C bus on Bank 44 for per-card reset/boot control (PCA9555 GPIO expanders), battery-backed RTC (DS3231), optional per-card INA226 power monitoring, and other slow-control peripherals. Two pins (SDA, SCL) plus ground reference routed to the backplane connector.
+Dedicated I2C bus on Bank 44 for per-card reset/boot control (PCA9555 GPIO expanders), optional per-card INA226 power monitoring, and other backplane slow-control peripherals. Two pins (SDA, SCL) plus ground reference routed to the backplane connector. This is a separate bus from the onboard PS I2C0 (MIO10-11) used by the DS3231 RTC — the two buses share no wires and cannot interfere with each other.
 
 ### PL I/O Budget Summary
 
 | PL Bank | Type | VCCO | Allocated Signals | Pins Used | Pins Remaining |
 | :--- | :--- | :--- | :--- | :--- | :--- |
-| 24 | HD | 3.3V | LED SPI (4 pins) | 4 | ~22 |
+| 24 | HD | 3.3V | LED SPI (4 pins), I2S audio (3 pins) | 7 | ~19 |
 | 25 | HD | 3.3V | Backplane UARTs 0-7 (16 pins) | 16 | ~10 |
 | 26 | HD | 3.3V | Backplane UARTs 8-15 (16 pins) | 16 | ~10 |
 | 44 | HD | 3.3V | TDMA phase clock (5), Fan PWM (8), I2C (2) | 15 | ~11 |
@@ -1394,21 +1395,21 @@ The 49 backplane signals fall into six groups:
 | :--- | :--- | :--- | :--- |
 | UART_TX_0..15 | 16 | Output | 25/26 |
 | UART_RX_0..15 | 16 | Input | 25/26 |
-| SPI_SCK, SPI_MOSI, SPI_CS | 3 | Output | 24 |
-| SPI_MISO | 1 | Input | 24 |
+| SPI_MOSI | 1 | Output | 24 |
+| SPI_SCK, SPI_MISO, SPI_CS | 3 | Input (RP2040 is SPI master) | 24 |
 | TDMA_PHASE[0..3], TDMA_SYNC | 5 | Output | 44 |
 | FAN_PWM_0..3 | 4 | Output | 44 |
 | FAN_TACH_0..3 | 4 | Input | 44 |
 
-Outputs from the FPGA: 28. Inputs to the FPGA: 21. Every signal is single-ended 3.3V LVCMOS, unidirectional, and runs at relatively low speed (<=10 MHz worst case for SPI; 460800 baud or slower for UART).
+Outputs from the FPGA: 21 (16x UART_TX, 1x SPI_MOSI, 4x FAN_PWM). Inputs to the FPGA: 28 (16x UART_RX, 3x SPI_SCK/MISO/CS, 5x TDMA, 4x FAN_TACH). Note: the TDMA phase clock and sync lines are outputs to the backplane but generated in PL fabric, not driven through external buffers — they go directly from the PL pins to the connector. Every signal is single-ended 3.3V LVCMOS, unidirectional, and runs at relatively low speed (<=10 MHz worst case for SPI; 460800 baud or slower for UART).
 
 **Layer 1 -- Series source termination (Zynq side, output lines only)**
 
 A 22-ohm 0402 resistor in series with every Zynq output, placed within ~5mm of the BGA. This is *not* about UART bit timing -- it is about taming the ~1ns LVCMOS edge rates of the HD bank drivers. Without source termination, those edges will ring and overshoot at the receiver, couple into adjacent traces, and radiate as EMI from the ribbon cable.
 
-Apply to all 28 output lines: 16x UART_TX, 3x SPI outputs, 5x TDMA, 4x FAN_PWM. Suggested part: RC0402FR-0722RL or equivalent.
+Apply to all output lines: 16x UART_TX, 1x SPI_MOSI, 5x TDMA, 4x FAN_PWM (26 total). Suggested part: RC0402FR-0722RL or equivalent.
 
-Input lines (UART_RX, SPI_MISO, FAN_TACH) do not need series termination -- the driver is on the other end of the cable.
+Input lines (UART_RX, SPI_SCK, SPI_MISO, SPI_CS, FAN_TACH) do not need series termination -- the driver is on the other end of the cable.
 
 **Layer 2 -- Sacrificial unidirectional buffers (mid-board)**
 
@@ -1555,11 +1556,12 @@ Banks 25, 26, and 44 have ~10-13 unused pins each (per the I/O budget table abov
 ### Implementation Priority Passes
 
 **Pass 1 -- Do not fab without these:**
-- Series source termination (~28 resistors)
+- Series source termination (~26 resistors)
 - TVS arrays at the connector (~13 chips)
 - Pull-ups on RX / MISO / TACH inputs (~21 resistors)
 - Test points + logic analyzer breakout header
 - Per-card reset/boot control (Option B: I2C bus + PCA9555 per card) -- this is currently missing from the design
+- Battery-backed RTC (DS3231 on PS I2C0, MIO10-11) -- already designed-in, needed for BMC event log timestamps from first boot
 
 **Pass 2 -- Strongly recommended:**
 - Sacrificial 74LVC244 buffers (~6 chips)
@@ -1571,7 +1573,6 @@ Banks 25, 26, and 44 have ~10-13 unused pins each (per the I/O budget table abov
 - Per-card INA226 power monitoring
 - Per-card load switches
 - External watchdog timer
-- Battery-backed RTC (DS3231)
 
 **Pass 4 -- Convenience and cosmetic:**
 - TLC59116 status LED bank
