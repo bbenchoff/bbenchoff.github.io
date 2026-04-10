@@ -771,6 +771,95 @@ When nothing is plugged in, the switch contacts remain closed and route both cha
 
 The I2S transmitter is instantiated in the PL fabric (~200 LUTs) and fed PCM samples over AXI by the A53 (for Linux ALSA audio) or the R5 (for BMC alert tones, boot chimes, or system event sounds). The PCM5102A's SCK pin is tied to GND, enabling its internal PLL to recover the system clock from BCK — no fourth signal line required.
 
+### The Sound Table: Event-Driven Audio from the BMC
+
+Because the R5 owns the I2S peripheral, the machine has a voice that is independent of Linux. R5 core 0 maintains a **sound table** — a set of short PCM samples indexed by event type, stored in QSPI flash and loaded into DDR4 at boot. When the R5 detects an event, it looks up the corresponding sample and streams it to the I2S DAC. Linux can be dead and the machine still speaks.
+
+**Boot sequence chimes:**
+
+| Event | Sound | When |
+| :--- | :--- | :--- |
+| Power-on | Startup chime | FSBL releases R5 from reset, ~1-2s after power-on. First sign of life — plays before the display initializes, before DDR4 training, before Linux. Like the original Macintosh, but from an independent processor. |
+| Cards enumerated | Rising tone | All 16 backplane boards responded to heartbeat |
+| Cards partial | Falling tone | Some boards missing — something is wrong |
+| Linux up | Confirmation tone | A53 cluster reached userspace and the daemon wrote to the mailbox |
+| Ready | Soft chime | thinkin-daemon started, machine is accepting jobs |
+
+**Runtime events:**
+
+| Event | Sound |
+| :--- | :--- |
+| Job submitted | Short acknowledgment |
+| Job complete | Completion chime |
+| Job failed | Error tone |
+| SSH login to BMC | Subtle click |
+| Power reset issued | Warning tone before reset |
+
+**Errors and warnings (these play even when Linux is dead):**
+
+| Event | Sound |
+| :--- | :--- |
+| Linux crash | Distinctive alert — R5 detects the A53 stopped updating the mailbox |
+| Thermal warning | Ascending warning tone — a node exceeded threshold |
+| Card offline | One of the 16 boards stopped responding |
+| Fan failure | Tachometer stopped reporting — urgent tone |
+| UART errors | Backplane communication degrading |
+
+The startup chime is the most important. The original Macintosh played its chime from the main CPU — if the CPU was dead, silence. This machine's chime plays from the R5, which comes out of reset independently of the A53 cluster. If you ever flip the power switch and hear nothing, the problem is at the hardware level — the R5 itself didn't start, which means the QSPI flash or the Zynq's boot ROM failed. The chime is a diagnostic, not decoration.
+
+For the idle state, the RP2040 can stream compressed audio data alongside its framebuffer over the SPI MISO link. When the LED panel is playing Bad Apple, the R5 decodes the audio stream and pushes it to the I2S DAC. The supercomputer plays Bad Apple with sound, through an internal speaker, in a black aluminum cube on your desk.
+
+## Power Supply Architecture
+
+The controller board requires seven distinct voltage rails, all derived from a single 12V input. The Zynq UltraScale+ has strict power sequencing requirements — rails must come up in a specific order or the chip can be damaged — so the power supply isn't just a collection of regulators, it's a timed sequence.
+
+### The Power Budget
+
+| Rail | Voltage | Typical | Peak | What It Powers |
+| :--- | :--- | :--- | :--- | :--- |
+| VCCINT + VCCBRAM + VCCINT_IO + VCC_PSINTFP + VCC_PSINTLP | 0.85V | 4.5A | 7A | PL fabric, block RAM, A53 cores, R5 cores — all the silicon that thinks |
+| VCCAUX + VCC_PSAUX + VCC_PSDDR_PLL | 1.8V | 0.8A | 1.5A | PL auxiliary, PS auxiliary, DDR PLL |
+| VCC_PSDDR + DDR4 VDDQ | 1.2V | 1.5A | 3A | DDR4 controller and memory chips |
+| DDR4 VTT | 0.6V | 0.5A | 1A | DDR4 fly-by termination (tracking regulator, VDDQ/2) |
+| +3.3V | 3.3V | 2A | 4A | Ethernet PHY, USB hub, USB PHY, QSPI flash, SD card, DisplayPort, oscillators, backplane buffers, HD bank VCCO, every pullup on the board |
+| +5.0V | 5.0V | 1A | 2.5A | USB VBUS (4 ports × 500mA) |
+| +1.1V | 1.1V | 0.3A | 0.5A | TUSB8043A USB hub core |
+
+**Total board power at typical load: ~40W.** At peak (all USB ports loaded, PL fabric fully utilized, DDR4 at max bandwidth): **~50W.** With buck converter inefficiency from the 12V rail (~85% efficiency), the input draw is approximately **5A at 12V / 60W** worst case.
+
+For context: this is less than a Raspberry Pi 5 under load (27W) plus a USB hub plus an NVMe enclosure plus an Ethernet adapter. Except this is one board doing all of that plus driving 4,096 processors through an FPGA backplane.
+
+### Sequencing
+
+The Zynq UltraScale+ power-up sequence per Xilinx UG1085:
+
+1. **0.85V** (VCCINT, VCCBRAM, VCC_PSINTFP, VCC_PSINTLP) — must come up first
+2. **1.8V** (VCCAUX, VCC_PSAUX) — second, after 0.85V is stable
+3. **VCCO banks** (3.3V for HD, 1.8V for HP) — third, after auxiliary rails
+4. **1.2V** (VCC_PSDDR, DDR4 VDDQ) — after PS aux is stable
+5. **0.6V** VTT tracking regulator — after VDDQ, tracks at VDDQ/2
+6. **3.3V and 5V** peripheral rails — can come up in parallel with VCCO or after
+
+Violating this order can damage the Zynq. The sequencing is handled by the PMIC or a dedicated sequencer chip that gates each regulator's enable pin in the correct order, with each rail's power-good output triggering the next stage.
+
+### Regulator Architecture
+
+The 0.85V consolidated rail is the critical one — it feeds the A53 cores, R5 cores, PL fabric, and block RAM, all from one regulator. This rail needs to be a high-efficiency synchronous buck converter rated for 7A+ with fast transient response, because the A53 cluster creates sharp load steps when Linux wakes threads. The 1.2V DDR4 rail is similarly demanding because of DDR4 burst traffic.
+
+| Regulator | Topology | Output | Rating | Feeds |
+| :--- | :--- | :--- | :--- | :--- |
+| Buck #1 | Synchronous buck, 12V→0.85V | 0.85V | 7A | All VCCINT + PS core (consolidated) |
+| Buck #2 | Synchronous buck, 12V→1.8V | 1.8V | 1.5A | All VCCAUX + PS aux (consolidated) |
+| Buck #3 | Synchronous buck, 12V→1.2V | 1.2V | 3A | VCC_PSDDR + DDR4 VDDQ |
+| Buck #4 | Synchronous buck, 12V→3.3V | 3.3V | 4A | All 3.3V peripherals + HD VCCO |
+| Buck #5 | Synchronous buck, 12V→5.0V | 5.0V | 2.5A | USB VBUS |
+| LDO #1 | Linear, from 1.8V or 3.3V | 1.1V | 0.5A | TUSB8043A core |
+| Tracking LDO | DDR VTT, tracks VDDQ/2 | 0.6V | 1A | DDR4 termination |
+
+That's five buck converters, two LDOs, and a sequencing chain. Each buck converter requires an inductor (typically 1-4.7µH), input and output capacitors (22-47µF ceramic + bulk), and a feedback resistor divider. The total component count for the power supply alone is roughly 60-80 parts.
+
+The Infineon IRPS5401 — a quad-output PMIC designed specifically for Zynq UltraScale+ — can consolidate Buck #1 and Buck #2 plus an LDO into a single IC with built-in sequencing. This is what Xilinx's own evaluation boards use. The remaining rails (1.2V, 3.3V, 5V, VTT) require individual regulators.
+
 ## Summary
 
 This is a custom 8-layer 64-bit AMP motherboard. The **A53 cluster** runs Ubuntu, compiles StarC natively, serves the network, and drives the left 1440x1080 of the DisplayPort output as a normal Linux desktop. **R5F core 0** runs a FreeRTOS BMC image that paints the right 480x1080 of the display as an out-of-band operator console and serves HTTP/SSH/VNC/SoL/Prometheus on its own shared-GEM network queue. **R5F core 1** runs a FreeRTOS hypercube controller image that owns the 16 backplane UARTs, the TDMA block, the LED SPI TX buffer, and the fan PWM -- it is the CPU that actually orchestrates StarC jobs on the 4,096 compute nodes, and Linux reaches it over a mainline rpmsg mailbox. The Programmable Logic handles the 16-channel backplane, TDMA synchronization, LED SPI, and fan PWM in deterministic hardware, under the control of R5 core 1 rather than Linux. Four PS-GTR transceiver lanes are fully allocated across DisplayPort, NVMe, and USB 3.0. The board boots from QSPI flash (or MicroSD in development), runs Ubuntu from NVMe, and brings the R5 cluster up via Xilinx remoteproc alongside the Linux kernel.
@@ -1915,6 +2004,154 @@ Core 1 runs its own FreeRTOS image with the following subsystems:
 | FreeRTOS kernel + OpenAMP (core 1) | R5 core 1 | ~150 KB DDR4 |
 
 The machine has two R5F cores, and both are fully committed. **Core 0** runs the BMC + HUD stack. **Core 1** runs the hypercube controller. The complete firmware for both cores fits comfortably in the available TCM plus a few megabytes of reserved DDR4.
+
+### Configuring the R5 Cluster from Linux
+
+The R5 firmware images are loaded by remoteproc at boot from `/lib/firmware/`. Updating the firmware is a file copy and a restart:
+
+```bash
+scp thinkin-bmc.elf user@thinkin.local:/lib/firmware/
+echo stop  > /sys/class/remoteproc/remoteproc0/state
+echo start > /sys/class/remoteproc/remoteproc0/state
+```
+
+But firmware updates should be rare. For day-to-day configuration — sidebar layout, chime sounds, thermal thresholds, fan curves, LED panel mode — the R5 reads a live configuration region over rpmsg. Linux writes configuration commands; the R5 applies them on the next frame. No recompile, no reboot.
+
+**The `thinkin-ctl` tool:**
+
+```bash
+# Sidebar
+thinkin-ctl sidebar --layout compact
+thinkin-ctl sidebar --layout full
+thinkin-ctl sidebar --reload          # re-read sidebar.css from disk
+
+# Audio
+thinkin-ctl chime --event boot --file /usr/share/thinkin/chimes/startup.pcm
+thinkin-ctl chime --event job-complete --file /usr/share/thinkin/chimes/done.pcm
+thinkin-ctl chime --list              # show all event→sound mappings
+thinkin-ctl volume 80                 # 0-100
+
+# Thermal and fans
+thinkin-ctl thermal --warn 75 --critical 90
+thinkin-ctl fans --curve aggressive
+thinkin-ctl fans --curve silent
+thinkin-ctl fans --set 60             # manual override, 60% duty
+
+# LED panel
+thinkin-ctl led --mode thermal
+thinkin-ctl led --mode badapple
+thinkin-ctl led --mode host           # Zynq pushes frames
+
+# Status
+thinkin-ctl status                    # dump full machine state from R5
+```
+
+Under the hood, `thinkin-ctl` writes structured commands to `/dev/rpmsg-bmc` (core 0) or `/dev/rpmsg-hypercube` (core 1). It's maybe 500 lines of Python wrapping the rpmsg character devices.
+
+### Sidebar Styling: `sidebar.css`
+
+The HUD layout is defined by a CSS-like configuration file at `/etc/thinkin/sidebar.css`. The R5's HUD renderer parses a simplified subset of CSS that maps to its text-mode blitter. This isn't a browser — it's a 60-column × 37-row character grid — but CSS syntax is familiar and expressive enough to define what goes where.
+
+```css
+/* /etc/thinkin/sidebar.css */
+
+sidebar {
+    width: 480px;
+    height: 1080px;
+    background: #000000;
+    font: 8x16 vga;
+    color: #cccccc;
+}
+
+led-mirror {
+    position: top;
+    width: 448px;
+    height: 448px;
+    scale: 7x;
+    border: 16px solid #000000;
+}
+
+section#header {
+    border-bottom: double;
+    color: #ffffff;
+    text-align: center;
+    content: "THINKIN MACHINE II";
+}
+
+section#system {
+    label: "SYSTEM";
+    border-bottom: single;
+    color: #88ff88;
+}
+
+section#system field#uptime    { source: bmc.uptime;    format: "DDd HHh MMm SSs"; }
+section#system field#load      { source: linux.loadavg;  format: "%.2f %.2f %.2f"; }
+section#system field#temps     { source: bmc.temps;      format: "%s %d°C"; columns: 2; }
+section#system field#hostname  { source: linux.hostname;  }
+section#system field#ip        { source: linux.ip;        }
+
+section#hypercube {
+    label: "HYPERCUBE";
+    border-bottom: single;
+    color: #88ccff;
+}
+
+section#hypercube field#cards  { source: r5_1.cards_alive;  format: "%d / 16"; }
+section#hypercube field#nodes  { source: r5_1.nodes_alive;  format: "%d / 4096"; }
+section#hypercube field#tdma   { source: r5_1.tdma_state;   }
+section#hypercube field#errors { source: r5_1.uart_errors;  format: "%d errors/hour"; }
+
+section#job {
+    label: "CURRENT JOB";
+    border-bottom: single;
+    color: #ffcc44;
+    visible: r5_1.job_active;
+}
+
+section#job field#name      { source: r5_1.job_name; }
+section#job field#progress  { source: r5_1.job_progress; format: bar; width: 20; }
+section#job field#elapsed   { source: r5_1.job_elapsed;  format: "HH:MM:SS"; }
+section#job field#phase     { source: r5_1.job_phase; }
+
+section#thermal {
+    label: "THERMAL";
+    border-bottom: single;
+    color: #ff8844;
+}
+
+section#thermal field#hottest { source: r5_1.hottest_node; format: "card %02d node %03d  %d°C"; }
+section#thermal field#coolest { source: r5_1.coolest_node; format: "card %02d node %03d  %d°C"; }
+section#thermal field#fans    { source: bmc.fan_rpm; format: "%d  %d  %d  %d"; }
+
+section#events {
+    label: "LAST EVENT";
+    border-top: single;
+    position: bottom;
+    color: #aaaaaa;
+    lines: 3;
+    source: bmc.event_log;
+}
+
+/* Conditional styling */
+section#system field#temps[value > 80] { color: #ff4444; }
+section#hypercube field#cards[value < 16] { color: #ff4444; }
+field#linux-status[value = "DEAD"] { color: #ff0000; blink: true; }
+```
+
+The R5 HUD renderer reads this file once at startup (or on `thinkin-ctl sidebar --reload`) and builds an internal layout table: which sections exist, what order they appear in, which telemetry sources feed each field, and how to format them. Every frame, it walks the layout table, reads the corresponding AXI register or DDR4 mailbox value for each field, formats the string, and blits it into the sidebar framebuffer.
+
+The `source` property maps directly to memory-mapped values:
+- `bmc.*` — values R5 core 0 reads from PS peripherals (SYSMON, fan tach, event log)
+- `r5_1.*` — values R5 core 1 writes into the shared thermal table and job state region
+- `linux.*` — values the thinkin-daemon writes into the shared mailbox
+
+The `visible` property allows sections to appear and disappear based on machine state — the job section only renders when a job is active, for example.
+
+The `format: bar` property renders a progress bar using Unicode block characters (▏▎▍▌▋▊▉█) for smooth visual feedback.
+
+Conditional styling uses bracket selectors. When a temperature exceeds 80°C, it turns red. When cards go offline, the count turns red. When Linux is dead, the status field blinks. The R5 evaluates these conditions every frame.
+
+Users can edit this file, run `thinkin-ctl sidebar --reload`, and see the changes on the next monitor refresh. No recompile, no reboot, no firmware update. The sidebar becomes customizable the way a Linux desktop is customizable — with a text file and a reload command.
 
 ### BMC Implementation Plan and Effort Estimates
 
