@@ -416,6 +416,7 @@ body.tm-lightbox-open {
       <li><a href="16NodeMachine.html">16 Node Prototypes</a></li>
       <li><a href="HypercubeTDMA.html">Hypercube TDMA</a></li>
       <li><a href="OrthoRoute.html">OrthoRoute</a></li>
+      <li><a href="ThinkinController.html">ARM/FPGA Controller</a></li>
       <li><a href="AG32SDK.html">AG32 SDK</a></li>
       <li><a href="StarC.html">StarC</a></li>
       <li><a href="CM1Implementation.html">CM-1 Implementation</a></li>
@@ -1573,6 +1574,51 @@ You can run OrthoRoute yourself [by downloading it from the repo](https://github
     Download OrthoRoute (GitHub)
   </a>
 </div>
+
+## The Controller Board
+
+The Connection Machine was the fastest computer on the planet, but it was also just a coprocessor. There was no video out, general purpose serial ports, or anything to connect the Connection Machine to the outside world, save for a connection to a VAX or a Symbolics Lisp machine. The front end of the Connection Machine was just a computer, so I need to design my own computer.
+
+You might think that I would just connect a Raspberry Pi to the backplane, or build a PCB with an Allwinner chip or something. This will not work, because the backplane requires sixteen high-speed serial links to each card. The main controller will need to generate [TDMA timing signals](https://bbenchoff.github.io/pages/HypercubeTDMA.html). This is not a job for a normal ARM chip running Linux, but it's also not a job for an FPGA; this machine needs to run Linux, with Ethernet and a whole bunch of ports. So I need both an FPGA and a chip that runs Linux.
+
+[PICTURE OF BOARD]
+
+This is a job for an [AMD/Xilinx Zynq UltraScale+](https://www.amd.com/en/products/adaptive-socs-and-fpgas/soc/zynq-ultrascale-plus-mpsoc.html) processor. It's a System on Chip with a dual-core ARM Cortex-A53, two additional ARM Cortex-R5 cores for real-time processing, and an FPGA bolted to the silicon. The specs for the complete board are:
+
+  <div class="table-wrap">                                                                                                                                                                                                 
+  <table class="matrix-table">
+  <tr>
+    <th>Subsystem</th>
+    <th>Specification</th>
+  </tr>
+  <tr><td>CPU</td><td>Dual-core ARM Cortex-A53 @ 1.5 GHz + Dual Cortex-R5F real-time cores</td></tr>
+  <tr><td>GPU</td><td>Mali-400 MP2</td></tr>
+  <tr><td>FPGA Fabric</td><td>47,000 LUTs (Zynq UltraScale+ ZU2EG)</td></tr>
+  <tr><td>System Memory</td><td>4 GB DDR4-2400, 32-bit bus (2× Micron MT40A1G16TB-062E)</td></tr>
+  <tr><td>Storage</td><td>1 TB M.2 NVMe over PCIe Gen2 ×1 (~500 MB/s), via PS-GTR Lane 2</td></tr>
+  <tr><td>Ethernet</td><td>Gigabit, Realtek RTL8211EG PHY, RGMII to Zynq GEM3</td></tr>
+  <tr><td>USB</td><td>4× USB 3.0 (5 Gbps), TI TUSB8043A 4-port hub, Microchip USB3300 ULPI PHY</td></tr>
+  <tr><td>Display</td><td>DisplayPort 1.2, 2-lane. Up to 4K@30Hz or 1080p@60Hz</td></tr>
+  <tr><td>Audio</td><td>TI PCM5102A I2S DAC → 3.5mm TRS jack (headphones) or Diodes PAM8302A 2.5W Class-D amp (internal speaker).</td></tr>
+  <tr><td>Backplane Interface</td><td>16 independent UART channels + TDMA sync + LED SPI, all in FPGA fabric.</td></tr>
+  </table>
+  </div>
+
+The Internet is going to compare this to a Raspberry Pi, so let me preempt that: _on paper_, it's kinda like a Raspberry Pi 3, with the Cortex-A53 running at 1.5GHz. _In reality_, the DDR4 is a vast improvement over the Pi3's LPDDR2. There's actual NVMe storage on this thing, USB3 and Gigabit Ethernet. The 'desktop feel' and vibe is much faster than the decade-old Raspberry Pi 3.
+
+### Exploiting Real Time Cores
+
+Using a combination FPGA/ARM chip makes perfect sense for this application. The FPGA can instantiate all the serial transceivers I need for the hypercube tree, and it can generate the TDMA signals. The chip I'm using has a few more interesting features, like the dual Cortex-R5 cores. These are real-time processors that control the hypercube hardware directly. The R5 cluster drives all 16 backplane UARTs, generates the TDMA timing clock, controls the LED panel, and manages the fans. Linux talks to the R5 over a mailbox interface, but never touches the hypercube hardware.
+
+Because all the peripherals on this controller board go through pins accessible to the FPGA, the R5 cores, and the Cortex-A53, I can do some really cool stuff. I dropped an I2S audio chip on the board, just so Linux could have audio. But the R5 cores also have access to the I2S lines, meaning I can have a 'boot chime' that plays _instantly_ after I flip the power switch before Linux even boots. It's just like an old Mac or a Sun workstation.
+
+The DisplayPort is also accessible from the R5 cores, which means I can display a Linux desktop and data from the hypercube simultaneously. The DisplayPort DMA engine has a  [few registers](https://github.com/Xilinx/embeddedsw/blob/master/XilinxProcessorIPLib/drivers/dpdma/src/xdpdma.h) that set the display width and memory stride independently. This means Linux can render 1440 pixels of a 1920-pixel framebuffer, and the R5 cores own the remaining 480 pixels. The result is a 4:3 Linux desktop on the left side of a 16:9 monitor, with a live operator console on the right showing live updates from the hypercube. It's the coolest thing you've ever seen:
+
+[SCREENCAP OF STRIDE CONTROLLER OPERATOR SCREEN HERE]
+
+The R5 cluster also functions as a Baseboard Management Controller. Because the R5 cores operate in a separate power domain from the A53, a Linux kernel panic doesn't affect the hypercube. I can SSH into the BMC over Ethernet, restart Linux, and the hypercube never notices. You simply couldn't do that with a Raspberry Pi.
+
+All the documentation for the Controller Board is available [on the relevant project page](https://bbenchoff.github.io/pages/ThinkinController.html).
 
 ## Mechanical Design
 
