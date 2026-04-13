@@ -274,18 +274,18 @@ The heart of the power supply is a **TI TPS6508640RSKR** (IC1, LCSC C2659217), a
 | PMIC Output | Type | Net Name | Voltage | Zynq Rail | External Components |
 | :--- | :--- | :--- | :--- | :--- | :--- |
 | BUCK1 | Controller (ext FETs) | `+3V3` | 3.3V | HD bank VCCO (24/25/26/44), ETH PHY, USB hub/PHY, QSPI, SD, DP, oscillators, backplane buffers, all pullups. Also feeds PVIN3/4/5 for converters. | CSD87381P (U23), 0.47µH inductor, 2x 22µF 25V in, 6x 22µF out |
-| BUCK2 | Controller (ext FETs) | `+0.85V_VCCINT` | 0.85V | VCCINT + VCCBRAM + VCCINT_IO + VCC_PSINTFP + VCC_PSINTLP (42 balls total — all core silicon) | CSD87381P (U24), 0.47µH inductor, 2x 22µF 25V in, 6x 22µF out |
-| BUCK3 | Converter (internal) | `+1.2V_MGTAVTT` | 1.2V | VMGTAVTT (GTR transceiver termination) | 0.47µH inductor, 10µF in, 4x 22µF out |
-| BUCK4 | Converter (internal) | `+0.9V_MGTAVCC` | 0.9V | VMGTAVCC (GTR transceiver analog) | 0.47µH inductor, 10µF in, 4x 22µF out |
+| BUCK2 | Controller (ext FETs) | `+0V85_VCCINT` | 0.85V | VCCINT + VCCBRAM + VCCINT_IO + VCC_PSINTFP + VCC_PSINTLP (42 balls total — all core silicon) | CSD87381P (U24), 0.47µH inductor, 2x 22µF 25V in, 6x 22µF out |
+| BUCK3 | Converter (internal) | `+1V2_MGTAVTT` | 1.2V | VMGTAVTT (GTR transceiver termination) | 0.47µH inductor, 10µF in, 4x 22µF out |
+| BUCK4 | Converter (internal) | `+0V9_MGTAVCC` | 0.9V | VMGTAVCC (GTR transceiver analog) | 0.47µH inductor, 10µF in, 4x 22µF out |
 | BUCK5 | Converter (internal) | `+1.8V` | 1.8V | VCCAUX + VCC_PSAUX + VCC_PSDDR_PLL | 0.47µH inductor, 10µF in, 4x 22µF out |
-| BUCK6 | Controller (ext FETs) | `+1.2V_VDDQ` | 1.2V | VCC_PSDDR + DDR4 VDDQ | CSD87381P (U25), 0.47µH inductor, 2x 22µF 25V in, 4x 22µF out |
-| VTT LDO | Tracking (VDDQ/2) | `+0.6V_VTT` | 0.6V | DDR4 fly-by termination | 10µF in (from BUCK6), 2x 22µF out |
-| LDOA1 | LDO | `+2.5V_VPP` | 2.5V | DDR4 VPP | 4.7µF out |
-| LDOA2 | LDO | `+1.5V_LDOA2` | 1.5V | Available | 4.7µF out |
-| LDOA3 | LDO | `+1.2V_LDOA3` | 1.2V | Available | 4.7µF out |
-| SWA1 | Load switch | `+3.3V_PSIO` | 3.3V | VCCO_PSIO (MIO banks 500/501) | 0.1µF out, fed from BUCK1 |
-| SWB1 | Load switch | `+1.8V_MGTAVCCAUX` | 1.8V | VMGTAVCCAUX (GTR aux) | 0.1µF out, fed from BUCK5 |
-| SWB2 | Load switch | `+1.8V_SWB2` | 1.8V | Spare | 0.1µF out, fed from BUCK5 |
+| BUCK6 | Controller (ext FETs) | `+1V2_VDDQ` | 1.2V | VCC_PSDDR + DDR4 VDDQ | CSD87381P (U25), 0.47µH inductor, 2x 22µF 25V in, 4x 22µF out |
+| VTT LDO | Tracking (VDDQ/2) | `+0V6_VTT` | 0.6V | DDR4 fly-by termination | 10µF in (from BUCK6), 2x 22µF out |
+| LDOA1 | LDO | `+2V5_VPP` | 2.5V | DDR4 VPP | 4.7µF out |
+| LDOA2 | LDO | `+1V5_LDOA2` | 1.5V | Available | 4.7µF out |
+| LDOA3 | LDO | `+1V2_LDOA3` | 1.2V | Available | 4.7µF out |
+| SWA1 | Load switch | `+3V3_PSIO` | 3.3V | VCCO_PSIO (MIO banks 500/501) | 0.1µF out, fed from BUCK1 |
+| SWB1 | Load switch | `+1V8_MGTAVCCAUX` | 1.8V | VMGTAVCCAUX (GTR aux) | 0.1µF out, fed from BUCK5 |
+| SWB2 | Load switch | `+1V8_SWB2` | 1.8V | Spare | 0.1µF out, fed from BUCK5 |
 
 **Internal supply rails (not output rails — used inside the PMIC):**
 
@@ -332,18 +332,18 @@ I2C is not required for normal operation — all voltages and sequencing are har
 **Power-up sequence (from OTP, zero software, per datasheet Figure 7-4):**
 
 1. VSYS exceeds 5.6V → internal LDO5 (5V) and LDO3P3 (3.3V) start, I2C becomes available
-2. CTL3 is high (pulled up at power-on) → **BUCK2 starts: `+0.85V_VCCINT`** — all Zynq core power
+2. CTL3 is high (pulled up at power-on) → **BUCK2 starts: `+0V85_VCCINT`** — all Zynq core power
 3. GPO1 asserts (BUCK2 power-good) → CTL4 goes high
 4. CTL4 high → **BUCK1 starts: `+3V3`** — all peripherals, and input power for BUCK3/4/5 converters
-5. **BUCK4 starts: `+0.9V_MGTAVCC`** — GTR analog supply
+5. **BUCK4 starts: `+0V9_MGTAVCC`** — GTR analog supply
 6. GPO4 asserts (BUCK4 power-good)
-7. **BUCK3 starts: `+1.2V_MGTAVTT`** (2ms delay) — GTR termination
+7. **BUCK3 starts: `+1V2_MGTAVTT`** (2ms delay) — GTR termination
 8. **BUCK5 starts: `+1.8V`** — VCCAUX, PS auxiliary, DDR PLL
-9. **SWB1 starts: `+1.8V_MGTAVCCAUX`** — GTR auxiliary
-10. **LDOA1 starts: `+2.5V_VPP`** (2ms delay) — DDR4 programming voltage
-11. **SWA1 starts: `+3.3V_PSIO`** — MIO bank VCCO
-12. **BUCK6 starts: `+1.2V_VDDQ`** — DDR4 VDDQ (enabled by CTL1 + CTL5)
-13. **VTT LDO starts: `+0.6V_VTT`** — DDR4 termination (tracks VDDQ/2)
+9. **SWB1 starts: `+1V8_MGTAVCCAUX`** — GTR auxiliary
+10. **LDOA1 starts: `+2V5_VPP`** (2ms delay) — DDR4 programming voltage
+11. **SWA1 starts: `+3V3_PSIO`** — MIO bank VCCO
+12. **BUCK6 starts: `+1V2_VDDQ`** — DDR4 VDDQ (enabled by CTL1 + CTL5)
+13. **VTT LDO starts: `+0V6_VTT`** — DDR4 termination (tracks VDDQ/2)
 14. GPO3 goes high (75ms delay) → **PS_POR_B released** — Zynq begins boot
 
 This matches the Xilinx UG1085 required power-up order: VCCINT first, then VCCAUX, then VCCO banks, then DDR, then VTT, then POR_B. Violating this order can damage the Zynq. The OTP-hardcoded sequence prevents this without any software involvement.
@@ -355,8 +355,8 @@ The three buck controllers (BUCK1, BUCK2, BUCK6) use D-CAP2 topology with extern
 | Ref | PMIC Pins | FET | Output | Inductor | Input Caps | Output Caps |
 | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
 | U23 | DRVH1(33), SW1(34), BOOT1(35), PGNDSNS1(36), DRVL1(37), FBVOUT1(29), ILIM1(30) | CSD87381P | `+3V3` 3.3V | 0.47µH (C54321646) | 2x 22µF 25V (C398931) | 6x 22µF 6.3V (C109448) |
-| U24 | DRVH2(3), SW2(4), BOOT2(5), PGNDSNS2(6), DRVL2(7), FBVOUT2(2), FBGND2(1), ILIM2(64) | CSD87381P | `+0.85V_VCCINT` 0.85V | 0.47µH (C54321646) | 2x 22µF 25V (C398931) | 6x 22µF 6.3V (C109448) |
-| U25 | DRVH6(43), SW6(42), BOOT6(41), PGNDSNS6(40), DRVL6(39), FBVOUT6(44), ILIM6(45) | CSD87381P | `+1.2V_VDDQ` 1.2V | 0.47µH (C54321646) | 2x 22µF 25V (C398931) | 4x 22µF 6.3V (C109448) |
+| U24 | DRVH2(3), SW2(4), BOOT2(5), PGNDSNS2(6), DRVL2(7), FBVOUT2(2), FBGND2(1), ILIM2(64) | CSD87381P | `+0V85_VCCINT` 0.85V | 0.47µH (C54321646) | 2x 22µF 25V (C398931) | 6x 22µF 6.3V (C109448) |
+| U25 | DRVH6(43), SW6(42), BOOT6(41), PGNDSNS6(40), DRVL6(39), FBVOUT6(44), ILIM6(45) | CSD87381P | `+1V2_VDDQ` 1.2V | 0.47µH (C54321646) | 2x 22µF 25V (C398931) | 4x 22µF 6.3V (C109448) |
 
 Each controller also has a 100nF bootstrap capacitor between BOOTx and SWx (floats — neither side to GND), and an ILIM resistor to GND (currently 10kΩ placeholder — final value TBD per SLVUAJ9 Equation 5). BUCK2 uniquely has FBGND2 (pin 1), a remote negative feedback sense that routes to the output capacitor ground pad on the PCB.
 
@@ -388,7 +388,7 @@ Two TPS568215 synchronous buck converters provide dedicated high-current supplie
 
 | Part | Ref | Net | Output | Feeds | Status |
 | :--- | :--- | :--- | :--- | :--- | :--- |
-| TI TPS568215RNNR | U20 | `+3.3V_NVMe` | 3.3V | M.2 NVMe drive (dedicated supply for 3A write spikes) | **Wired** |
+| TI TPS568215RNNR | U20 | `+3V3_NVMe` | 3.3V | M.2 NVMe drive (dedicated supply for 3A write spikes) | **Wired** |
 | TI TPS568215RNNR | U21 | `+5V_USB` | 5.0V | USB VBUS (4 ports × 500mA = 2A) | **Wired** |
 | TI TPS74801DRCR | U22 | `+1.1V` | 1.1V | TUSB8043A USB hub core (VDD pins, ~300mA) | Wired on PS_GTR sheet |
 
@@ -406,7 +406,7 @@ The TPS568215 is an 18-pin monolithic synchronous buck converter with internal F
 | 13 | FB | Divider: 45.3kΩ to output, 10kΩ to GND | Divider: **73.2kΩ** to output, 10kΩ to GND |
 | 14 | SS | Float (1ms default soft-start) | Float |
 | 15 | EN | 100kΩ to `+12V` (enables on power-up) | 100kΩ to `+12V` |
-| 16 | PGOOD | 10kΩ pullup to `+3.3V_NVMe` | 10kΩ pullup to `+5V_USB` |
+| 16 | PGOOD | 10kΩ pullup to `+3V3_NVMe` | 10kΩ pullup to `+5V_USB` |
 | 17 | VREG5 | 4.7µF cap to GND | 4.7µF cap to GND |
 | 18 | MODE | 10kΩ to GND (400kHz DCM) | 10kΩ to GND (400kHz DCM) |
 
@@ -2373,6 +2373,122 @@ All PMIC pins wired. All three CSD87381P external FET circuits wired (U23/BUCK1,
 Both U20 (3.3V NVMe) and U21 (5V USB VBUS) are fully wired on Power_Supply.kicad_sch with feedback dividers, bootstrap caps, input/output caps, inductors, enable resistors, mode selection, PGOOD pullups, and VREG5 bypass caps.
 
 **Power supply schematic status: COMPLETE.** All four power ICs (IC1, U20, U21, U22) are fully wired. Every power rail on the board has a source.
+
+**Zynq power pin wiring status: COMPLETE.** All power, ground, and configuration pins on U1 (Power_Zynq sheet) are connected to their respective rails with decoupling capacitors placed per AMD Answer Record 000039033.
+
+**Complete Power Net Master List (as implemented in KiCad):**
+
+*Rails that connect to Zynq power pins:*
+
+| Net Name | Voltage | Source | Zynq Pins | Balls | Decoupling Caps |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| `+0V85_VCCINT` | 0.85V | IC1 BUCK2 (U24 FET) | VCCINT (18), VCCBRAM (4), VCCINT_IO (4), VCC_PSINTFP (7), VCC_PSINTFP_DDR (3), VCC_PSINTLP (6) | 42 balls | 1x 330µF, 7x 100µF, 2x 47µF, 5x 10µF |
+| `+1V8` | 1.8V | IC1 BUCK5 | VCCAUX (2), VCCAUX_IO (3), VCCADC (1, filtered), VCC_PSAUX (4), VCC_PSDDR_PLL (2, filtered), VCC_PSPLL (3), VCC_PSADC (1, filtered), VCCO_PSIO2_502 (2), VCC_PSBATT (1), VCCO_64/65/66 (9, HP banks unused but powered) | 28 balls | 2x 100µF, 4x 47µF, 10x 10µF, 3x ferrite beads |
+| `+3V3` | 3.3V | IC1 BUCK1 (U23 FET) | VCCO_24 (2), VCCO_25 (2), VCCO_26 (2), VCCO_44 (2) | 8 balls | 4x 47µF, 4x 10µF |
+| `+3V3_PSIO` | 3.3V | IC1 SWA1 | VCCO_PSIO0_500 (3), VCCO_PSIO1_501 (2), VCCO_PSIO3_503 (2) | 7 balls | 1x 100µF, 3x 10µF |
+| `+1V2_VDDQ` | 1.2V | IC1 BUCK6 (U25 FET) | VCCO_PSDDR_504 (7) | 7 balls | 1x 100µF, 1x 10µF |
+| `+0V9_MGTAVCC` | 0.9V | IC1 BUCK4 | PS_MGTRAVCC (2) | 2 balls | 1x 10µF |
+| `+1V2_MGTAVTT` | 1.2V | IC1 BUCK3 | PS_MGTRAVTT (4) | 4 balls | 1x 10µF |
+
+Also on Power_Zynq: POR_OVERRIDE (W7) → GND. PS_MGTRREF_505 (F22) → 240Ω to GND. RSVDGND (5 pins) → GND. GND (131 pins) + GNDADC (P13) + GND_PSADC (W20) → GND.
+
+Per-bank sub-nets created in KiCad for layout flexibility (all connect to parent rail): `+3V3_VCCO_24`, `+3V3_VCCO_25`, `+3V3_VCCO_26`, `+3V3_VCCO_44`, `+3V3_PSIO_VCCO_PSIO0_500`, `+3V3_PSIO_VCCO_PSIO1_501`, `+3V3_PSIO_VCCO_PSIO3_503`, `+1V8_VCCO_PSIO2_502`. These sub-nets allow separate decoupling islands per bank on the PCB while sharing the same power source.
+
+Filtered pins: VCCADC (P12), VCC_PSDDR_PLL (U16, U18), and VCC_PSADC (Y20) each connect to `+1V8` through an LC filter (ferrite bead ~470Ω@100MHz in series, then 10µF cap to GND on the pin side) to isolate sensitive analog/PLL supplies from switching noise.
+
+*Rails that do NOT connect to Zynq pins — they go to other chips and connectors:*
+
+| Net Name | Voltage | Source | Where It Goes | Sheet |
+| :--- | :--- | :--- | :--- | :--- |
+| `+0V6_VTT` | 0.6V | IC1 VTT LDO (tracks VDDQ/2) | DDR4 fly-by termination resistor network. Terminates the address/command/clock signals at the far end of the fly-by chain after the last DDR4 chip. | PS_DDR |
+| `+2V5_VPP` | 2.5V | IC1 LDOA1 | DDR4 VPP (programming voltage). Required by the DDR4 spec for internal wordline boosting in the DRAM array. Connected to the VPP pin on both MT40A1G16TB chips. | PS_DDR |
+| `+1V8_MGTAVCCAUX` | 1.8V | IC1 SWB1 | PS-GTR transceiver auxiliary supply. Powers the analog auxiliary circuits in the GTR quad (Bank 505). Connects near the GTR reference clock oscillators and transceiver pins. | PS_GTR |
+| `+3V3_NVMe` | 3.3V | U20 TPS568215 | M.2 NVMe connector (J11) 3.3V power pins. Dedicated high-current supply isolated from main `+3V3` to handle 3A write spikes without drooping the peripheral rail. | PS_GTR |
+| `+5V_USB` | 5.0V | U21 TPS568215 | USB-A VBUS pins on all four USB ports (J4, J12, and two others). This is bus power for plugged-in USB devices per the USB spec. No chip on the board runs at 5V — this is purely for external devices. | PS_GTR |
+| `+1V5_LDOA2` | 1.5V | IC1 LDOA2 | **Spare.** 600mA LDO output, currently unassigned. Available for future use (e.g. VCCO for an HP bank if ever activated, or an external peripheral). | Power_Supply |
+| `+1V2_LDOA3` | 1.2V | IC1 LDOA3 | **Spare.** 600mA LDO output, currently unassigned. Available for future use. | Power_Supply |
+| `+1V8_SWB2` | 1.8V | IC1 SWB2 | **Spare.** 300mA load switch output, currently unassigned. Available for future use. | Power_Supply |
+
+*Internal PMIC rails (not output rails — used inside the PMIC only):*
+
+| Net Name | Voltage | Source | Purpose |
+| :--- | :--- | :--- | :--- |
+| `+3.3V_PMIC` | 3.3V | IC1 LDO3P3 (pin 54) | PMIC internal digital logic. Powers CTL pin pullups, I2C pullups (SCL/SDA to MIO24/25), GPO pullups, IRQB pullup. 40mA max — do not load externally. |
+| `+5V_DRV` | 5.0V | IC1 LDO5P0 (pin 56) | PMIC gate driver supply. Feeds DRV5V_2_A1 (pin 8) and DRV5V_1_6 (pin 38) which drive the CSD87381P FET gates. V5ANA (pin 57) shorted to this net. 100mA max — do not load externally. |
+| `+12V` | 12V | J2 JST VH connector | Board input power. Feeds VSYS (pin 55), all three controller FET drains (U23/U24/U25 VIN), and both TPS568215 VIN pins (U20/U21). 5A worst case at the connector. |
+
+**Zynq UltraScale+ Decoupling Capacitors (Power_Zynq sheet — COMPLETE):**
+
+Per AMD Answer Record 000039033, Table 161 (XCZU2EG-SFVC784 row) and Table 162 (PS rails). Capacitor specs from Table 170. All caps placed and wired on Power_Zynq sheet.
+
+Decoupling by pin block:
+
+| Pin Block | Net | Balls | 330µF | 100µF | 47µF | 10µF |
+| :--- | :--- | :--- | :--- | :--- | :--- | :--- |
+| VCCINT (18 pins) | `+0V85_VCCINT` | N11,N13,N15,P10,P14,P15,R10,R11,R14,T11,T15,U10,U14,U15,V10,V11,V12,V14 | 1 | 4 | 1 | 1 |
+| VCCBRAM (4 pins) | `+0V85_VCCINT` | L11,L12,M11,M12 | — | — | 1 | 1 |
+| VCCINT_IO (4 pins) | `+0V85_VCCINT` | K10,L10,M9,M10 | — | — | — | — |
+| VCC_PSINTFP (7 pins) | `+0V85_VCCINT` | AA15,AA16,AA17,AA18,AB16,Y15,Y17 | — | 1 | — | 1 |
+| VCC_PSINTFP_DDR (3 pins) | `+0V85_VCCINT` | AA20,AA21,Y19 | — | 1 | — | 1 |
+| VCC_PSINTLP (6 pins) | `+0V85_VCCINT` | V16,V17,V18,W15,W16,W17 | — | 1 | — | 1 |
+| VCCAUX (2 pins) | `+1V8` | M16,N16 | — | — | 1 | 1 |
+| VCCAUX_IO (3 pins) | `+1V8` | M13,M14,M15 | — | — | — | — |
+| VCCADC (1 pin, filtered) | `+1V8` | P12 | — | — | — | 1 |
+| VCC_PSAUX (4 pins) | `+1V8` | U19,U20,V19,W19 | — | 1 | — | 1 |
+| VCC_PSDDR_PLL (2 pins, filtered) | `+1V8` | U16,U18 | — | — | — | 1 |
+| VCC_PSPLL (3 pins) | `+1V8` | T16,T17,T18 | — | 1 | — | 1 |
+| VCC_PSADC (1 pin, filtered) | `+1V8` | Y20 | — | — | — | 1 |
+| VCCO_PSIO2_502 (2 pins) | `+1V8` | D18,G17 | — | — | — | 1 |
+| VCCO_64 (3 pins, unused HP) | `+1V8` | AC5,AD8,AG7 | — | — | 1 | 1 |
+| VCCO_65 (3 pins, unused HP) | `+1V8` | H5,J3,L4 | — | — | 1 | 1 |
+| VCCO_66 (3 pins, unused HP) | `+1V8` | B7,D3,E6 | — | — | 1 | 1 |
+| VCC_PSBATT (1 pin) | `+1V8` | Y18 | — | — | — | 1 |
+| VCCO_24 (2 pins) | `+3V3` | AA14,AD13 | — | — | 1 | 1 |
+| VCCO_25 (2 pins) | `+3V3` | B12,E11 | — | — | 1 | 1 |
+| VCCO_26 (2 pins) | `+3V3` | C15,F14 | — | — | 1 | 1 |
+| VCCO_44 (2 pins) | `+3V3` | AC10,AG12 | — | — | 1 | 1 |
+| VCCO_PSIO0_500 (3 pins) | `+3V3_PSIO` | AB17,AE16,AG17 | — | 1 | — | 1 |
+| VCCO_PSIO1_501 (2 pins) | `+3V3_PSIO` | H20,L19 | — | — | — | 1 |
+| VCCO_PSIO3_503 (2 pins) | `+3V3_PSIO` | M17,P18 | — | — | — | 1 |
+| VCCO_PSDDR_504 (7 pins) | `+1V2_VDDQ` | AB22,AD23,AF24,P23,T24,V25,Y26 | — | 1 | — | 1 |
+| PS_MGTRAVCC (2 pins) | `+0V9_MGTAVCC` | B22,D22 | — | — | — | 1 |
+| PS_MGTRAVTT (4 pins) | `+1V2_MGTAVTT` | A23,C23,D25,E23 | — | — | — | 1 |
+
+Grand total Zynq decoupling: 1x 330µF, 11x 100µF, 10x 47µF, 26x 10µF = **48 capacitors** + 3 ferrite beads for filtered analog rails.
+
+LCSC parts for Zynq decoupling:
+
+| Value | Package | LCSC | Manufacturer | MPN | Price |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| 330µF | 1210 X6S 2.5V | C314600 | Murata | GRM32EC80E337ME05L | $0.76 |
+| 100µF | 0805 X5R 6.3V | C141660 | Murata | GRM21BR60J107ME15L | $0.14 |
+| 47µF | 0603 X5R 6.3V | C3848273 | Murata | GRM188R60J476ME01D | $0.06 |
+| 10µF | 0402 X5R 10V | C315248 | Samsung | CL05A106MP5NUNC | $0.005 |
+
+Placement per AMD Table 170: 10µF 0402 caps on PCB backside directly under BGA (0-1"). 47µF 0603 within 0.5-2". 100µF 0805 within 0.5-3". 330µF 1210 bulk cap within 1-4".
+
+Reference documents in `Controller/docs/`:
+- `ug583-ultrascale-pcb-design.pdf` — UG583 v1.29, full UltraScale PCB design guide
+- `Answer_Record_PCB_Decoupling_Capacitors.pdf` — AMD Answer Record 000039033, original decoupling tables
+| `+0V9_MGTAVCC` | PS_MGTRAVCC | — | 1 × 10µF |
+| `+1V2_MGTAVTT` | PS_MGTRAVTT | — | 1 × 10µF |
+
+Note: VCCADC and VCC_PSDDR_PLL require LC filtering from the `+1V8` rail per UG583 Chapter 5. VCC_PSADC also filtered.
+
+Recommended LCSC capacitor parts for Zynq decoupling:
+
+| Value | Package | LCSC | Manufacturer | MPN | Price |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| 330µF | 1210 X6S 2.5V | C314600 | Murata | GRM32EC80E337ME05L | $0.76 |
+| 100µF | 0805 X5R 6.3V | C141660 | Murata | GRM21BR60J107ME15L | $0.14 |
+| 47µF | 0603 X5R 6.3V | C3848273 | Murata | GRM188R60J476ME01D | $0.06 |
+| 10µF | 0402 X5R 10V | C315248 | Samsung | CL05A106MP5NUNC | $0.005 |
+
+Placement per AMD Table 170: 10µF 0402 caps go on PCB backside directly under the BGA (0-1"). 47µF 0603 caps within 0.5-2". 100µF 0805 caps within 0.5-3". 330µF 1210 bulk cap within 1-4".
+
+Reference documents in `Controller/docs/`:
+- `ug583-ultrascale-pcb-design.pdf` — UG583 v1.29, full UltraScale PCB design guide
+- `Answer_Record_PCB_Decoupling_Capacitors.pdf` — AMD Answer Record 000039033, original decoupling tables
 
 **PL Fabric TODO (remaining)**
 
