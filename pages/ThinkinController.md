@@ -1629,17 +1629,20 @@ The XCZU2EG-2SFVC784I symbol is split into 9 functional units across hierarchica
 
 | MIO Range | Function | Status |
 | :--- | :--- | :--- |
-| MIO0-5 | QSPI flash (SCLK, CS, IO0-IO3) | **TODO -- need QSPI chip, wiring** |
-| MIO6 or MIO7 | M.2 NVMe PERST# | **TODO -- move from MIO2** |
-| MIO8-9 | UART debug console (TX/RX) | **TODO -- need header or level shifter** |
-| MIO10-11 | RTC I2C (DS3231 via PS I2C0) | Done |
+| MIO0-5 | QSPI flash (W25Q512JVEIQ, SCLK, CS, IO0-IO3) | Done |
+| MIO6 | M.2 NVMe PERST# | Done |
+| MIO7 | Available | |
+| MIO8-9 | UART debug console (FT230XS USB-serial) | Done |
+| MIO10-11 | RTC I2C (DS3231M via PS I2C0) | Done |
 | MIO12 | Available | |
 | MIO13-22 | MicroSD card (SDIO0) | Done |
-| MIO23-26 | Available | |
+| MIO23 | Available | |
+| MIO24-25 | PMIC I2C (TPS6508640 via PS I2C1) | Done |
+| MIO26 | PMIC interrupt (PMIC_IRQ) | Done |
 | MIO27-30 | DisplayPort AUX + HPD | Done |
 | MIO31-37 | Available | |
-| MIO38-51 | Ethernet RGMII + MDIO | Done |
-| MIO52-63 | USB ULPI | Done |
+| MIO38-51 | Ethernet RGMII + MDIO (RTL8211EG) | Done |
+| MIO52-63 | USB ULPI (USB3300) | Done |
 | MIO64-77 | Available | |
 
 ### Gigabit Ethernet PHY (PS_MIO Sheet)
@@ -2499,73 +2502,87 @@ Placement per AMD Table 170: 10µF 0402 caps on PCB backside directly under BGA 
 Reference documents in `Controller/docs/`:
 - `ug583-ultrascale-pcb-design.pdf` — UG583 v1.29, full UltraScale PCB design guide
 - `Answer_Record_PCB_Decoupling_Capacitors.pdf` — AMD Answer Record 000039033, original decoupling tables
-| `+0V9_MGTAVCC` | PS_MGTRAVCC | — | 1 × 10µF |
-| `+1V2_MGTAVTT` | PS_MGTRAVTT | — | 1 × 10µF |
 
-Note: VCCADC and VCC_PSDDR_PLL require LC filtering from the `+1V8` rail per UG583 Chapter 5. VCC_PSADC also filtered.
+**Schematic Verification (April 2026):**
 
-Recommended LCSC capacitor parts for Zynq decoupling:
+**Round 1 — Cross-sheet audit:** Six issues found, all resolved:
 
-| Value | Package | LCSC | Manufacturer | MPN | Price |
-| :--- | :--- | :--- | :--- | :--- | :--- |
-| 330µF | 1210 X6S 2.5V | C314600 | Murata | GRM32EC80E337ME05L | $0.76 |
-| 100µF | 0805 X5R 6.3V | C141660 | Murata | GRM21BR60J107ME15L | $0.14 |
-| 47µF | 0603 X5R 6.3V | C3848273 | Murata | GRM188R60J476ME01D | $0.06 |
-| 10µF | 0402 X5R 10V | C315248 | Samsung | CL05A106MP5NUNC | $0.005 |
+| # | Issue | Resolution |
+| :--- | :--- | :--- |
+| 1 | VCCO_PSDDR_504 (7 pins) not connected to `+1V2_VDDQ` on Power_Zynq | **Fixed.** Added `+1V2_VDDQ` global label, wired all 7 pins, added decoupling. |
+| 2 | `+1V2_VDDQ`, `+0V6_VTT`, `+2V5_VPP` missing from PS_DDR sheet | **Fixed.** Added all three global labels. DDR4 VDD (ball B3) also connected to `+1V2_VDDQ`. All VSS/VSSQ to GND. |
+| 3 | `PS_POR_B` not connected to Zynq pin P16 | **Fixed.** Added `PS_POR_B` global label on PS_MIO sheet. |
+| 4 | `+1V8_MGTAVCCAUX` not reaching PS_GTR | **Not needed.** XCZU2EG has no MGTAVCCAUX pin. SWB1 output is spare. |
+| 5 | `1V8` label (missing + prefix) on Power_Supply | **Fixed.** Renamed to `+1V8`. |
+| 6 | `GND1` power symbol on Power_Supply | **Fixed.** Replaced with `GND`. |
 
-Placement per AMD Table 170: 10µF 0402 caps go on PCB backside directly under the BGA (0-1"). 47µF 0603 caps within 0.5-2". 100µF 0805 caps within 0.5-3". 330µF 1210 bulk cap within 1-4".
+**Minor fixes completed:**
+- RTL8211EG LED2 (pin 52): Already had NC marker. No action needed.
+- RTL8211EG REG_OUT (pin 3): Verified — decoupling caps to GND present.
+- DisplayPort CONFIG1/CONFIG2 (pins 13/14): Connected to GND (correct for source-side DP).
 
-Reference documents in `Controller/docs/`:
-- `ug583-ultrascale-pcb-design.pdf` — UG583 v1.29, full UltraScale PCB design guide
-- `Answer_Record_PCB_Decoupling_Capacitors.pdf` — AMD Answer Record 000039033, original decoupling tables
+**Round 2 — KiCad ERC.** Initial run: 907 entries. After fixes: 804 entries.
 
-**Schematic Verification Issues (found via automated cross-sheet audit, April 2026):**
+All peripheral IC power pin issues have been resolved:
 
-The following issues were found by a systematic verification of all schematic sheets. Issues #1-4 are board-killers that will prevent the board from functioning. All must be resolved before fabrication.
+| Chip | Sheet | Issue | Resolution |
+| :--- | :--- | :--- | :--- |
+| U22 (TPS74801 LDO) | PS_GTR | Entire chip was disconnected | **Fixed.** All 9 pins wired: IN/BIAS/EN to `+3V3`, GND, 47nF SS cap, FB divider (3.74kΩ/10kΩ for 1.1V), OUT to `+1V1_USB`, PG pullup. 10µF input cap, 22µF output cap. |
+| U5 (TUSB8043A USB hub) | PS_GTR | 12 power pins floating | **Fixed.** 8x VDD pins to `+1V1_USB` (from U22), 4x VDD33 pins to `+3V3`, each with 0.1µF bypass. |
+| U21 (TPS568215 5V USB) | Power_Supply_2 | VIN not connected | **Fixed.** Pin 2 (VIN) wired to `+12V`. |
+| U4 (RTL8211EG ETH PHY) | PS_MIO | 13 power/ground pins floating | **Fixed.** AVDD33/DVDD33 to `+3V3`, AVDD10/DVDD10 to internal REG_OUT net, VDDREG to `+3V3`, GND pin wired. All with 0.1µF bypass caps. |
+| U6 (USB3300 ULPI PHY) | PS_GTR | 8 pins floating | **Fixed.** VDD3.3 pins to `+3V3`, VBUS detect divider, VDD1.8/VDDA1.8 internal regulator outputs bypassed to GND (NOT connected to `+1V8` rail). |
+| USBC2 (USB-C debug) | PS_MIO | B6/B7 not connected | **Fixed.** Wired both DP2/DN2 data pairs (required for USB-C plug-flip). |
+| Y1, Y3 (oscillators) | PS_GTR | GND pins floating | **Fixed.** Wired to GND. |
+| Misc (J3, FB5, caps, etc.) | Various | Various floating items | **Fixed.** |
 
-| # | Severity | Sheet(s) | Issue | Fix |
-| :--- | :--- | :--- | :--- | :--- |
-| 1 | **CRITICAL** | Power_Zynq | `VCCO_PSDDR_504` (7 pins: AB22, AD23, AF24, P23, T24, V25, Y26) not connected to `+1V2_VDDQ`. The DDR4 I/O bank has no power supply. | Add `+1V2_VDDQ` global label on Power_Zynq, wire to all 7 VCCO_PSDDR_504 pins. Add decoupling: 1x 100µF (C141660) + 1x 10µF (C315248). |
-| 2 | **CRITICAL** | PS_DDR | `+1V2_VDDQ`, `+0V6_VTT`, and `+2V5_VPP` nets exist on Power_Supply but never appear on PS_DDR. The DDR4 chips (U2, U3) have no power, no termination voltage, and no VPP. PS_DDR has zero global labels. | Add `+1V2_VDDQ`, `+0V6_VTT`, `+2V5_VPP` global labels on PS_DDR sheet. Wire `+1V2_VDDQ` to DDR4 VDDQ pins, `+0V6_VTT` to the fly-by termination resistor network, `+2V5_VPP` to DDR4 VPP pins on both U2 and U3. |
-| 3 | **CRITICAL** | Config / PS_MIO | `PS_POR_B` is generated by IC1 GPO3 on Power_Supply but never reaches the Zynq. The Zynq PS_POR_B pin (P16) is not connected to this net on any other sheet. The Zynq will never come out of power-on reset. | Add `PS_POR_B` global label on Config or PS_MIO sheet. Wire to Zynq U1 pin P16 (PS_POR_B). |
-| 4 | **CRITICAL** | PS_GTR | `+1V8_MGTAVCCAUX` is generated by IC1 SWB1 on Power_Supply but never reaches the GTR transceiver circuitry. The PS-GTR auxiliary supply is disconnected. DisplayPort, USB 3.0, and PCIe may not function. | Add `+1V8_MGTAVCCAUX` global label on PS_GTR sheet. Wire to the GTR auxiliary supply pins / decoupling near the transceiver. |
-| 5 | **HIGH** | Power_Supply | A global label `1V8` (without the `+` prefix) exists as a separate net from `+1V8`. KiCad treats these as two completely different nets. Something on the power supply sheet is connected to a dead 1.8V rail. | Find the `1V8` label on Power_Supply and rename it to `+1V8`. |
-| 6 | **MEDIUM** | Power_Supply | A `GND1` power symbol (1 instance) exists alongside `GND` (36 instances). KiCad treats `GND1` as a separate ground net. If unintentional, this creates a ground island — a portion of the circuit with no return path. | Find the `GND1` symbol on Power_Supply. If it's a typo, change to `GND`. If intentional (e.g. isolated analog ground for AGND on the PMIC), verify it connects to `GND` at a single point on the PCB. |
+Remaining 804 ERC entries are:
+- **423 pin_not_connected:** 126 Zynq PL I/O pins + 175 backplane connector pins + 120 buffer IC pins = all deferred PL fabric work. Zero unexpected unconnected pins.
+- **199 unconnected_wire_endpoint:** Cosmetic — dangling wire stubs in the schematic. Clean up when convenient. Not functional issues.
+- **34 power_pin_not_driven:** False positives from KiCad ERC. These pins ARE connected to correct nets via global labels, but ERC wants a `PWR_FLAG` symbol on the net. All verified correct — add `PWR_FLAG` symbols to suppress if desired.
+- **29 pin_to_pin:** Informational — two outputs on same net. Normal for power distribution.
+- **23 same_local_global_label:** Warning — same name used as local and global label. Cosmetic.
+- **11 footprint_link_issues, 7 lib_symbol_mismatch:** Library housekeeping. Check before fab.
+- **4 multiple_net_names:** Nets with aliases. Verify intentional.
+- **3 misc:** DRVL1 isolated label (stray on Power_Supply), UART0_USB+/USB- dangling labels (stubs on PS_MIO). Clean up when convenient.
 
-**Verification results that PASSED:**
-- IC1 (TPS6508640): All 65 pins connected, zero floating pins
-- U23/U24/U25 (CSD87381P FETs): All 5 pins each connected correctly
-- U20/U21 (TPS568215): Present on secondary power sheet, wired
+**Verified and passing:**
+- IC1 (TPS6508640 PMIC): All 65 pins connected, zero floating pins
+- U23/U24/U25 (CSD87381P FETs): All wired correctly
+- U20 (TPS568215 3.3V NVMe): Wired on Power_Supply_2
+- U21 (TPS568215 5V USB VBUS): Wired on Power_Supply_2
+- U22 (TPS74801 1.1V USB hub LDO): Wired on PS_GTR, output = `+1V1_USB`
+- U4 (RTL8211EG Ethernet PHY): All power pins wired with bypass caps
+- U5 (TUSB8043A USB hub): All VDD (1.1V) and VDD33 (3.3V) pins wired with bypass caps
+- U6 (USB3300 ULPI PHY): All power pins wired, internal 1.8V regulators bypassed correctly
+- U7 (W25Q512JVEIQ QSPI flash): Wired on PS_MIO
+- U8 (FT230XS UART bridge): Wired on PS_MIO
+- U9 (PCM5102A audio DAC): Wired on Peripherals
+- U10 (PAM8302A audio amp): Wired on Peripherals
+- U11 (AMS1117-5.0): Wired on Peripherals
+- U12 (AMS1117-3.3): Wired on Peripherals
+- U13 (DS3231M RTC): Wired on Peripherals
 - All 42 VCCINT-domain Zynq pins: Connected to `+0V85_VCCINT`
 - All VCCAUX/VCC_PSAUX/VCC_PSPLL pins: Connected to `+1V8`
 - All HD bank VCCO pins: Connected to per-bank sub-nets of `+3V3`
 - All HP bank VCCO pins: Connected to `+1V8` (unused banks, powered to prevent floating)
 - All PS MIO bank VCCO pins: Connected to correct voltage nets
-- PS_MGTRAVCC (2 pins): Connected to `+0V9_MGTAVCC`
-- PS_MGTRAVTT (4 pins): Connected to `+1V2_MGTAVTT`
+- VCCO_PSDDR_504 (7 pins): Connected to `+1V2_VDDQ`
+- PS_MGTRAVCC/PS_MGTRAVTT: Connected to `+0V9_MGTAVCC`/`+1V2_MGTAVTT`
 - POR_OVERRIDE (W7): Connected to GND
-- 28 NC pins: All have no-connect markers
-- 131 GND + GNDADC + GND_PSADC + 5 RSVDGND: All connected to GND
-- 3 ferrite beads for VCCADC, VCC_PSDDR_PLL, VCC_PSADC: Present
-- 42 decoupling caps on Power_Zynq sheet: Placed and wired
-- PMIC_SCL/SDA/IRQ: Cross-sheet connection to PS_MIO verified (MIO24/25/26)
-- `+3V3_NVMe` and `+5V_USB`: Cross-sheet connection to PS_GTR verified
+- PS_POR_B (P16): Connected to PMIC GPO3
+- DDR4 power: `+1V2_VDDQ`, `+0V6_VTT`, `+2V5_VPP` all reach PS_DDR sheet
+- DisplayPort CONFIG1/CONFIG2: Connected to GND
+- 42+ Zynq decoupling caps: Placed and wired per AMD Answer Record 000039033
 
-**PL Fabric TODO (remaining)**
+**PL Fabric TODO (deferred — not needed for initial board bringup, needed for hypercube operation)**
+
+PL pin assignment is deferred. The HD bank I/O pins on Banks 24/25/26/44 need specific Zynq ball numbers assigned to the 41 unassigned signals (32 UART, 5 TDMA, 4 LED SPI). Fan PWM/Tach (8 signals) and I2S (3 signals) are already labeled with global labels but need ball number verification. This requires careful bank allocation using the Zynq pinout documentation and Vivado pin planning tools. The board can be fabricated and brought up (power, DDR4, Ethernet, USB, NVMe, DisplayPort) without PL pin assignment — the FPGA fabric simply won't have I/O connected to the backplane until this step is completed in a future revision or via Vivado constraint files.
 
 | Item | What to Do |
 | :--- | :--- |
-| Backplane connector | Two connectors placed (J13 80-pin, J14 100-pin Samtec MECF). Signal assignment needs verification. |
-| Fan PWM/Tach | Global labels present on PL_HD sheet. Verify connection to Bank 44 pins. |
-| PL pin assignment | Assign specific Zynq ball numbers to UART (32 signals), TDMA (5 signals), LED SPI (4 signals) on Banks 24/25/26/44. Fan PWM/Tach (8 signals) and I2S (3 signals) already labeled. |
+| PL pin assignment | Assign specific Zynq ball numbers to UART (32 signals), TDMA (5 signals), LED SPI (4 signals) on Banks 24/25/26/44. Fan PWM/Tach (8 signals) and I2S (3 signals) already labeled. Deferred — does not block board bringup. |
+| Backplane connector | Two connectors placed (J13 80-pin, J14 100-pin Samtec MECF). Signal assignment needs verification after PL pin assignment. |
 | Backplane signal conditioning | TVS arrays, series termination resistors (22-ohm on outputs), and pull-up resistors (10k on inputs) still missing. 74LVC244 buffers are placed. |
 | Per-card reset/boot control | Not implemented. Need I2C bus to backplane + PCA9555 expanders per card. |
-
-**Minor Fixes**
-
-| Item | What to Do |
-| :--- | :--- |
-| RTL8211EG LED2 (pin 52) | Add no-connect marker |
-| RTL8211EG REG_OUT (pin 3) | Verify 1uF + 0.1uF decoupling cap to GND is present |
-| J5 DisplayPort CONFIG1/CONFIG2 | Check Foxconn 3VD51203 datasheet -- may need pull-ups/pull-downs or NC |
 
