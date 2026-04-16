@@ -122,7 +122,7 @@ This split keeps the fanout balanced and avoids overloading a single bank's I/O 
 
 The remaining HD pins on Banks 24 and 44 are allocated to the TDMA phase clock outputs, the LED display SPI interface, and the quad-fan PWM array -- all of which also run at 3.3V.
 
-All 41 signals (32 UART + 5 TDMA + 4 LED SPI) exit the controller board through a single **100-pin shrouded IDC header** at 1.27mm pitch (2x50) connected to the backplane via a 2-inch ribbon cable. The fine pitch keeps the connector compact while providing 100 pins -- enough for every signal to have its own dedicated adjacent ground return, with 18 spare pins. At this cable length and at UART baud rates, no termination resistors are needed -- the signals are clean 3.3V LVCMOS driven straight from the PL fabric.
+All 40 backplane signals (32 UART + 2 TDMA + 4 LED SPI + 2 I2C) exit the controller board through a **60-pin HARTING shrouded IDC header** (2x30, 2.54mm pitch) connected to the backplane via a ribbon cable. The signals pass through 74LVC244 octal buffers for protection and defined startup state, with 22Ω series termination on output lines to tame edge rates.
 
 ## The Orchestrator: TDMA Sync and the LED Display
 
@@ -2123,7 +2123,11 @@ Dedicated I2C bus on Bank 44 for per-card reset/boot control (PCA9555 GPIO expan
 
 ### Backplane Connector
 
-A single **2x25 (50-pin) shrouded IDC header** at 2.54mm pitch carries all backplane signals via ribbon cable. 40 signals + 10 ground returns. Ground placement: one GND adjacent to LED_SPI_SCK (fastest signal at ~10MHz), one GND adjacent to I2C pair, remaining ~8 grounds distributed evenly among UART signals.
+A single **2x30 (60-pin) HARTING 09185606324 shrouded IDC header** (J13) at 2.54mm pitch carries all backplane signals via ribbon cable. 40 signals + 20 ground returns. The extra ground pins provide good return current paths and signal isolation.
+
+The signal path uses a `_BUF` suffix naming convention: PL_HD sheet has `UART_TX_0` (Zynq side), a 22Ω series resistor bridges to `UART_TX_BUF_0` (buffer/connector side) on the Backplane sheet. The 74LVC244 buffer takes the `_BUF` net on its A input and drives the connector. For RX inputs, the path is reversed: connector → buffer A input → buffer Y output → `UART_RX_0` on PL_HD. This keeps the two nets distinct across the series resistor, which is correct.
+
+Backplane sheet components: 5x 74LVC244APW,118 (U16-U19, U27, LCSC C6079) + J13 connector. BP_I2C_SDA bypasses the buffers (bidirectional, direct connection with 4.7kΩ pullup).
 
 The backplane carries **40 signals** total:
 
