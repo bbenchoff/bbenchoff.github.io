@@ -224,6 +224,8 @@ The DS3231's ±2ppm TCXO means the clock drifts less than a minute per year with
 
 To keep the Zynq and the 16-card hypercube cool inside the sealed aluminum chassis, the board features four standard 4-pin PWM fan headers. 
 
+The baseline fan is the **Noctua NF-A9 PWM** (92x92x25mm, 2.3 mmH₂O static pressure, 46 CFM, 1.2W). Four fans fit the 30mm depth available on the back interior wall. However, the perforated PVC grille on the back panel and the high-impedance card cage (16 cards at half-inch pitch) may consume most of the Noctua's available static pressure. If testing shows inadequate airflow through the card cage, the drop-in replacement is the **Sanyo Denki San Ace 9GA0912P4G001** (92x92x25mm, 7.8 mmH₂O static pressure, 62 CFM, 14.76W) — 3.4x the static pressure of the Noctua. The tradeoff: four Sanyo Denkis draw 59W total (~50 dBA each), adding significant power and noise. PWM control in the FPGA fabric can keep them at low duty cycle during idle.
+
 While the 12V power is provided directly from the main input rail, the control logic is handled by the FPGA fabric. By routing the PWM and Tachometer (Sense) lines to the Programmable Logic, the machine maintains deterministic cooling independent of the Linux kernel state. This allows for a hardware-level "fail-safe" where the fans default to 100% duty cycle if the system monitors detect a thermal runaway or a software hang.
 
 ## Power Supply Architecture
