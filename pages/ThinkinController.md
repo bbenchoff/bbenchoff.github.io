@@ -2228,50 +2228,41 @@ Direct point-to-point control. Most flexible, simplest software model, but requi
 
 ### Backplane Power Distribution
 
-Power and signals take completely separate physical paths into the hypercube. The signal backplane connector (100-pin IDC ribbon cable) carries UART, TDMA, SPI, and I2C at signal-level currents. Power arrives separately through dedicated per-card connectors fed from an external power distribution board. Each compute card draws approximately **2.5A at 12V (~25W)** — 256 AG32 chips at ~30mA each at 3.3V, stepped down from 12V by an on-card regulator at ~85% efficiency. The full 16-card hypercube draws approximately **39A at 12V (~400W)** aggregate.
+Power and signals share the same physical connector — the Molex SlimStack — but are distributed through separate copper structures inside the backplane PCB. Each compute card draws approximately **2.5A at 12V (~25W)** — 256 AG32 chips at ~30mA each at 3.3V, stepped down from 12V by an on-card regulator at ~85% efficiency. The full 16-card hypercube draws approximately **39A at 12V (~400W)** aggregate.
 
-**Per-card power connector: JST XA series, BM03B-XASS-TF(LF)(SN)**
+**Per-card power delivery through SlimStack connectors**
 
-Each of the 16 card slots on the backplane has a **BM03B-XASS-TF(LF)(SN)** — a 3-pin, 2.5mm pitch, surface-mount JST XA header. Three pins instead of two: two pins carry +12V, one pin carries GND return (or vice versa). The XA series is rated at **3A per contact**. With 2.5A split across two power pins, each pin carries ~1.25A — 42% of the contact rating, with comfortable thermal margin inside the sealed chassis.
+Of the 1100 electrical connections per card (22 Molex SlimStack connectors, 50 circuits each, dual-row top and bottom), 1024 carry hypercube signal lines. From the remaining ~76 pins, **8 pins are allocated to +12V** and **8 pins to GND** per card. At ~0.5A per SlimStack contact, 8 power pins provide 4A of capacity against a 2.5A load — 160% margin. No separate power connector is required; all power enters the card through the same SlimStack interface as the signals.
 
-| Item | Part Number | Description |
-| :--- | :--- | :--- |
-| PCB header (backplane side) | BM03B-XASS-TF(LF)(SN) | 3-pin SMD receptacle, 2.5mm pitch |
-| Cable housing (wire side) | XAP-03V-1 | 3-position plug housing |
-| Crimp terminals | SXA-001T-P0.6 | For 22-28 AWG wire |
+**32-layer stacked power bus**
 
-Pin assignment per connector: Pin 1 = +12V, Pin 2 = +12V, Pin 3 = GND. Doubling the +12V pin derates the current per contact to 42%.
+The backplane is a 32-layer PCB. Rather than routing high-current power on a single layer (which would require ~30mm trace width for 39A), the +12V and GND buses are implemented as **traces stacked on all 32 layers**, stitched together with full through-hole vias. This divides the current equally across layers:
+
+- 39A ÷ 32 layers = ~1.22A per layer
+- At 1.22A on an internal layer with 1oz copper and 10°C rise, IPC-2221 requires ~0.4mm trace width
+- The actual trace width is **2mm per layer** — roughly 20% of the thermal budget, with large margin
+
+The +12V bus and GND bus each run the full length of the backplane as continuous traces. Via stitch arrays connect all 32 layers at regular intervals along the bus and at every tap point. At the power input end of the board, where the full 39A enters, a larger via array (20+ vias) ensures low-impedance connection across the full layer stack. At each per-card tap point, 2–3 vias are sufficient for the 2.5A per-card draw.
 
 **Per-card current monitoring: INA226 on the backplane**
 
-Each of the 16 card positions on the backplane has an **INA226** current/voltage monitor inline with the +12V feed, between the BM03B-XASS power input and the card slot power pins. A low-value shunt resistor (10mΩ, 0.5W, 2512 package) sits in series with the +12V trace; the INA226 measures the voltage drop across it. The 16 INA226s are daisy-chained on the **backplane I2C bus** (Bank 44 PL pins, shared with the PCA9555 GPIO expanders for per-card reset control). Each INA226 has its A0/A1 address pins strapped to a unique combination, giving all 16 non-conflicting addresses on the same bus.
+At each of the 16 card positions, the +12V bus taps off through a **10mΩ shunt resistor** (0.5W, 2512 package) into an **INA226** current/voltage monitor. The current path per card is:
+
+**32-layer +12V bus → via array → shunt resistor → INA226 high-side sense → 8 SlimStack +12V pins → card**
+
+The INA226 sits immediately adjacent to the shunt resistor with Kelvin-connected sense traces. After the shunt, the trace only carries 2.5A for a single card, so it runs on a single layer at ~1.5mm width to the SlimStack power pins. The 16 INA226s are daisy-chained on the **backplane I2C bus** (Bank 44 PL pins, shared with the PCA9555 GPIO expanders for per-card reset control). Each INA226 has its A0/A1 address pins strapped to a unique combination, giving all 16 non-conflicting addresses on the same bus.
 
 R5 core 1 polls all 16 INA226s in a round-robin at ~500 Hz (a full sweep of 16 devices at 400 kHz I2C takes ~2ms). Per-card current, voltage, and power readings are written into the shared thermal table alongside the per-node temperature data from the AG32 heartbeats. The HUD, the BMC web dashboard, and the Prometheus exporter all read from this table.
 
 Diagnostic value: "Card 7 is drawing zero current" is the fastest possible dead-card detection — faster than heartbeat timeout, faster than UART echo failure. "Card 12 is drawing 3x normal current" catches shorts before they escalate. At ~$2 per card (INA226 + shunt resistor), this is cheap insurance for a 16-card system.
 
+**Power input: Molex Mega-Fit 6-pin**
+
+Power enters the backplane through a **6-pin Molex Mega-Fit vertical header** (768290006 / LCSC C588522). 2x3 configuration at 5.7mm pitch, through-hole, top latch, rated at **23.5A per contact**. Three pins carry +12V, three pins carry GND — 70.5A of capacity against the 39A worst-case load, a 180% margin. The mating wire-side plug accepts crimp terminals wired to an external 12V power supply (minimum 500W / 42A capacity for the full machine under load).
+
 **Controller board current monitoring: INA226 on +12V input**
 
 A single INA226 on the controller board monitors the +12V input rail (between the JST VH power connector and the PMIC VSYS pin). This gives total controller board power consumption, updated every HUD frame. It hangs on the **PS I2C1 bus** (MIO24-25) alongside the PMIC, at a non-conflicting I2C address.
-
-**The Power Distribution Board**
-
-The power distribution board is a separate, simple PCB that converts a single high-current 12V input into 17 individual feeds — 16 for compute cards, 1 for the controller board. It sits inside the cube near the backplane.
-
-Physical construction:
-- **Input: XT60 connector** (30A rated, keyed, locking). Wired with 12 AWG from an external 12V power supply (minimum 500W / 42A capacity for the full machine under load).
-- **Bus bars: 1/8" thick copper bar**, +12V and GND, running the length of the board. Mounted on standoffs or soldered to heavy copper pads. The bus bars are structural — at 1/8" cross-section they handle >100A and have negligible voltage drop across 6 inches at 39A.
-- **Outputs: 17x JST XA cable assemblies** using XAP-03V-1 housings with SXA-001T-P0.6 crimp terminals on 22 AWG wire. Each cable runs from a bolted connection on the bus bar (via ring terminal) to a BM03B-XASS connector on the backplane (16 cables) or the controller board (1 cable).
-- **Per-card PTC fuse** (Bourns MF-MSMF050 or similar, ~1A hold / 2A trip, resettable): inline with each output between the bus bar and the JST XA cable attachment point. If a card shorts, its PTC trips and isolates it from the bus without browning out the other 15 cards. Self-resetting — remove the fault and the fuse recovers. $0.10 per slot.
-- **No active electronics on the distribution board.** All current monitoring (INA226) lives on the backplane, close to the cards. The distribution board is purely passive: bus bars, connectors, fuses.
-
-**Cable management: laced harness**
-
-The 17 JST XA power cables running from the distribution board to the backplane and controller board are bundled into a **laced cable harness** using waxed polyester lacing cord. The cables are grouped, fanned, and tied at regular intervals with clove-hitch knots per NASA Workmanship Standard IPC/WHMA-A-620.
-
-This is not decorative (though it looks incredible inside a machined aluminum cube with copper bus bars). Cable lacing is the correct cable management technique for a sealed enclosure with thermal constraints — unlike zip ties, lacing cord doesn't create pressure points that deform wire insulation, doesn't loosen with thermal cycling, and doesn't block airflow. It also allows individual cables to be broken out of the harness for rework without cutting the entire bundle.
-
-The laced harness runs from the distribution board, fans out to the backplane connector row (16 cables in a flat comb, spaced to match the BM03B-XASS connector pitch on the backplane), with the 17th cable breaking off to the controller board's power input. Lacing points every 25-30mm along the main trunk, with breakout ties at each fan-out point.
 
 ### Optional Hardware Subsystems
 
@@ -2284,7 +2275,7 @@ Drop a TPS22918 or AP2161 load switch inline with each card's +12V on the backpl
 - Sequentially bring up cards during boot to spread inrush current
 - Cut power to cards that draw excessive current (closed-loop with the INA226 current monitors already on the backplane — see "Backplane Power Distribution" above)
 
-Combined with the per-card INA226s and PTC fuses, this gives you three layers of per-card power protection: passive fusing (PTC), active monitoring (INA226), and software-controlled switching (load switch + PCA9555).
+Combined with the per-card INA226s, this gives you two layers of per-card power protection: active monitoring (INA226) and software-controlled switching (load switch + PCA9555).
 
 **RP2040 SWD Passthrough**
 
