@@ -2674,16 +2674,16 @@ TDMA and I2C backplane signals assigned to available pins. Fan signals need ball
 | Y10 | IO_L10N_AD2N_44 | TDMA_SYNC | Output | Backplane |
 | AA11 | IO_L9P_AD3P_44 | BP_I2C_SCL | Output | Backplane (PCA9555 expanders) |
 | AA10 | IO_L9N_AD3N_44 | BP_I2C_SDA | Bidirectional | Backplane (PCA9555 expanders) |
-| AB11 | IO_L8P_HDGC_AD4P_44 | Fan1PWM | Output | Fan header J8 |
-| AC11 | IO_L8N_HDGC_AD4N_44 | Fan1Tach | Input | Fan header J8 |
-| AD11 | IO_L7P_HDGC_AD5P_44 | Fan2PWM | Output | Fan header J9 |
-| AD10 | IO_L7N_HDGC_AD5N_44 | Fan2Tach | Input | Fan header J9 |
-| AC12 | IO_L6P_HDGC_AD6P_44 | Fan3PWM | Output | Fan header J10 |
-| AD12 | IO_L6N_HDGC_AD6N_44 | Fan3Tach | Input | Fan header J10 |
-| AE12 | IO_L5P_HDGC_AD7P_44 | Fan4PWM | Output | Fan header J17 |
-| AF12 | IO_L5N_HDGC_AD7N_44 | Fan4Tach | Input | Fan header J17 |
+| AG10 | IO_L1P_AD11P_44 | Fan1PWM | Output | Fan header J8 |
+| AH10 | IO_L1N_AD11N_44 | Fan1Tach | Input | Fan header J8 |
+| AF11 | IO_L2P_AD10P_44 | Fan2PWM | Output | Fan header J9 |
+| AG11 | IO_L2N_AD10N_44 | Fan2Tach | Input | Fan header J9 |
+| AH11 | IO_L3N_AD9N_44 | Fan3PWM | Output | Fan header J10 |
+| AH12 | IO_L3P_AD9P_44 | Fan3Tach | Input | Fan header J10 |
+| AE10 | IO_L4P_AD8P_44 | Fan4PWM | Output | Fan header J17 |
+| AF10 | IO_L4N_AD8N_44 | Fan4Tach | Input | Fan header J17 |
 | | | | | |
-| AE10, AF10, AF11, AG10, AG11, AH10, AH11, AH12, AB10, AB9, Y9 | — | *Spare* | — | 12 unassigned pins (includes 1 extra — AB10 is IO_L12P) |
+| AB9, AB10, AB11, AC11, AC12, AD10, AD11, AD12, AE12, AF12, Y9 | — | *Spare* | — | 11 unassigned pins |
 
 **Assignment notes:**
 - TX/RX pairs use P/N differential pair pins for routing convenience, even though the signals are single-ended 3.3V LVCMOS. TX always on the P pin, RX on the N pin.
