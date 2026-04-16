@@ -99,7 +99,7 @@ The lower 16 data bits (DQ0-DQ15) go point-to-point to Chip 1. The upper 16 data
 
 The Zynq Processing System's hardened video controller outputs native DisplayPort. Rather than adding an expensive, hard-to-source active converter chip to translate to HDMI, I put a standard full-size **DisplayPort receptacle** (Foxconn 3VD51203-3D6A-7H) directly on the rear I/O panel. Two high-speed GTR lanes from Bank 505 drive the DisplayPort signal directly to the connector--no protocol conversion, no converter IC, no wasted board space. Users who need HDMI can use a standard $10 active DP-to-HDMI dongle.
 
-The DisplayPort AUX channel (a bidirectional sideband for EDID and link training) is routed through MIO pins 27, 28, 29, and 30. MIO27 drives AUX data out through a 100-ohm series resistor, MIO30 reads the return signal tapped from the same net, MIO29 controls the output enable, and MIO28 reads the Hot Plug Detect signal from the connector.
+The DisplayPort AUX channel (a bidirectional sideband for EDID and link training) is routed through MIO pins 27, 28, 29, and 30. The DisplayPort AUX channel is routed through a **FIN1019MTC bidirectional LVDS buffer** (per UG583 requirement). MIO27 (DP_AUX_OUT) drives the buffer's DI input, MIO29 (DP_OE) controls the buffer's DE direction pin, MIO30 (DP_AUX_IN) receives from the buffer's RO output, and MIO28 (DP_HPD) reads the Hot Plug Detect signal directly from the connector through a 100kΩ pulldown.
 
 ## The 16-Channel Backplane
 
@@ -1733,7 +1733,7 @@ R1 (PHY-side center tap): 3.3V through ferrite bead + 0.1uF to ground. R10 (cabl
 
 ### QSPI Flash (PS_MIO Sheet)
 
-QSPI flash chip on MIO0-5 holds the FSBL, U-Boot, and the PL bitstream. Part TBD.
+QSPI flash chip on MIO0-5 holds the FSBL, U-Boot, and the PL bitstream. Part: **W25Q512JVEIQ** (U7, 512Mbit / 64MB, WinBond, LCSC C7389628).
 
 ### SD Card (PS_MIO Sheet)
 
@@ -1894,7 +1894,7 @@ The 100 MHz LVDS oscillator also feeds PS_MGTREFCLK1P/N (E21/E22) on the Zynq fo
 | 20 | DP_PWR | 3.3V through ferrite bead |
 | 7,9,10,12 | Lanes 2-3 | No-connect (2-lane config) |
 
-MIO29 (AUX enable) tied to 3.3V via 10k-ohm pullup.
+MIO29 (DP_OE) drives the FIN1019MTC buffer direction control (DE pin).
 
 ### USB 3.0 -- 4-Port Hub (PS_GTR + PS_MIO Sheets)
 
@@ -2062,17 +2062,14 @@ The SPI link is **full-duplex and bidirectional every frame**: MOSI carries a Zy
 | LED_SPI_MISO | Input  | 24 | Front-panel header | RP2040 -> Zynq: status header + current physical framebuffer (full readback, 4 KB/frame) |
 | LED_SPI_CS   | Input (slave) | 24 | Front-panel header | Chip select, driven by RP2040 at frame refresh boundaries |
 
-### TDMA Phase Clock (PL HD Bank 44)
+### TDMA Clock (PL HD Bank 44)
 
-The master TDMA phase clock is generated in the PL fabric and distributed to all 16 compute cards via the backplane. The phase select lines encode the current TDMA phase, telling every AG32 node which dimension link is active.
+The TDMA timing is distributed to all 16 compute cards via two signals on the backplane: a phase clock and a superframe sync pulse. Each node maintains a local counter to track which TDMA phase it's in, counting clock ticks since the last sync pulse. This is simpler and more reliable than distributing a 4-bit phase bus — one fast clock and one slow sync are far easier to route, terminate, and keep skew-free across a ribbon cable to 16 cards.
 
 | PL Signal | Direction | PL Bank | Function |
 | :--- | :--- | :--- | :--- |
-| TDMA_PHASE[0] | Output | 44 | Phase select bit 0 (to backplane) |
-| TDMA_PHASE[1] | Output | 44 | Phase select bit 1 (to backplane) |
-| TDMA_PHASE[2] | Output | 44 | Phase select bit 2 (extended for 12D) |
-| TDMA_PHASE[3] | Output | 44 | Phase select bit 3 (extended for 12D) |
-| TDMA_SYNC | Output | 44 | Frame sync pulse (marks phase 0) |
+| TDMA_CLK | Output | 44 | Phase advance clock — one tick per TDMA phase, all nodes advance to next dimension |
+| TDMA_SYNC | Output | 44 | Superframe sync pulse — goes high at phase 0, marks the start of a new frame |
 
 ### Fan PWM Array (PL HD Bank 44)
 
@@ -2095,63 +2092,71 @@ Dedicated I2C bus on Bank 44 for per-card reset/boot control (PCA9555 GPIO expan
 
 ### PL I/O Budget Summary
 
-| PL Bank | Type | VCCO | Allocated Signals | Pins Used | Pins Remaining |
-| :--- | :--- | :--- | :--- | :--- | :--- |
-| 24 | HD | 3.3V | LED SPI (4 pins), I2S audio (3 pins) | 7 | ~19 |
-| 25 | HD | 3.3V | Backplane UARTs 0-7 (16 pins) | 16 | ~10 |
-| 26 | HD | 3.3V | Backplane UARTs 8-15 (16 pins) | 16 | ~10 |
-| 44 | HD | 3.3V | TDMA phase clock (5), Fan PWM (8), I2C (2) | 15 | ~11 |
-| 64 | HP | 1.8V | *Unallocated* | 0 | 56 |
-| 65 | HP | 1.8V | *Unallocated* | 0 | 56 |
-| 66 | HP | 1.8V | *Unallocated* | 0 | 56 |
+| PL Bank | Type | VCCO | Backplane Signals | Board-Internal Signals | Pins Used | Pins Available | Pins Spare |
+| :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
+| 24 | HD | 3.3V | LED SPI (4 pins) | I2S audio to DAC (3 pins) | 7 | 24 | 17 |
+| 25 | HD | 3.3V | UART cards 0-7: 8 TX + 8 RX (16 pins) | — | 16 | 24 | 8 |
+| 26 | HD | 3.3V | UART cards 8-15: 8 TX + 8 RX (16 pins) | — | 16 | 24 | 8 |
+| 44 | HD | 3.3V | TDMA CLK + SYNC (2 pins), I2C backplane SDA + SCL (2 pins) | Fan PWM ×4 + Fan Tach ×4 (8 pins) | 12 | 24 | 12 |
+| 64 | HP | 1.8V | — | — | 0 | 24 | 24 (NC) |
+| 65 | HP | 1.8V | — | — | 0 | 24 | 24 (NC) |
+| 66 | HP | 1.8V | — | — | 0 | 24 | 24 (NC) |
 
-### Boot and Configuration (Config / PS_MIO Sheets)
+**Backplane signals total: 40** (32 UART + 4 LED SPI + 2 TDMA + 2 I2C).
+**Board-internal signals total: 11** (3 I2S + 8 fan). These do NOT go through the backplane connector.
+**Total HD bank pins used: 51 of 96.** 45 spare pins across the four HD banks.
 
-| Item | Pins | What to Do | Sheet |
+### Boot and Configuration (Config / PS_MIO Sheets) — All Done
+
+| Item | Pins | Status | Sheet |
 | :--- | :--- | :--- | :--- |
-| Boot mode DIP switch | PS_MODE0-3 | 4-pos DIP switch + 10k-ohm pulldowns on each pin. Switch ON = 3.3V. | PS_MIO |
-| QSPI flash | MIO0-5 | Add QSPI flash chip (TBD part), wire SCLK/CS/IO0-IO3, decoupling | PS_MIO |
-| JTAG debug header | PS_JTAG_TCK/TDI/TDO/TMS | Add 2x7 ARM JTAG header, wire to Zynq JTAG pins | PS_MIO / Config |
-| Power-on reset | PS_POR_B | RC circuit: 10k-ohm to 3.3V + 100nF to GND (delay ~1ms) | PS_MIO / Config |
-| System reset | PS_SRST_B | 10k-ohm pullup to 3.3V + optional reset button | PS_MIO / Config |
-| PL config handshake | PS_PROG_B, PS_INIT_B, PS_DONE | 10k-ohm pullups to 3.3V each | PS_MIO / Config |
-| PS reference clock | PS_REF_CLK (R16) | SiT8008BI-71-33S-33.333330 (LCSC C806182), 2.0x1.6mm | PS_MIO / Config |
-| PUDC_B | PUDC_B | Tied to GND (pull-ups enabled during config) | Config |
-| UART console | MIO8-9 | UART0 TX/RX + FT230XS USB-serial bridge | PS_MIO |
+| Boot mode DIP switch | PS_MODE0-3 | Done. SW1, 4-pos DIP, 10kΩ pulldowns. JTAG=0000, QSPI=0010, SD=0111. | PS_MIO |
+| QSPI flash | MIO0-5 | Done. W25Q512JVEIQ (U7, 512Mbit, LCSC C7389628). 4.7kΩ pullups on CS/HOLD/WP. | PS_MIO |
+| JTAG debug header | PS_JTAG_TCK/TDI/TDO/TMS | Done. J15, 10-pin ARM JTAG/SWD. 4.7kΩ pullups on TMS/TCK/TDI. | PS_MIO |
+| Power-on reset | PS_POR_B | Done. 10kΩ pullup to +3V3, 100nF cap to GND. Connected to PMIC GPO3 via global label. | PS_MIO |
+| System reset | PS_SRST_B | Done. 10kΩ pullup to +3V3. | PS_MIO |
+| PL config handshake | PS_PROG_B, PS_INIT_B, PS_DONE | Done. 10kΩ pullups to +3V3 each. | Config |
+| PS reference clock | PS_REF_CLK (R16) | Done. Y7, SiT8008BI-71-33S-33.333330 (LCSC C806182). | PS_MIO |
+| PUDC_B | PUDC_B | Done. Tied to GND. | Config |
+| UART console | MIO8-9 | Done. FT230XS (U8) USB-serial bridge + USB-C connector. | PS_MIO |
+| PS_PADI/PS_PADO | N17/N18 | Done. PADI tied to GND, PADO floating (internal RTC not used, external DS3231M instead). | Config |
 
-### Backplane Connector (100-pin IDC, Pending)
+### Backplane Connector
 
-**100-pin shrouded IDC header** (2x50, 1.27mm pitch). Pin assignment: 32 UART (Banks 25/26), 5 TDMA (Bank 44), 4 LED SPI (Bank 24), 8 Fan PWM/Tach (Bank 44), 2 I2C (Bank 44), 41 GND (one per signal), remaining spare. 2-inch ribbon cable to backplane. Reclaim 3 spare pins for the per-card I2C control bus (SDA, SCL, GND ref).
+A single **2x25 (50-pin) shrouded IDC header** at 2.54mm pitch carries all backplane signals via ribbon cable. 40 signals + 10 ground returns. Ground placement: one GND adjacent to LED_SPI_SCK (fastest signal at ~10MHz), one GND adjacent to I2C pair, remaining ~8 grounds distributed evenly among UART signals.
+
+The backplane carries **40 signals** total:
+
+| Group | Count | Direction (FPGA POV) | Bank | Notes |
+| :--- | :--- | :--- | :--- | :--- |
+| UART_TX_0..15 | 16 | Output | 25/26 | 8 per bank, one per compute card |
+| UART_RX_0..15 | 16 | Input | 25/26 | 8 per bank, one per compute card |
+| LED_SPI_MOSI | 1 | Output | 24 | Zynq → RP2040 |
+| LED_SPI_SCK, LED_SPI_MISO, LED_SPI_CS | 3 | Input | 24 | RP2040 is SPI master |
+| TDMA_CLK | 1 | Output | 44 | Phase advance clock |
+| TDMA_SYNC | 1 | Output | 44 | Superframe sync pulse |
+| BP_I2C_SDA | 1 | Bidirectional | 44 | Per-card reset/boot control (PCA9555) |
+| BP_I2C_SCL | 1 | Output | 44 | Per-card reset/boot control (PCA9555) |
+
+Signals that are NOT on the backplane (board-internal only): I2S audio (3 signals, Bank 24 → PCM5102A DAC), Fan PWM/Tach (8 signals, Bank 44 → fan headers J8/J9/J10/J17).
+
+Outputs from FPGA to backplane: 20 (16x UART_TX, 1x SPI_MOSI, 1x TDMA_CLK, 1x TDMA_SYNC, 1x BP_I2C_SCL). Inputs to FPGA from backplane: 19 (16x UART_RX, 3x SPI_SCK/MISO/CS). Bidirectional: 1 (BP_I2C_SDA). Every signal is single-ended 3.3V LVCMOS, unidirectional (except I2C SDA), and runs at low speed (≤10 MHz for SPI, 460800 baud for UART).
 
 ### Backplane Signal Conditioning (Planned)
 
-The 49 backplane signals fall into six groups:
+**Series source termination (Zynq side, output lines only):**
 
-| Group | Count | Direction (FPGA POV) | Bank |
-| :--- | :--- | :--- | :--- |
-| UART_TX_0..15 | 16 | Output | 25/26 |
-| UART_RX_0..15 | 16 | Input | 25/26 |
-| SPI_MOSI | 1 | Output | 24 |
-| SPI_SCK, SPI_MISO, SPI_CS | 3 | Input (RP2040 is SPI master) | 24 |
-| TDMA_PHASE[0..3], TDMA_SYNC | 5 | Output | 44 |
-| FAN_PWM_0..3 | 4 | Output | 44 |
-| FAN_TACH_0..3 | 4 | Input | 44 |
+A 22-ohm 0402 resistor in series with every Zynq output, placed within ~5mm of the BGA. This tames the ~1ns LVCMOS edge rates of the HD bank drivers to prevent ringing, overshoot, and EMI from the ribbon cable.
 
-Outputs from the FPGA: 21 (16x UART_TX, 1x SPI_MOSI, 4x FAN_PWM). Inputs to the FPGA: 28 (16x UART_RX, 3x SPI_SCK/MISO/CS, 5x TDMA, 4x FAN_TACH). Note: the TDMA phase clock and sync lines are outputs to the backplane but generated in PL fabric, not driven through external buffers — they go directly from the PL pins to the connector. Every signal is single-ended 3.3V LVCMOS, unidirectional, and runs at relatively low speed (<=10 MHz worst case for SPI; 460800 baud or slower for UART).
+Apply to all output lines: 16x UART_TX, 1x SPI_MOSI, 1x TDMA_CLK, 1x TDMA_SYNC (20 total). Suggested part: RC0402FR-0722RL or equivalent.
 
-**Layer 1 -- Series source termination (Zynq side, output lines only)**
-
-A 22-ohm 0402 resistor in series with every Zynq output, placed within ~5mm of the BGA. This is *not* about UART bit timing -- it is about taming the ~1ns LVCMOS edge rates of the HD bank drivers. Without source termination, those edges will ring and overshoot at the receiver, couple into adjacent traces, and radiate as EMI from the ribbon cable.
-
-Apply to all output lines: 16x UART_TX, 1x SPI_MOSI, 5x TDMA, 4x FAN_PWM (26 total). Suggested part: RC0402FR-0722RL or equivalent.
-
-Input lines (UART_RX, SPI_SCK, SPI_MISO, SPI_CS, FAN_TACH) do not need series termination -- the driver is on the other end of the cable.
+Input lines (UART_RX, SPI_SCK, SPI_MISO, SPI_CS) do not need series termination — the driver is on the other end of the cable. I2C lines (SDA, SCL) use 4.7kΩ pullups instead of series termination.
 
 **Layer 2 -- Sacrificial unidirectional buffers (mid-board)**
 
 Insert 74LVC244-style octal buffers between the Zynq and the connector. Every backplane signal is unidirectional, so simple 244-class buffers work -- no bidirectional bus transceivers needed. The 74LVC244 has 8 independent buffers in two banks of four, each bank with its own active-low output enable. Direction within a chip can be mixed (each buffer has a distinct A->Y signal path), so a single chip can carry both FPGA-driven and backplane-driven lines.
 
-Approximate chip count: **~6x 74LVC244** to cover all 49 signals (49 / 8 = 7, but with some packing efficiency 6 is achievable). Place them between the Zynq side (after the series resistors) and the connector side (before the TVS arrays).
+Approximate chip count: **5x 74LVC244** already placed on Backplane sheet to cover the 40 backplane signals (40 / 8 = 5). Placed between the Zynq side (after the series resistors) and the connector side (before the TVS arrays). Note: I2C SDA is bidirectional and cannot go through a 244 — it needs a direct connection or a bidirectional buffer.
 
 Tie all OE# pins to a single "system ready" signal driven from a Zynq MIO GPIO (or PS_DONE). This keeps the entire backplane in high-Z during FPGA configuration so cards see clean idle instead of garbage transitions during boot.
 
@@ -2164,7 +2169,7 @@ The buffers serve three purposes:
 
 Place a low-capacitance TVS array on every backplane signal, located within ~3mm of the IDC connector pins so the strike is clamped before it reaches any meaningful trace inductance. Trace length between the strike point and the clamp matters more than the diode response time.
 
-Suggested part: **TPD4E1B06DCKR** (4-channel, 5pF, 5.5V working voltage) or PESD3V3L4UG. Roughly **13x quad arrays** to cover all 49 signals. Place each array directly under or adjacent to the connector pins it protects.
+Suggested part: **TPD4E1B06DCKR** (4-channel, 5pF, 5.5V working voltage) or PESD3V3L4UG. Roughly **10x quad arrays** to cover all 40 signals. Place each array directly under or adjacent to the connector pins it protects.
 
 **Pull Resistors**
 
@@ -2180,7 +2185,7 @@ Total: 21 pull-up resistors.
 
 Drop a test point on every backplane signal, placed between the buffer chip and the connector. SMD round test points (Keystone 5015 or similar 0.040" diameter pads) on a uniform grid. **This is critical for bringup** -- you will be probing every line with a logic analyzer and a scope, and trying to clip onto 49 individual signals without dedicated test points is miserable.
 
-In addition to individual test points, place a **2x25 0.05"-pitch shrouded header** that taps every backplane signal between the buffer and the connector. This gives you a single connector for a Saleae Logic Pro 16 / Kingst LA5016 / similar logic analyzer, so you can scope all 49 signals through one ribbon cable instead of 49 individual probes. Place it accessible from the top of the board for easy clip-on.
+In addition to individual test points, consider a logic analyzer breakout header that taps the backplane signals between the buffer and the connector for debug during bringup.
 
 **Power Filtering for HD Banks**
 
@@ -2334,7 +2339,7 @@ Banks 25, 26, and 44 have ~10-13 unused pins each (per the I/O budget table abov
 - TVS arrays at the connector (~13 chips)
 - Pull-ups on RX / MISO / TACH inputs (~21 resistors)
 - Test points + logic analyzer breakout header
-- Per-card reset/boot control (Option B: I2C bus + PCA9555 per card) -- this is currently missing from the design
+- Per-card reset/boot control (Option B: I2C bus + PCA9555 per card) -- I2C backplane bus (BP_I2C_SDA/SCL) allocated on Bank 44. PCA9555 expanders go on the compute cards.
 - Battery-backed RTC (DS3231 on PS I2C0, MIO10-11) -- already designed-in, needed for BMC event log timestamps from first boot
 
 **Pass 2 -- Strongly recommended:**
@@ -2358,21 +2363,9 @@ Banks 25, 26, and 44 have ~10-13 unused pins each (per the I/O budget table abov
 
 Pass 1 items address actual hardware risks (FPGA destruction, missing GPIO functionality, undebuggable bringup). Pass 2 items significantly improve robustness and SI. Passes 3 and 4 add features rather than fix problems, but everything in Pass 3 is high-value-per-dollar diagnostics worth including in the first board spin if board space is truly unlimited.
 
-### Schematic TODO -- Remaining Work
+### Schematic Status Summary
 
-**Completed items (previously listed as TODO):**
-
-| Item | Status | Details |
-| :--- | :--- | :--- |
-| QSPI flash (MIO0-5) | **Done** | W25Q512JVEIQ (U7, 512Mbit, LCSC C7389628) placed and wired on PS_MIO sheet |
-| UART debug console (MIO8-9) | **Done** | FT230XS (U8) USB-serial bridge with USB-C connector placed and wired on PS_MIO sheet |
-| M.2 PERST# move to MIO6 | **Done** | M2_PERST# on MIO6, global label routed |
-| HP Banks 64/65/66 no-connect | **Done** | All 168 HP pins have NC markers on PL_Bank64/65/66 sheets |
-| RTC (MIO10-11) | **Done** | DS3231M (U13, integrated TCXO) placed on Peripherals sheet, I2C0_SCL/SDA labels routed |
-| TUSB8043A USB hub | **Done** | U5 on PS_GTR sheet, fully wired with 4x USB-A ports |
-| USB3300 ULPI PHY | **Done** | On PS_GTR sheet, wired to MIO52-63 and TUSB8043A |
-| 74LVC244 backplane buffers | **Done** | 5 chips (U14-U18/U19) placed on Backplane sheet |
-| PMIC I2C + IRQ on MIO | **Done** | MIO24 (PMIC_SCL), MIO25 (PMIC_SDA), MIO26 (PMIC_IRQ) assigned and wired |
+All major schematic work is complete. The remaining items are PL pin assignment (ball-level wiring on PL_HD sheet) and backplane connector pinout/signal conditioning.
 
 **MIO Master Map (updated)**
 
@@ -2401,7 +2394,7 @@ Pass 1 items address actual hardware risks (FPGA destruction, missing GPIO funct
 | 500 | MIO0-25 | 3.3V | SWA1 (from BUCK1) | QSPI flash (W25Q512JVEIQ) and SD card need 3.3V |
 | 501 | MIO26-51 | 3.3V | SWA1 (from BUCK1) | RTL8211EG Ethernet PHY is 3.3V |
 | 502 | MIO52-63 | 1.8V | BUCK5 or SWB | USB3300 ULPI runs at 1.8V |
-| 503 | MIO64-77 | TBD | TBD | All available, no peripherals assigned |
+| 503 | MIO64-77 | 3.3V | `+3V3_PSIO` | All available, no peripherals assigned. Bank powered at 3.3V for flexibility. |
 
 **TPS6508640 PMIC Implementation — COMPLETE**
 
@@ -2584,14 +2577,135 @@ Remaining 804 ERC entries are:
 - DisplayPort CONFIG1/CONFIG2: Connected to GND
 - 42+ Zynq decoupling caps: Placed and wired per AMD Answer Record 000039033
 
+**Round 3 — UG583 Chapter 5 Review (PS Interface Guidelines):**
+
+A review of UG583 (v1.29) Chapter 5 "PCB Guidelines for the PS Interface in the Zynq UltraScale+ MPSoC" identified the following issues and requirements. Items marked MISSING are schematic changes needed before fabrication.
+
+| # | Severity | Interface | Issue | Resolution |
+| :--- | :--- | :--- | :--- | :--- |
+| 1 | **CRITICAL** | DisplayPort AUX | UG583 requires a bidirectional LVDS buffer between the Zynq and the DP connector AUX channel. | **Fixed.** Added FIN1019MTC (TSSOP-14) on PS_GTR next to DP connector. DI←MIO27, DE←MIO29, /RE→GND, RO→MIO30. DO+/RI+ tied together through 100Ω to DP_AUX_CH+. DO-/RI- tied to GND. MIO28 (HPD) direct to connector with 100kΩ pulldown. |
+| 2 | **HIGH** | PS-GTR MGTRREF | UG583 specifies 500Ω 0.5% to GND on PS_MGTRREF (F22). Was 240Ω. | **Fixed.** Changed to 500Ω 0.5%. |
+| 3 | **HIGH** | PS-GTR Ref Clocks | UG583 requires 10nF AC coupling caps on reference clock differential pairs. Were missing entirely. | **Fixed.** Added 4x 10nF caps in series: 2 on Y3 (27MHz) → MGTREFCLK0P/N, 2 on Y1 (100MHz) → MGTREFCLK1P/N. |
+| 4 | **MEDIUM** | USB 2.0 ULPI | 30Ω series resistors on DATA[7:0] and STP lines near Zynq. | **Fixed.** Verified present. |
+| 5 | **MEDIUM** | SD/SDIO | 30Ω series resistors on CLK/CMD/DATA, 4.7kΩ pullup on DAT3. No CDn/WPn on micro SD connector. | **Fixed.** Verified present. CDn/WPn not applicable. |
+| 6 | **MEDIUM** | QSPI | 4.7kΩ pullups on HOLD/WP/CS. MIO6 used for M2_PERST# (not QSPI loopback) — no conflict. | **Fixed.** Verified present. No loopback conflict. |
+| 7 | **LOW** | Boot Mode | UG583 prefers 4.7kΩ, design uses 10kΩ. | **Acceptable.** 10kΩ works. Optional change. |
+| 8 | **LOW** | JTAG | 4.7kΩ pullups on TMS, TCK, TDI. | **Verified present.** |
+| 9 | **LOW** | PS_INIT_B/PROG_B/DONE | Pullups to `+3V3`. | **Verified.** All three have 10kΩ pullups to `+3V3`. |
+| 10 | **INFO** | PS RTC | Internal RTC not used (external DS3231M). PADI to GND, PADO floating. | **Verified.** Correctly terminated. |
+| 11 | **INFO** | USB 3.0 Layout | Differential traces at 90Ω ±15Ω. | **Layout note.** No schematic change needed. |
+| 12 | **INFO** | Ethernet RGMII | Delay skew ±50ps including package time. | **Layout note.** No schematic change needed. |
+
+**PS-GTR power supply requirements (from UG583 Table 131):**
+- PS_MGTRAVCC (`+0V9_MGTAVCC`): Noise must be <10mVpp from 10kHz to 80MHz. Recommended filter: 1x 10µF ceramic. ✅ Present.
+- PS_MGTRAVTT (`+1V2_MGTAVTT`): Same noise requirement. Recommended filter: 1x 10µF ceramic. ✅ Present.
+- Both supplies are dedicated rails from the PMIC (BUCK4 and BUCK3), not shared with non-transceiver loads. ✅ Correct per guideline.
+
+**Errata review (EN285 v1.15):** All errata are software/firmware level. No PCB-level errata affect this design. DDR4 minimum data rate is 1000Mb/s for industrial (I) temp grade — our DDR4-2400 is well above this. Document at `Controller/docs/en285-zynq-ultrascale-plus-errata.pdf`.
+
 **PL Fabric TODO (deferred — not needed for initial board bringup, needed for hypercube operation)**
 
-PL pin assignment is deferred. The HD bank I/O pins on Banks 24/25/26/44 need specific Zynq ball numbers assigned to the 41 unassigned signals (32 UART, 5 TDMA, 4 LED SPI). Fan PWM/Tach (8 signals) and I2S (3 signals) are already labeled with global labels but need ball number verification. This requires careful bank allocation using the Zynq pinout documentation and Vivado pin planning tools. The board can be fabricated and brought up (power, DDR4, Ethernet, USB, NVMe, DisplayPort) without PL pin assignment — the FPGA fabric simply won't have I/O connected to the backplane until this step is completed in a future revision or via Vivado constraint files.
+The pinout document is at `Controller/docs/xczu2egsfvc784pkg.txt`. Each HD bank has 24 I/O pins available. The errata document (`Controller/docs/en285-zynq-ultrascale-plus-errata.pdf`) was reviewed — no PCB-level errata affect this design; all workarounds are software/firmware.
+
+**Proposed PL Pin Assignment — Bank 24 (LED SPI + I2S Audio)**
+
+LED SPI signals are grouped on adjacent pins for clean routing to the backplane connector. I2S signals retain their existing assignments (W14/W13/Y14) for routing to the PCM5102A DAC.
+
+| Ball | Zynq Pin Name | Signal | Direction | Destination |
+| :--- | :--- | :--- | :--- | :--- |
+| W14 | IO_L9P_AD11P_24 | I2S_LRCK | Output | PCM5102A DAC (board-internal) |
+| W13 | IO_L9N_AD11N_24 | I2S_DIN | Output | PCM5102A DAC (board-internal) |
+| Y14 | IO_L10P_AD10P_24 | I2S_BCK | Output | PCM5102A DAC (board-internal) |
+| AD15 | IO_L5P_HDGC_24 | LED_SPI_SCK | Input | Backplane → RP2040 drives clock |
+| AD14 | IO_L5N_HDGC_24 | LED_SPI_CS | Input | Backplane → RP2040 drives CS |
+| AC14 | IO_L6P_HDGC_24 | LED_SPI_MOSI | Output | Backplane → Zynq to RP2040 |
+| AC13 | IO_L6N_HDGC_24 | LED_SPI_MISO | Input | Backplane → RP2040 to Zynq |
+| | | | | |
+| AA12, AA13, AB13, AB14, AB15, AE13, AE14, AE15, AF13, AG13, AG14, AH13, AH14, W11, W12, Y12, Y13 | — | *Spare* | — | 17 unassigned pins |
+
+**Proposed PL Pin Assignment — Bank 25 (UART Cards 0-7)**
+
+Each card gets one TX (output) and one RX (input) pin, using P/N pairs for routing convenience.
+
+| Ball | Zynq Pin Name | Signal | Direction | Card |
+| :--- | :--- | :--- | :--- | :--- |
+| F12 | IO_L6P_HDGC_25 | UART_TX_0 | Output | Card 0 |
+| F11 | IO_L6N_HDGC_25 | UART_RX_0 | Input | Card 0 |
+| E12 | IO_L8P_HDGC_25 | UART_TX_1 | Output | Card 1 |
+| D11 | IO_L8N_HDGC_25 | UART_RX_1 | Input | Card 1 |
+| G11 | IO_L5P_HDGC_25 | UART_TX_2 | Output | Card 2 |
+| F10 | IO_L5N_HDGC_25 | UART_RX_2 | Input | Card 2 |
+| E10 | IO_L7P_HDGC_25 | UART_TX_3 | Output | Card 3 |
+| D10 | IO_L7N_HDGC_25 | UART_RX_3 | Input | Card 3 |
+| D12 | IO_L12P_AD8P_25 | UART_TX_4 | Output | Card 4 |
+| C12 | IO_L12N_AD8N_25 | UART_RX_4 | Input | Card 4 |
+| A12 | IO_L11P_AD9P_25 | UART_TX_5 | Output | Card 5 |
+| A11 | IO_L11N_AD9N_25 | UART_RX_5 | Input | Card 5 |
+| B11 | IO_L10P_AD10P_25 | UART_TX_6 | Output | Card 6 |
+| A10 | IO_L10N_AD10N_25 | UART_RX_6 | Input | Card 6 |
+| C11 | IO_L9P_AD11P_25 | UART_TX_7 | Output | Card 7 |
+| B10 | IO_L9N_AD11N_25 | UART_RX_7 | Input | Card 7 |
+| | | | | |
+| G10, H11, H12, J10, J11, J12, K12, K13 | — | *Spare* | — | 8 unassigned pins |
+
+**Proposed PL Pin Assignment — Bank 26 (UART Cards 8-15)**
+
+Same pairing strategy as Bank 25.
+
+| Ball | Zynq Pin Name | Signal | Direction | Card |
+| :--- | :--- | :--- | :--- | :--- |
+| E14 | IO_L6P_HDGC_AD6P_26 | UART_TX_8 | Output | Card 8 |
+| E13 | IO_L6N_HDGC_AD6N_26 | UART_RX_8 | Input | Card 8 |
+| D15 | IO_L5P_HDGC_AD7P_26 | UART_TX_9 | Output | Card 9 |
+| D14 | IO_L5N_HDGC_AD7N_26 | UART_RX_9 | Input | Card 9 |
+| G13 | IO_L7P_HDGC_AD5P_26 | UART_TX_10 | Output | Card 10 |
+| F13 | IO_L7N_HDGC_AD5N_26 | UART_RX_10 | Input | Card 10 |
+| F15 | IO_L8P_HDGC_AD4P_26 | UART_TX_11 | Output | Card 11 |
+| E15 | IO_L8N_HDGC_AD4N_26 | UART_RX_11 | Input | Card 11 |
+| G15 | IO_L9P_AD3P_26 | UART_TX_12 | Output | Card 12 |
+| G14 | IO_L9N_AD3N_26 | UART_RX_12 | Input | Card 12 |
+| H14 | IO_L10P_AD2P_26 | UART_TX_13 | Output | Card 13 |
+| H13 | IO_L10N_AD2N_26 | UART_RX_13 | Input | Card 13 |
+| K14 | IO_L11P_AD1P_26 | UART_TX_14 | Output | Card 14 |
+| J14 | IO_L11N_AD1N_26 | UART_RX_14 | Input | Card 14 |
+| L14 | IO_L12P_AD0P_26 | UART_TX_15 | Output | Card 15 |
+| L13 | IO_L12N_AD0N_26 | UART_RX_15 | Input | Card 15 |
+| | | | | |
+| A13, A14, A15, B13, B14, B15, C13, C14 | — | *Spare* | — | 8 unassigned pins |
+
+**Proposed PL Pin Assignment — Bank 44 (TDMA + Fan + I2C Backplane)**
+
+TDMA and I2C backplane signals assigned to available pins. Fan signals need ball assignments (currently have global labels but no specific balls).
+
+| Ball | Zynq Pin Name | Signal | Direction | Destination |
+| :--- | :--- | :--- | :--- | :--- |
+| W10 | IO_L10P_AD2P_44 | TDMA_CLK | Output | Backplane |
+| Y10 | IO_L10N_AD2N_44 | TDMA_SYNC | Output | Backplane |
+| AA11 | IO_L9P_AD3P_44 | BP_I2C_SCL | Output | Backplane (PCA9555 expanders) |
+| AA10 | IO_L9N_AD3N_44 | BP_I2C_SDA | Bidirectional | Backplane (PCA9555 expanders) |
+| AB11 | IO_L8P_HDGC_AD4P_44 | Fan1PWM | Output | Fan header J8 |
+| AC11 | IO_L8N_HDGC_AD4N_44 | Fan1Tach | Input | Fan header J8 |
+| AD11 | IO_L7P_HDGC_AD5P_44 | Fan2PWM | Output | Fan header J9 |
+| AD10 | IO_L7N_HDGC_AD5N_44 | Fan2Tach | Input | Fan header J9 |
+| AC12 | IO_L6P_HDGC_AD6P_44 | Fan3PWM | Output | Fan header J10 |
+| AD12 | IO_L6N_HDGC_AD6N_44 | Fan3Tach | Input | Fan header J10 |
+| AE12 | IO_L5P_HDGC_AD7P_44 | Fan4PWM | Output | Fan header J17 |
+| AF12 | IO_L5N_HDGC_AD7N_44 | Fan4Tach | Input | Fan header J17 |
+| | | | | |
+| AE10, AF10, AF11, AG10, AG11, AH10, AH11, AH12, AB10, AB9, Y9 | — | *Spare* | — | 12 unassigned pins (includes 1 extra — AB10 is IO_L12P) |
+
+**Assignment notes:**
+- TX/RX pairs use P/N differential pair pins for routing convenience, even though the signals are single-ended 3.3V LVCMOS. TX always on the P pin, RX on the N pin.
+- HDGC (High-Density Global Clock) capable pins are used for LED SPI SCK/CS and fan PWM — these have enhanced clock routing resources in the fabric, useful for the SPI clock and PWM generation.
+- Spare pins on each bank are available for future expansion or debug test points.
+- All signals are 3.3V LVCMOS. VCCO for all four HD banks is `+3V3`.
+
+**Remaining TODO after pin assignment:**
 
 | Item | What to Do |
 | :--- | :--- |
-| PL pin assignment | Assign specific Zynq ball numbers to UART (32 signals), TDMA (5 signals), LED SPI (4 signals) on Banks 24/25/26/44. Fan PWM/Tach (8 signals) and I2S (3 signals) already labeled. Deferred — does not block board bringup. |
-| Backplane connector | Two connectors placed (J13 80-pin, J14 100-pin Samtec MECF). Signal assignment needs verification after PL pin assignment. |
-| Backplane signal conditioning | TVS arrays, series termination resistors (22-ohm on outputs), and pull-up resistors (10k on inputs) still missing. 74LVC244 buffers are placed. |
-| Per-card reset/boot control | Not implemented. Need I2C bus to backplane + PCA9555 expanders per card. |
+| Wire PL_HD sheet | Connect all 51 signals to their assigned Zynq balls on PL_HD.kicad_sch |
+| Backplane connector | Assign J13/J14 connector pins to match the 40 backplane signals |
+| Backplane signal conditioning | Series termination resistors (22Ω on 20 output lines), pullup resistors (10kΩ on 16 UART_RX inputs, 4.7kΩ on I2C SDA/SCL), TVS arrays at connector. 74LVC244 buffers already placed. |
+| Per-card reset/boot control | I2C backplane bus (BP_I2C_SDA/SCL on Bank 44) allocated. PCA9555 expanders go on the compute cards, not the controller. |
 
