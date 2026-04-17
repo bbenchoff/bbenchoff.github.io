@@ -1635,8 +1635,12 @@ The XCZU2EG-2SFVC784I symbol is split into 9 functional units across hierarchica
 | MIO8-9 | UART debug console (FT230XS USB-serial) | Done |
 | MIO10-11 | RTC I2C (DS3231M via PS I2C0) | Done |
 | MIO12 | Available | |
-| MIO13-22 | MicroSD card (SDIO0) | Done |
-| MIO23 | Available | |
+| MIO13-16 | MicroSD SD_DAT[0:3] (SDIO0 Option 0) | Done |
+| MIO17 | Backplane buffer enable (BP_OE_N) | Done |
+| MIO18-20 | Available (freed by SDIO0 Option 0 remap) | |
+| MIO21 | MicroSD SD_CMD (SDIO0 Option 0) | Done |
+| MIO22 | MicroSD SD_CLK (SDIO0 Option 0) | Done |
+| MIO23 | Available (SD BUSPWR unused — slot hardwired to +3V3) | |
 | MIO24-25 | PMIC I2C (TPS6508640 via PS I2C1) | Done |
 | MIO26 | PMIC interrupt (PMIC_IRQ) | Done |
 | MIO27-30 | DisplayPort AUX + HPD | Done |
@@ -1737,7 +1741,22 @@ QSPI flash chip on MIO0-5 holds the FSBL, U-Boot, and the PL bitstream. Part: **
 
 ### SD Card (PS_MIO Sheet)
 
-MicroSD slot on MIO13-22 (SDIO0). Development boot source.
+MicroSD slot on SDIO0, **Option 0 MIO mux** per UG1085 Table 26-11 (p744). Development boot source. 4-bit bus, default speed / high-speed mode (max 50 MHz, 25 MB/s). No UHS-I support, no 1.8V voltage translator — plenty for a boot source.
+
+| SDIO0 Signal | MIO | Zynq Ball |
+| :--- | :--- | :--- |
+| SD_DAT0 | MIO13 | AH18 |
+| SD_DAT1 | MIO14 | AG18 |
+| SD_DAT2 | MIO15 | AE18 |
+| SD_DAT3 | MIO16 | AF18 |
+| SD_CMD | MIO21 | AC21 |
+| SD_CLK | MIO22 | AB20 |
+
+MIO mux options 1 (MIO38-51) and 2 (MIO64-76) were rejected — 1 conflicts with Ethernet RGMII, 2 leaves no room for future growth on bank 503.
+
+Unused optional signals: SD_BUSPWR (MIO23), SD_CDn (MIO24 — also used for PMIC I2C), SD_WPn (MIO25 — also used for PMIC I2C). The µSD receptacle has no CD or WP switches and the slot is hardwired to +3V3, so none are needed.
+
+Series termination: 30Ω 0402 on CLK/CMD/DAT[3:0] near the connector per UG583 §5.5. Pullup: 4.7kΩ on DAT3 for default card-present detection per SD spec.
 
 ### UART Debug Console (PS_MIO Sheet)
 
@@ -2146,15 +2165,85 @@ Signals that are NOT on the backplane (board-internal only): I2S audio (3 signal
 
 Outputs from FPGA to backplane: 20 (16x UART_TX, 1x SPI_MOSI, 1x TDMA_CLK, 1x TDMA_SYNC, 1x BP_I2C_SCL). Inputs to FPGA from backplane: 19 (16x UART_RX, 3x SPI_SCK/MISO/CS). Bidirectional: 1 (BP_I2C_SDA). Every signal is single-ended 3.3V LVCMOS, unidirectional (except I2C SDA), and runs at low speed (≤10 MHz for SPI, 460800 baud for UART).
 
-### Backplane Signal Conditioning (Planned)
+**LED SPI direction:** The Zynq is the SPI slave, the RP2040 on each LED panel is the master (for v-sync alignment — the RP2040 drives SCK on its own frame clock and the Zynq latches the transaction). Signal directions through the 244 buffers follow standard SPI slave conventions:
 
-**Series source termination (Zynq side, output lines only):**
+| Signal | Direction (Zynq POV) | U18 channel (Zynq-side pin) |
+| :--- | :--- | :--- |
+| SCK | Input | bank 2 ch 5 Y (pin 9) |
+| CS | Input | bank 2 ch 6 Y (pin 7) |
+| MOSI | Input | bank 2 ch 7 Y (pin 5) |
+| MISO | Output | bank 1 ch 1 A (pin 2) |
 
-A 22-ohm 0402 resistor in series with every Zynq output, placed within ~5mm of the BGA. This tames the ~1ns LVCMOS edge rates of the HD bank drivers to prevent ringing, overshoot, and EMI from the ribbon cable.
+### J13 Pinout (Complete)
 
-Apply to all output lines: 16x UART_TX, 1x SPI_MOSI, 1x TDMA_CLK, 1x TDMA_SYNC (20 total). Suggested part: RC0402FR-0722RL or equivalent.
+All 60 pins assigned. Signal pins tap the 244 Y outputs (for TX) or A inputs (for RX) directly — TVS arrays tap the same wires near the connector. 19 GND pins and 1 +3V3 pin are interspersed through the IDC for return current quality.
 
-Input lines (UART_RX, SPI_SCK, SPI_MISO, SPI_CS) do not need series termination — the driver is on the other end of the cable. I2C lines (SDA, SCL) use 4.7kΩ pullups instead of series termination.
+| J13 Pin | Signal | | J13 Pin | Signal |
+| :--- | :--- | :--- | :--- | :--- |
+| 1 | LED_SPI_MOSI (RP2040→Zynq) | | 2 | LED_SPI_MISO (Zynq→RP2040) |
+| 3 | LED_SPI_CS (RP2040→Zynq) | | 4 | LED_SPI_SCK (RP2040→Zynq) |
+| 5 | GND | | 6 | GND |
+| 7 | TDMA_CLK | | 8 | GND |
+| 9 | TDMA_SYNC | | 10 | GND |
+| 11 | BP_I2C_SCL | | 12 | BP_I2C_SDA |
+| 13 | UART_TX_0 | | 14 | UART_RX_0 |
+| 15 | UART_TX_1 | | 16 | UART_RX_1 |
+| 17 | GND | | 18 | GND |
+| 19 | UART_TX_2 | | 20 | UART_RX_2 |
+| 21 | UART_TX_3 | | 22 | UART_RX_3 |
+| 23 | GND | | 24 | GND |
+| 25 | UART_TX_7 | | 26 | UART_RX_7 |
+| 27 | UART_TX_6 | | 28 | UART_RX_6 |
+| 29 | GND | | 30 | GND |
+| 31 | UART_TX_5 | | 32 | UART_RX_5 |
+| 33 | UART_TX_4 | | 34 | UART_RX_4 |
+| 35 | GND | | 36 | GND |
+| 37 | UART_TX_8 | | 38 | UART_RX_8 |
+| 39 | UART_TX_9 | | 40 | UART_RX_9 |
+| 41 | GND | | 42 | GND |
+| 43 | UART_TX_10 | | 44 | UART_RX_10 |
+| 45 | UART_TX_11 | | 46 | UART_RX_11 |
+| 47 | GND | | 48 | GND |
+| 49 | UART_TX_15 | | 50 | UART_RX_15 |
+| 51 | UART_TX_14 | | 52 | UART_RX_14 |
+| 53 | GND | | 54 | GND |
+| 55 | UART_TX_13 | | 56 | UART_RX_13 |
+| 57 | UART_TX_12 | | 58 | UART_RX_12 |
+| 59 | GND | | 60 | +3V3 |
+
+Totals: 16 UART_TX (TX0–TX15), 16 UART_RX (RX0–RX15), 4 SPI, 2 TDMA, 2 I2C, 19 GND, 1 +3V3 = 60. All 16 UART channels active; no NC pins.
+
+### Backplane Buffer Chip Assignments
+
+Five 74LVC244APW SSOP-20 chips (LCSC C6079) cover 39 of 40 signals (BP_I2C_SDA bypasses buffers as a bidirectional line). Signal-to-chip mapping:
+
+| Chip | Role | Bank 1 (pins 2/4/6/8 A, pins 18/16/14/12 Y) | Bank 2 (pins 11/13/15/17 A, pins 9/7/5/3 Y) |
+| :--- | :--- | :--- | :--- |
+| U16 | TX 0-7 (Zynq→connector) | A: UART_TX_BUF_0..3 | A: UART_TX_BUF_4..7 |
+| U17 | TX 8-15 (Zynq→connector) | A: UART_TX_BUF_8..11 | A: UART_TX_BUF_12..15 |
+| U18 | Mixed (SPI + TDMA + I2C_SCL) | A-inputs: MISO (pin 2, Zynq→conn), TDMA_CLK (pin 4, Zynq→conn), TDMA_SYNC (pin 6, Zynq→conn), I2C_SCL (pin 8, Zynq→conn) | A-inputs: SCK (pin 11, conn→Zynq), CS (pin 13, conn→Zynq), MOSI (pin 15, conn→Zynq) + pin 17 A tied to GND (spare), pin 3 Y NC |
+| U19 | RX 8-15 (connector→Zynq) | Y: UART_RX_BUF_8..11 | Y: UART_RX_BUF_12..15 |
+| U27 | RX 0-7 (connector→Zynq) | Y: UART_RX_BUF_0..3 | Y: UART_RX_BUF_4..7 |
+
+Both /OE pins (pins 1, 19) on every chip tie to `BP_OE_N` (Zynq MIO17 at ball AC18, held high by R175 10kΩ pullup to +3V3 until software drives low).
+
+### Backplane Signal Conditioning (Implemented)
+
+**Series damping resistors on PL_HD sheet — 36 × 22Ω 0402 (R139–R174):**
+
+- **R139–R154** (16): on UART_TX_BUF_0..15 — between Zynq PL pin and 244 A input. Source termination for Zynq-driven outputs.
+- **R155–R170** (16): on UART_RX_BUF_0..15 — between 244 Y output and Zynq PL pin. Damps the 244 output driver into the short Zynq-side trace; also acts as low-pass with the Zynq input capacitance to slow edge rates and reduce ringing.
+- **R171–R174** (4): on TDMA_CLK, TDMA_SYNC, LED_SPI_MOSI, BP_I2C_SCL — same pattern as UART_TX (Zynq pin → R → 244 A input).
+
+Note: LED_SPI_SCK, LED_SPI_CS, LED_SPI_MISO do **not** have series Rs currently. These are RP2040-driven inputs to Zynq through the 244. Add if ringing shows up at bringup — direct Zynq pin-to-244 Y-output traces currently.
+
+**Pullup resistors on PL_HD sheet — all to +3V3:**
+
+- **19 × 10kΩ 0402:** UART_RX_BUF_0..15 (16), LED_SPI_SCK_BUF, LED_SPI_CS_BUF, LED_SPI_MISO_BUF (3). Keeps all Zynq inputs at a defined idle-high state when the 244 buffers are tri-stated (during FPGA config, reset, or any fault) — per UG583 §5.
+- **2 × 4.7kΩ 0402:** BP_I2C_SDA (direct net), BP_I2C_SCL_BUF (buffered side). Required for I2C bus function.
+- **1 × 10kΩ 0402** (R175): BP_OE_N holds the 244 OE# pins high by default. Tri-states the entire backplane on power-on and any software crash.
+
+Total pullups: 22 resistors. Total backplane signal conditioning resistors (both sheets): 58.
 
 **Layer 2 -- Sacrificial unidirectional buffers (mid-board)**
 
@@ -2162,28 +2251,22 @@ Insert 74LVC244-style octal buffers between the Zynq and the connector. Every ba
 
 Approximate chip count: **5x 74LVC244** already placed on Backplane sheet to cover the 40 backplane signals (40 / 8 = 5). Placed between the Zynq side (after the series resistors) and the connector side (before the TVS arrays). Note: I2C SDA is bidirectional and cannot go through a 244 — it needs a direct connection or a bidirectional buffer.
 
-Tie all OE# pins to a single "system ready" signal driven from a Zynq MIO GPIO (or PS_DONE). This keeps the entire backplane in high-Z during FPGA configuration so cards see clean idle instead of garbage transitions during boot.
+Tie all 10 OE# pins (both banks on each of the 5 chips) to **BP_OE_N** — a dedicated enable signal driven from Zynq **MIO17 (ball AC18, bank 500, 3.3V PSIO)**. A 10kΩ pullup to +3V3 on the BP_OE_N net holds it high by default, keeping the buffers tri-stated through power-on, Zynq boot, PL config, and any software crash. First-boot software drives MIO17 low once the PL bitstream is loaded and the UART IP blocks have initialized, enabling the entire backplane in one write. Re-asserting MIO17 high re-tri-states the backplane (useful for fault handling or card hot-swap).
+
+PS_DONE was considered as the enable source and rejected — it goes *high* when PL config completes, which is the opposite polarity to what an active-low /OE needs. Using PS_DONE directly would enable the buffers during config and disable them after — backwards. Would need an inverter chip. A single MIO GPIO is simpler, software-controllable, and costs only one freed pin (MIO17 came available after the SDIO0 Option 0 remap — see SD Card section).
 
 The buffers serve three purposes:
 - **Sacrificial protection** -- a $0.40 chip absorbs damage instead of a $200 BGA bank
 - **Defined startup state** via OE# control
 - **Higher drive strength** if the ribbon cable is ever lengthened or replaced with something lossier
 
-**Layer 3 -- TVS diode arrays (connector side)**
+**TVS diode arrays (connector side) — placed and wired:**
 
-Place a low-capacitance TVS array on every backplane signal, located within ~3mm of the IDC connector pins so the strike is clamped before it reaches any meaningful trace inductance. Trace length between the strike point and the clamp matters more than the diode response time.
+10x **SRV05-4.TCT** (LCSC C13612, 4-channel common-rail TVS array, SOT-23-6) cover all 40 backplane signals. Ref designators: **U14, U15, U28, U29, U30, U31, U32, U33, U34, U35**.
 
-Suggested part: **TPD4E1B06DCKR** (4-channel, 5pF, 5.5V working voltage) or PESD3V3L4UG. Roughly **10x quad arrays** to cover all 40 signals. Place each array directly under or adjacent to the connector pins it protects.
+Per array: pin 2 (VN) → GND, pin 5 (VP) → +3V3, pins 1/3/4/6 (IO1-4) → 4 signals tapped between the 244 and J13 so the strike is clamped at the connector entry before it reaches meaningful trace inductance. Signal-to-TVS grouping follows physical J13 pin adjacency — each TVS sits close to the 4 connector pins it protects.
 
-**Pull Resistors**
-
-Every input from the backplane should have a 10k-ohm 0402 pull-up to 3.3V, placed on the Zynq side of the buffer:
-
-- **16x UART_RX** -- UART idles high. Pullups prevent noise from being interpreted as a start bit when a card is dead, missing, or in reset.
-- **1x SPI_MISO** -- prevents float when CS is deasserted.
-- **4x FAN_TACH** -- fan tach outputs are open-collector and require external pullups.
-
-Total: 21 pull-up resistors.
+Pick each TVS by observing the 4 nearest J13 signal pins in the layout. Trace length between strike point and clamp matters more than the diode response time, so keep all four IO stubs short (~3mm max).
 
 **Test Points**
 
@@ -2372,8 +2455,12 @@ All major schematic work is complete. The remaining items are PL pin assignment 
 | MIO8-9 | UART debug console (FT230XS USB-serial) | Done |
 | MIO10-11 | RTC I2C (DS3231M via PS I2C0) | Done |
 | MIO12 | Available | |
-| MIO13-22 | MicroSD card (SDIO0) | Done |
-| MIO23 | Available | |
+| MIO13-16 | MicroSD SD_DAT[0:3] (SDIO0 Option 0) | Done |
+| MIO17 | Backplane buffer enable (BP_OE_N) | Done |
+| MIO18-20 | Available (freed by SDIO0 Option 0 remap) | |
+| MIO21 | MicroSD SD_CMD (SDIO0 Option 0) | Done |
+| MIO22 | MicroSD SD_CLK (SDIO0 Option 0) | Done |
+| MIO23 | Available (SD BUSPWR unused) | |
 | MIO24-25 | PMIC I2C (TPS6508640 via PS I2C1) | Done |
 | MIO26 | PMIC interrupt (PMIC_IRQ) | Done |
 | MIO27-30 | DisplayPort AUX + HPD | Done |
@@ -2598,6 +2685,34 @@ A review of UG583 (v1.29) Chapter 5 "PCB Guidelines for the PS Interface in the 
 
 **Errata review (EN285 v1.15):** All errata are software/firmware level. No PCB-level errata affect this design. DDR4 minimum data rate is 1000Mb/s for industrial (I) temp grade — our DDR4-2400 is well above this. Document at `Controller/docs/en285-zynq-ultrascale-plus-errata.pdf`.
 
+**Round 4 — SDIO0 MIO Mapping Audit.** Reviewed Chapter 26 of UG1085 (v2.5), Table 26-11 (p744), to verify SDIO0 MIO assignment. Found that the as-drawn schematic put SD_DAT0..3/CMD/CLK on the wrong MIO pins. All 6 SDIO0 signals remapped to their correct Option 0 MIOs per the silicon mux (DAT0..3 on MIO13-16, CMD on MIO21, CLK on MIO22). The remap freed MIO17-20 in bank 500 for other use. MIO17 was then claimed for `BP_OE_N`, the backplane buffer output enable (see Backplane Connector section). See Task #13 in development log for detailed before/after mapping.
+
+**Round 5 — Backplane Wiring + ERC Cleanup.** After implementing the full backplane signal conditioning (5x 74LVC244 buffers wired, 10x SRV05-4 TVS arrays wired, 58 conditioning resistors placed), ran KiCad ERC. 130 entries surfaced; triaged into four real bugs and ~125 cosmetic/false-positive entries:
+
+| # | Issue | Resolution |
+| :--- | :--- | :--- |
+| 1 | U33 pin 5 (VP / +3V3 rail on one TVS array) floating | **Fixed.** Wired to +3V3 on Backplane sheet. |
+| 2 | Dangling `UART_RX_BUF_6` global label at top-level sheet | **Fixed.** Orphan label removed. |
+| 3 | R184 pin 2 unconnected on PL_HD | **Fixed.** |
+| 4 | `#PWR0323` orphan power symbol on Backplane sheet | **Fixed.** |
+
+**Round 6 — LED SPI Direction Audit.** Noticed that the SPI wiring was inverted for the Zynq-as-slave topology the design calls for. On U18, MOSI had been placed on bank 1 ch 1 (Zynq-drives-connector direction) and MISO on bank 2 ch 7 (connector-drives-Zynq direction) — exactly backwards from what a slave needs. Swapped the two global labels on U18: `LED_SPI_MOSI_BUF` moved to pin 5 (bank 2 2Y1, Zynq-reads direction) and `LED_SPI_MISO_BUF` moved to pin 2 (bank 1 1A1, Zynq-drives direction). R173 now sits on MOSI's Zynq-side receive path (still a valid use — damps the 244 Y-output driver into the Zynq input). Netlist verified: MOSI now flows RP2040→J13 pin 1→U18 pin 15→buffer→pin 5→R173→Zynq AC14 (input); MISO now flows Zynq AC13 (output)→U18 pin 2→buffer→pin 18→J13 pin 2→RP2040. Also noted: MISO (Zynq output) has no 22Ω series R between AC13 and the 244 A input, while the other Zynq outputs on this chip do. Not a blocker; could add if edge ringing shows up at bringup.
+
+Remaining ERC cleanup (cosmetic, do before fab): add NC flags on ~44 spare PL bank pins and ~19 available MIO pins; add `PWR_FLAG` symbols on filtered Zynq power rails (VCC_PSADC, VCC_PSDDR_PLL, PS_MGTRAVCC, PS_MGTRAVTT, VCCADC — ERC can't see through the ferrite beads); add `PWR_FLAG` on VCCO_PSIO0_500, VCCO_PSIO2_502, VCCO_PSDDR_504; add NC flags on unused GTR lanes (PS_MGTREFCLK2N/P, PS_MGTREFCLK3N/P, PS_MGTRRXN1/2, PS_MGTRRXP1/2). Known non-issues that stay: U6 USB3300 VDD1.8 "double-driven" (internal regulator symbol quirk), DDR4 U2/U3 ALERT# open-collector pin type mismatch (library quirk, connection is correct).
+
+**Backplane signal conditioning — final component count (Backplane + PL_HD sheets):**
+
+| Category | Count | Ref range | Notes |
+| :--- | :--- | :--- | :--- |
+| 74LVC244 buffers | 5 | U16, U17, U18, U19, U27 | SSOP-20, LCSC C6079 |
+| SRV05-4 TVS arrays | 10 | U14, U15, U28–U35 | SOT-23-6, LCSC C13612 |
+| HARTING IDC header | 1 | J13 | 60-pin (2x30), 09185606324 |
+| 22Ω series Rs | 36 | R139–R174 | 16 TX + 16 RX + 4 on U18 bank 1 outputs |
+| 10kΩ pullup Rs | 20 | includes R175 (BP_OE_N) | 16 UART_RX + 3 SPI input + 1 OE |
+| 4.7kΩ I2C pullup Rs | 2 | — | BP_I2C_SDA, BP_I2C_SCL_BUF |
+| 100nF 0402 decoupling | 5 | one per 244 | |
+| 10µF 0805 bulk | 1 | — | shared across 244 cluster |
+
 **PL Fabric TODO (deferred — not needed for initial board bringup, needed for hypercube operation)**
 
 The pinout document is at `Controller/docs/xczu2egsfvc784pkg.txt`. Each HD bank has 24 I/O pins available. The errata document (`Controller/docs/en285-zynq-ultrascale-plus-errata.pdf`) was reviewed — no PCB-level errata affect this design; all workarounds are software/firmware.
@@ -2695,12 +2810,15 @@ TDMA and I2C backplane signals assigned to available pins. Fan signals need ball
 - Spare pins on each bank are available for future expansion or debug test points.
 - All signals are 3.3V LVCMOS. VCCO for all four HD banks is `+3V3`.
 
-**Remaining TODO after pin assignment:**
+**Board status: schematic complete — ready for ERC cleanup pass, then layout.**
 
-| Item | What to Do |
+| Item | Status |
 | :--- | :--- |
-| Wire PL_HD sheet | Connect all 51 signals to their assigned Zynq balls on PL_HD.kicad_sch |
-| Backplane connector | Assign J13/J14 connector pins to match the 40 backplane signals |
-| Backplane signal conditioning | Series termination resistors (22Ω on 20 output lines), pullup resistors (10kΩ on 16 UART_RX inputs, 4.7kΩ on I2C SDA/SCL), TVS arrays at connector. 74LVC244 buffers already placed. |
-| Per-card reset/boot control | I2C backplane bus (BP_I2C_SDA/SCL on Bank 44) allocated. PCA9555 expanders go on the compute cards, not the controller. |
+| Wire PL_HD sheet | **Done.** All 51 signals wired to assigned Zynq balls. |
+| Backplane connector | **Done.** J13 pinout locked in (see J13 Pinout table earlier in this document). |
+| Backplane signal conditioning | **Done.** Full count: 36x 22Ω series Rs (R139–R174), 19x 10kΩ pullups + 1x BP_OE_N pullup (R175), 2x 4.7kΩ I2C pullups, 10x SRV05-4 TVS arrays (U14/U15/U28–U35) placed and wired, 5x 244 buffers (U16/U17/U18/U19/U27) wired, 6x decoupling caps placed. |
+| Per-card reset/boot control | **Allocated.** I2C backplane bus (BP_I2C_SDA/SCL on Bank 44) on J13 pins 11 and 12. PCA9555 expanders live on each compute card, not the controller. |
+| UART_TX_0 routing to J13 | **Done.** U16 pin 18 wired to J13 pin 13. All 16 UART channels active. |
+| LED SPI direction fix | **Done.** MOSI/MISO swapped on U18 to correctly reflect Zynq-as-slave topology. Round 6 verification confirmed via netlist. |
+| ERC cleanup pass | **In progress.** 4 real bugs surfaced by first ERC run, all fixed (see Round 5 above). ~125 cosmetic entries remaining — NC flags on spare PL/MIO pins, PWR_FLAGs on filtered Zynq power rails. Re-run ERC after cleanup to confirm zero real errors. |
 
