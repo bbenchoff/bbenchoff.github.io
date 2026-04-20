@@ -226,6 +226,10 @@ To keep the Zynq and the 16-card hypercube cool inside the sealed aluminum chass
 
 The baseline fan is the **Noctua NF-A9 PWM** (92x92x25mm, 2.3 mmH₂O static pressure, 46 CFM, 1.2W). Four fans fit the 30mm depth available on the back interior wall. However, the perforated PVC grille on the back panel and the high-impedance card cage (16 cards at half-inch pitch) may consume most of the Noctua's available static pressure. If testing shows inadequate airflow through the card cage, the drop-in replacement is the **Sanyo Denki San Ace 9GA0912P4G001** (92x92x25mm, 7.8 mmH₂O static pressure, 62 CFM, 14.76W) — 3.4x the static pressure of the Noctua. The tradeoff: four Sanyo Denkis draw 59W total (~50 dBA each), adding significant power and noise. PWM control in the FPGA fabric can keep them at low duty cycle during idle.
 
+A brief lived-experience note on the San Ace: the spec sheet really does not prepare you for it. "50 dBA" is a number on a page; spinning one up on the bench is a different category of experience. A single 9GA at full duty is a shop-vac — four of them in a sealed aluminum chassis is not something you want to sit next to without hearing protection.
+
+The saving grace is that at **10% PWM duty the 9GA is entirely tolerable**, and bench testing shows that 10% through the card cage still provides more than sufficient airflow. The fan has enormous headroom; idle operation uses almost none of it. This is actually better than it sounds, because the PL-enforced fail-safe — fans default to 100% until the R5 PID loop takes over — turns boot into a piece of theater. Power on, all four 9GAs immediately scream up to full duty like a jet on the apron, and then within a second or two of the R5 coming alive, the PID loop drops them to 10% and the room goes quiet. It's an inadvertently great demo moment: the machine announces itself, then settles. If you're going to be that loud on startup, you might as well lean into it.
+
 While the 12V power is provided directly from the main input rail, the control logic is handled by the FPGA fabric. By routing the PWM and Tachometer (Sense) lines to the Programmable Logic, the machine maintains deterministic cooling independent of the Linux kernel state. This allows for a hardware-level "fail-safe" where the fans default to 100% duty cycle if the system monitors detect a thermal runaway or a software hang.
 
 ## Power Supply Architecture
@@ -2698,6 +2702,23 @@ A review of UG583 (v1.29) Chapter 5 "PCB Guidelines for the PS Interface in the 
 | 3 | R184 pin 2 unconnected on PL_HD | **Fixed.** |
 | 4 | `#PWR0323` orphan power symbol on Backplane sheet | **Fixed.** |
 
+**Round 7 — ERC Cleanup.** Iterated on ERC errors across three passes: 130 → 24 → 18 → 13. The final 13 reduce to 4 known-safe library quirks after deleting ~6 misplaced PWR_FLAGs (duplicate stacks, flags on signal pins instead of power rails, flags on LDO outputs instead of inputs). The 4 residual errors are:
+
+| Error | Why safe to ignore |
+| :--- | :--- |
+| DDR4 `U2 ALERT#` pin_to_pin | KiCad library types ALERT# as open-collector while Zynq `PS_DDR_ALERT_N` is typed as output. Topology is correct (single-source, pulled up externally). |
+| DDR4 `U3 ALERT#` pin_to_pin | Same, for second DDR4 chip. |
+| `U6 VDD1.8` pins 15↔26 pin_to_pin | USB3300 datasheet specifies these pins are tied together externally (they're both the chip's internal 1.8V regulator output). Library models them as separate power outputs. |
+| `U6 VDD1.8` pins 26↔29 (VDDA1.8) pin_to_pin | Same — chip has analog and digital 1.8V rails that tie together per datasheet. |
+
+Key lessons from the pass:
+- One `PWR_FLAG` per power net. Not two, not four. Multiple flags create `Power output + Power output` pin_to_pin errors.
+- `PWR_FLAG` goes on rails **entering** the board (from connectors, batteries, external sources), never on LDO/buck/PMIC output pins (those are already typed as power drivers).
+- `PWR_FLAG` never goes on signal pins (I/O, CPEN, etc.) — only on power nets.
+- Orphan `#PWR` symbols accumulate when you delete a wire without also removing the floating power symbol. Hunt them by coordinate in the ERC report.
+
+**Schematic state after Round 7: verified functional, ready for layout.** The 4 residual errors are library-level cosmetic.
+
 **Round 6 — LED SPI Direction Audit.** Noticed that the SPI wiring was inverted for the Zynq-as-slave topology the design calls for. On U18, MOSI had been placed on bank 1 ch 1 (Zynq-drives-connector direction) and MISO on bank 2 ch 7 (connector-drives-Zynq direction) — exactly backwards from what a slave needs. Swapped the two global labels on U18: `LED_SPI_MOSI_BUF` moved to pin 5 (bank 2 2Y1, Zynq-reads direction) and `LED_SPI_MISO_BUF` moved to pin 2 (bank 1 1A1, Zynq-drives direction). R173 now sits on MOSI's Zynq-side receive path (still a valid use — damps the 244 Y-output driver into the Zynq input). Netlist verified: MOSI now flows RP2040→J13 pin 1→U18 pin 15→buffer→pin 5→R173→Zynq AC14 (input); MISO now flows Zynq AC13 (output)→U18 pin 2→buffer→pin 18→J13 pin 2→RP2040. Also noted: MISO (Zynq output) has no 22Ω series R between AC13 and the 244 A input, while the other Zynq outputs on this chip do. Not a blocker; could add if edge ringing shows up at bringup.
 
 Remaining ERC cleanup (cosmetic, do before fab): add NC flags on ~44 spare PL bank pins and ~19 available MIO pins; add `PWR_FLAG` symbols on filtered Zynq power rails (VCC_PSADC, VCC_PSDDR_PLL, PS_MGTRAVCC, PS_MGTRAVTT, VCCADC — ERC can't see through the ferrite beads); add `PWR_FLAG` on VCCO_PSIO0_500, VCCO_PSIO2_502, VCCO_PSDDR_504; add NC flags on unused GTR lanes (PS_MGTREFCLK2N/P, PS_MGTREFCLK3N/P, PS_MGTRRXN1/2, PS_MGTRRXP1/2). Known non-issues that stay: U6 USB3300 VDD1.8 "double-driven" (internal regulator symbol quirk), DDR4 U2/U3 ALERT# open-collector pin type mismatch (library quirk, connection is correct).
@@ -2822,5 +2843,107 @@ TDMA and I2C backplane signals assigned to available pins. Fan signals need ball
 | Per-card reset/boot control | **Allocated.** I2C backplane bus (BP_I2C_SDA/SCL on Bank 44) on J13 pins 11 and 12. PCA9555 expanders live on each compute card, not the controller. |
 | UART_TX_0 routing to J13 | **Done.** U16 pin 18 wired to J13 pin 13. All 16 UART channels active. |
 | LED SPI direction fix | **Done.** MOSI/MISO swapped on U18 to correctly reflect Zynq-as-slave topology. Round 6 verification confirmed via netlist. |
-| ERC cleanup pass | **In progress.** 4 real bugs surfaced by first ERC run, all fixed (see Round 5 above). ~125 cosmetic entries remaining — NC flags on spare PL/MIO pins, PWR_FLAGs on filtered Zynq power rails. Re-run ERC after cleanup to confirm zero real errors. |
+| ERC cleanup pass | **Done (functional).** Three iterations took the count from 130 → 24 → 18 → 13, all circuit-level bugs fixed by Round 5. Remaining 13 reduce to 4 known-safe library quirks once misplaced PWR_FLAGs are cleaned (details in Round 7 above). Schematic is ready for layout. |
+| Schematic state | **Complete.** |
+| Layout | **In progress.** Stackup and net classes defined (see below). Remaining: placement, routing, DRC. |
+
+### PCB Stackup (JLC08161H-2116, 8-layer, impedance-controlled)
+
+Fabricator: **JLCPCB**. Stackup: their standard 8-layer 1.6mm impedance-controlled option, material FR-4 Tg155. Board size: 227mm × 112mm. Eight layers is viable (not generous) for this design because the XCZU2EG BGA is only 23×23mm at 0.8mm pitch, the DDR4 bus is 32-bit (not 72-bit ECC), and only 2 PS-GTR lanes are routed out.
+
+| Layer | Copper | Dielectric below | Thickness | Material | Dk |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| L1 (F.Cu) | 1 oz (35µm) | Prepreg 2116 | 0.1164 mm (4.58 mil) | RC54% | 4.2 |
+| L2 (In1.Cu) | 0.5 oz (15µm) | Core | 0.3 mm (11.81 mil) | 0.3mm H/HOZ | 4.3 |
+| L3 (In2.Cu) | 0.5 oz | Prepreg 1080 × 2 | 0.1528 mm (6.02 mil) | RC67% | 3.9 |
+| L4 (In3.Cu) | 0.5 oz | Core | 0.3 mm | 0.3mm H/HOZ | 4.3 |
+| L5 (In4.Cu) | 0.5 oz | Prepreg 1080 × 2 | 0.1528 mm | RC67% | 3.9 |
+| L6 (In5.Cu) | 0.5 oz | Core | 0.3 mm | 0.3mm H/HOZ | 4.3 |
+| L7 (In6.Cu) | 0.5 oz | Prepreg 2116 | 0.1164 mm | RC54% | 4.2 |
+| L8 (B.Cu) | 1 oz | — | — | — | — |
+
+Total board thickness: 1.6mm ± 10%. Solder mask: green, Dk 3.3, 0.01mm. Finish: to be set (ENIG recommended for the 0.8mm BGA pitch).
+
+### Layer Assignment
+
+```
+L1  SIG  — BGA escape, components, PS-GTR diff pairs, DDR4 DQ/DQS group 1, Ethernet MDI, USB 2.0 diff
+L2  GND  — solid ground plane (reference for L1 and L3)
+L3  SIG  — DDR4 DQ/DQS group 2, DDR4 ADDR/CMD/CTL, PS MIO internal routing
+L4  PWR  — power plane A: +0V85_VCCINT (big island under BGA), +1V2_VDDQ, +0V9_MGTAVCC, +1V2_MGTAVTT, +0V6_VTT, +1V8
+L5  PWR  — power plane B: +3V3 (main spine), +3V3_PSIO, +3V3_NVMe, +5V_USB, +2V5_VPP, +1V8_MGTAVCCAUX, +12V input
+L6  SIG  — backplane routing (40 LVCMOS signals), peripherals, short signals
+L7  GND  — solid ground plane (reference for L6 and L8)
+L8  SIG  — backside decoupling caps, test points, remaining backplane signals
+```
+
+Reference continuity:
+- L1 → L2 (GND, 0.116mm): ideal microstrip reference, used for PS-GTR and DDR4 DQ group 1
+- L3 → L2 (GND, 0.3mm above) and L4 (PWR, 0.15mm below): asymmetric stripline, acceptable for DDR4 if the return path is managed
+- L6 → L5 (PWR above) and L7 (GND below): asymmetric stripline, fine for low-speed signals
+- L8 → L7 (GND, 0.116mm): mirror of L1
+
+### Net Classes and Trace Rules
+
+Impedance targets from the governing specs: UG583 §3 for DDR4, USB-IF for USB 2.0/3.0, PCIe 3.0 for NVMe, DP 1.4 for DisplayPort, IEEE 802.3 for Ethernet. Trace widths computed from JLCPCB's impedance calculator against the JLC08161H-2116 stackup with its published Dk values.
+
+**Single-ended classes:**
+
+| Class | Target Ω | Layer | Trace width (mil) | Trace width (mm) | Clearance (mm) |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| `DDR4_DATA` (DQ, DM) | 40Ω SE | L1 | 11.16 | 0.2835 | 0.152 |
+| `DDR4_ADDR` (ADDR/CMD/CTL) | 40Ω SE | L3 | 10.59 | 0.2690 | 0.152 |
+| `ETH_RGMII` | 50Ω SE | L3 | 6.96 | 0.1768 | 0.152 |
+| `CLK_REF` | 50Ω SE | L1 | 7.34 | 0.1864 | 0.200 |
+| `BACKPLANE_LVCMOS` | 50Ω SE (loose) | L6 | 6.96 | 0.1768 | 0.152 |
+| `Default` | 50Ω SE | L1 | 7.34 | 0.1864 | 0.152 |
+
+**Differential classes (all on L1, outer microstrip with L2 GND reference):**
+
+| Class | Target Ω | Trace width (mil/mm) | Trace gap (mil/mm) | Clearance (mm) |
+| :--- | :--- | :--- | :--- | :--- |
+| `DDR4_CLK` | 80Ω diff | 8.29 / 0.2106 | 6.00 / 0.152 | 0.200 |
+| `DDR4_STROBE` (DQS) | 80Ω diff | 8.29 / 0.2106 | 6.00 / 0.152 | 0.200 |
+| `GTR_85` (USB3, NVMe, MGTREFCLK) | 85Ω diff | 6.97 / 0.1770 | 5.50 / 0.140 | 0.200 |
+| `DP_100` (DisplayPort ML lanes) | 100Ω diff | 4.28 / 0.1087 | 5.00 / 0.127 | 0.200 |
+| `USB2_90` (D+/D-) | 90Ω diff | 5.74 / 0.1458 | 5.00 / 0.127 | 0.200 |
+| `ETH_MDI_100` (Zynq→PHY→RJ45) | 100Ω diff | 4.28 / 0.1087 | 5.00 / 0.127 | 0.200 |
+
+**Power classes:**
+
+| Class | Track width | Via | Notes |
+| :--- | :--- | :--- | :--- |
+| `POWER_SMALL` | 0.300 mm (12 mil) | 0.8/0.4 mm | LDO outputs, low-current rails |
+| `POWER_HIGH` | 0.500+ mm or plane fill | 1.0/0.5 mm | `+0V85_VCCINT`, `+3V3`, `+12V`, `+1V2_VDDQ` — prefer plane fills |
+
+**Note on the 100Ω diff traces (4.28 mil):** narrow but within JLC's 3.5 mil minimum for 1oz outer copper. Watch for solder mask alignment margin during BGA escape near the Zynq. Ethernet MDI pairs are short (few cm total), so impedance tolerance is forgiving — 4.28 mil is fine there. DisplayPort ML lanes route to J5 on the board edge, also short — no issue.
+
+### Length Matching Targets
+
+| Group | Tolerance (±) | Convert to ~mil |
+| :--- | :--- | :--- |
+| DDR4 DQ within byte lane (to its DQS) | 20 ps | ~3 mil |
+| DDR4 DQS pair internal skew | 1 ps | <1 mil |
+| DDR4 ADDR/CMD group | 50 ps | ~7.5 mil |
+| PS-GTR diff pair internal skew | 2 ps | <0.5 mil |
+| Ethernet RGMII TX group (TXD0-3, TX_CTL, TX_CLK) | 50 ps | ~7.5 mil |
+| Ethernet RGMII RX group | 50 ps | ~7.5 mil |
+| USB 3.0 / USB 2.0 diff pair internal skew | 5 ps | ~0.75 mil |
+
+### Routing Priority Order
+
+1. PMIC (IC1) + external FETs (U23/U24/U25) first — anchors power distribution
+2. DDR4 — most constrained, fix topology before placement hardens
+3. PS-GTR diff pairs to J4 (USB-C), J5 (DP), J11 (M.2 NVMe) — tight impedance on outer layer
+4. Ethernet MDI + RGMII
+5. USB 2.0 + ULPI bus
+6. Zynq decoupling caps (48 per AMD AR 000039033)
+7. Backplane signals (40) to J13 — lowest priority, most routing slack
+8. Peripherals (audio, RTC, LDO outputs, fans)
+
+**Open layout questions:**
+
+- Surface finish: **ENIG** recommended for the 0.8mm-pitch Zynq BGA. HASL would be marginal at that pitch.
+- Via sizes: default 0.3mm drill / 0.6mm pad for signals; larger 0.4/0.8 for power vias. JLC minimum is 0.3mm drill / 0.45mm pad (0.15mm annular ring). BGA escape vias can go 0.25/0.5 with JLC's extended DRC but costs extra.
+- Back-drill: not needed at this speed (GTR at 6 Gbps, DDR4 at 2400 MT/s) on a 1.6mm board.
 
