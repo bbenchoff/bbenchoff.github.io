@@ -265,6 +265,74 @@ The Zynq UltraScale+ power-up sequence per Xilinx UG1085:
 
 Violating this order can damage the Zynq. The sequencing is handled by the PMIC or a dedicated sequencer chip that gates each regulator's enable pin in the correct order, with each rail's power-good output triggering the next stage.
 
+### Power Rail Tree
+
+```
++12V (JST VH input, 16 AWG, ~5A)
+│
+├─── IC1 TPS6508640 PMIC (VSYS pin 55)
+│    │
+│    ├─── BUCK2 → +0V85_VCCINT ──→ VCCINT, VCCBRAM, VCC_PSINTFP, VCC_PSINTLP (4.5A typ, 7A peak)
+│    │         [CSD87381P U24, 0.47µH, 6x 22µF out]
+│    │
+│    ├─── BUCK1 → +3V3 ──→ HD bank VCCO, ETH PHY, USB hub/PHY, QSPI, SD, DP, oscillators, buffers
+│    │         [CSD87381P U23, 0.47µH, 6x 22µF out]            (2A typ, 4A peak)
+│    │         │
+│    │         ├─── feeds PVIN3/4/5 (converter inputs)
+│    │         ├─── SWA1 → +3V3_PSIO ──→ MIO banks 500/501 VCCO
+│    │         └─── (pullup source for CTL straps, GPOs, I2C)
+│    │
+│    ├─── BUCK4 → +0V9_MGTAVCC ──→ PS-GTR transceiver analog (0.3A)
+│    │         [0.47µH, 4x 22µF out]
+│    │
+│    ├─── BUCK3 → +1V2_MGTAVTT ──→ PS-GTR transceiver termination
+│    │         [0.47µH, 4x 22µF out]
+│    │
+│    ├─── BUCK5 → +1V8 ──→ VCCAUX, VCC_PSAUX, VCC_PSDDR_PLL (0.8A typ, 1.5A peak)
+│    │         [0.47µH, 4x 22µF out]
+│    │         │
+│    │         ├─── SWB1 → +1V8_MGTAVCCAUX ──→ PS-GTR auxiliary
+│    │         └─── SWB2 → +1V8_SWB2 ──→ (spare)
+│    │
+│    ├─── BUCK6 → +1V2_VDDQ ──→ VCC_PSDDR, DDR4 VDDQ (1.5A typ, 3A peak)
+│    │         [CSD87381P U25, 0.47µH, 4x 22µF out]
+│    │         │
+│    │         └─── VTT LDO → +0V6_VTT ──→ DDR4 fly-by termination (tracks VDDQ/2)
+│    │                   [2x 22µF out]
+│    │
+│    ├─── LDOA1 → +2V5_VPP ──→ DDR4 VPP programming voltage
+│    ├─── LDOA2 → +1V5_LDOA2 ──→ (available)
+│    └─── LDOA3 → +1V2_LDOA3 ──→ (available)
+│
+├─── U20 TPS568215 → +3V3_NVMe ──→ M.2 NVMe (dedicated, 3A spike isolation)
+│         [1.5µH, 4x 22µF out, FB: 45.3k/10k]
+│
+├─── U21 TPS568215 → +5V_USB ──→ USB VBUS, 4 ports × 500mA (1A typ, 2.5A peak)
+│         [1.5µH, 4x 22µF out, FB: 73.2k/10k]
+│
+├─── U22 TPS74801 → +1V1 ──→ TUSB8043A USB hub core (0.3A)
+│         [LDO, fed from +3V3]
+│
+└─── Direct +12V ──→ Fan headers (4× PWM, 1.2W each Noctua / 14.76W each Sanyo Denki)
+```
+
+**Sequencing order (OTP-hardcoded, zero software):**
+
+```
+VSYS > 5.6V
+  └→ BUCK2: +0V85_VCCINT ─── (GPO1: PG) ───→
+     └→ BUCK1: +3V3 ───→
+        ├→ BUCK4: +0V9_MGTAVCC ─── (GPO4: PG) ───→
+        │  └→ BUCK3: +1V2_MGTAVTT (2ms delay)
+        ├→ BUCK5: +1V8 ───→
+        │  └→ SWB1: +1V8_MGTAVCCAUX
+        ├→ SWA1: +3V3_PSIO
+        └→ LDOA1: +2V5_VPP (2ms delay) ───→
+           └→ BUCK6: +1V2_VDDQ ───→
+              └→ VTT LDO: +0V6_VTT ───→
+                 └→ GPO3: PS_POR_B released (75ms) → Zynq boots
+```
+
 ### Regulator Architecture: The TPS6508640 PMIC
 
 The heart of the power supply is a **TI TPS6508640RSKR** (IC1, LCSC C2659217), a configurable multi-rail PMIC designed specifically for Zynq UltraScale+ MPSoCs. The "640" OTP variant is factory-programmed for the Zynq UltraScale+ ZU7-ZU15 range, but all output voltages match the ZU2EG's requirements identically — no I2C reprogramming needed. The PMIC provides 13 output rails from a single chip, with hardcoded power-up sequencing stored in OTP silicon. TI publishes a complete Zynq reference design ([TIDA-01480](https://www.ti.com/tool/TIDA-01480)) using this exact chip.
