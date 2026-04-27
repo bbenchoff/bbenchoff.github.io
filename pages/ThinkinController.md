@@ -1,8 +1,8 @@
 ---
 layout: default
-title: "The Controller Board: A Custom Zynq Linux Host"
-description: "Designing a bare-metal Zynq UltraScale+ front-end to orchestrate a 65,536-core hypercube."
-keywords: ["hardware engineering", "PCB design", "Zynq", "UltraScale+", "DDR4", "FPGA"]
+title: "Bare-metal Zynq UltraScale+ Hypercube Controller"
+description: "Bare-metal Zynq UltraScale+ hypercube front-end"
+keywords: ["FPGA", "PCB", "Zynq", "UltraScale+", "DDR4"]
 author: "Brian Benchoff"
 date: 2024-03-29
 last_modified_at: 2024-03-29
@@ -2845,7 +2845,7 @@ TDMA and I2C backplane signals assigned to available pins. Fan signals need ball
 | LED SPI direction fix | **Done.** MOSI/MISO swapped on U18 to correctly reflect Zynq-as-slave topology. Round 6 verification confirmed via netlist. |
 | ERC cleanup pass | **Done (functional).** Three iterations took the count from 130 → 24 → 18 → 13, all circuit-level bugs fixed by Round 5. Remaining 13 reduce to 4 known-safe library quirks once misplaced PWR_FLAGs are cleaned (details in Round 7 above). Schematic is ready for layout. |
 | Schematic state | **Complete.** |
-| Layout | **In progress.** Stackup and net classes defined (see below). Remaining: placement, routing, DRC. |
+| Layout | **In progress.** Stackup and net classes defined (see below). PMIC schematic complete (two original wiring bugs fixed: U23 BG miswire, BUCK4 inductor topology). PMIC top-layer placement and routing locked. Remaining work tracked in "PMIC Layout Phases" at the end of this document. |
 
 ### PCB Stackup (JLC08161H-2116, 8-layer, impedance-controlled)
 
@@ -2946,4 +2946,59 @@ Impedance targets from the governing specs: UG583 §3 for DDR4, USB-IF for USB 2
 - Surface finish: **ENIG** recommended for the 0.8mm-pitch Zynq BGA. HASL would be marginal at that pitch.
 - Via sizes: default 0.3mm drill / 0.6mm pad for signals; larger 0.4/0.8 for power vias. JLC minimum is 0.3mm drill / 0.45mm pad (0.15mm annular ring). BGA escape vias can go 0.25/0.5 with JLC's extended DRC but costs extra.
 - Back-drill: not needed at this speed (GTR at 6 Gbps, DDR4 at 2400 MT/s) on a 1.6mm board.
+
+### PMIC Layout Phases
+
+Working reference for the TPS6508640 PMIC section layout. Detailed component-by-component guidance lives in `Controller/docs/PMIC_Layout_Guide.md`. SLVUAJ9 (TI design guide) and SLVA734 (TI checklist) drive the rules.
+
+**Done — Phase A: Schematic + Top-Layer Routing**
+
+| Item | Status |
+| :--- | :--- |
+| TPS6508640 schematic, all 6 bucks + 4 LDOs + 3 load switches + VTT LDO | Complete |
+| BUCK4 LX/FB inductor topology bug | Fixed |
+| U23 gate-drive miswire (BG on DRVH1) | Fixed |
+| Boot caps (C88, C79, C97) placed close to IC1 BOOT pins (audit PASS) | Done |
+| Ext FETs (U23, U24, U25) adjacent to IC1 BUCK pins (audit PASS) | Done |
+| Ext-FET inductors (L4, L5, L6) adjacent to FET VSW (audit PASS) | Done |
+| ILIM resistors (R99, R100, R101) close to IC1 (audit PASS) | Done |
+| LDO output bulk caps placed close to LDO output pins | Done |
+| EPAD via stitching under IC1 (≥9 vias) | Done |
+| Top-layer DRVH/SW differential routing pattern | Done |
+| Phase-A audit mitigations (3× 1µF 0402 caps directly across U23/U24/U25 VIN/PGND pads to compensate for distant +12V bulk caps) | Done |
+
+**Open issues from layout audit:**
+- L1, L2, L3 (internal-FET buck inductors for BUCK5/4/3) sit ~8-10mm from IC1 LX pins — accepted given board space constraints, mitigated by L1-layer copper pours on LX nets and short total path
+- C45, C46 (DRV5V bypass caps) at 4.5/3.2mm from IC1 pins 38/8 — minor warning, can be tightened later if convenient
+- C47 (VREF cap) at 4.1mm from IC1 pin 53 — minor warning, will be addressed when AGND island is built
+
+**To Do — Phases B through I**
+
+These phases are tracked in the project task list and walked through in sequence. Each represents a self-contained layout work block.
+
+| Phase | Description | Layer(s) | Notes |
+| :--- | :--- | :--- | :--- |
+| **B1** | `+0V85_VCCINT` filled zone — largest pour on board | L4 | Anchors BUCK2 power delivery to Zynq BGA. Must be drawn before backside caps so they have a destination plane. |
+| **B2** | `+1V2_VDDQ` filled zone | L4 | Between Zynq DDR pin cluster and DDR4 chips. Feeds VCCO_PSDDR_504 + DDR4 VDD pins. |
+| **B3** | Small L4 islands: `+0V9_MGTAVCC`, `+1V2_MGTAVTT`, `+0V6_VTT`, `+1V8` | L4 | 0.2mm clearance between pours. |
+| **C** | L5 power planes: `+3V3` main spine + smaller islands (`+5V_USB`, `+3V3_NVMe`, `+3V3_PSIO`, `+2V5_VPP`, `+1V8_MGTAVCCAUX`, `+12V` from J2) | L5 | Whole-board power spine, can be drawn anytime. |
+| **D** | Move 10µF 0402 caps (C139, C140, C141, C149, C150) to bottom layer (L8/B.Cu) directly under Zynq VCCINT ball clusters | L8 | High-frequency decoupling; AMD AR 000039033 zone (0-1 inch from BGA on backside). Each cap one via straight up to its closest VCCINT ball. Must be done after Phase B1 so vias have a target plane. |
+| **E** | FB/FBVOUT sense traces routed on inner layer L3 with L2 GND shielding | L3 | All 6 buck feedbacks: FBVOUT1, FBVOUT2 + FBGND2 (matched pair), FB3, FB4, FB5, FBVOUT6. Each thin (4-6 mil), via to L3 within 2mm of IC1 pin, route on L3, via back to L1 at center of the corresponding output cap bank. |
+| **F** | PGNDSNS Kelvin traces with L1 GND pour keep-outs | L1 | PGNDSNS1, PGNDSNS2, PGNDSNS6 thin traces from FET PGND corners to IC1 pins 36/6/40, isolated from main GND pour via Rule Areas. **Must be done before final L1 GND pour fill** or the pour will eat the traces. |
+| **G** | AGND island on L1 around C47/IC1 pin 52 | L1 | Small filled zone separate from main GND pour, single-point tie via, isolated from PowerPAD. Holds VREF cap on a clean reference. **Must be done before final L1 GND pour fill.** |
+| **H** | Verify L2 and L7 GND plane integrity | L2, L7 | Check planes are continuous under PMIC area; no signal traces routed through these layers in the PMIC region; no via wall obstructing return current flow. |
+| **I** | Re-run layout audit script | All | Regenerate netlist, parse `Controller.kicad_pcb`, verify all phases applied. Goal: zero fails, ≤3 warnings before considering PMIC complete. |
+
+**Critical interdependencies:**
+1. Phase F (PGNDSNS keep-outs) and Phase G (AGND island) must be done **before** the final L1 GND pour fill — otherwise the pour merges the isolated nets with main GND.
+2. Phase B1 (`+0V85_VCCINT` plane) must be done **before** Phase D (backside caps) — the vias from backside caps need a destination plane on L4.
+3. Phase E (FB sense traces) is independent and can be done in parallel with B/C.
+
+**After PMIC complete:**
+- Move to DDR4 layout (highest constraint, length matching to DQS, fly-by topology)
+- Then PS-GTR diff pairs to J4/J5/J11
+- Then Ethernet, USB 2.0, RGMII
+- Then backplane signals (40 LVCMOS to J13) — most slack, lowest priority
+- Then peripherals (audio, RTC, fans)
+- Final DRC pass and ERC re-run before Gerber export
 
