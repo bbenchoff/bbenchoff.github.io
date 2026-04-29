@@ -2870,8 +2870,8 @@ Total board thickness: 1.6mm ± 10%. Solder mask: green, Dk 3.3, 0.01mm. Finish:
 L1  SIG  — BGA escape, components, PS-GTR diff pairs, DDR4 DQ/DQS group 1, Ethernet MDI, USB 2.0 diff
 L2  GND  — solid ground plane (reference for L1 and L3)
 L3  SIG  — DDR4 DQ/DQS group 2, DDR4 ADDR/CMD/CTL, PS MIO internal routing
-L4  PWR  — power plane A: +0V85_VCCINT (big island under BGA), +1V2_VDDQ, +0V9_MGTAVCC, +1V2_MGTAVTT, +0V6_VTT, +1V8
-L5  PWR  — power plane B: +3V3 (main spine), +3V3_PSIO, +3V3_NVMe, +5V_USB, +2V5_VPP, +1V8_MGTAVCCAUX, +12V input
+L4  PWR  — power plane A: +0V85_VCCINT (big island under BGA), +1V2_VDDQ (between Zynq DDR pin cluster and DDR4 chips), +0V9_MGTAVCC, +1V2_MGTAVTT, +0V6_VTT
+L5  PWR  — power plane B: +3V3 (main spine), +1V8 (distributed pours covering VCCAUX/PSAUX/PSPLL/HP bank VCCO areas, moved from L4 due to +0V85_VCCINT and +1V2_VDDQ blocking BGA areas), +3V3_PSIO, +3V3_NVMe, +5V_USB, +2V5_VPP, +1V8_MGTAVCCAUX, +12V input
 L6  SIG  — backplane routing (40 LVCMOS signals), peripherals, short signals
 L7  GND  — solid ground plane (reference for L6 and L8)
 L8  SIG  — backside decoupling caps, test points, remaining backplane signals
