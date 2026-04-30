@@ -200,6 +200,32 @@ Each MODE pin has a 10k-ohm pull-down resistor; the DIP switch overrides individ
 
 The Zynq has one USB 3.0 controller but no built-in USB 2.0 PHY. Two external chips are required: a **Microchip USB3300-EZK** ULPI PHY for USB 2.0 signaling, and a **TI TUSB8043A** 4-port hub to fan out to four USB-A 3.0 ports on the rear panel. The USB3300 connects to the Zynq via the ULPI bus on MIO52-63, while the SuperSpeed 5 Gbps signal rides PS-GTR Lane 3 from Bank 505 directly into the TUSB8043A's upstream port. The hub then splits both SuperSpeed and High-Speed paths to four downstream USB-A 3.0 connectors, providing full USB 3.0 at 5 Gbps to all four ports. The TUSB8043A requires a 1.1V core supply (provided by a TPS74801 LDO) and a 24 MHz crystal.
 
+**Per-port speed: USB 3.2 Gen 1** (formerly USB 3.1 Gen 1, formerly USB 3.0 — same 5 Gbps standard, three names courtesy of USB-IF). Each of the four USB-A ports supports the full 5 Gbps SuperSpeed signaling and falls back to USB 2.0 (480 Mbps) or USB 1.x for legacy devices.
+
+**Per-port power: up to 8 A shared across all four ports.** The +5V_USB rail is supplied by a dedicated TPS568215 buck converter (U21) capable of 8 A continuous output. There are no per-port overcurrent-protection switches between the buck and the USB-A connectors — the rail is shared directly. Practical implications: a single port can pull up to ~2 A without affecting the rail, four ports can pull a combined 8 A, and there is no per-port shutdown if a device shorts (the entire +5V_USB rail droops, but the rail-level fault doesn't propagate to the rest of the board).
+
+The reasoning: most consumer SBCs limit USB power because they're trying to fit everything (CPU + USB + GPU + I/O) inside a USB-PD power budget. This board has a 12 V / 5 A wall input, so it can afford to dedicate an 8 A buck just to USB. The tradeoff is no per-port granularity, but the use case is a benchtop controller / debugger, not a hub for portable peripherals. If a USB device misbehaves you reset the host, and that's fine.
+
+**Comparison to common Linux SBCs:**
+
+| Board | USB ports | Speed | Total USB power budget |
+| :--- | :--- | :--- | :--- |
+| **This board** | 4× USB 3.2 Gen 1 | **5 Gbps each** | **8 A shared** (40 W) |
+| Raspberry Pi 5 | 2× USB 3.0 + 2× USB 2.0 | 5 Gbps SS / 480 Mbps HS | ~1.6 A combined (8 W) |
+| Raspberry Pi 4 | 2× USB 3.0 + 2× USB 2.0 | 5 Gbps SS / 480 Mbps HS | 1.2 A combined (6 W) |
+| Raspberry Pi 3B+ | 4× USB 2.0 | 480 Mbps | 1.2 A combined (6 W) |
+| BeagleBone Black | 1× USB 2.0 host | 480 Mbps | 0.5 A (2.5 W) |
+| NVIDIA Jetson Nano | 4× USB 3.0 | 5 Gbps each | ~2 A combined (10 W) |
+| NVIDIA Jetson Orin Nano | 4× USB 3.2 Gen 2 | 10 Gbps each | ~3 A combined (15 W) |
+| Rock 5B (RK3588) | 2× USB 3.0 + 2× USB 2.0 | 5 Gbps / 480 Mbps | ~1.5 A combined (7.5 W) |
+| Odroid M1 | 2× USB 3.0 + 2× USB 2.0 | 5 Gbps / 480 Mbps | ~1.2 A combined (6 W) |
+
+**Speed-wise:** matches or beats every consumer SBC except Jetson Orin Nano. Both Pi 4 and Pi 5 share the same 5 Gbps spec; this board's 4× USB 3.0 gives effectively double the parallel SuperSpeed bandwidth available to the host.
+
+**Power-wise:** this board provides 5–7× more USB power budget than typical SBCs. A bus-powered 2.5" HDD draws ~1 A; you can run four of them simultaneously here, where most SBCs choke on the second drive. Useful for debugging tools that draw significant current (logic analyzers, programmers, JTAG dongles, FPGA programmers, USB instruments).
+
+The +5V_USB rail enters at the rear panel, fans out across the 4 USB-A connectors via direct copper (no series fuses, no OCP switches), and returns through the L2 GND plane. PCB trace width sized for 8 A at 1 oz outer copper (~80 mil minimum on the connector-to-buck path).
+
 ## Audio Output
 
 The machine has two independent audio paths: digital audio over DisplayPort, and a dedicated analog output with an internal speaker.
