@@ -86,10 +86,10 @@ Because the Internet is going to compare this to a Raspberry Pi, let's do that n
 
 There are two distinct memory domains in this machine. The entire 4,096-node hypercube possesses a grand total of **32 Megabytes** of distributed SRAM--a mathematically perfect match to the original 1985 CM-1. 
 
-However, the Linux host needs real breathing room. I gave the Zynq 4 Gigabytes of system RAM using two **Micron MT40A1G16TB-062E** DDR4 chips. 
+However, the Linux host needs real breathing room. I gave the Zynq 4 Gigabytes of system RAM using two **SK Hynix H5ANAG6NCJR-XNC** DDR4 chips. Each chip is a 16Gb (1Gb x16) DDR4-3200 die in a JEDEC-standard 96-ball FBGA. The XCZU2EG-2 speed grade caps the Zynq DDR controller at 2400 MT/s, so the Hynix chips run derated -- they're a faster bin than required, but the part is in stock at LCSC (C2960662) and pin-compatible with the JEDEC x16 ballout.
 
 ### Routing the Fly-By Topology
-Because the Zynq requires a 32-bit memory bus to run the OS efficiently, and each Micron chip is 16-bits wide (x16), I had to place two chips side-by-side. 
+Because the Zynq requires a 32-bit memory bus to run the OS efficiently, and each DRAM chip is 16-bits wide (x16), I had to place two chips side-by-side. 
 
 Routing this was a *pain*. 
 
@@ -156,7 +156,7 @@ Here is the exact mathematical breakdown of how the data flows through the XCZU2
 
 | Subsystem | Interface / Protocol | Theoretical Maximum | The Hardware Reality |
 | :--- | :--- | :--- | :--- |
-| **System Memory** | 32-bit DDR4-2400 | **9.6 GB/s** | The SFVC784 package physically lacks the pins for a full 64-bit memory bus. By filling the available 32-bit bus with two 16Gb Micron chips, the dual-core A53 has a massive 4GB memory pool, but bandwidth is strictly capped at ~9.6 Gigabytes per second. |
+| **System Memory** | 32-bit DDR4-2400 | **9.6 GB/s** | The SFVC784 package physically lacks the pins for a full 64-bit memory bus. By filling the available 32-bit bus with two 16Gb SK Hynix chips, the dual-core A53 has a massive 4GB memory pool, but bandwidth is strictly capped at ~9.6 Gigabytes per second. |
 | **High-Speed Transceivers** | PS-GTR (Bank 505) | **4 Total Lanes** | This is the most constrained resource on the board. 2 lanes are burned for the DisplayPort video output. 1 lane is dedicated to the PCIe NVMe slot. The final lane is reserved for USB 3.0 superspeed routing. |
 | **NVMe Storage** | PCIe Gen2 x1 | **500 MB/s** | Because we only have one GTR lane left in the budget, the M.2 slot operates at PCIe Gen2 x1. While 500 Megabytes per second is modest for modern NVMe drives, it completely eclipses the latency and throughput of an SD card for native compiling. |
 | **Hypercube Backplane** | 16x Custom FPGA MACs | **16 Gbps (Aggregate)** | To feed 16 separate compute cards, the Programmable Logic instantiates 16 independent hardware UARTs bypassing the Linux kernel. If each lane runs at 1 Gigabit, the FPGA fabric can blast 16 Gigabits of payload data per second directly into the array. |
@@ -1868,7 +1868,7 @@ MIO27 drives AUX data out through a 100-ohm series resistor, MIO30 reads the ret
 
 ### DDR4 Memory (PS_DDR Sheet)
 
-Two **Micron MT40A1G16TB-062E** chips (U2 and U3) in 96-ball FBGA packages form a 32-bit DDR4-2400 bus. Data lines are point-to-point; address/command/clock lines are fly-by terminated with 39.2-ohm resistor networks to a 0.6V VTT tracking regulator.
+Two **SK Hynix H5ANAG6NCJR-XNC** chips (U2 and U3, LCSC C2960662) in JEDEC 96-ball FBGA packages form a 32-bit DDR4-2400 bus. Each chip is a 16Gb (1Gb x16) DDR4-3200 die, derated to 2400 MT/s by the Zynq controller speed grade. Data lines are point-to-point; address/command/clock lines are fly-by terminated with 39.2-ohm resistor networks to a 0.6V VTT tracking regulator.
 
 **Chip 1 (U2) -- Lower 16 bits, point-to-point:**
 
@@ -2617,7 +2617,7 @@ Filtered pins: VCCADC (P12), VCC_PSDDR_PLL (U16, U18), and VCC_PSADC (Y20) each 
 | Net Name | Voltage | Source | Where It Goes | Sheet |
 | :--- | :--- | :--- | :--- | :--- |
 | `+0V6_VTT` | 0.6V | IC1 VTT LDO (tracks VDDQ/2) | DDR4 fly-by termination resistor network. Terminates the address/command/clock signals at the far end of the fly-by chain after the last DDR4 chip. | PS_DDR |
-| `+2V5_VPP` | 2.5V | IC1 LDOA1 | DDR4 VPP (programming voltage). Required by the DDR4 spec for internal wordline boosting in the DRAM array. Connected to the VPP pin on both MT40A1G16TB chips. | PS_DDR |
+| `+2V5_VPP` | 2.5V | IC1 LDOA1 | DDR4 VPP (programming voltage). Required by the DDR4 spec for internal wordline boosting in the DRAM array. Connected to the VPP pin on both H5ANAG6NCJR chips. | PS_DDR |
 | `+1V8_MGTAVCCAUX` | 1.8V | IC1 SWB1 | PS-GTR transceiver auxiliary supply. Powers the analog auxiliary circuits in the GTR quad (Bank 505). Connects near the GTR reference clock oscillators and transceiver pins. | PS_GTR |
 | `+3V3_NVMe` | 3.3V | U20 TPS568215 | M.2 NVMe connector (J11) 3.3V power pins. Dedicated high-current supply isolated from main `+3V3` to handle 3A write spikes without drooping the peripheral rail. | PS_GTR |
 | `+5V_USB` | 5.0V | U21 TPS568215 | USB-A VBUS pins on all four USB ports (J4, J12, and two others). This is bus power for plugged-in USB devices per the USB spec. No chip on the board runs at 5V — this is purely for external devices. | PS_GTR |
@@ -2939,7 +2939,7 @@ TDMA and I2C backplane signals assigned to available pins. Fan signals need ball
 | LED SPI direction fix | **Done.** MOSI/MISO swapped on U18 to correctly reflect Zynq-as-slave topology. Round 6 verification confirmed via netlist. |
 | ERC cleanup pass | **Done (functional).** Three iterations took the count from 130 → 24 → 18 → 13, all circuit-level bugs fixed by Round 5. Remaining 13 reduce to 4 known-safe library quirks once misplaced PWR_FLAGs are cleaned (details in Round 7 above). Schematic is ready for layout. |
 | Schematic state | **Complete.** |
-| Layout | **In progress.** Stackup and net classes defined (see below). PMIC schematic complete (two original wiring bugs fixed: U23 BG miswire, BUCK4 inductor topology). PMIC top-layer placement and routing locked. Remaining work tracked in "PMIC Layout Phases" at the end of this document. |
+| Layout | **PMIC complete. DDR4 in progress.** PMIC: schematic done with two original wiring bugs fixed (U23 BG miswire, BUCK4 inductor topology). Full layout done. DDR4: BGA breakouts done on both chips, ACC fly-by U2-U3 routed with termination resistors on B.Cu (using the via that taps U2's ball — no "past last chip" stub), CK pair routed end-to-end (Zynq → U3 → U2) at 59.4471 mm with 25 nm P/N skew. ACC control signals (ACT#, BA0/1, BG0, PAR, CS#, ODT, CKE, RESET#, ALERT#) all routed and length-matched to CK. All 4 DQS pair lengths measured. Routing tracker spreadsheet built in `Controller/docs/`. **Pending:** 17 address signals (A0-A16), DQS pair `+/-` rename, 36 DQ/DM signals (4 byte lanes), per-byte length tuning, VTT pour. |
 
 ### PCB Stackup (JLC08161H-2116, 8-layer, impedance-controlled)
 
@@ -3061,38 +3061,172 @@ Working reference for the TPS6508640 PMIC section layout. Detailed component-by-
 | Top-layer DRVH/SW differential routing pattern | Done |
 | Phase-A audit mitigations (3× 1µF 0402 caps directly across U23/U24/U25 VIN/PGND pads to compensate for distant +12V bulk caps) | Done |
 
-**Open issues from layout audit:**
+**Open issues from layout audit (accepted with mitigation):**
 - L1, L2, L3 (internal-FET buck inductors for BUCK5/4/3) sit ~8-10mm from IC1 LX pins — accepted given board space constraints, mitigated by L1-layer copper pours on LX nets and short total path
-- C45, C46 (DRV5V bypass caps) at 4.5/3.2mm from IC1 pins 38/8 — minor warning, can be tightened later if convenient
-- C47 (VREF cap) at 4.1mm from IC1 pin 53 — minor warning, will be addressed when AGND island is built
+- C45, C46 (DRV5V bypass caps) at 4.5/3.2mm from IC1 pins 38/8 — minor warning, kept as-is
+- C47 (VREF cap) at 4.1mm from IC1 pin 53 — addressed via AGND island isolation (Phase G)
+- +12V bulk caps 5-9mm from FET VINs — accepted; mitigated by 3× 1µF 0402 caps (C129, C130, + existing) placed across each FET's VIN/PGND pads (Phase A). Hot-loop containment achieved.
 
-**To Do — Phases B through I**
+**Done — Phases B through I**
 
-These phases are tracked in the project task list and walked through in sequence. Each represents a self-contained layout work block.
+All phases closed out. Each represents a self-contained layout work block.
 
-| Phase | Description | Layer(s) | Notes |
+| Phase | Description | Layer(s) | Status |
 | :--- | :--- | :--- | :--- |
-| **B1** | `+0V85_VCCINT` filled zone — largest pour on board | L4 | Anchors BUCK2 power delivery to Zynq BGA. Must be drawn before backside caps so they have a destination plane. |
-| **B2** | `+1V2_VDDQ` filled zone | L4 | Between Zynq DDR pin cluster and DDR4 chips. Feeds VCCO_PSDDR_504 + DDR4 VDD pins. |
-| **B3** | Small L4 islands: `+0V9_MGTAVCC`, `+1V2_MGTAVTT`, `+0V6_VTT`, `+1V8` | L4 | 0.2mm clearance between pours. |
-| **C** | L5 power planes: `+3V3` main spine + smaller islands (`+5V_USB`, `+3V3_NVMe`, `+3V3_PSIO`, `+2V5_VPP`, `+1V8_MGTAVCCAUX`, `+12V` from J2) | L5 | Whole-board power spine, can be drawn anytime. |
-| **D** | Move 10µF 0402 caps (C139, C140, C141, C149, C150) to bottom layer (L8/B.Cu) directly under Zynq VCCINT ball clusters | L8 | High-frequency decoupling; AMD AR 000039033 zone (0-1 inch from BGA on backside). Each cap one via straight up to its closest VCCINT ball. Must be done after Phase B1 so vias have a target plane. |
-| **E** | FB/FBVOUT sense traces routed on inner layer L3 with L2 GND shielding | L3 | All 6 buck feedbacks: FBVOUT1, FBVOUT2 + FBGND2 (matched pair), FB3, FB4, FB5, FBVOUT6. Each thin (4-6 mil), via to L3 within 2mm of IC1 pin, route on L3, via back to L1 at center of the corresponding output cap bank. |
-| **F** | PGNDSNS Kelvin traces with L1 GND pour keep-outs | L1 | PGNDSNS1, PGNDSNS2, PGNDSNS6 thin traces from FET PGND corners to IC1 pins 36/6/40, isolated from main GND pour via Rule Areas. **Must be done before final L1 GND pour fill** or the pour will eat the traces. |
-| **G** | AGND island on L1 around C47/IC1 pin 52 | L1 | Small filled zone separate from main GND pour, single-point tie via, isolated from PowerPAD. Holds VREF cap on a clean reference. **Must be done before final L1 GND pour fill.** |
-| **H** | Verify L2 and L7 GND plane integrity | L2, L7 | Check planes are continuous under PMIC area; no signal traces routed through these layers in the PMIC region; no via wall obstructing return current flow. |
-| **I** | Re-run layout audit script | All | Regenerate netlist, parse `Controller.kicad_pcb`, verify all phases applied. Goal: zero fails, ≤3 warnings before considering PMIC complete. |
+| **B1** | `+0V85_VCCINT` filled zone — largest pour on board | L4 (In3.Cu) | ✓ Done. Pour spans BUCK2 output → Zynq BGA covering all 42 VCCINT-domain balls. |
+| **B2** | `+1V2_VDDQ` filled zone | L4 | ✓ Done. Long corridor pour between BUCK6 output, Zynq VCCO_PSDDR balls, DDR4 chip VDD pins, and IC1 PVINVTT (pin 46). |
+| **B3** | Small L4 islands: `+0V9_MGTAVCC`, `+1V2_MGTAVTT` | L4 | ✓ Done. `+1V8` moved to L5 due to scattered ball positions blocking other L4 pours. `+0V6_VTT` deferred until DDR4 termination resistor placement. |
+| **C** | L5 power planes: `+12V` (J2 → all bucks), `+1V8` (BUCK5 + scattered Zynq pins, multi-polygon), `+3V3` main spine, `+3V3_PSIO` (multi-polygon with L1 bridging), `+5V_USB` (on B.Cu — best location given USB-A connector geometry), `+3V3_NVMe` (split F.Cu + B.Cu — power supply on back, M.2 connector on front), `+1V8_MGTAVCCAUX` (small spare island) | L5 (In4.Cu), partial B.Cu | ✓ Done. `+2V5_VPP` is a trace down to DDR4 chips for now; final pour deferred to DDR4 layout phase. |
+| **D** | Move 10µF 0402 backside caps under Zynq BGA on B.Cu (16 caps) | L8 / B.Cu | ✓ Done. C139, C140, C141, C145, C146, C147, C148, C149, C150, C153, C155, C156, C157, C160, C161, C162 all on B.Cu under their respective ball clusters per AMD AR 000039033 zones. |
+| **E** | FB/FBVOUT sense traces routed on inner layer L3 with L2 GND shielding | L3 (In2.Cu) | ✓ Done. All 6 buck feedbacks routed via L3: FBVOUT1, FBVOUT2 + FBGND2 (matched pair for 15A VCCINT Kelvin sense), FB3, FB4, FB5, FBVOUT6. |
+| **F** | PGNDSNS Kelvin traces with L1 GND pour keep-outs | L1 | ✓ Done. PGNDSNS1, PGNDSNS2, PGNDSNS6 routed as thin traces from FET PGND corners to IC1 pins 36/6/40, with keep-out rule areas preventing GND pour merge. |
+| **G** | AGND island on L1 around C47/IC1 pin 52 | L1 | ✓ Done. Isolated copper island enclosing both AGND pin and C47 GND pad, single-point via tie to L2 GND plane. |
+| **H** | Verify L2 and L7 GND plane integrity | L2 (In1.Cu), L7 (In6.Cu) | ✓ Done. Both ground planes solid under the PMIC area, no splits, only via cutouts. |
+| **I** | Re-run layout audit | All | ✓ Done. All major power planes verified on correct layers. 16 backside caps confirmed on B.Cu. Phase A FET-VIN bypass mitigation caps (C129, C130, plus existing) all within 2.5mm of FET VIN pins. Hot-loop pours present on L1 (SW1/SW2/SW6, LX3/LX4/LX5). |
 
-**Critical interdependencies:**
-1. Phase F (PGNDSNS keep-outs) and Phase G (AGND island) must be done **before** the final L1 GND pour fill — otherwise the pour merges the isolated nets with main GND.
-2. Phase B1 (`+0V85_VCCINT` plane) must be done **before** Phase D (backside caps) — the vias from backside caps need a destination plane on L4.
-3. Phase E (FB sense traces) is independent and can be done in parallel with B/C.
+**Schematic-level adjustments made during layout:**
+- HD bank VCCO sub-nets (`+3V3_VCCO_24/25/26/44`) merged into parent `+3V3` net during layout — no per-bank filtering needed for this design.
+- `+3V3_PSIO` sub-nets (`+3V3_PSIO_VCCO_PSIO0_500/501/503`) similarly handled with multi-polygon distribution all on parent `+3V3_PSIO` net.
+- Filtered analog rails (VCC_PSDDR_PLL, VCC_PSADC, VCCADC) preserved as ferrite-bead-isolated sub-nets, with backside 10µF caps placed on the filtered output side (not directly on +1V8).
+- Phase A mitigation: 3× 1µF 0402 caps (C129, C130, plus existing) added at U23/U24/U25 VIN/PGND pads to compensate for distant +12V bulk caps. Hot-loop containment achieved despite suboptimal main +12V cap placement.
+
+**TPS568215 secondary bucks (separate from PMIC):**
+- U20 (NVMe 3.3V): placed near J11 M.2 NVMe slot, output pour split F.Cu + B.Cu due to mechanical layout
+- U21 (USB VBUS 5V): placed near USB hub U5, output pour on B.Cu reaching all 4 USB-A connectors
 
 **After PMIC complete:**
-- Move to DDR4 layout (highest constraint, length matching to DQS, fly-by topology)
+- Move to DDR4 layout (highest constraint, length matching to DQS, fly-by topology) — **in progress**
 - Then PS-GTR diff pairs to J4/J5/J11
 - Then Ethernet, USB 2.0, RGMII
 - Then backplane signals (40 LVCMOS to J13) — most slack, lowest priority
 - Then peripherals (audio, RTC, fans)
 - Final DRC pass and ERC re-run before Gerber export
+
+### DDR4 Layout Phases
+
+**Topology:** 32-bit fly-by. Two H5ANAG6NCJR-XNC (U2, U3) placed side-by-side at the same Y (X = 127.6 / 141.8 mm, ~14.2 mm chip-to-chip). Zynq U1 sits to the right of U3 at X = 163.5 mm, so the fly-by direction is **Zynq → U3 (near drop) → U2 (far drop) → termination**. Address/command/control + CK pair fly-by from Zynq through both chips. DQ is point-to-point per byte lane: BYTE_0/1 → U2 (lower/upper byte), BYTE_2/3 → U3.
+
+**Constraint changes for DDR4 BGA escape:**
+
+The PMIC-era constraints couldn't fit the DDR4 BGA escape pattern. Adjustments:
+
+| Constraint | Before | After |
+| :--- | :---: | :---: |
+| `min_hole_clearance` (drill-to-other-copper) | 0.25 mm | **0.20 mm** |
+| `min_hole_to_hole` | 0.25 mm | **0.20 mm** |
+| `min_via_diameter` | 0.50 mm | **0.45 mm** |
+| DDR4 net class clearance | 6 mil | **5 mil** |
+
+The hole-to-copper clearance was the killer: at 10 mil, each via punched a 23.6 mil void in nearby copper, which prevented diff pairs from fitting between BGA escape vias on inner layers.
+
+**Net classes (impedance-matched widths from JLCPCB calculator):**
+
+| Class | Track width | Diff gap | Via pad / drill | Clearance | Target Z₀ |
+| :--- | :---: | :---: | :---: | :---: | :---: |
+| DDR4_DATA | 11.2 mil (0.284 mm) | — | 0.45 / 0.20 mm | 5 mil | 40Ω SE |
+| DDR4_ADDR | 10.6 mil (0.269 mm) | — | 0.45 / 0.20 mm | 5 mil | 40Ω SE |
+| DDR4_CLK | 8.3 mil (0.211 mm) | 6 mil | 0.45 / 0.20 mm | 5 mil | ~85Ω diff |
+| DDR4_STROBE | 8.3 mil | 6 mil | 0.45 / 0.20 mm | 5 mil | ~85Ω diff |
+
+**BGA escape strategy:**
+
+Cadence-style diagonal dogbones with **staggered Y vias** so each escape via lands at a unique Y on the inner layer. This pre-spreads signals into separate horizontal lanes before they hit the chip-to-chip channel — avoids the "10 traces wanting to share one Y on L3" problem.
+
+For tight pinch points (between via voids on inner layer), diff pairs neck down to **4 mil width / 4 mil gap** for the short under-BGA section, then widen back to impedance-matched 8.3/6 in the channel.
+
+**Routing tracker:**
+
+Built `Controller/docs/DDR_Routing_Tracker.xlsx` to manage all 73 DDR signals through routing. Columns: Net, Group, Signal_Type, Zynq_Ball, DDR_Chip, DDR_Ball, Net_Class, Target_Layer, Target_Length_mm, Actual_Length_mm, Skew, Status, Notes, In_Spec.
+
+Features:
+- **Status dropdown** (TODO → BREAKOUT → ROUTED → TUNED → VERIFIED) with conditional color coding
+- **Target_Layer dropdown** with all 8 KiCad layer names, auto-color matching the F.Cu/In*.Cu/B.Cu palette
+- **Target column** auto-pulls from the byte lane's DQS_T length (or CK length for ACC) via direct cell references
+- **Skew column** computes Actual − Target
+- **In_Spec** lights green/red against per-group tolerance (±0.05 mm CLK/DQS pair, ±0.13 mm byte lane, ±0.64 mm ACC)
+- **Summary sheet** with status counts, OK/FAIL counts, max abs skew, % complete
+
+Companion `DDR_Routing_Tracker.md` documents length-match rules from UG863, fly-by quirk handling, and how to extract trace lengths from KiCad's Net Inspector.
+
+**ACC fly-by (U2 ↔ U3) — Done**
+
+All 27 ACC signals (17 addr + 4 bank/ACT/PAR + 5 control) routed straight across the chip-to-chip channel on **In2.Cu (L3)** at 10.6 mil width. Stair-step Y jogs accommodate rows with up to 6 ACC pins per row (worst case is row P with 6 signals). Termination at the far end of the fly-by with 27× 0402 resistors to +0V6_VTT.
+
+**Termination on B.Cu — the nice trick:**
+
+Rather than routing each ACC trace past U2 to a termination resistor cluster on F.Cu, the termination R sits on **B.Cu directly under U2's address-side balls**. Each ACC signal's via-at-U2-ball is already a full-stack via (since we're not using blind/buried). The trace exits the via on B.Cu, runs ~1-2 mm to a 0402 termination R, and the other R pad lands on a +0V6_VTT pour also on B.Cu. Result: ~2-3 mm post-U2 stub including via barrel, no need to route past U2, all 27 termination R clustered in one zone on B.Cu.
+
+**CK pair (Zynq → U3 → U2) — Done, tuned**
+
+| | |
+| :--- | :--- |
+| Total length | **59.4471 mm** (from Zynq DDR pin through both chips to far-end termination on B.Cu) |
+| Layer | **In6.Cu (L7)** |
+| Width / gap | 8.3 mil / 6 mil on long sections, 4 mil / 4 mil through BGA escape |
+| P/N skew | **25 nm** (KiCad floating-point noise — effectively zero) |
+| Diff pair recognition | KiCad's diff pair tools require `+`/`-` suffix, so `DDR_CK` / `DDR_CK#` renamed to **`DDR_CK+` / `DDR_CK-`** |
+
+L7 is a GND plane in the stackup, so routing CK on it cuts copper from the plane in those locations. To preserve return-current continuity for signals on adjacent layers (L6/L8) that reference L7 GND, **GND stitching vias flank the CK pair every ~5 mm** along the route.
+
+**ACC control signals — Done, length-matched to CK**
+
+Routed and tuned to 59.4471 mm with ±0.064 mm worst-case skew (well inside ±0.64 mm ACC tolerance):
+
+| Signal | Status |
+| :--- | :--- |
+| ACT# | Length-matched to CK |
+| BA0, BA1 | Length-matched to CK |
+| BG0 | Length-matched to CK (+0.0636 mm skew, in spec) |
+| PAR | Length-matched to CK |
+| CS#, ODT, CKE | Length-matched to CK |
+| RESET#, ALERT# | Routed but not length-matched — both are async signals, no tight timing relationship to CK. Spreadsheet treats them as "N/A" not FAIL. |
+
+**17 address signals (A0-A16) — Pending**
+
+Same workflow as control signals: route from Zynq → U3 → U2 → B.Cu termination, length-match to CK = 59.4471 mm at ±25 mil. The DDR4 spec allows A0-A13 to be freely swapped to optimize routing; A14-A16 cannot (encoded as WE#/CAS#/RAS# during ACT command).
+
+**Layer naming gotcha**
+
+KiCad's `In*.Cu` labels do not line up with physical layer numbers in a way that matches intuition. In this stackup:
+
+| KiCad name | Physical layer | Role | What's routed here |
+| :--- | :---: | :--- | :--- |
+| F.Cu | L1 | Signal | top-side components |
+| In1.Cu | L2 | GND plane | (no signals) |
+| **In2.Cu** | **L3** | Signal | **DQS pairs** |
+| In3.Cu | L4 | Power plane | (no signals) |
+| In4.Cu | L5 | Power plane | (no signals) |
+| **In5.Cu** | **L6** | Signal | **ACC traces** |
+| **In6.Cu** | **L7** | GND plane | **CK pair (cuts plane, stitched)** |
+| B.Cu | L8 | Signal | bottom-side termination R + USB/NVMe rails |
+
+**DQS pair lengths measured (4 byte lanes):**
+
+All 4 byte lanes routed on **In2.Cu (L3)**. DQS pair lengths recorded in the tracker as the per-byte-lane reference for DQ matching:
+
+| Byte lane | DQS pair | Length | Reference target for |
+| :--- | :--- | :---: | :--- |
+| BYTE_0 | U2_LDQS+ / U2_LDQS- | 38.3749 mm | DQ0-7 + LDM (8+1 signals on U2 lower byte) |
+| BYTE_1 | U2_UDQS+ / U2_UDQS- | 33.3516 mm | DQ8-15 + UDM (8+1 on U2 upper byte) |
+| BYTE_2 | U3_LDQS+ / U3_LDQS- | 28.5788 mm | DQ16-23 + LDM (8+1 on U3 lower byte) |
+| BYTE_3 | U3_UDQS+ / U3_UDQS- | 22.2273 mm | DQ24-31 + UDM (8+1 on U3 upper byte) |
+
+Byte-to-byte spread is ~5 mm (~30 ps in PCB) which is well inside the byte-to-byte tolerance (~±100-200 ps per UG863). Each byte lane gets its own target length; they don't need to match each other tightly — only DQ-to-DQS within each byte (±0.13 mm).
+
+**Routing tracker workflow notes**
+
+The tracker auto-pulls Target_Length_mm from the byte lane's DQS_T length (or CK length for ACC) using direct cell references. **Originally used VLOOKUP**, but LibreOffice interprets `+` as a regex quantifier by default, breaking lookups against renamed nets like `DDR_CK+`. Switched to absolute cell references (`=$J$46` etc.) to avoid the issue. If using LibreOffice, also disable wildcards/regex in Tools → Options → Calculate as a belt-and-suspenders fix.
+
+During length tuning, the term R should be temporarily disconnected from each trace to get clean drop-length measurements. With term R connected, Net Inspector reports total net length = drop + post-U2 stub, and stub-length variations (1-2 mm) can exceed the ±25 mil ACC tolerance. Project setting `use_height_for_length_calcs: true` is required so via barrel length counts in tuning calculations.
+
+**Pending DDR4 work:**
+
+- A0-A16 (17 address signals, fly-by, target 59.4471 mm, ±0.64 mm)
+- DQS pair rename in schematic (`U2_LDQS` → `U2_LDQS+`, etc.) for KiCad diff pair recognition
+- DQS pair P/N skew tuning (±0.05 mm tolerance, hotkey `9` in KiCad)
+- BYTE_0 / BYTE_1 / BYTE_2 / BYTE_3 DQ routing (32 DQ + 4 DM = 36 signals, point-to-point Zynq ↔ DDR chip)
+- Per-byte DQ length tuning to its DQS reference (±0.13 mm tolerance)
+- +0V6_VTT pour completion on B.Cu around U2's termination R cluster
+- GND stitching via perimeter around the VTT pour
+- Final DDR DRC pass before moving to PS-GTR
 
