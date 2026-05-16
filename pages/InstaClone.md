@@ -36,11 +36,59 @@ The reason this matters isn't because REST APIs are exciting — they're not —
 
 The Apple II part is the killer. Colin had already written the QuickTake serial protocol code (in 6502 assembly, optimized to within an inch of its life — [he wrote about that too](https://www.colino.net/wordpress/en/archives/2025/09/28/optimizing-a-6502-image-decoder-from-70-minutes-to-1-minute/)). His client needed somewhere to upload photos, and we ended up emailing back and forth about the API while I added the features his client needed.
 
-**The server now accepts native Apple QuickTake `.qtk` raw files directly**. The Apple II doesn't have to decode the proprietary RADC compression locally — it just transfers the bytes, and the server decodes them via LibRaw (which inherited its QuickTake decoder from dcraw, written by Dave Coffin starting in 1997). A 1995 camera, a 1996 file format, a 1996-era computer, and a 2022 Django site, all in the same upload flow. Each one doing the thing it's best at.
+**The server now accepts native Apple QuickTake `.qtk` raw files directly**. The Apple II doesn't have to decode the proprietary RADC compression locally — it just transfers the bytes, and the server decodes them. A 1995 camera, a 1996 file format, a 1996-era computer, and a 2022 Django site, all in the same upload flow. Each one doing the thing it's best at.
 
-### What it's NOT
+### Writing a pure-Python QuickTake decoder
 
-It's not trying to be Instagram. Well, it _is_, just in a, "if Len, of Steal My Sunshine fame, announced their new album _You Can't Stop The Bum Rush_ on Instagram." The grid is anonymous on purpose,  you don't see who took which photo until you click through to the post page. There's no algorithm. There's no "like" button. There's no view counter. In 1999, those ideas had yet to be invented by the people who would make the world terrible. There's a feed and there are individual photos. That's it.
+This project began in 2022, before a small but noticeable resurgence in the use of the Apple QuickTake 100 and QuickTake 150 cameras. These cameras do not write .JPEGs; they were made before JPEG was standardized. In 2022 there were very few software projects to decode QT100 and QT150 images, but during a small update to 640by480 in 2026, significant advances had been made. It was now possible to support uploads of raw QuickTake files.
+
+There are two variants behind two magic bytes at file offset 0:
+
+- `qktk` — QuickTake 100 (1994). Gradient-step predictive coding.
+- `qktn` — QuickTake 150 (1995). RADC Huffman coding with a piecewise-linear tone curve.
+
+(QuickTake 200, 1997, writes standard JPEGs. Pillow already handles those.)
+
+Both use a Bayer GRBG mosaic, both encode at 640×480 or 320×240, and both have headers that are mostly thumbnail metadata. The actual compressed bit stream starts at an offset that libgphoto2's source says is `0x2E0`, which is true for some files and wrong for others — the real rule is "12 bytes after the *second* qktk/qktn marker in the header region." I `rfind`'d for it and moved on. The other little gotcha: the header field libgphoto2 calls `WH_OFFSET` doesn't store (width, height). It stores (short axis, long axis). Landscape images look fine; portrait images come back transposed if you don't notice.
+
+I verified the decoder by running it against `rawpy.raw_image` (LibRaw's pre-demosaic Bayer mosaic) across the corpus. Per-pixel mosaic correlation 0.70–0.97. The mosaic was correct. Then I started on color.
+
+#### The color science is the hard part
+
+A Bayer mosaic of a single color channel per pixel, bilinearly demosaiced, is not a photograph. It's a grayscale-looking thing with hints of color. The whole reason LibRaw exists is the rest of the pipeline: white balance, the camera→sRGB color matrix, the gamma curve, the auto-bright stretch. dcraw embeds Dave Coffin's measured Apple QuickTake cam→XYZ matrix — nine numbers in 1/10000ths — and that, plus the standard sRGB primaries, is what reproduces LibRaw's output.
+
+I knew that. I didn't do it first. I tried, instead, every dumber thing:
+
+- **Full row-normalized matrix without WB**: heavy green cast.
+- **Matrix plus a daylight WB I computed from the matrix itself**: heavy pink cast.
+- **HSV saturation amplification (`PIL.ImageEnhance.Color` at 4×)**: visually OK, no color casts, completely wrong colorimetrically. 
+
+The recipe was straightforward. Take Coffin's matrix, multiply by the sRGB→XYZ primaries to get camera-RGB-from-sRGB, row-normalize, take the pseudoinverse to get the matrix you apply to demosaiced pixels. The inverse of each row's sum *is* the daylight WB multiplier the matrix bakes in. After that: WB, demosaic, matrix, BT.709 gamma, a 1% auto-bright stretch. That is exactly what dcraw's `convert_to_rgb` + `gamma_curve` do in C. My first pass landed at 0.907 mean Pearson correlation against rawpy across 26 random files.
+
+0.907 is decent but visibly off. My outputs were systematically brighter than LibRaw's, especially midtones. I instrumented every step. Mosaic looked fine. Matrix looked fine. Auto-bright was scaling things *down*, which made no sense if my values were already too bright.
+
+The bug was in the qtkn decoder. RADC outputs feed through a piecewise-linear tone curve that produces 14-bit values in `[0, 16383]`. dcraw stores those 14-bit values. I had written:
+
+```python
+v = curve[tmp[i] & 0xFFFF] >> 4
+out[i] = 0 if v < 0 else 255 if v > 255 else v
+```
+
+`>> 4` brings 16-bit down to 12-bit, and then I clipped to 8-bit. Half of every QuickTake 150's tonal range was getting thrown away — every midtone above about 25% of scene-white was getting pinned at 255. Auto-bright dutifully scaled things to compensate, and the whole image came out hot.
+
+The fix was: don't.
+
+```python
+out[i] = 0 if v < 0 else 16383 if v > 16383 else v
+```
+
+Return uint16. Let the color pipeline normalize by the actual sensor white level. Correlation jumped from 0.907 to **0.966 mean / 0.976 median** in one diff. The green channel, which the curve touches the hardest, went from 0.943 to **0.996** mean. The qtkt path was already 8-bit-native by design (Coffin clips the predictor that way in dcraw, too) and didn't need this fix.
+
+The decoder is one file: [`posts/image_formats/_pure_decoder.py`](https://github.com/bbenchoff/640by480/blob/main/posts/image_formats/_pure_decoder.py), about 550 lines. The Pillow plugin shim that registers `.qtk` as a first-class image type is another 60. If somebody wanted to package the whole thing as `pillow-quicktake` on PyPI, almost everything they'd need is sitting in that file.
+
+### What 640by480 is NOT
+
+It's not trying to be Instagram. Well, it _is_, just in a, "if Len, of Steal My Sunshine fame, announced their new album _You Can't Stop The Bum Rush_ on Instagram kind of way".  The grid is anonymous on purpose,  you don't see who took which photo until you click through to the post page. There's no algorithm. There's no "like" button. There's no view counter. In 1999, those ideas had yet to be invented by the people who would make the world terrible. There's a feed and there are individual photos. That's it.
 
 It's also not trying to scale. SQLite. One server. No CDN. If it ever gets popular enough to break, that's a *me* problem and I'll deal with it. The point of the site is to exist quietly and persistently for the small group of people who care about this exact niche.
 
